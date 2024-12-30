@@ -27,9 +27,6 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-# Jetbrains
-*.idea
-
 ### IntelliJ IDEA ###
 *.iws
 *.iml
@@ -44,4 +41,23 @@ hs_err_pid*
 # svelte
 **/node_modules
 **/dist
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
 
