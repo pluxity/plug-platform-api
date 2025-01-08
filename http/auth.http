@@ -1,0 +1,37 @@
+### Post Request
+# @no-cookie-jar
+POST {{domain}}/auth/sign-up
+Content-Type: application/json
+
+{
+  "username": "user45",
+  "password": "test123",
+  "name": "홍길동",
+  "code": "1234"
+}
+
+
+
+### 로그인
+POST {{domain}}/auth/sign-in
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "test123"
+}
+
+> {%
+    client.global.set("access-token", response.body.result.accessToken);
+    client.global.set("refresh-token", response.body.result.refreshToken);
+%}
+
+### 리프레쉬 토큰
+POST {{domain}}/auth/refresh-token
+Content-Type: application/json
+Authorization: Bearer {{refresh-token}}
+
+> {%
+    client.global.set("access-token", response.body.result.accessToken);
+    client.global.set("refresh-token", response.body.result.refreshToken);
+%}

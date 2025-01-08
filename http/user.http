@@ -1,0 +1,35 @@
+### 관리자 기능 사용자 조회
+GET {{domain}}/admin/users
+Authorization: Bearer {{access-token}}
+
+### 관리자 기능 사용자 전체
+GET {{domain}}/admin/users
+Authorization: Bearer {{access-token}}
+
+### 관리자 기능 사용자 정보
+GET {{domain}}/admin/users/1
+Authorization: Bearer {{access-token}}
+
+### 관리자 기능 사용자 정보 수정
+PATCH {{domain}}/admin/users/1
+Content-Type: application/json
+Authorization: Bearer {{access-token}}
+
+{
+    "name": "홍길동 수정",
+    "code": "1234"
+}
+
+### 사용자 정보
+GET {{domain}}/users/me
+Authorization: Bearer {{access-token}}
+
+### 사용자 정보 수정
+PUT {{domain}}/users/me
+Content-Type: application/json
+Authorization: Bearer {{access-token}}
+
+{
+  "name": "사용자",
+  "code": "1234"
+}
