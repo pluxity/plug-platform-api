@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,14 +79,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean authenticationRequired(HttpServletRequest request) {
-        var path = request.getRequestURI();
-        NoAuthenticationPath[] values = NoAuthenticationPath.values();
-        for (NoAuthenticationPath value : values) {
-            if (path.matches("^/" + value.getPath() + ".*")) {
-                return false;
-            }
-        }
-
-        return true;
+        return Arrays.stream(NoAuthenticationPath.values())
+                .noneMatch(noAuthPath -> request.getRequestURI().contains(noAuthPath.getPath()));
     }
 }
