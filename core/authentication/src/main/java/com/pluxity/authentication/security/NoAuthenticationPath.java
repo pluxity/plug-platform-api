@@ -3,8 +3,8 @@ package com.pluxity.authentication.security;
 public enum NoAuthenticationPath {
     AUTH("auth"),
     ACTUATOR("actuator"),
-    APIDOC("api-docs"),
-    SWAGGER("swagger");
+    SWAGGER_UI("swagger-ui"),
+    API_DOCS("api-docs");
 
     private final String path;
 

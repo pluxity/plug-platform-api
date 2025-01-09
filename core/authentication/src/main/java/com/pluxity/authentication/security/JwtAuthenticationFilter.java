@@ -79,7 +79,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean authenticationRequired(HttpServletRequest request) {
+        String path = request.getRequestURI();
         return Arrays.stream(NoAuthenticationPath.values())
-                .noneMatch(noAuthPath -> request.getRequestURI().contains(noAuthPath.getPath()));
+                .noneMatch(noAuthPath -> path.startsWith("/" + noAuthPath.getPath()));
     }
 }
+
+
