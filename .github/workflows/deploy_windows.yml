@@ -40,12 +40,12 @@ jobs:
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.WINDOWS_SERVER_SSH_KEY }}" > ~/.ssh/pluxity
+          echo "${{secrets.WINDOWS_SERVER_SSH_KEY}}" > ~/.ssh/pluxity
           chmod 600 ~/.ssh/pluxity
 
       - name: Test SSH connection with debug
         run: |
-          ssh -v -o StrictHostKeyChecking=no ${{ secrets.WINDOWS_SERVER_USER }}@${{ secrets.WINDOWS_SERVER_HOST }} echo "Debugging SSH"
+          ssh -v -o StrictHostKeyChecking=no ${{secrets.WINDOWS_SERVER_USER}}@${{secrets.WINDOWS_SERVER_HOST}} echo "Debugging SSH"
 
       - name: Deploy to Windows Server
         run: |
