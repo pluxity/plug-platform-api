@@ -40,8 +40,8 @@ jobs:
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.WINDOWS_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.WINDOWS_SERVER_SSH_KEY }}" > ~/.ssh/pluxity
+          chmod 600 ~/.ssh/pluxity
 
       - name: Deploy to Windows Server
         run: |
