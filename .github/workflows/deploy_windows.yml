@@ -43,9 +43,12 @@ jobs:
           echo "${{ secrets.WINDOWS_SERVER_SSH_KEY }}" > ~/.ssh/pluxity
           chmod 600 ~/.ssh/pluxity
 
+      - name: Test SSH connection with debug
+        run: |
+          ssh -v -o StrictHostKeyChecking=no ${{ secrets.WINDOWS_SERVER_USER }}@${{ secrets.WINDOWS_SERVER_HOST }} echo "Debugging SSH"
+
       - name: Deploy to Windows Server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.WINDOWS_SERVER_USER }}@${{ secrets.WINDOWS_SERVER_HOST }} << 'EOF'
           docker pull plug-platform-api:latest
           docker stop plug-platform-api || true
           docker rm plug-platform-api || true
