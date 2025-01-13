@@ -37,11 +37,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{secrets.WINDOWS_SERVER_SSH_KEY}}" > ~/.ssh/pluxity
-          chmod 600 ~/.ssh/pluxity
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.WINDOWS_SERVER_SSH_KEY }}
 
       - name: Test SSH connection with debug
         run: |
