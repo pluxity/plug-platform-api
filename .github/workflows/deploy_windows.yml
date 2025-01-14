@@ -33,23 +33,27 @@ jobs:
 
   deploy:
     name: 개발서버 배포
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.WINDOWS_SERVER_SSH_KEY }}" > ~/.ssh/pluxity
-          chmod 600 ~/.ssh/pluxity
+          echo "${{ secrets.WINDOWS_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
+          
+      - name: Debug SSH connection
+        run: |
+          echo "Testing SSH connection with verbose output..."
+          ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.WINDOWS_SERVER_USER }}@${{ secrets.WINDOWS_SERVER_HOST }} "echo 'SSH connection test'"
 
       - name: Deploy to Windows Server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.WINDOWS_SERVER_USER }}@${{ secrets.WINDOWS_SERVER_HOST }} << 'EOF'
-          docker pull plug-platform-api:latest
-          docker stop plug-platform-api || true
-          docker rm plug-platform-api || true
-          docker run -d --name plug-platform-api -p 18080:8080 plug-platform-api:latest
-          EOF
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.WINDOWS_SERVER_USER }}@${{ secrets.WINDOWS_SERVER_HOST }} "
+            docker pull ${{ secrets.DOCKER_USERNAME }}/plug-platform-api:latest
+            docker stop plug-platform-api || true
+            docker rm plug-platform-api || true
+            docker run -d --name plug-platform-api -p 18080:8080 ${{ secrets.DOCKER_USERNAME }}/plug-platform-api:latest
+          "
