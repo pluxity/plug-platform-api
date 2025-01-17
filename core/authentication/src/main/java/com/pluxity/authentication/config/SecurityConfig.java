@@ -38,7 +38,6 @@ public class SecurityConfig {
                                                 "/swagger-config/**",
                                                 "/actuator/**")
                                         .permitAll())
-                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET).permitAll())
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

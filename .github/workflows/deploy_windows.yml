@@ -52,8 +52,8 @@ jobs:
       - name: Deploy to Windows Server
         run: |
           ssh -vvv -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.WINDOWS_SERVER_USER }}@${{ secrets.WINDOWS_SERVER_HOST }} "
-            docker pull ${{ secrets.DOCKER_USERNAME }}/plug-platform-api:latest
-            docker stop plug-platform-api || true
-            docker rm plug-platform-api || true
-            docker run -d --name plug-platform-api -p 18080:8080 ${{ secrets.DOCKER_USERNAME }}/plug-platform-api:latest
+          docker pull ${{ secrets.DOCKER_USERNAME }}/plug-platform-api:latest
+          docker stop plug-platform-api
+          docker rm plug-platform-api
+          docker run -d --name plug-platform-api -p 18080:8080 ${{ secrets.DOCKER_USERNAME }}/plug-platform-api:latest
           "
