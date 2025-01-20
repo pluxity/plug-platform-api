@@ -3,30 +3,35 @@ plugins {
     id("org.springframework.boot") version "3.4.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.diffplug.spotless") version "6.21.0"
-
+    id("org.asciidoctor.jvm.convert") version "3.3.2"
 }
 
 bootJar { enabled = false }
 
-test {
-    useJUnitPlatform()
+allprojects {
+    tasks.withType(JavaExec) {
+        jvmArgs += ['--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED']
+    }
 }
 
 subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'org.asciidoctor.jvm.convert'
 
-    setGroup('com.pluxity')
-    setVersion('1.0.0')
+    group = 'com.pluxity'
+    version = '1.0.0'
 
     java {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    apply plugin: 'java'
-    apply plugin: 'java-library'
-    apply plugin: 'org.springframework.boot'
-    apply plugin: 'io.spring.dependency-management'
-    apply plugin: 'com.diffplug.spotless'
+    repositories {
+        mavenCentral()
+    }
 
     configurations {
         compileOnly {
@@ -34,56 +39,115 @@ subprojects {
         }
     }
 
-    repositories {
-        mavenCentral()
-    }
-
     dependencies {
+        // Spring Boot
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-        implementation('org.springframework.boot:spring-boot-starter-data-jpa')
-        implementation('org.springframework.boot:spring-boot-starter-web')
-        implementation('org.springframework.boot:spring-boot-starter-validation')
-        implementation('org.springframework.boot:spring-boot-starter')
+        // Database
+        runtimeOnly 'com.h2database:h2'
+        runtimeOnly 'com.mysql:mysql-connector-j'
 
-        runtimeOnly('com.h2database:h2')
-        runtimeOnly('com.mysql:mysql-connector-j')
+        // Lombok
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        testImplementation 'org.projectlombok:lombok'
 
-        compileOnly('org.projectlombok:lombok')
+        // Test
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.mockito:mockito-core'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 
-        annotationProcessor('org.projectlombok:lombok')
-
-        testImplementation('org.projectlombok:lombok')
-
-        testImplementation('org.mockito:mockito-core')
-        testImplementation('org.springframework.boot:spring-boot-starter-test')
-        testImplementation('org.springframework.restdocs:spring-restdocs-mockmvc')
-        testImplementation('org.junit.jupiter:junit-jupiter-api')
-
-        testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine')
+        // Spring REST Docs
+        testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+        testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.18.2'
+        testImplementation 'com.epages:restdocs-api-spec:0.18.2'
     }
 
     test {
         useJUnitPlatform()
     }
 
+    ext {
+        snippetsDir = file("build/generated-snippets")
+    }
+
+    test {
+        outputs.dir snippetsDir
+        useJUnitPlatform()
+    }
+
+    task generateApiDocs(dependsOn: test) {
+        doLast {
+            def templateFile = rootProject.file('core/src/main/resources/templates/api-docs-template.adoc')
+            def targetDir = file('src/docs/asciidoc')
+            def moduleName = project.name.capitalize()
+
+            if (!targetDir.exists()) {
+                targetDir.mkdirs()
+            }
+
+            def apiDocs = new StringBuilder()
+            def snippetsPath = snippetsDir.absolutePath
+            def snippetsDir = new File(snippetsPath)
+
+            if (snippetsDir.exists()) {
+                snippetsDir.eachDir { dir ->
+                    def endpoint = dir.name
+                    apiDocs.append("\n[[${endpoint}]]\n")
+                    apiDocs.append("== ${endpoint.capitalize()} API\n\n")
+
+                    if (new File(dir, 'http-request.adoc').exists()) {
+                        apiDocs.append("=== Request Example\n")
+                        apiDocs.append("include::{snippets}/${endpoint}/http-request.adoc[]\n\n")
+                    }
+
+                    if (new File(dir, 'http-response.adoc').exists()) {
+                        apiDocs.append("=== Response Example\n")
+                        apiDocs.append("include::{snippets}/${endpoint}/http-response.adoc[]\n\n")
+                    }
+
+                    if (new File(dir, 'response-fields.adoc').exists()) {
+                        apiDocs.append("=== Response Fields\n")
+                        apiDocs.append("include::{snippets}/${endpoint}/response-fields.adoc[]\n\n")
+                    }
+                }
+            }
+
+            def template = templateFile.text
+            def content = template
+                    .replace('${moduleName}', moduleName)
+                    .replace('${generatedApiDocs}', apiDocs.toString())
+
+            new File(targetDir, 'api-docs.adoc').text = content
+        }
+    }
+
+    asciidoctor {
+        inputs.dir snippetsDir
+        sourceDir = file('src/docs/asciidoc')
+        outputDir = file('build/docs/asciidoc')
+        options doctype: 'book', backend: 'html5'
+        attributes = [
+                snippets: snippetsDir,
+                'source-highlighter': 'highlight.js',
+                'toc': 'left',
+                'toclevels': '2',
+                'sectlinks': ''
+        ]
+
+        onlyIf {
+            snippetsDir.exists()
+        }
+
+        dependsOn generateApiDocs
+    }
+
     bootJar {
         enabled = false
     }
 
-    spotless {
-        java {
-            target fileTree(dir: 'src/main/java', include: '**/*.java')
-            removeUnusedImports()
-            googleJavaFormat()
-
-            indentWithTabs(2)
-            indentWithSpaces(4)
-            trimTrailingWhitespace()
-            endWithNewline()
-        }
-    }
-}
-
-repositories {
-    mavenCentral()
+    jar { enabled = true }
 }

@@ -1,5 +1,6 @@
 package com.pluxity.building.service;
 
+import com.pluxity.building.dto.BuildingResponseDto;
 import com.pluxity.building.repository.BuildingRepository;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,8 @@ public class BuildingService {
         this.buildingRepository = buildingRepository;
     }
 
-    public String getBuilding() {
-        return "Building";
+    public BuildingResponseDto getBuilding() {
+        // TODO: Implement actual building retrieval logic
+        return new BuildingResponseDto("Sample Building", "B001", "Sample Address");
     }
 }
