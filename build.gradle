@@ -4,6 +4,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("com.diffplug.spotless") version "6.21.0"
     id("org.asciidoctor.jvm.convert") version "3.3.2"
+    id("com.epages.restdocs-api-spec") version "0.18.2"
 }
 
 bootJar { enabled = false }
@@ -20,6 +21,7 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'com.diffplug.spotless'
     apply plugin: 'org.asciidoctor.jvm.convert'
+    apply plugin: 'com.epages.restdocs-api-spec'
 
     group = 'com.pluxity'
     version = '1.0.0'
@@ -31,12 +33,18 @@ subprojects {
 
     repositories {
         mavenCentral()
+        gradlePluginPortal()
     }
 
     configurations {
         compileOnly {
             extendsFrom annotationProcessor
         }
+    }
+
+    ext {
+        snippetsDir = file("build/generated-snippets")
+        swaggerUiDir = rootProject.file("project-a/src/main/resources/static/swagger-ui")
     }
 
     dependencies {
@@ -68,15 +76,8 @@ subprojects {
 
     test {
         useJUnitPlatform()
-    }
-
-    ext {
-        snippetsDir = file("build/generated-snippets")
-    }
-
-    test {
         outputs.dir snippetsDir
-        useJUnitPlatform()
+        systemProperty 'org.springframework.restdocs.outputDir', snippetsDir
     }
 
     task generateApiDocs(dependsOn: test) {
@@ -125,6 +126,21 @@ subprojects {
         }
     }
 
+    openapi3 {
+        server = 'http://localhost:8080'
+        title = "${project.name.capitalize()} API"
+        description = "${project.name.capitalize()} REST API Documentation"
+        version = '1.0.0'
+        format = 'yaml'
+    }
+
+    tasks.register('copyOasToSwaggerUi', Copy) {
+        dependsOn tasks.named('openapi3')
+        from layout.buildDirectory.file("api-spec/openapi3.yaml")
+        into swaggerUiDir
+        rename { "${project.name}-api.yaml" }
+    }
+
     asciidoctor {
         inputs.dir snippetsDir
         sourceDir = file('src/docs/asciidoc')
@@ -143,6 +159,7 @@ subprojects {
         }
 
         dependsOn generateApiDocs
+        finalizedBy tasks.named('copyOasToSwaggerUi')
     }
 
     bootJar {
@@ -150,4 +167,48 @@ subprojects {
     }
 
     jar { enabled = true }
+}
+
+task updateSwaggerInitializer {
+    doLast {
+        def swaggerUiDir = file("project-a/src/main/resources/static/swagger-ui")
+        def apiSpecs = []
+        
+        swaggerUiDir.listFiles().each { file ->
+            if (file.name.endsWith('-api.yaml')) {
+                def moduleName = file.name.replace('-api.yaml', '')
+                apiSpecs << [
+                    name: "${moduleName.capitalize()} API",
+                    url: "/swagger-ui/${file.name}"
+                ]
+            }
+        }
+
+        def initializerContent = """window.onload = function() {
+          window.ui = SwaggerUIBundle({
+            urls: ${groovy.json.JsonOutput.toJson(apiSpecs)},
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+              SwaggerUIBundle.presets.apis,
+              SwaggerUIStandalonePreset
+            ],
+            plugins: [
+              SwaggerUIBundle.plugins.DownloadUrl
+            ],
+            layout: "StandaloneLayout",
+            defaultModelsExpandDepth: -1,
+            displayRequestDuration: true,
+            filter: true
+          });
+        };
+        """
+        new File(swaggerUiDir, 'swagger-initializer.js').text = initializerContent
+    }
+}
+
+project(':core').subprojects {
+    tasks.named('copyOasToSwaggerUi').configure {
+        finalizedBy rootProject.tasks.named('updateSwaggerInitializer')
+    }
 }
