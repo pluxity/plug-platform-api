@@ -40,6 +40,19 @@ subprojects {
         swaggerUiDir = rootProject.file("project-a/src/main/resources/static/swagger-ui")
     }
 
+    spotless {
+        java {
+            target fileTree(dir: 'src/main/java', include: '**/*.java')
+            removeUnusedImports()
+            googleJavaFormat()
+
+            indentWithTabs(2)
+            indentWithSpaces(4)
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
+
     dependencies {
         // Spring Boot
         implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -76,7 +89,7 @@ subprojects {
     task generateApiDocs(dependsOn: test) {
         doLast {
             def templateFile = rootProject.file('core/src/main/resources/templates/api-docs-template.adoc')
-            def targetDir = file('src/docs/asciidoc')
+            def targetDir = file('build/generated-docs/asciidoc')
             def moduleName = project.name.capitalize()
 
             if (!targetDir.exists()) {
@@ -121,7 +134,7 @@ subprojects {
 
     asciidoctor {
         inputs.dir snippetsDir
-        sourceDir = file('src/docs/asciidoc')
+        sourceDir = file('build/generated-docs/asciidoc')
         outputDir = file('build/docs/asciidoc')
         options doctype: 'book', backend: 'html5'
         attributes = [
@@ -237,7 +250,20 @@ task generateAllDocs {
     }
 }
 
-// Non-core 프로젝트들의 classes 태스크 이후에 문서 생성
+// Non-core 프로젝트들의 bootJar 태스크 전에 문서 생성
+subprojects.findAll { !it.path.startsWith(':core') }.each { project ->
+    project.tasks.findByName('bootJar')?.dependsOn(generateAllDocs)
+    
+    // bootJar 태스크에 문서 복사 설정 추가
+    project.tasks.findByName('bootJar')?.doFirst {
+        copy {
+            from "${project.buildDir}/resources/main/static"
+            into "${project.buildDir}/resources/main/BOOT-INF/classes/static"
+        }
+    }
+}
+
+// 기존 classes 태스크 의존성 제거 (bootJar로 이동)
 subprojects.findAll { !it.path.startsWith(':core') }.each { project ->
     project.tasks.findByName('classes')?.finalizedBy(generateAllDocs)
 }

@@ -11,9 +11,6 @@ public class TestControllerA {
 
     @GetMapping("/testA/test")
     public TestAResponse test() {
-        return TestAResponse.builder()
-                .name("testA")
-                .code("A")
-                .build();
+        return TestAResponse.builder().name("testA").code("A").build();
     }
 }
