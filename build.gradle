@@ -8,13 +8,6 @@ plugins {
 }
 
 bootJar { enabled = false }
-
-allprojects {
-    tasks.withType(JavaExec) {
-        jvmArgs += ['--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED']
-    }
-}
-
 subprojects {
     apply plugin: 'java-library'
     apply plugin: 'org.springframework.boot'
@@ -126,32 +119,17 @@ subprojects {
         }
     }
 
-    openapi3 {
-        server = 'http://localhost:8080'
-        title = "${project.name.capitalize()} API"
-        description = "${project.name.capitalize()} REST API Documentation"
-        version = '1.0.0'
-        format = 'yaml'
-    }
-
-    tasks.register('copyOasToSwaggerUi', Copy) {
-        dependsOn tasks.named('openapi3')
-        from layout.buildDirectory.file("api-spec/openapi3.yaml")
-        into swaggerUiDir
-        rename { "${project.name}-api.yaml" }
-    }
-
     asciidoctor {
         inputs.dir snippetsDir
         sourceDir = file('src/docs/asciidoc')
         outputDir = file('build/docs/asciidoc')
         options doctype: 'book', backend: 'html5'
         attributes = [
-                snippets: snippetsDir,
+                snippets            : snippetsDir,
                 'source-highlighter': 'highlight.js',
-                'toc': 'left',
-                'toclevels': '2',
-                'sectlinks': ''
+                'toc'               : 'left',
+                'toclevels'         : '2',
+                'sectlinks'         : ''
         ]
 
         onlyIf {
@@ -159,7 +137,6 @@ subprojects {
         }
 
         dependsOn generateApiDocs
-        finalizedBy tasks.named('copyOasToSwaggerUi')
     }
 
     bootJar {
@@ -169,46 +146,98 @@ subprojects {
     jar { enabled = true }
 }
 
-task updateSwaggerInitializer {
-    doLast {
-        def swaggerUiDir = file("project-a/src/main/resources/static/swagger-ui")
-        def apiSpecs = []
-        
-        swaggerUiDir.listFiles().each { file ->
-            if (file.name.endsWith('-api.yaml')) {
-                def moduleName = file.name.replace('-api.yaml', '')
-                apiSpecs << [
-                    name: "${moduleName.capitalize()} API",
-                    url: "/swagger-ui/${file.name}"
-                ]
-            }
-        }
+task generateAllDocs {
+    group = 'documentation'
+    description = 'Generates and aggregates API documentation for all projects'
 
-        def initializerContent = """window.onload = function() {
-          window.ui = SwaggerUIBundle({
-            urls: ${groovy.json.JsonOutput.toJson(apiSpecs)},
-            dom_id: '#swagger-ui',
-            deepLinking: true,
-            presets: [
-              SwaggerUIBundle.presets.apis,
-              SwaggerUIStandalonePreset
-            ],
-            plugins: [
-              SwaggerUIBundle.plugins.DownloadUrl
-            ],
-            layout: "StandaloneLayout",
-            defaultModelsExpandDepth: -1,
-            displayRequestDuration: true,
-            filter: true
-          });
-        };
-        """
-        new File(swaggerUiDir, 'swagger-initializer.js').text = initializerContent
+    // Core 프로젝트와 Non-core 프로젝트의 asciidoctor 태스크에 대한 의존성 추가
+    allprojects { project ->
+        def asciidoctorTask = project.tasks.findByName('asciidoctor')
+        if (asciidoctorTask) {
+            dependsOn asciidoctorTask
+        }
+    }
+
+    doLast {
+        // Non-core 프로젝트들의 문서 디렉토리 생성 및 의존성 문서 복사
+        subprojects.findAll { !it.path.startsWith(':core') }.each { project ->
+            def docsDir = project.file("build/resources/main/static/docs")
+            docsDir.mkdirs()
+
+            // 프로젝트의 의존성 중 core 모듈 찾기
+            project.configurations.implementation.dependencies
+                    .findAll { it instanceof ProjectDependency }
+                    .each { dependency ->
+                        def depProject = dependency.dependencyProject
+                        if (depProject.path.startsWith(':core')) {
+                            def sourceDocsDir = depProject.file("build/docs/asciidoc")
+                            if (sourceDocsDir.exists()) {
+                                copy {
+                                    from sourceDocsDir
+                                    into "${docsDir}/${depProject.name}"
+                                }
+                            }
+                        }
+                    }
+
+            // 프로젝트 자체의 API 문서 복사
+            def projectDocsDir = project.file("build/docs/asciidoc")
+            if (projectDocsDir.exists()) {
+                copy {
+                    from projectDocsDir
+                    into "${docsDir}/${project.name}"
+                }
+            }
+
+            // 인덱스 페이지 생성
+            def indexContent = """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>API Documentation</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .nav-item { margin: 10px 0; }
+                        a { color: #007bff; text-decoration: none; }
+                        a:hover { text-decoration: underline; }
+                    </style>
+                </head>
+                <body>
+                    <h1>API Documentation</h1>
+                    <div class="nav-container">
+                """
+            // 프로젝트 자체의 API 문서 링크 추가
+            if (projectDocsDir.exists()) {
+                indexContent += """
+                <div class="nav-item">
+                    <a href="/docs/${project.name}/api-docs.html">${project.name.capitalize()} API Documentation</a>
+                </div>"""
+            }
+
+            // 의존성 기반 문서 링크 추가
+            project.configurations.implementation.dependencies
+                    .findAll { it instanceof ProjectDependency }
+                    .each { dependency ->
+                        def depProject = dependency.dependencyProject
+                        if (depProject.path.startsWith(':core')) {
+                            indexContent += """
+                            <div class="nav-item">
+                                <a href="/docs/${depProject.name}/api-docs.html">${depProject.name.capitalize()} API Documentation</a>
+                            </div>"""
+                        }
+                    }
+
+            indexContent += """
+            </div>
+            </body>
+            </html>
+            """
+            project.file("build/resources/main/static/docs/index.html").write(indexContent)
+        }
     }
 }
 
-project(':core').subprojects {
-    tasks.named('copyOasToSwaggerUi').configure {
-        finalizedBy rootProject.tasks.named('updateSwaggerInitializer')
-    }
+// Non-core 프로젝트들의 classes 태스크 이후에 문서 생성
+subprojects.findAll { !it.path.startsWith(':core') }.each { project ->
+    project.tasks.findByName('classes')?.finalizedBy(generateAllDocs)
 }

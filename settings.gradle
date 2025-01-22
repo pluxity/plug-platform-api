@@ -6,3 +6,4 @@ include 'core:building'
 include 'core:authentication'
 
 include 'project-a'
+include 'project-b'

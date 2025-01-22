@@ -61,7 +61,7 @@ class AuthenticationControllerTest {
                                 .content("{\"username\":\"admin\",\"password\":\"password\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(SUCCESS_CREATE.getHttpStatus().name()))
-                .andDo(MockMvcRestDocumentationWrapper.document("auth/sign-up",
+                .andDo(MockMvcRestDocumentationWrapper.document("auth-signup",
                         resource(ResourceSnippetParameters.builder()
                                 .tag("auth")
                                 .summary("사용자 회원가입 API")
@@ -89,7 +89,7 @@ class AuthenticationControllerTest {
                         .content("{\"username\":\"admin\",\"password\":\"password\"}")
         )
                 .andExpect(status().isOk())
-                .andDo(MockMvcRestDocumentationWrapper.document("auth/sign-in",
+                .andDo(MockMvcRestDocumentationWrapper.document("auth-signin",
                         resource(ResourceSnippetParameters.builder()
                                 .tag("auth")
                                 .summary("사용자 로그인 API")
