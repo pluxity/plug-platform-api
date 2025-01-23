@@ -1,12 +1,9 @@
 package com.pluxity.authentication.controller;
 
-import static com.pluxity.global.constant.SuccessCode.SUCCESS_CREATE;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper;
+import com.epages.restdocs.apispec.ResourceSnippetParameters;
+import com.pluxity.authentication.dto.SignInRequestDto;
+import com.pluxity.authentication.dto.SignInResponseDto;
 import com.pluxity.authentication.dto.SignUpRequestDto;
 import com.pluxity.authentication.service.AuthenticationService;
 import com.pluxity.user.constant.Role;
@@ -19,9 +16,20 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
+import static com.pluxity.global.constant.SuccessCode.SUCCESS_CREATE;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 class AuthenticationControllerTest {
@@ -53,6 +61,49 @@ class AuthenticationControllerTest {
                                 .content("{\"username\":\"admin\",\"password\":\"password\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(SUCCESS_CREATE.getHttpStatus().name()))
-                .andDo(document("sign-up"));
+                .andDo(MockMvcRestDocumentationWrapper.document("auth-signup",
+                        resource(ResourceSnippetParameters.builder()
+                                .tag("auth")
+                                .summary("사용자 회원가입 API")
+                                .description("사용자 회원가입 API")
+                                .requestFields(
+                                        fieldWithPath("username").type(JsonFieldType.STRING).description("User's username"),
+                                        fieldWithPath("password").type(JsonFieldType.STRING).description("User's password")
+                                )
+                                .responseFields(
+                                        fieldWithPath("status").type(JsonFieldType.STRING).description("Response status"),
+                                        fieldWithPath("message").type(JsonFieldType.STRING).description("Response message"),
+                                        fieldWithPath("timestamp").type(JsonFieldType.STRING).description("Response timestamp")
+                                )
+                                .build())));
+    }
+
+    @Test
+    public void testSignIn() throws Exception {
+        SignInResponseDto mockResponse = new SignInResponseDto("mock-access-token", "mock-refresh-token", "name", "code");
+        when(authenticationService.signIn(any(SignInRequestDto.class))).thenReturn(mockResponse);
+
+        mockMvc.perform(
+                post("/auth/sign-in")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"admin\",\"password\":\"password\"}")
+        )
+                .andExpect(status().isOk())
+                .andDo(MockMvcRestDocumentationWrapper.document("auth-signin",
+                        resource(ResourceSnippetParameters.builder()
+                                .tag("auth")
+                                .summary("사용자 로그인 API")
+                                .description("사용자 로그인 API")
+                                .requestFields(
+                                        fieldWithPath("username").type(JsonFieldType.STRING).description("User's username"),
+                                        fieldWithPath("password").type(JsonFieldType.STRING).description("User's password")
+                                )
+                                .responseFields(
+                                        fieldWithPath("status").type(JsonFieldType.STRING).description("Response status"),
+                                        fieldWithPath("message").type(JsonFieldType.STRING).description("Response message"),
+                                        fieldWithPath("timestamp").type(JsonFieldType.STRING).description("Response timestamp"),
+                                        fieldWithPath("result").type(JsonFieldType.NULL).description("Response result")
+                                )
+                                .build())));
     }
 }

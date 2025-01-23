@@ -1,17 +1,3 @@
-bootJar {
-    enabled = true
-}
-
-jar {
-    enabled = false
-}
-
 dependencies {
-    implementation project(':core:building')
     implementation project(':core:authentication')
-}
-
-build {
-    dependsOn(':core:building:build')
-    dependsOn(':core:authentication:build')
 }

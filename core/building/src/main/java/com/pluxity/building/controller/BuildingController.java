@@ -1,6 +1,8 @@
 package com.pluxity.building.controller;
 
+import com.pluxity.building.dto.BuildingResponseDto;
 import com.pluxity.building.service.BuildingService;
+import com.pluxity.global.response.DataResponseBody;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +20,8 @@ public class BuildingController {
     }
 
     @GetMapping
-    public String getBuilding() {
-        return service.getBuilding();
+    public DataResponseBody<BuildingResponseDto> getBuilding() {
+        return DataResponseBody.of(
+                BuildingResponseDto.builder().code("code").name("name").address("address").build());
     }
 }
