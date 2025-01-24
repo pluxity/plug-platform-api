@@ -5,10 +5,11 @@ import com.pluxity.user.dto.ResponsePermission;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.repository.PermissionRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,10 +17,12 @@ public class PermissionService {
 
     private final PermissionRepository permissionRepository;
 
+    @Transactional(readOnly = true)
     public List<ResponsePermission> findAll() {
         return permissionRepository.findAll().stream().map(ResponsePermission::from).toList();
     }
 
+    @Transactional(readOnly = true)
     public ResponsePermission findById(Long id) {
         return permissionRepository
                 .findById(id)

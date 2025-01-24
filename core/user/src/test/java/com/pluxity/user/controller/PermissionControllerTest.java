@@ -7,7 +7,6 @@ import com.pluxity.user.dto.RequestPermission;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.repository.PermissionRepository;
 import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,11 +70,6 @@ class PermissionControllerTest {
                 .build();
     }
 
-    @AfterEach
-    void cleanup() {
-        permissionRepository.deleteAll();
-        em.clear();
-    }
 
     @Test
     @DisplayName("권한 목록을 조회할 수 있다")

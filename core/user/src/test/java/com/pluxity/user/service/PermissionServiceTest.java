@@ -6,7 +6,6 @@ import com.pluxity.user.entity.Permission;
 import com.pluxity.user.repository.PermissionRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +30,6 @@ class PermissionServiceTest {
     @Autowired
     private EntityManager em;
 
-    @AfterEach
-    void cleanup() {
-        permissionRepository.deleteAll();
-        em.clear();
-    }
 
     @Test
     @DisplayName("모든 권한을 조회할 수 있다")
