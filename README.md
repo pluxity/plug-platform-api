@@ -20,6 +20,7 @@
 - prod :mariadb(3306).
 
 ### ERD
+- https://www.erdcloud.com/d/AQcTiBryStQxdpckZ
 
 ## Style Guide
 
