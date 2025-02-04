@@ -1,6 +1,6 @@
 package com.pluxity.user.entity;
 
-import com.pluxity.core.common.entity.BaseEntity;
+import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -37,17 +37,18 @@ public class Role extends BaseEntity {
         this.roleName = Objects.requireNonNull(roleName, "Role name must not be blank");
     }
 
-    public void updateRoleName(String roleName) {
+    public void changeRoleName(String roleName) {
         this.roleName = Objects.requireNonNull(roleName, "Role name must not be blank");
     }
 
     // RolePermission 연관관계 편의 메서드
     public void addPermission(Permission permission) {
         Objects.requireNonNull(permission, "Permission must not be null");
-        
+
         // 이미 해당 권한이 있는지 확인
         if (hasPermission(permission)) {
-            throw new IllegalStateException("Permission already exists in this role: " + permission.getDescription());
+            throw new IllegalStateException(
+                    "Permission already exists in this role: " + permission.getDescription());
         }
 
         RolePermission rolePermission = new RolePermission(this, permission);
@@ -58,19 +59,20 @@ public class Role extends BaseEntity {
 
     public void addPermissions(List<Permission> permissions) {
         Objects.requireNonNull(permissions, "Permissions list must not be null");
-        
+
         // 중복 권한 체크
-        List<Permission> duplicatePermissions = permissions.stream()
-                .filter(this::hasPermission)
-                .toList();
-        
+        List<Permission> duplicatePermissions =
+                permissions.stream().filter(this::hasPermission).toList();
+
         if (!duplicatePermissions.isEmpty()) {
-            String duplicateDescriptions = duplicatePermissions.stream()
-                    .map(Permission::getDescription)
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("");
-            
-            throw new IllegalStateException("Some permissions already exist in this role: " + duplicateDescriptions);
+            String duplicateDescriptions =
+                    duplicatePermissions.stream()
+                            .map(Permission::getDescription)
+                            .reduce((a, b) -> a + ", " + b)
+                            .orElse("");
+
+            throw new IllegalStateException(
+                    "Some permissions already exist in this role: " + duplicateDescriptions);
         }
 
         permissions.forEach(this::addPermission);
@@ -78,11 +80,15 @@ public class Role extends BaseEntity {
 
     public void removePermission(Permission permission) {
         Objects.requireNonNull(permission, "Permission must not be null");
-        
-        RolePermission rolePermissionToRemove = this.rolePermissions.stream()
-                .filter(rp -> rp.getPermission().equals(permission))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Permission not found in this role: " + permission.getDescription()));
+
+        RolePermission rolePermissionToRemove =
+                this.rolePermissions.stream()
+                        .filter(rp -> rp.getPermission().equals(permission))
+                        .findFirst()
+                        .orElseThrow(
+                                () ->
+                                        new IllegalStateException(
+                                                "Permission not found in this role: " + permission.getDescription()));
 
         this.rolePermissions.remove(rolePermissionToRemove);
     }
@@ -91,7 +97,6 @@ public class Role extends BaseEntity {
         this.rolePermissions.clear();
     }
 
-    // 조회 메서드
     public boolean hasPermission(Permission permission) {
         return this.rolePermissions.stream()
                 .map(RolePermission::getPermission)
@@ -103,9 +108,7 @@ public class Role extends BaseEntity {
     }
 
     public List<Permission> getPermissions() {
-        return this.rolePermissions.stream()
-                .map(RolePermission::getPermission)
-                .toList();
+        return this.rolePermissions.stream().map(RolePermission::getPermission).toList();
     }
 
     @Override

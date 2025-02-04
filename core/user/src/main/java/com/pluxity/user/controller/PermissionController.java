@@ -33,10 +33,7 @@ public class PermissionController {
             @Valid @RequestBody RequestPermission request) {
         ResponsePermission response = permissionService.save(request);
         URI location =
-                ServletUriComponentsBuilder.fromCurrentRequest()
-                        .path("/{id}")
-                        .buildAndExpand(response.id())
-                        .toUri();
+                ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(response.id()).toUri();
 
         return ResponseEntity.created(location).body(response);
     }
@@ -44,7 +41,10 @@ public class PermissionController {
     @PutMapping("/{id}")
     public ResponseEntity<ResponsePermission> updatePermission(
             @PathVariable(name = "id") Long id, @Valid @RequestBody RequestPermission request) {
-        return ResponseEntity.ok(permissionService.update(id, request));
+        ResponsePermission response = permissionService.update(id, request);
+        URI location =
+                ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(response.id()).toUri();
+        return ResponseEntity.created(location).body(response);
     }
 
     @DeleteMapping("/{id}")

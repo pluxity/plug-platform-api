@@ -219,7 +219,7 @@ class PermissionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.description").value("UPDATED_PERMISSION"))
                 .andDo(MockMvcRestDocumentationWrapper.document("permission-update",
                         resource(ResourceSnippetParameters.builder()

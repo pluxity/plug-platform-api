@@ -1,16 +1,15 @@
 package com.pluxity.user.entity;
 
-import com.pluxity.core.common.entity.BaseEntity;
+import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "permissions")
@@ -37,24 +36,10 @@ public class Permission extends BaseEntity {
         this.description = Objects.requireNonNull(description, "Description must not be null");
     }
 
-    public void updateDescription(String description) {
+    public void changeDescription(String description) {
         this.description = Objects.requireNonNull(description, "Description must not be null");
     }
 
-    // Role 관리 메서드
-    public void addRole(Role role) {
-        Objects.requireNonNull(role, "Role must not be null");
-        RolePermission rolePermission = new RolePermission(role, this);
-        this.rolePermissions.add(rolePermission);
-    }
-
-    public void removeRole(Role role) {
-        Objects.requireNonNull(role, "Role must not be null");
-        this.rolePermissions.removeIf(
-                rolePermission -> Objects.equals(rolePermission.getRole().getId(), role.getId()));
-    }
-
-    // 조회 메서드
     public List<RolePermission> getRolePermissions() {
         return Collections.unmodifiableList(rolePermissions);
     }

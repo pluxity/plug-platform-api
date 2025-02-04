@@ -5,11 +5,10 @@ import com.pluxity.user.dto.ResponsePermission;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.repository.PermissionRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +23,7 @@ public class PermissionService {
 
     @Transactional(readOnly = true)
     public ResponsePermission findById(Long id) {
-        return permissionRepository
-                .findById(id)
-                .map(ResponsePermission::from)
-                .orElseThrow(() -> new EntityNotFoundException("Permission not found with id: " + id));
+        return ResponsePermission.from(findPermissionById(id));
     }
 
     @Transactional
@@ -39,22 +35,20 @@ public class PermissionService {
 
     @Transactional
     public ResponsePermission update(Long id, RequestPermission request) {
-        Permission permission =
-                permissionRepository
-                        .findById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("Permission not found with id: " + id));
-
-        permission.updateDescription(request.description());
+        Permission permission = findPermissionById(id);
+        permission.changeDescription(request.description());
         return ResponsePermission.from(permission);
     }
 
     @Transactional
     public void delete(Long id) {
-        Permission permission =
-                permissionRepository
-                        .findById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("Permission not found with id: " + id));
-
+        Permission permission = findPermissionById(id);
         permissionRepository.delete(permission);
+    }
+
+    private Permission findPermissionById(Long id) {
+        return permissionRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Permission not found with id: " + id));
     }
 }

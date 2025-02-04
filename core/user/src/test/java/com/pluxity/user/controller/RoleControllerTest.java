@@ -184,7 +184,7 @@ class RoleControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.roleName").value("UPDATED_ROLE"))
                 .andDo(MockMvcRestDocumentationWrapper.document("role-update",
                         resource(ResourceSnippetParameters.builder()
@@ -251,7 +251,7 @@ class RoleControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.permissions", hasSize(2)))
                 .andDo(MockMvcRestDocumentationWrapper.document("role-assign-permissions",
                         resource(ResourceSnippetParameters.builder()

@@ -1,15 +1,17 @@
 package com.pluxity.user.service;
 
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
-
-import com.pluxity.global.exception.CustomException;
-import com.pluxity.user.dto.PatchDto;
-import com.pluxity.user.dto.ResponseUserDto;
+import com.pluxity.user.dto.RequestUser;
+import com.pluxity.user.dto.RequestUserRoles;
+import com.pluxity.user.dto.ResponseRole;
+import com.pluxity.user.dto.ResponseUser;
+import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
+import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
-import java.security.Principal;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,69 +19,102 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public List<ResponseUserDto> findAll() {
-        List<User> users = repository.findAll();
-
-        return users.stream()
-                .map(
-                        user ->
-                                new ResponseUserDto(
-                                        user.getUsername(), user.getName(), user.getCode(), user.getRole()))
-                .toList();
+    public ResponseUser findById(Long id) {
+        return ResponseUser.from(findUserById(id));
     }
 
     @Transactional(readOnly = true)
-    public ResponseUserDto findById(Long id) {
-        User user = repository.findById(id).orElseThrow(() -> new CustomException(NOT_FOUND_USER));
-
-        return ResponseUserDto.builder()
-                .username(user.getUsername())
-                .name(user.getName())
-                .code(user.getCode())
-                .role(user.getRole())
-                .build();
+    public List<ResponseUser> findAll() {
+        return userRepository.findAll().stream().map(ResponseUser::from).toList();
     }
 
     @Transactional(readOnly = true)
-    public ResponseUserDto findByUsername(String username) {
-        User user =
-                repository.findByUsername(username).orElseThrow(() -> new CustomException(NOT_FOUND_USER));
+    public ResponseUser findByUsername(String username) {
+        return ResponseUser.from(
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(
+                                () -> new EntityNotFoundException("User not found with username: " + username)));
+    }
 
-        return ResponseUserDto.builder()
-                .username(user.getUsername())
-                .name(user.getName())
-                .code(user.getCode())
-                .role(user.getRole())
-                .build();
+    @Transactional(readOnly = true)
+    public List<ResponseRole> getUserRoles(Long userId) {
+        User user = findUserById(userId);
+        return user.getRoles().stream().map(ResponseRole::from).toList();
     }
 
     @Transactional
-    public void update(Long id, PatchDto dto) {
-        User user = repository.findById(id).orElseThrow(() -> new CustomException(NOT_FOUND_USER));
-        user.updateInfo(dto.name(), dto.code());
+    public ResponseUser save(RequestUser request) {
+        User user =
+                User.builder()
+                        .username(request.username())
+                        .password(passwordEncoder.encode(request.password()))
+                        .name(request.name())
+                        .code(request.code())
+                        .build();
+
+        User savedUser = userRepository.save(user);
+        return ResponseUser.from(savedUser);
     }
 
     @Transactional
-    public void update(String username, PatchDto dto) {
-        User user =
-                repository.findByUsername(username).orElseThrow(() -> new CustomException(NOT_FOUND_USER));
-        user.updateInfo(dto.name(), dto.code());
+    public ResponseUser update(Long id, RequestUser request) {
+        User user = findUserById(id);
+        updateUserFields(user, request);
+        return ResponseUser.from(user);
     }
 
     @Transactional
     public void delete(Long id) {
-        repository.deleteById(id);
+        User user = findUserById(id);
+        userRepository.delete(user);
     }
 
-    @Transactional(readOnly = true)
-    public ResponseUserDto myInfo(Principal principal) {
-        var username = principal.getName();
-        User user =
-                repository.findByUsername(username).orElseThrow(() -> new CustomException(NOT_FOUND_USER));
+    @Transactional
+    public ResponseUser assignRolesToUser(Long userId, RequestUserRoles request) {
+        User user = findUserById(userId);
+        List<Role> roles = request.roleIds().stream().map(this::findRoleById).toList();
 
-        return new ResponseUserDto(user.getUsername(), user.getName(), user.getCode(), user.getRole());
+        user.addRoles(roles);
+        return ResponseUser.from(user);
+    }
+
+    @Transactional
+    public void removeRoleFromUser(Long userId, Long roleId) {
+        User user = findUserById(userId);
+        Role role = findRoleById(roleId);
+        user.removeRole(role);
+    }
+
+    private User findUserById(Long id) {
+        return userRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+    }
+
+    private Role findRoleById(Long id) {
+        return roleRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id));
+    }
+
+    private void updateUserFields(User user, RequestUser request) {
+        if (request.username() != null && !request.username().isBlank()) {
+            user.changeUsername(request.username());
+        }
+        if (request.password() != null && !request.password().isBlank()) {
+            user.changePassword(passwordEncoder.encode(request.password()));
+        }
+        if (request.name() != null && !request.name().isBlank()) {
+            user.changeName(request.name());
+        }
+        if (request.code() != null && !request.code().isBlank()) {
+            user.changeCode(request.code());
+        }
     }
 }
