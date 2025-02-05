@@ -2,8 +2,8 @@ package com.pluxity.user.controller;
 
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.user.dto.UserCreateRequest;
-import com.pluxity.user.dto.UserRoleAssignRequest;
 import com.pluxity.user.dto.UserResponse;
+import com.pluxity.user.dto.UserRoleAssignRequest;
 import com.pluxity.user.dto.UserUpdateRequest;
 import com.pluxity.user.service.UserService;
 import jakarta.validation.Valid;

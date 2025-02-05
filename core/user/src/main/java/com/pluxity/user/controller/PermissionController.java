@@ -2,8 +2,8 @@ package com.pluxity.user.controller;
 
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.user.dto.PermissionCreateRequest;
-import com.pluxity.user.dto.PermissionUpdateRequest;
 import com.pluxity.user.dto.PermissionResponse;
+import com.pluxity.user.dto.PermissionUpdateRequest;
 import com.pluxity.user.service.PermissionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,8 @@ public class PermissionController {
 
     @PostMapping
     @ResponseCreated
-    public ResponseEntity<Long> createPermission(@Valid @RequestBody PermissionCreateRequest request) {
+    public ResponseEntity<Long> createPermission(
+            @Valid @RequestBody PermissionCreateRequest request) {
         PermissionResponse response = permissionService.save(request);
         return ResponseEntity.ok(response.id());
     }

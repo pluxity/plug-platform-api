@@ -6,7 +6,7 @@ import com.pluxity.authentication.dto.SignInRequestDto;
 import com.pluxity.authentication.dto.SignInResponseDto;
 import com.pluxity.authentication.dto.SignUpRequestDto;
 import com.pluxity.authentication.service.AuthenticationService;
-import com.pluxity.user.constant.Role;
+import com.pluxity.user.entity.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +52,7 @@ class AuthenticationControllerTest {
     @Test
     public void testSignUp() throws Exception {
         SignUpRequestDto signUpRequestDto =
-                new SignUpRequestDto("admin", "password", "관리자", "1234", Role.ADMIN);
+                new SignUpRequestDto("admin", "password", "관리자", "1234", Role.builder().roleName("ROLE_ADMIN").build());
 
         mockMvc
                 .perform(

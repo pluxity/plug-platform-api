@@ -1,16 +1,15 @@
 package com.pluxity.user.service;
 
 import com.pluxity.user.dto.PermissionCreateRequest;
-import com.pluxity.user.dto.PermissionUpdateRequest;
 import com.pluxity.user.dto.PermissionResponse;
+import com.pluxity.user.dto.PermissionUpdateRequest;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.repository.PermissionRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

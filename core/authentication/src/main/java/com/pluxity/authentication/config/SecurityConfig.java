@@ -3,9 +3,7 @@ package com.pluxity.authentication.config;
 import com.pluxity.authentication.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -16,17 +14,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@ComponentScan(
-        basePackages = {
-                "com.pluxity.user.repository",
-                "com.pluxity.authentication",
-                "com.pluxity.global"
-        })
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
-
-    private final AuthenticationProvider authenticationProvider;
+    private final ApplicationConfig applicationConfig;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -46,7 +37,7 @@ public class SecurityConfig {
                                                 "/docs/**")
                                         .permitAll())
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                .authenticationProvider(authenticationProvider)
+                .authenticationProvider(applicationConfig.authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         sessionManagement ->
