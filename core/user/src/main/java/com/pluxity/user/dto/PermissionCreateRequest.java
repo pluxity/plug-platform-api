@@ -2,5 +2,5 @@ package com.pluxity.user.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record RequestPermission(
+public record PermissionCreateRequest(
         @NotBlank(message = "Permission description cannot be empty") String description) {}

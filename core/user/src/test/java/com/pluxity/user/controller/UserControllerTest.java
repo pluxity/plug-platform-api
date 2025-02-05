@@ -239,16 +239,6 @@ class UserControllerTest {
                                 .requestFields(
                                         fieldWithPath("roleIds").type(ARRAY).description("역할 ID 목록")
                                 )
-                                .responseFields(
-                                        fieldWithPath("id").type(NUMBER).description("사용자 ID"),
-                                        fieldWithPath("username").type(STRING).description("사용자명"),
-                                        fieldWithPath("name").type(STRING).description("이름"),
-                                        fieldWithPath("code").type(STRING).description("코드"),
-                                        fieldWithPath("roles").type(ARRAY).description("사용자 역할 목록"),
-                                        fieldWithPath("roles[].id").type(NUMBER).description("역할 ID"),
-                                        fieldWithPath("roles[].roleName").type(STRING).description("역할 이름"),
-                                        fieldWithPath("roles[].permissions").type(ARRAY).description("역할의 권한 목록")
-                                )
                                 .build())));
     }
 

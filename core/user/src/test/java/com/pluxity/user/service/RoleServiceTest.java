@@ -1,9 +1,6 @@
 package com.pluxity.user.service;
 
-import com.pluxity.user.dto.RequestRole;
-import com.pluxity.user.dto.RequestRolePermissions;
-import com.pluxity.user.dto.ResponsePermission;
-import com.pluxity.user.dto.ResponseRole;
+import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.repository.PermissionRepository;
@@ -52,7 +49,7 @@ class RoleServiceTest {
         roleRepository.save(role2);
 
         // when
-        List<ResponseRole> result = roleService.findAll();
+        List<RoleResponse> result = roleService.findAll();
 
         // then
         assertThat(result).hasSize(2);
@@ -70,7 +67,7 @@ class RoleServiceTest {
         Role savedRole = roleRepository.save(role);
 
         // when
-        ResponseRole result = roleService.findById(savedRole.getId());
+        RoleResponse result = roleService.findById(savedRole.getId());
 
         // then
         assertThat(result.id()).isEqualTo(savedRole.getId());
@@ -93,10 +90,10 @@ class RoleServiceTest {
     @DisplayName("새로운 역할을 생성할 수 있다")
     void save() {
         // given
-        RequestRole request = new RequestRole("ADMIN");
+        RoleCreateRequest request = new RoleCreateRequest("ADMIN");
 
         // when
-        ResponseRole result = roleService.save(request);
+        RoleResponse result = roleService.save(request);
 
         // then
         assertThat(result.id()).isNotNull();
@@ -115,10 +112,10 @@ class RoleServiceTest {
                 .build();
         Role savedRole = roleRepository.save(role);
 
-        RequestRole request = new RequestRole("UPDATED_ROLE");
+        RoleUpdateRequest request = new RoleUpdateRequest("UPDATED_ROLE");
 
         // when
-        ResponseRole result = roleService.update(savedRole.getId(), request);
+        RoleResponse result = roleService.update(savedRole.getId(), request);
 
         // then
         assertThat(result.roleName()).isEqualTo("UPDATED_ROLE");
@@ -132,7 +129,7 @@ class RoleServiceTest {
     void update_NotFound() {
         // given
         Long id = 999L;
-        RequestRole request = new RequestRole("UPDATED_ROLE");
+        RoleUpdateRequest request = new RoleUpdateRequest("UPDATED_ROLE");
 
         // when & then
         assertThatThrownBy(() -> roleService.update(id, request))
@@ -185,12 +182,12 @@ class RoleServiceTest {
                 .build();
         permissionRepository.saveAll(List.of(permission1, permission2));
 
-        RequestRolePermissions request = new RequestRolePermissions(
+        RolePermissionAssignRequest request = new RolePermissionAssignRequest(
                 List.of(permission1.getId(), permission2.getId())
         );
 
         // when
-        ResponseRole result = roleService.assignPermissionsToRole(savedRole.getId(), request);
+        RoleResponse result = roleService.assignPermissionsToRole(savedRole.getId(), request);
 
         // then
         assertThat(result.permissions()).hasSize(2);
@@ -222,7 +219,7 @@ class RoleServiceTest {
         em.clear();
 
         // when
-        List<ResponsePermission> result = roleService.getRolePermissions(savedRole.getId());
+        List<PermissionResponse> result = roleService.getRolePermissions(savedRole.getId());
 
         // then
         assertThat(result).hasSize(1);
@@ -247,7 +244,7 @@ class RoleServiceTest {
         em.flush();
         em.clear();
 
-        RequestRolePermissions request = new RequestRolePermissions(List.of(savedPermission.getId()));
+        RolePermissionAssignRequest request = new RolePermissionAssignRequest(List.of(savedPermission.getId()));
 
         // when & then
         assertThatThrownBy(() -> roleService.assignPermissionsToRole(savedRole.getId(), request))

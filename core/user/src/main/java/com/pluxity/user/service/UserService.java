@@ -1,19 +1,17 @@
 package com.pluxity.user.service;
 
-import com.pluxity.user.dto.RequestUser;
-import com.pluxity.user.dto.RequestUserRoles;
-import com.pluxity.user.dto.ResponseRole;
-import com.pluxity.user.dto.ResponseUser;
+import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,18 +22,18 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public ResponseUser findById(Long id) {
-        return ResponseUser.from(findUserById(id));
+    public UserResponse findById(Long id) {
+        return UserResponse.from(findUserById(id));
     }
 
     @Transactional(readOnly = true)
-    public List<ResponseUser> findAll() {
-        return userRepository.findAll().stream().map(ResponseUser::from).toList();
+    public List<UserResponse> findAll() {
+        return userRepository.findAll().stream().map(UserResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
-    public ResponseUser findByUsername(String username) {
-        return ResponseUser.from(
+    public UserResponse findByUsername(String username) {
+        return UserResponse.from(
                 userRepository
                         .findByUsername(username)
                         .orElseThrow(
@@ -43,13 +41,13 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<ResponseRole> getUserRoles(Long userId) {
+    public List<RoleResponse> getUserRoles(Long userId) {
         User user = findUserById(userId);
-        return user.getRoles().stream().map(ResponseRole::from).toList();
+        return user.getRoles().stream().map(RoleResponse::from).toList();
     }
 
     @Transactional
-    public ResponseUser save(RequestUser request) {
+    public UserResponse save(UserCreateRequest request) {
         User user =
                 User.builder()
                         .username(request.username())
@@ -59,14 +57,14 @@ public class UserService {
                         .build();
 
         User savedUser = userRepository.save(user);
-        return ResponseUser.from(savedUser);
+        return UserResponse.from(savedUser);
     }
 
     @Transactional
-    public ResponseUser update(Long id, RequestUser request) {
+    public UserResponse update(Long id, UserUpdateRequest request) {
         User user = findUserById(id);
         updateUserFields(user, request);
-        return ResponseUser.from(user);
+        return UserResponse.from(user);
     }
 
     @Transactional
@@ -76,12 +74,12 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseUser assignRolesToUser(Long userId, RequestUserRoles request) {
+    public UserResponse assignRolesToUser(Long userId, UserRoleAssignRequest request) {
         User user = findUserById(userId);
         List<Role> roles = request.roleIds().stream().map(this::findRoleById).toList();
 
         user.addRoles(roles);
-        return ResponseUser.from(user);
+        return UserResponse.from(user);
     }
 
     @Transactional
@@ -103,7 +101,7 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id));
     }
 
-    private void updateUserFields(User user, RequestUser request) {
+    private void updateUserFields(User user, UserUpdateRequest request) {
         if (request.username() != null && !request.username().isBlank()) {
             user.changeUsername(request.username());
         }

@@ -1,18 +1,16 @@
 package com.pluxity.user.service;
 
-import com.pluxity.user.dto.RequestRole;
-import com.pluxity.user.dto.RequestRolePermissions;
-import com.pluxity.user.dto.ResponsePermission;
-import com.pluxity.user.dto.ResponseRole;
+import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.repository.PermissionRepository;
 import com.pluxity.user.repository.RoleRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,34 +20,34 @@ public class RoleService {
     private final PermissionRepository permissionRepository;
 
     @Transactional(readOnly = true)
-    public ResponseRole findById(Long id) {
-        return ResponseRole.from(findRoleById(id));
+    public RoleResponse findById(Long id) {
+        return RoleResponse.from(findRoleById(id));
     }
 
     @Transactional(readOnly = true)
-    public List<ResponseRole> findAll() {
-        return roleRepository.findAll().stream().map(ResponseRole::from).toList();
+    public List<RoleResponse> findAll() {
+        return roleRepository.findAll().stream().map(RoleResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
-    public List<ResponsePermission> getRolePermissions(Long roleId) {
+    public List<PermissionResponse> getRolePermissions(Long roleId) {
         Role role = findRoleById(roleId);
-        return role.getPermissions().stream().map(ResponsePermission::from).toList();
+        return role.getPermissions().stream().map(PermissionResponse::from).toList();
     }
 
     @Transactional
-    public ResponseRole save(RequestRole request) {
+    public RoleResponse save(RoleCreateRequest request) {
         Role role = Role.builder().roleName(request.roleName()).build();
 
         Role savedRole = roleRepository.save(role);
-        return ResponseRole.from(savedRole);
+        return RoleResponse.from(savedRole);
     }
 
     @Transactional
-    public ResponseRole update(Long id, RequestRole request) {
+    public RoleResponse update(Long id, RoleUpdateRequest request) {
         Role role = findRoleById(id);
         role.changeRoleName(request.roleName());
-        return ResponseRole.from(role);
+        return RoleResponse.from(role);
     }
 
     @Transactional
@@ -59,13 +57,13 @@ public class RoleService {
     }
 
     @Transactional
-    public ResponseRole assignPermissionsToRole(Long roleId, RequestRolePermissions request) {
+    public RoleResponse assignPermissionsToRole(Long roleId, RolePermissionAssignRequest request) {
         Role role = findRoleById(roleId);
         List<Permission> permissions =
                 request.permissionIds().stream().map(this::findPermissionById).toList();
 
         role.addPermissions(permissions);
-        return ResponseRole.from(role);
+        return RoleResponse.from(role);
     }
 
     @Transactional

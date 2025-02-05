@@ -1,17 +1,16 @@
 package com.pluxity.user.controller;
 
-import com.pluxity.user.annotation.ResponseCreated;
-import com.pluxity.user.dto.RequestUser;
-import com.pluxity.user.dto.RequestUserRoles;
-import com.pluxity.user.dto.ResponseUser;
+import com.pluxity.global.annotation.ResponseCreated;
+import com.pluxity.user.dto.UserCreateRequest;
+import com.pluxity.user.dto.UserRoleAssignRequest;
+import com.pluxity.user.dto.UserResponse;
+import com.pluxity.user.dto.UserUpdateRequest;
 import com.pluxity.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -22,29 +21,27 @@ public class AdminUserController {
     private final UserService service;
 
     @GetMapping
-    public ResponseEntity<List<ResponseUser>> getUsers() {
+    public ResponseEntity<List<UserResponse>> getUsers() {
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<ResponseUser> getUser(@PathVariable("id") Long id) {
+    public ResponseEntity<UserResponse> getUser(@PathVariable("id") Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
-
     @PostMapping
     @ResponseCreated
-    public ResponseEntity<Long> saveUser(@Valid @RequestBody RequestUser request) {
+    public ResponseEntity<Long> saveUser(@Valid @RequestBody UserCreateRequest request) {
         return ResponseEntity.ok(service.save(request).id());
     }
 
-
     @PutMapping(value = "/{id}")
-    public ResponseEntity<ResponseUser> updateUser(@PathVariable("id") Long id, @RequestBody RequestUser dto) {
-        ResponseUser response = service.update(id, dto);
+    public ResponseEntity<UserResponse> updateUser(
+            @PathVariable("id") Long id, @RequestBody UserUpdateRequest dto) {
+        UserResponse response = service.update(id, dto);
         return ResponseEntity.ok(response);
     }
-
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
@@ -52,24 +49,16 @@ public class AdminUserController {
         return ResponseEntity.noContent().build();
     }
 
-
     @PostMapping("/{userId}/roles")
-    public ResponseEntity<ResponseUser> assignRolesToUser(
-            @PathVariable("userId") Long userId,
-            @RequestBody RequestUserRoles request) {
-        ResponseUser response = service.assignRolesToUser(userId, request);
-        URI location =
-                ServletUriComponentsBuilder.fromCurrentRequest()
-                        .path("/{userId}/roles")
-                        .buildAndExpand(response.id())
-                        .toUri();
-        return ResponseEntity.created(location).body(response);
+    @ResponseCreated
+    public ResponseEntity<Long> assignRolesToUser(
+            @PathVariable("userId") Long userId, @RequestBody UserRoleAssignRequest request) {
+        return ResponseEntity.ok(service.assignRolesToUser(userId, request).id());
     }
 
     @DeleteMapping("/{userId}/roles/{roleId}")
     public ResponseEntity<Void> removeRoleFromUser(
-            @PathVariable("userId") Long userId,
-            @PathVariable("roleId") Long roleId) {
+            @PathVariable("userId") Long userId, @PathVariable("roleId") Long roleId) {
         service.removeRoleFromUser(userId, roleId);
         return ResponseEntity.noContent().build();
     }

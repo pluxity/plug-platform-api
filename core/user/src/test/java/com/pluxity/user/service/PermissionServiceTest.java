@@ -1,7 +1,8 @@
 package com.pluxity.user.service;
 
-import com.pluxity.user.dto.RequestPermission;
-import com.pluxity.user.dto.ResponsePermission;
+import com.pluxity.user.dto.PermissionCreateRequest;
+import com.pluxity.user.dto.PermissionResponse;
+import com.pluxity.user.dto.PermissionUpdateRequest;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.repository.PermissionRepository;
 import jakarta.persistence.EntityManager;
@@ -46,7 +47,7 @@ class PermissionServiceTest {
         permissionRepository.save(permission2);
 
         // when
-        List<ResponsePermission> result = permissionService.findAll();
+        List<PermissionResponse> result = permissionService.findAll();
 
         // then
         assertThat(result).hasSize(2);
@@ -64,7 +65,7 @@ class PermissionServiceTest {
         Permission savedPermission = permissionRepository.save(permission);
 
         // when
-        ResponsePermission result = permissionService.findById(savedPermission.getId());
+        PermissionResponse result = permissionService.findById(savedPermission.getId());
 
         // then
         assertThat(result.id()).isEqualTo(savedPermission.getId());
@@ -87,10 +88,10 @@ class PermissionServiceTest {
     @DisplayName("새로운 권한을 생성할 수 있다")
     void save() {
         // given
-        RequestPermission request = new RequestPermission("READ_USER");
+        PermissionCreateRequest request = new PermissionCreateRequest("READ_USER");
 
         // when
-        ResponsePermission result = permissionService.save(request);
+        PermissionResponse result = permissionService.save(request);
 
         // then
         assertThat(result.id()).isNotNull();
@@ -109,10 +110,10 @@ class PermissionServiceTest {
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
         
-        RequestPermission request = new RequestPermission("UPDATED_PERMISSION");
+        PermissionUpdateRequest request = new PermissionUpdateRequest("UPDATED_PERMISSION");
 
         // when
-        ResponsePermission result = permissionService.update(savedPermission.getId(), request);
+        PermissionResponse result = permissionService.update(savedPermission.getId(), request);
 
         // then
         assertThat(result.description()).isEqualTo("UPDATED_PERMISSION");
@@ -126,7 +127,7 @@ class PermissionServiceTest {
     void update_NotFound() {
         // given
         Long id = 999L;
-        RequestPermission request = new RequestPermission("UPDATED_PERMISSION");
+        PermissionUpdateRequest request = new PermissionUpdateRequest("UPDATED_PERMISSION");
 
         // when & then
         assertThatThrownBy(() -> permissionService.update(id, request))

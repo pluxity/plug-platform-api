@@ -1,10 +1,7 @@
 package com.pluxity.user.controller;
 
-import com.pluxity.user.annotation.ResponseCreated;
-import com.pluxity.user.dto.RequestRole;
-import com.pluxity.user.dto.RequestRolePermissions;
-import com.pluxity.user.dto.ResponsePermission;
-import com.pluxity.user.dto.ResponseRole;
+import com.pluxity.global.annotation.ResponseCreated;
+import com.pluxity.user.dto.*;
 import com.pluxity.user.service.RoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,24 +18,24 @@ public class RoleController {
     private final RoleService roleService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseRole> getRole(@PathVariable(name = "id") Long id) {
+    public ResponseEntity<RoleResponse> getRole(@PathVariable(name = "id") Long id) {
         return ResponseEntity.ok(roleService.findById(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<ResponseRole>> getAllRoles() {
+    public ResponseEntity<List<RoleResponse>> getAllRoles() {
         return ResponseEntity.ok(roleService.findAll());
     }
 
     @GetMapping("/{roleId}/permissions")
-    public ResponseEntity<List<ResponsePermission>> getRolePermissions(
+    public ResponseEntity<List<PermissionResponse>> getRolePermissions(
             @PathVariable(name = "roleId") Long roleId) {
         return ResponseEntity.ok(roleService.getRolePermissions(roleId));
     }
 
     @PostMapping
     @ResponseCreated
-    public ResponseEntity<Long> createRole(@Valid @RequestBody RequestRole request) {
+    public ResponseEntity<Long> createRole(@Valid @RequestBody RoleCreateRequest request) {
         return ResponseEntity.ok(roleService.save(request).id());
     }
 
@@ -46,13 +43,13 @@ public class RoleController {
     @ResponseCreated
     public ResponseEntity<Long> assignPermissionsToRole(
             @PathVariable(name = "roleId") Long roleId,
-            @Valid @RequestBody RequestRolePermissions request) {
+            @Valid @RequestBody RolePermissionAssignRequest request) {
         return ResponseEntity.ok(roleService.assignPermissionsToRole(roleId, request).id());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseRole> updateRole(
-            @PathVariable(name = "id") Long id, @Valid @RequestBody RequestRole request) {
+    public ResponseEntity<RoleResponse> updateRole(
+            @PathVariable(name = "id") Long id, @Valid @RequestBody RoleUpdateRequest request) {
         return ResponseEntity.ok(roleService.update(id, request));
     }
 

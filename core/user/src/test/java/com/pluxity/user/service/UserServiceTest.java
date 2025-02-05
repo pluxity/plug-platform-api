@@ -1,9 +1,6 @@
 package com.pluxity.user.service;
 
-import com.pluxity.user.dto.RequestUser;
-import com.pluxity.user.dto.RequestUserRoles;
-import com.pluxity.user.dto.ResponseRole;
-import com.pluxity.user.dto.ResponseUser;
+import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.RoleRepository;
@@ -63,7 +60,7 @@ class UserServiceTest {
         userRepository.save(user2);
 
         // when
-        List<ResponseUser> users = userService.findAll();
+        List<UserResponse> users = userService.findAll();
 
         // then
         assertThat(users).hasSize(2);
@@ -85,7 +82,7 @@ class UserServiceTest {
         User savedUser = userRepository.save(user);
 
         // when
-        ResponseUser foundUser = userService.findById(savedUser.getId());
+        UserResponse foundUser = userService.findById(savedUser.getId());
 
         // then
         assertThat(foundUser.id()).isEqualTo(savedUser.getId());
@@ -110,7 +107,7 @@ class UserServiceTest {
     @DisplayName("새로운 사용자를 생성할 수 있다")
     void save() {
         // given
-        RequestUser request = RequestUser.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .username("username")
                 .password("password")
                 .name("name")
@@ -118,7 +115,7 @@ class UserServiceTest {
                 .build();
 
         // when
-        ResponseUser result = userService.save(request);
+        UserResponse result = userService.save(request);
 
         // then
         assertThat(result.id()).isNotNull();
@@ -142,7 +139,7 @@ class UserServiceTest {
                 .build();
         User savedUser = userRepository.save(user);
 
-        RequestUser request = RequestUser.builder()
+        UserUpdateRequest request = UserUpdateRequest.builder()
                 .username("new_username")
                 .password("new_password")
                 .name("new_name")
@@ -150,7 +147,7 @@ class UserServiceTest {
                 .build();
 
         // when
-        ResponseUser result = userService.update(savedUser.getId(), request);
+        UserResponse result = userService.update(savedUser.getId(), request);
         em.flush();
         em.clear();
 
@@ -168,7 +165,7 @@ class UserServiceTest {
     void update_notFound() {
         // given
         Long notFoundId = 999L;
-        RequestUser request = RequestUser.builder()
+        UserUpdateRequest request = UserUpdateRequest.builder()
                 .username("new_username")
                 .password("new_password")
                 .name("new_name")
@@ -229,10 +226,10 @@ class UserServiceTest {
                 .build();
         Role savedRole = roleRepository.save(role);
 
-        RequestUserRoles request = new RequestUserRoles(List.of(savedRole.getId()));
+        UserRoleAssignRequest request = new UserRoleAssignRequest(List.of(savedRole.getId()));
 
         // when
-        ResponseUser result = userService.assignRolesToUser(savedUser.getId(), request);
+        UserResponse result = userService.assignRolesToUser(savedUser.getId(), request);
 
         // then
         assertThat(result.roles()).hasSize(1);
@@ -265,7 +262,7 @@ class UserServiceTest {
         em.clear();
 
         // when
-        List<ResponseRole> result = userService.getUserRoles(savedUser.getId());
+        List<RoleResponse> result = userService.getUserRoles(savedUser.getId());
 
         // then
         assertThat(result).hasSize(1);
@@ -293,7 +290,7 @@ class UserServiceTest {
         em.flush();
         em.clear();
 
-        RequestUserRoles request = new RequestUserRoles(List.of(savedRole.getId()));
+        UserRoleAssignRequest request = new UserRoleAssignRequest(List.of(savedRole.getId()));
 
         // when & then
         assertThatThrownBy(() -> userService.assignRolesToUser(savedUser.getId(), request))
@@ -366,7 +363,7 @@ class UserServiceTest {
         userRepository.save(user);
 
         // when
-        ResponseUser result = userService.findByUsername("username");
+        UserResponse result = userService.findByUsername("username");
 
         // then
         assertThat(result.username()).isEqualTo("username");
@@ -398,7 +395,7 @@ class UserServiceTest {
                 .build();
         User savedUser = userRepository.save(user);
 
-        RequestUser request = RequestUser.builder()
+        UserUpdateRequest request = UserUpdateRequest.builder()
                 .username("new_username")
                 .password(null)
                 .name(null)
@@ -406,7 +403,7 @@ class UserServiceTest {
                 .build();
 
         // when
-        ResponseUser result = userService.update(savedUser.getId(), request);
+        UserResponse result = userService.update(savedUser.getId(), request);
         em.flush();
         em.clear();
 
@@ -430,7 +427,7 @@ class UserServiceTest {
                 .build();
         User savedUser = userRepository.save(user);
 
-        RequestUser request = RequestUser.builder()
+        UserUpdateRequest request = UserUpdateRequest.builder()
                 .username("")
                 .password("")
                 .name("")
@@ -438,7 +435,7 @@ class UserServiceTest {
                 .build();
 
         // when
-        ResponseUser result = userService.update(savedUser.getId(), request);
+        UserResponse result = userService.update(savedUser.getId(), request);
         em.flush();
         em.clear();
 
@@ -462,7 +459,7 @@ class UserServiceTest {
                 .build();
         User savedUser = userRepository.save(user);
 
-        RequestUser request = RequestUser.builder()
+        UserUpdateRequest request = UserUpdateRequest.builder()
                 .username(null)
                 .password(null)
                 .name(null)
@@ -470,7 +467,7 @@ class UserServiceTest {
                 .build();
 
         // when
-        ResponseUser result = userService.update(savedUser.getId(), request);
+        UserResponse result = userService.update(savedUser.getId(), request);
         em.flush();
         em.clear();
 

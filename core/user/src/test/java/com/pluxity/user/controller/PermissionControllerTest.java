@@ -3,7 +3,7 @@ package com.pluxity.user.controller;
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pluxity.user.dto.RequestPermission;
+import com.pluxity.user.dto.PermissionCreateRequest;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.repository.PermissionRepository;
 import jakarta.persistence.EntityManager;
@@ -152,7 +152,7 @@ class PermissionControllerTest {
     @DisplayName("새로운 권한을 생성할 수 있다")
     void createPermission() throws Exception {
         // given
-        RequestPermission request = new RequestPermission("READ_USER");
+        PermissionCreateRequest request = new PermissionCreateRequest("READ_USER");
 
         // when & then
         mockMvc.perform(post("/permissions")
@@ -177,7 +177,7 @@ class PermissionControllerTest {
     @DisplayName("잘못된 요청으로 권한 생성시 400 응답을 받는다")
     void createPermission_BadRequest() throws Exception {
         // given
-        RequestPermission request = new RequestPermission("");  // 빈 문자열
+        PermissionCreateRequest request = new PermissionCreateRequest("");  // 빈 문자열
 
         // when & then
         mockMvc.perform(post("/permissions")
@@ -205,7 +205,7 @@ class PermissionControllerTest {
                 .description("OLD_PERMISSION")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
-        RequestPermission request = new RequestPermission("UPDATED_PERMISSION");
+        PermissionCreateRequest request = new PermissionCreateRequest("UPDATED_PERMISSION");
 
         // when & then
         mockMvc.perform(put("/permissions/{id}", savedPermission.getId())
@@ -237,7 +237,7 @@ class PermissionControllerTest {
     @DisplayName("존재하지 않는 권한 수정시 404 응답을 받는다")
     void updatePermission_NotFound() throws Exception {
         // given
-        RequestPermission request = new RequestPermission("UPDATED_PERMISSION");
+        PermissionCreateRequest request = new PermissionCreateRequest("UPDATED_PERMISSION");
 
         // when & then
         mockMvc.perform(put("/permissions/{id}", 999L)

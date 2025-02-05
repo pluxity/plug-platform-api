@@ -3,8 +3,8 @@ package com.pluxity.user.controller;
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pluxity.user.dto.RequestRole;
-import com.pluxity.user.dto.RequestRolePermissions;
+import com.pluxity.user.dto.RoleCreateRequest;
+import com.pluxity.user.dto.RolePermissionAssignRequest;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.repository.PermissionRepository;
@@ -141,7 +141,7 @@ class RoleControllerTest {
     @DisplayName("새로운 역할을 생성할 수 있다")
     void createRole() throws Exception {
         // given
-        RequestRole request = new RequestRole("ADMIN");
+        RoleCreateRequest request = new RoleCreateRequest("ADMIN");
 
         // when & then
         mockMvc.perform(post("/roles")
@@ -170,7 +170,7 @@ class RoleControllerTest {
                 .roleName("OLD_ROLE")
                 .build();
         Role savedRole = roleRepository.save(role);
-        RequestRole request = new RequestRole("UPDATED_ROLE");
+        RoleCreateRequest request = new RoleCreateRequest("UPDATED_ROLE");
 
         // when & then
         mockMvc.perform(put("/roles/{id}", savedRole.getId())
@@ -234,7 +234,7 @@ class RoleControllerTest {
         Permission permission2 = Permission.builder().description("WRITE_USER").build();
         permissionRepository.saveAll(List.of(permission1, permission2));
 
-        RequestRolePermissions request = new RequestRolePermissions(
+        RolePermissionAssignRequest request = new RolePermissionAssignRequest(
                 List.of(permission1.getId(), permission2.getId())
         );
 

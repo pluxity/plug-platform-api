@@ -1,14 +1,16 @@
 package com.pluxity.user.service;
 
-import com.pluxity.user.dto.RequestPermission;
-import com.pluxity.user.dto.ResponsePermission;
+import com.pluxity.user.dto.PermissionCreateRequest;
+import com.pluxity.user.dto.PermissionUpdateRequest;
+import com.pluxity.user.dto.PermissionResponse;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.repository.PermissionRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,27 +19,27 @@ public class PermissionService {
     private final PermissionRepository permissionRepository;
 
     @Transactional(readOnly = true)
-    public List<ResponsePermission> findAll() {
-        return permissionRepository.findAll().stream().map(ResponsePermission::from).toList();
+    public List<PermissionResponse> findAll() {
+        return permissionRepository.findAll().stream().map(PermissionResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
-    public ResponsePermission findById(Long id) {
-        return ResponsePermission.from(findPermissionById(id));
+    public PermissionResponse findById(Long id) {
+        return PermissionResponse.from(findPermissionById(id));
     }
 
     @Transactional
-    public ResponsePermission save(RequestPermission request) {
+    public PermissionResponse save(PermissionCreateRequest request) {
         Permission permission = Permission.builder().description(request.description()).build();
 
-        return ResponsePermission.from(permissionRepository.save(permission));
+        return PermissionResponse.from(permissionRepository.save(permission));
     }
 
     @Transactional
-    public ResponsePermission update(Long id, RequestPermission request) {
+    public PermissionResponse update(Long id, PermissionUpdateRequest request) {
         Permission permission = findPermissionById(id);
         permission.changeDescription(request.description());
-        return ResponsePermission.from(permission);
+        return PermissionResponse.from(permission);
     }
 
     @Transactional

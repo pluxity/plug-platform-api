@@ -1,8 +1,9 @@
 package com.pluxity.user.controller;
 
-import com.pluxity.user.annotation.ResponseCreated;
-import com.pluxity.user.dto.RequestPermission;
-import com.pluxity.user.dto.ResponsePermission;
+import com.pluxity.global.annotation.ResponseCreated;
+import com.pluxity.user.dto.PermissionCreateRequest;
+import com.pluxity.user.dto.PermissionUpdateRequest;
+import com.pluxity.user.dto.PermissionResponse;
 import com.pluxity.user.service.PermissionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,26 +20,25 @@ public class PermissionController {
     private final PermissionService permissionService;
 
     @GetMapping
-    public ResponseEntity<List<ResponsePermission>> getAllPermissions() {
+    public ResponseEntity<List<PermissionResponse>> getAllPermissions() {
         return ResponseEntity.ok(permissionService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponsePermission> getPermission(@PathVariable(name = "id") Long id) {
+    public ResponseEntity<PermissionResponse> getPermission(@PathVariable(name = "id") Long id) {
         return ResponseEntity.ok(permissionService.findById(id));
     }
 
     @PostMapping
     @ResponseCreated
-    public ResponseEntity<Long> createPermission(
-            @Valid @RequestBody RequestPermission request) {
-        ResponsePermission response = permissionService.save(request);
+    public ResponseEntity<Long> createPermission(@Valid @RequestBody PermissionCreateRequest request) {
+        PermissionResponse response = permissionService.save(request);
         return ResponseEntity.ok(response.id());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponsePermission> updatePermission(
-            @PathVariable(name = "id") Long id, @Valid @RequestBody RequestPermission request) {
+    public ResponseEntity<PermissionResponse> updatePermission(
+            @PathVariable(name = "id") Long id, @Valid @RequestBody PermissionUpdateRequest request) {
         return ResponseEntity.ok(permissionService.update(id, request));
     }
 
