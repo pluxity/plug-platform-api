@@ -155,13 +155,6 @@ class UserControllerTest {
                                         fieldWithPath("name").type(STRING).description("이름"),
                                         fieldWithPath("code").type(STRING).description("코드")
                                 )
-                                .responseFields(
-                                        fieldWithPath("id").type(NUMBER).description("사용자 ID"),
-                                        fieldWithPath("username").type(STRING).description("사용자명"),
-                                        fieldWithPath("name").type(STRING).description("이름"),
-                                        fieldWithPath("code").type(STRING).description("코드"),
-                                        fieldWithPath("roles").type(ARRAY).description("사용자 역할 목록")
-                                )
                                 .build())));
     }
 
@@ -184,7 +177,7 @@ class UserControllerTest {
                         .with(csrf())
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andDo(document("user-update",
                         resource(ResourceSnippetParameters.builder()
                                 .tag("user")

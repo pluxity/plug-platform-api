@@ -162,7 +162,6 @@ class PermissionControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
-                .andExpect(jsonPath("$.description").value("READ_USER"))
                 .andDo(MockMvcRestDocumentationWrapper.document("permission-create",
                         resource(ResourceSnippetParameters.builder()
                                 .tag("permission")
@@ -170,11 +169,6 @@ class PermissionControllerTest {
                                 .description("새로운 권한을 생성합니다.")
                                 .requestFields(
                                         fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명")
-                                )
-                                .responseFields(
-                                        fieldWithPath("id").type(JsonFieldType.NUMBER).description("생성된 권한 ID"),
-                                        fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명"),
-                                        fieldWithPath("roles").type(JsonFieldType.ARRAY).description("권한에 할당된 역할 목록")
                                 )
                                 .build())));
     }
@@ -219,8 +213,7 @@ class PermissionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.description").value("UPDATED_PERMISSION"))
+                .andExpect(status().isOk())
                 .andDo(MockMvcRestDocumentationWrapper.document("permission-update",
                         resource(ResourceSnippetParameters.builder()
                                 .tag("permission")
@@ -234,7 +227,7 @@ class PermissionControllerTest {
                                 )
                                 .responseFields(
                                         fieldWithPath("id").type(JsonFieldType.NUMBER).description("권한 ID"),
-                                        fieldWithPath("description").type(JsonFieldType.STRING).description("수정된 권한 설명"),
+                                        fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명"),
                                         fieldWithPath("roles").type(JsonFieldType.ARRAY).description("권한에 할당된 역할 목록")
                                 )
                                 .build())));

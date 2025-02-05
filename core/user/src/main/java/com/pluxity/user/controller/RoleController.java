@@ -1,17 +1,17 @@
 package com.pluxity.user.controller;
 
+import com.pluxity.user.annotation.ResponseCreated;
 import com.pluxity.user.dto.RequestRole;
 import com.pluxity.user.dto.RequestRolePermissions;
 import com.pluxity.user.dto.ResponsePermission;
 import com.pluxity.user.dto.ResponseRole;
 import com.pluxity.user.service.RoleService;
 import jakarta.validation.Valid;
-import java.net.URI;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/roles")
@@ -37,40 +37,23 @@ public class RoleController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseRole> createRole(@Valid @RequestBody RequestRole request) {
-        ResponseRole response = roleService.save(request);
-        URI location =
-                ServletUriComponentsBuilder.fromCurrentRequest()
-                        .path("/{id}")
-                        .buildAndExpand(response.id())
-                        .toUri();
-        return ResponseEntity.created(location).body(response);
+    @ResponseCreated
+    public ResponseEntity<Long> createRole(@Valid @RequestBody RequestRole request) {
+        return ResponseEntity.ok(roleService.save(request).id());
     }
 
     @PostMapping("/{roleId}/permissions")
-    public ResponseEntity<ResponseRole> assignPermissionsToRole(
+    @ResponseCreated
+    public ResponseEntity<Long> assignPermissionsToRole(
             @PathVariable(name = "roleId") Long roleId,
             @Valid @RequestBody RequestRolePermissions request) {
-        ResponseRole response = roleService.assignPermissionsToRole(roleId, request);
-        URI location =
-                ServletUriComponentsBuilder.fromCurrentRequest()
-                        .path("/{roleId}/permission}")
-                        .buildAndExpand(response.id())
-                        .toUri();
-
-        return ResponseEntity.created(location).body(response);
+        return ResponseEntity.ok(roleService.assignPermissionsToRole(roleId, request).id());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ResponseRole> updateRole(
             @PathVariable(name = "id") Long id, @Valid @RequestBody RequestRole request) {
-        ResponseRole response = roleService.update(id, request);
-        URI location =
-                ServletUriComponentsBuilder.fromCurrentRequest()
-                        .path("/{roleId}")
-                        .buildAndExpand(response.id())
-                        .toUri();
-        return ResponseEntity.created(location).body(response);
+        return ResponseEntity.ok(roleService.update(id, request));
     }
 
     @DeleteMapping("/{id}")

@@ -1,15 +1,15 @@
 package com.pluxity.user.controller;
 
+import com.pluxity.user.annotation.ResponseCreated;
 import com.pluxity.user.dto.RequestPermission;
 import com.pluxity.user.dto.ResponsePermission;
 import com.pluxity.user.service.PermissionService;
 import jakarta.validation.Valid;
-import java.net.URI;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/permissions")
@@ -29,22 +29,17 @@ public class PermissionController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponsePermission> createPermission(
+    @ResponseCreated
+    public ResponseEntity<Long> createPermission(
             @Valid @RequestBody RequestPermission request) {
         ResponsePermission response = permissionService.save(request);
-        URI location =
-                ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(response.id()).toUri();
-
-        return ResponseEntity.created(location).body(response);
+        return ResponseEntity.ok(response.id());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ResponsePermission> updatePermission(
             @PathVariable(name = "id") Long id, @Valid @RequestBody RequestPermission request) {
-        ResponsePermission response = permissionService.update(id, request);
-        URI location =
-                ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(response.id()).toUri();
-        return ResponseEntity.created(location).body(response);
+        return ResponseEntity.ok(permissionService.update(id, request));
     }
 
     @DeleteMapping("/{id}")

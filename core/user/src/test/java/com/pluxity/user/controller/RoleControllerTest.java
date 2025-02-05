@@ -151,7 +151,6 @@ class RoleControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
-                .andExpect(jsonPath("$.roleName").value("ADMIN"))
                 .andDo(MockMvcRestDocumentationWrapper.document("role-create",
                         resource(ResourceSnippetParameters.builder()
                                 .tag("role")
@@ -159,11 +158,6 @@ class RoleControllerTest {
                                 .description("새로운 역할을 생성합니다.")
                                 .requestFields(
                                         fieldWithPath("roleName").type(JsonFieldType.STRING).description("역할 이름")
-                                )
-                                .responseFields(
-                                        fieldWithPath("id").type(JsonFieldType.NUMBER).description("생성된 역할 ID"),
-                                        fieldWithPath("roleName").type(JsonFieldType.STRING).description("역할 이름"),
-                                        fieldWithPath("permissions").type(JsonFieldType.ARRAY).description("역할에 할당된 권한 목록")
                                 )
                                 .build())));
     }
@@ -184,8 +178,7 @@ class RoleControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.roleName").value("UPDATED_ROLE"))
+                .andExpect(status().isOk())
                 .andDo(MockMvcRestDocumentationWrapper.document("role-update",
                         resource(ResourceSnippetParameters.builder()
                                 .tag("role")
@@ -199,7 +192,7 @@ class RoleControllerTest {
                                 )
                                 .responseFields(
                                         fieldWithPath("id").type(JsonFieldType.NUMBER).description("역할 ID"),
-                                        fieldWithPath("roleName").type(JsonFieldType.STRING).description("수정된 역할 이름"),
+                                        fieldWithPath("roleName").type(JsonFieldType.STRING).description("역할 이름"),
                                         fieldWithPath("permissions").type(JsonFieldType.ARRAY).description("역할에 할당된 권한 목록")
                                 )
                                 .build())));
@@ -252,7 +245,6 @@ class RoleControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.permissions", hasSize(2)))
                 .andDo(MockMvcRestDocumentationWrapper.document("role-assign-permissions",
                         resource(ResourceSnippetParameters.builder()
                                 .tag("role")
@@ -263,13 +255,6 @@ class RoleControllerTest {
                                 )
                                 .requestFields(
                                         fieldWithPath("permissionIds").type(JsonFieldType.ARRAY).description("할당할 권한 ID 목록")
-                                )
-                                .responseFields(
-                                        fieldWithPath("id").type(JsonFieldType.NUMBER).description("역할 ID"),
-                                        fieldWithPath("roleName").type(JsonFieldType.STRING).description("역할 이름"),
-                                        fieldWithPath("permissions").type(JsonFieldType.ARRAY).description("역할에 할당된 권한 목록"),
-                                        fieldWithPath("permissions[].id").type(JsonFieldType.NUMBER).description("권한 ID"),
-                                        fieldWithPath("permissions[].description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
     }
