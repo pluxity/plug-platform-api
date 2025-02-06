@@ -1,21 +1,18 @@
 dependencies {
-
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
-
     implementation 'org.springframework.boot:spring-boot-starter-security'
-
 }
 
 bootJar { enabled = false }
 jar { enabled = true }
 
 subprojects {
-
     bootJar { enabled = false }
     jar { enabled = true }
 
     dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-security'
         testImplementation 'org.springframework.security:spring-security-test'
     }
 }
@@ -25,7 +22,7 @@ configurations {
     testArtifacts
 }
 
-task testJar(type: Jar) {
+tasks.register('testJar', Jar) {
     archiveClassifier.set('tests')
     from(sourceSets.test.output)
 }
