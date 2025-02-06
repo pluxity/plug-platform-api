@@ -2,6 +2,8 @@ package com.pluxity.user.controller;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pluxity.TestApplication;
+import com.pluxity.global.config.GlobalBeanConfig;
 import com.pluxity.user.dto.TemplateCreateRequest;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.Template;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,8 +51,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(classes = {TestApplication.class})
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
+@Import(GlobalBeanConfig.class)
 @AutoConfigureRestDocs
 @Transactional
 @WithMockUser(username = "test", roles = "ADMIN")

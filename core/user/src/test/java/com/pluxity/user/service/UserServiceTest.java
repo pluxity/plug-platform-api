@@ -1,5 +1,8 @@
 package com.pluxity.user.service;
 
+import com.pluxity.TestApplication;
+import com.pluxity.TestAuditingConfig;
+import com.pluxity.global.config.GlobalBeanConfig;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.entity.Role;
@@ -17,6 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +29,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest
+@SpringBootTest(classes = {TestApplication.class, TestAuditingConfig.class})
+@Import(GlobalBeanConfig.class)
 @Transactional
 class UserServiceTest {
 

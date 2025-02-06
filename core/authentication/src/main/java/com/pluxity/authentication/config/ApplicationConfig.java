@@ -7,7 +7,6 @@ import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -18,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @RequiredArgsConstructor
-@ComponentScan(basePackages = {"com.pluxity.user.repository", "com.pluxity.global"})
 public class ApplicationConfig {
 
     private final UserRepository repository;

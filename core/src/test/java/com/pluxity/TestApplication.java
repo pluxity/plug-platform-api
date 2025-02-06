@@ -1,11 +1,11 @@
-package com.pluxity.authentication;
+package com.pluxity;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
-public class AuthenticationApplication {
+@SpringBootApplication(scanBasePackages = {"com.pluxity"})
+public class TestApplication {
     public static void main(String[] args) {
-        SpringApplication.run(AuthenticationApplication.class, args);
+        SpringApplication.run(TestApplication.class, args);
     }
 }

@@ -1,5 +1,7 @@
 package com.pluxity.user.service;
 
+import com.pluxity.TestApplication;
+import com.pluxity.TestAuditingConfig;
 import com.pluxity.user.dto.PermissionCreateRequest;
 import com.pluxity.user.dto.PermissionResponse;
 import com.pluxity.user.dto.PermissionUpdateRequest;
@@ -18,7 +20,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest
+@SpringBootTest(classes = {TestApplication.class, TestAuditingConfig.class})
 @Transactional
 class PermissionServiceTest {
 

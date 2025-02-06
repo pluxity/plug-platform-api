@@ -3,6 +3,8 @@ package com.pluxity.user.controller;
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pluxity.TestApplication;
+import com.pluxity.TestAuditingConfig;
 import com.pluxity.user.dto.RoleCreateRequest;
 import com.pluxity.user.dto.RolePermissionAssignRequest;
 import com.pluxity.user.entity.Permission;
@@ -43,7 +45,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(classes = {TestApplication.class, TestAuditingConfig.class})
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 @AutoConfigureRestDocs
 @Transactional
