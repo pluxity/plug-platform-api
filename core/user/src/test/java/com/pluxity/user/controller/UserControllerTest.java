@@ -2,10 +2,14 @@ package com.pluxity.user.controller;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pluxity.user.dto.TemplateCreateRequest;
 import com.pluxity.user.entity.Role;
+import com.pluxity.user.entity.Template;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.RoleRepository;
+import com.pluxity.user.repository.TemplateRepository;
 import com.pluxity.user.repository.UserRepository;
+import com.pluxity.user.service.TemplateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,6 +70,10 @@ class UserControllerTest {
     private PasswordEncoder passwordEncoder;
 
     private MockMvc mockMvc;
+    @Autowired
+    private TemplateService templateService;
+    @Autowired
+    private TemplateRepository templateRepository;
 
     @BeforeEach
     void setUp(RestDocumentationContextProvider restDocumentation) {
@@ -99,7 +107,9 @@ class UserControllerTest {
                                         fieldWithPath("[].username").type(STRING).description("사용자명"),
                                         fieldWithPath("[].name").type(STRING).description("이름"),
                                         fieldWithPath("[].code").type(STRING).description("코드"),
-                                        fieldWithPath("[].roles").type(ARRAY).description("사용자 역할 목록")
+                                        fieldWithPath("[].roles").type(ARRAY).description("사용자 역할 목록"),
+                                        fieldWithPath("[].template").type(OBJECT).optional().description("사용자 템플릿 (없을 수 있음)"),
+                                        fieldWithPath("[].permissions").type(ARRAY).optional().description("사용자 권한 (없을 수 있음)")
                                 )
                                 .build())));
     }
@@ -124,7 +134,9 @@ class UserControllerTest {
                                         fieldWithPath("username").type(STRING).description("사용자명"),
                                         fieldWithPath("name").type(STRING).description("이름"),
                                         fieldWithPath("code").type(STRING).description("코드"),
-                                        fieldWithPath("roles").type(ARRAY).description("사용자 역할 목록")
+                                        fieldWithPath("roles").type(ARRAY).description("사용자 역할 목록"),
+                                        fieldWithPath("template").type(OBJECT).optional().description("사용자 템플릿 (없을 수 있음)"),
+                                        fieldWithPath("permissions").type(ARRAY).optional().description("사용자 권한 (없을 수 있음)")
                                 )
                                 .build())));
     }
@@ -193,7 +205,9 @@ class UserControllerTest {
                                         fieldWithPath("username").type(STRING).description("사용자명"),
                                         fieldWithPath("name").type(STRING).description("이름"),
                                         fieldWithPath("code").type(STRING).description("코드"),
-                                        fieldWithPath("roles").type(ARRAY).description("사용자 역할 목록")
+                                        fieldWithPath("roles").type(ARRAY).description("사용자 역할 목록"),
+                                        fieldWithPath("template").type(OBJECT).optional().description("사용자 템플릿 (없을 수 있음)"),
+                                        fieldWithPath("permissions").type(ARRAY).optional().description("사용자 권한 (없을 수 있음)")
                                 )
                                 .build())));
     }
@@ -261,6 +275,82 @@ class UserControllerTest {
                                 .pathParameters(
                                         parameterWithName("userId").description("사용자 ID"),
                                         parameterWithName("roleId").description("역할 ID")
+                                )
+                                .build())));
+    }
+
+    @Test
+    @DisplayName("사용자에게 템플릿 할당")
+    void assignTemplateToUser() throws Exception {
+        // given
+        User user = createUser("templateuser", "templatepass", "template", "TEMP123");
+        User savedUser = userRepository.save(user);
+        Long templateId = templateService.save(new TemplateCreateRequest("Test Template", "http://test.com")).id();
+
+        // when & then
+        mockMvc.perform(post("/admin/users/{userId}/template/{templateId}", savedUser.getId(), templateId)
+                        .with(csrf()))
+                .andExpect(status().isCreated())
+                .andDo(document("user-assign-template",
+                        resource(ResourceSnippetParameters.builder()
+                                .tag("user")
+                                .pathParameters(
+                                        parameterWithName("userId").description("사용자 ID"),
+                                        parameterWithName("templateId").description("템플릿 ID")
+                                )
+                                .build())));
+    }
+
+    @Test
+    @DisplayName("사용자의 템플릿 조회")
+    void getUserTemplate() throws Exception {
+        // given
+        User user = createUser("templateuser", "templatepass", "template", "TEMP123");
+        User savedUser = userRepository.save(user);
+        Long templateId = templateService.save(new TemplateCreateRequest("Test Template", "http://test.com")).id();
+        Template template = templateRepository.findById(templateId).orElseThrow();
+        savedUser.changeTemplate(template);
+        userRepository.save(savedUser);
+
+        // when & then
+        mockMvc.perform(get("/admin/users/{userId}/template", savedUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Test Template"))
+                .andExpect(jsonPath("$.url").value("http://test.com"))
+                .andDo(document("user-get-template",
+                        resource(ResourceSnippetParameters.builder()
+                                .tag("user")
+                                .pathParameters(
+                                        parameterWithName("userId").description("사용자 ID")
+                                )
+                                .responseFields(
+                                        fieldWithPath("id").type(NUMBER).description("템플릿 ID"),
+                                        fieldWithPath("name").type(STRING).description("템플릿 이름"),
+                                        fieldWithPath("url").type(STRING).description("템플릿 URL")
+                                )
+                                .build())));
+    }
+
+    @Test
+    @DisplayName("사용자의 템플릿 제거")
+    void removeUserTemplate() throws Exception {
+        // given
+        User user = createUser("templateuser", "templatepass", "template", "TEMP123");
+        User savedUser = userRepository.save(user);
+        Long templateId = templateService.save(new TemplateCreateRequest("Test Template", "http://test.com")).id();
+        Template template = templateRepository.findById(templateId).orElseThrow();
+        savedUser.changeTemplate(template);
+        userRepository.save(savedUser);
+
+        // when & then
+        mockMvc.perform(delete("/admin/users/{userId}/template", savedUser.getId())
+                        .with(csrf()))
+                .andExpect(status().isNoContent())
+                .andDo(document("user-remove-template",
+                        resource(ResourceSnippetParameters.builder()
+                                .tag("user")
+                                .pathParameters(
+                                        parameterWithName("userId").description("사용자 ID")
                                 )
                                 .build())));
     }

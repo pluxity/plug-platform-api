@@ -2,13 +2,15 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -32,18 +34,23 @@ public class User extends BaseEntity {
     @Column(name = "code", nullable = false)
     private String code;
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "template_id")
+    private Template template;
+
     @OneToMany(
             mappedBy = "user",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
             orphanRemoval = true)
-    private final List<UserRole> userRoles = new ArrayList<>();
+    private final Set<UserRole> userRoles = new LinkedHashSet<>();
 
     @Builder
-    public User(String username, String password, String name, String code) {
+    public User(String username, String password, String name, String code, Template template) {
         this.username = Objects.requireNonNull(username, "Username must not be null");
         this.password = Objects.requireNonNull(password, "Password must not be null");
         this.name = Objects.requireNonNull(name, "Name must not be null");
         this.code = Objects.requireNonNull(code, "Code must not be null");
+        this.template = template;
     }
 
     public void changeUsername(String username) {
@@ -127,15 +134,11 @@ public class User extends BaseEntity {
         this.code = code;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User user)) return false;
-        return Objects.equals(getId(), user.getId());
+    public void changeTemplate(Template template) {
+        this.template = template;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
+    public void removeTemplate() {
+        this.template = null;
     }
 }

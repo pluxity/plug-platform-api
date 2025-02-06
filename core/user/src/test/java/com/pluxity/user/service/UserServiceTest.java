@@ -1,12 +1,18 @@
 package com.pluxity.user.service;
 
 import com.pluxity.user.dto.*;
+import com.pluxity.user.entity.Permission;
 import com.pluxity.user.entity.Role;
+import com.pluxity.user.entity.Template;
 import com.pluxity.user.entity.User;
+import com.pluxity.user.repository.PermissionRepository;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityNotFoundException;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +40,15 @@ class UserServiceTest {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private PermissionRepository permissionRepository;
+
+    @Autowired
+    private TemplateService templateService;
+
+    @Autowired
+    private EntityManagerFactory emf;
 
     @Autowired
     private EntityManager em;
@@ -477,5 +492,187 @@ class UserServiceTest {
         assertThat(passwordEncoder.matches("old_password", updatedUser.getPassword())).isTrue();
         assertThat(updatedUser.getName()).isEqualTo("old_name");
         assertThat(updatedUser.getCode()).isEqualTo("old_code");
+    }
+
+    @Test
+    @DisplayName("사용자에게 템플릿을 할당할 수 있다")
+    void assignTemplateToUser() {
+        // given
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("password"))
+                .name("name")
+                .code("code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        Template template = Template.builder()
+                .name("Test Template")
+                .url("http://test.com")
+                .build();
+
+        TemplateResponse savedTemplate = templateService.save(new TemplateCreateRequest(template.getName(), template.getUrl()));
+
+        // when
+        UserResponse result = userService.assignTemplateToUser(savedUser.getId(), savedTemplate.id());
+
+        // then
+        assertThat(result.template()).isNotNull();
+        assertThat(result.template().name()).isEqualTo("Test Template");
+        assertThat(result.template().url()).isEqualTo("http://test.com");
+
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        assertThat(updatedUser.getTemplate()).isNotNull();
+        assertThat(updatedUser.getTemplate().getName()).isEqualTo("Test Template");
+    }
+
+    @Test
+    @DisplayName("사용자의 템플릿을 조회할 수 있다")
+    void getUserTemplate() {
+        // given
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("password"))
+                .name("name")
+                .code("code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        Template template = Template.builder()
+                .name("Test Template")
+                .url("http://test.com")
+                .build();
+        TemplateResponse savedTemplate = templateService.save(new TemplateCreateRequest(template.getName(), template.getUrl()));
+
+        Template templateEntity = templateService.findTemplateById(savedTemplate.id());
+
+        savedUser.changeTemplate(templateEntity);
+        em.flush();
+        em.clear();
+
+        // when
+        TemplateResponse result = userService.getUserTemplate(savedUser.getId());
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.name()).isEqualTo("Test Template");
+        assertThat(result.url()).isEqualTo("http://test.com");
+    }
+
+    @Test
+    @DisplayName("템플릿이 없는 사용자의 템플릿 조회시 예외가 발생한다")
+    void getUserTemplate_NotFound() {
+        // given
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("password"))
+                .name("name")
+                .code("code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        // when & then
+        assertThatThrownBy(() -> userService.getUserTemplate(savedUser.getId()))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Template not found for user");
+    }
+
+    @Test
+    @DisplayName("사용자의 템플릿을 제거할 수 있다")
+    void removeUserTemplate() {
+        // given
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("password"))
+                .name("name")
+                .code("code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        Template template = Template.builder()
+                .name("Test Template")
+                .url("http://test.com")
+                .build();
+
+        TemplateResponse response = templateService.save(new TemplateCreateRequest(template.getName(), template.getUrl()));
+        Template savedTemplate = templateService.findTemplateById(response.id());
+
+        savedUser.changeTemplate(savedTemplate);
+        em.flush();
+        em.clear();
+
+        // when
+        userService.removeUserTemplate(savedUser.getId());
+
+        // then
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        assertThat(updatedUser.getTemplate()).isNull();
+    }
+
+    @Test
+    @DisplayName("사용자 목록 조회시 N+1 문제가 발생하지 않는다")
+    void findAll_NoNPlusOne() {
+        // given
+        // 여러 사용자와 템플릿 생성
+        for (int i = 0; i < 5; i++) {
+            User user = User.builder()
+                    .username("user" + i)
+                    .password(passwordEncoder.encode("password" + i))
+                    .name("name" + i)
+                    .code("code" + i)
+                    .build();
+            User savedUser = userRepository.save(user);
+
+            Template template = Template.builder()
+                    .name("Template " + i)
+                    .url("http://test" + i + ".com")
+                    .build();
+            TemplateResponse savedTemplate = templateService.save(new TemplateCreateRequest(template.getName(), template.getUrl()));
+            Template templateEntity = templateService.findTemplateById(savedTemplate.id());
+            
+            savedUser.changeTemplate(templateEntity);
+
+            // 각 사용자에게 역할 추가
+            Role role = Role.builder()
+                    .roleName("ROLE_" + i)
+                    .build();
+            Role savedRole = roleRepository.save(role);
+
+            // 각 역할에 권한 추가
+            Permission permission = Permission.builder()
+                    .description("PERMISSION_" + i)
+                    .build();
+            Permission savedPermission = permissionRepository.save(permission);
+            savedRole.addPermission(savedPermission);
+
+            savedUser.addRole(savedRole);
+        }
+        em.flush();
+        em.clear();
+
+        // Hibernate Statistics 활성화
+        SessionFactory sessionFactory = emf.unwrap(SessionFactory.class);
+        Statistics statistics = sessionFactory.getStatistics();
+        statistics.clear();
+        statistics.setStatisticsEnabled(true);
+
+        // when
+        List<UserResponse> users = userService.findAll();
+
+        // then
+        assertThat(users).hasSize(5);
+        // EntityGraph를 사용하여 단일 쿼리로 조회되어야 함
+        assertThat(statistics.getPrepareStatementCount()).isEqualTo(1);
+        
+        // 모든 사용자의 템플릿, 역할, 권한 정보가 정상적으로 로드되었는지 확인
+        assertThat(users).allSatisfy(user -> {
+            assertThat(user.template()).isNotNull();
+            assertThat(user.template().name()).startsWith("Template ");
+            assertThat(user.template().url()).startsWith("http://test");
+            assertThat(user.roles()).hasSize(1);
+            assertThat(user.roles().get(0).roleName()).startsWith("ROLE_");
+            assertThat(user.permissions()).hasSize(1);
+            assertThat(user.permissions().get(0).description()).startsWith("PERMISSION_");
+        });
     }
 }

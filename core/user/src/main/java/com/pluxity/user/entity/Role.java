@@ -2,14 +2,12 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.*;
 
 @Entity
 @Table(name = "roles")
@@ -29,11 +27,11 @@ public class Role extends BaseEntity {
             mappedBy = "role",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
             orphanRemoval = true)
-    private final List<RolePermission> rolePermissions = new ArrayList<>();
+    private final Set<RolePermission> rolePermissions = new LinkedHashSet<>();
 
     @Builder
     public Role(String roleName) {
-        this.roleName = Objects.requireNonNull(roleName, "Role name must not be blank");
+        this.roleName = Objects.requireNonNull(roleName, "Role name must not be null");
     }
 
     public void changeRoleName(String roleName) {
@@ -44,15 +42,11 @@ public class Role extends BaseEntity {
     public void addPermission(Permission permission) {
         Objects.requireNonNull(permission, "Permission must not be null");
 
-        // 이미 해당 권한이 있는지 확인
         if (hasPermission(permission)) {
-            throw new IllegalStateException(
-                    "Permission already exists in this role: " + permission.getDescription());
+            throw new IllegalStateException("Permission already exists for this role: " + permission.getDescription());
         }
 
         RolePermission rolePermission = new RolePermission(this, permission);
-        rolePermission.changeRole(this);
-        rolePermission.changePermission(permission);
         this.rolePermissions.add(rolePermission);
     }
 
@@ -87,7 +81,7 @@ public class Role extends BaseEntity {
                         .orElseThrow(
                                 () ->
                                         new IllegalStateException(
-                                                "Permission not found in this role: " + permission.getDescription()));
+                                                "Permission not found for this role: " + permission.getDescription()));
 
         this.rolePermissions.remove(rolePermissionToRemove);
     }
@@ -97,28 +91,17 @@ public class Role extends BaseEntity {
     }
 
     public boolean hasPermission(Permission permission) {
-        return this.rolePermissions.stream()
+        return rolePermissions.stream()
                 .map(RolePermission::getPermission)
-                .anyMatch(p -> p.equals(permission));
+                .anyMatch(p -> Objects.equals(p, permission));
     }
 
     public List<RolePermission> getRolePermissions() {
-        return Collections.unmodifiableList(rolePermissions);
+        return Collections.unmodifiableList(new ArrayList<>(rolePermissions));
     }
 
     public List<Permission> getPermissions() {
-        return this.rolePermissions.stream().map(RolePermission::getPermission).toList();
+        return rolePermissions.stream().map(RolePermission::getPermission).toList();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Role role)) return false;
-        return Objects.equals(getId(), role.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
-    }
 }

@@ -1,10 +1,7 @@
 package com.pluxity.user.controller;
 
 import com.pluxity.global.annotation.ResponseCreated;
-import com.pluxity.user.dto.UserCreateRequest;
-import com.pluxity.user.dto.UserResponse;
-import com.pluxity.user.dto.UserRoleAssignRequest;
-import com.pluxity.user.dto.UserUpdateRequest;
+import com.pluxity.user.dto.*;
 import com.pluxity.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -62,4 +59,26 @@ public class AdminUserController {
         service.removeRoleFromUser(userId, roleId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{userId}/template/{templateId}")
+    @ResponseCreated
+    public ResponseEntity<Long> assignTemplateToUser(
+            @PathVariable("userId") Long userId,
+            @PathVariable("templateId") Long templateId) {
+        return ResponseEntity.ok(service.assignTemplateToUser(userId, templateId).id());
+    }
+
+    @GetMapping("/{userId}/template")
+    public ResponseEntity<TemplateResponse> getUserTemplate(
+            @PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(service.getUserTemplate(userId));
+    }
+
+    @DeleteMapping("/{userId}/template")
+    public ResponseEntity<Void> removeUserTemplate(
+            @PathVariable("userId") Long userId) {
+        service.removeUserTemplate(userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

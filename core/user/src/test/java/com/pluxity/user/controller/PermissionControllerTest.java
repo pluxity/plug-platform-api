@@ -93,8 +93,7 @@ class PermissionControllerTest {
                                 .description("시스템에 등록된 모든 권한 목록을 조회합니다.")
                                 .responseFields(
                                         fieldWithPath("[].id").type(JsonFieldType.NUMBER).description("권한 ID"),
-                                        fieldWithPath("[].description").type(JsonFieldType.STRING).description("권한 설명"),
-                                        fieldWithPath("[].roles").type(JsonFieldType.ARRAY).description("권한에 할당된 역할 목록")
+                                        fieldWithPath("[].description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
     }
@@ -124,8 +123,7 @@ class PermissionControllerTest {
                                 )
                                 .responseFields(
                                         fieldWithPath("id").type(JsonFieldType.NUMBER).description("권한 ID"),
-                                        fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명"),
-                                        fieldWithPath("roles").type(JsonFieldType.ARRAY).description("권한에 할당된 역할 목록")
+                                        fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
     }
@@ -227,8 +225,7 @@ class PermissionControllerTest {
                                 )
                                 .responseFields(
                                         fieldWithPath("id").type(JsonFieldType.NUMBER).description("권한 ID"),
-                                        fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명"),
-                                        fieldWithPath("roles").type(JsonFieldType.ARRAY).description("권한에 할당된 역할 목록")
+                                        fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
     }

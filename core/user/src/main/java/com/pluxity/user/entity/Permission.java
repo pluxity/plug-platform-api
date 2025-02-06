@@ -2,14 +2,15 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "permissions")
@@ -50,18 +51,7 @@ public class Permission extends BaseEntity {
 
     public boolean hasRole(Role role) {
         return this.rolePermissions.stream()
-                .anyMatch(rolePermission -> Objects.equals(rolePermission.getRole().getId(), role.getId()));
+                .anyMatch(rolePermission -> Objects.equals(rolePermission.getRole(), role));
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Permission that)) return false;
-        return Objects.equals(getId(), that.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
-    }
 }

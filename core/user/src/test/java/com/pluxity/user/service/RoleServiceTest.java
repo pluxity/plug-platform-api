@@ -295,6 +295,6 @@ class RoleServiceTest {
         // when & then
         assertThatThrownBy(() -> roleService.removePermissionFromRole(savedRole.getId(), savedPermission.getId()))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Permission not found in this role");
+                .hasMessageContaining("Permission not found for this role");
     }
 }

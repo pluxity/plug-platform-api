@@ -286,8 +286,7 @@ class RoleControllerTest {
                                 )
                                 .responseFields(
                                         fieldWithPath("[].id").type(JsonFieldType.NUMBER).description("권한 ID"),
-                                        fieldWithPath("[].description").type(JsonFieldType.STRING).description("권한 설명"),
-                                        fieldWithPath("[].roles").type(JsonFieldType.ARRAY).description("권한에 할당된 역할 목록")
+                                        fieldWithPath("[].description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
     }
