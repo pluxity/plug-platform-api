@@ -5,11 +5,10 @@ import com.pluxity.user.dto.TemplateResponse;
 import com.pluxity.user.dto.TemplateUpdateRequest;
 import com.pluxity.user.service.TemplateService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/templates")
@@ -31,15 +30,13 @@ public class TemplateController {
     }
 
     @PostMapping
-    public ResponseEntity<Long> createTemplate(
-            @Valid @RequestBody TemplateCreateRequest request) {
+    public ResponseEntity<Long> createTemplate(@Valid @RequestBody TemplateCreateRequest request) {
         return ResponseEntity.ok(templateService.save(request).id());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TemplateResponse> updateTemplate(
-            @PathVariable Long id,
-            @Valid @RequestBody TemplateUpdateRequest request) {
+            @PathVariable Long id, @Valid @RequestBody TemplateUpdateRequest request) {
         TemplateResponse response = templateService.update(id, request);
         return ResponseEntity.ok(response);
     }
@@ -49,4 +46,4 @@ public class TemplateController {
         templateService.delete(id);
         return ResponseEntity.noContent().build();
     }
-} 
+}

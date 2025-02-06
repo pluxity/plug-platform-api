@@ -1,12 +1,17 @@
 package com.pluxity.user.dto;
 
 import com.pluxity.user.entity.User;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
 public record UserResponse(
-        Long id, String username, String name, String code, TemplateResponse template, List<RoleResponse> roles, List<PermissionResponse> permissions) {
+        Long id,
+        String username,
+        String name,
+        String code,
+        TemplateResponse template,
+        List<RoleResponse> roles,
+        List<PermissionResponse> permissions) {
     public static UserResponse from(User user) {
         return new UserResponse(
                 user.getId(),
@@ -22,7 +27,6 @@ public record UserResponse(
                         .flatMap(userRole -> userRole.getRole().getRolePermissions().stream())
                         .map(rolePermission -> PermissionResponse.from(rolePermission.getPermission()))
                         .distinct()
-                        .collect(Collectors.toList())
-        );
+                        .collect(Collectors.toList()));
     }
 }

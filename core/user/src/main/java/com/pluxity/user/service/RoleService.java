@@ -6,11 +6,10 @@ import com.pluxity.user.entity.Role;
 import com.pluxity.user.repository.PermissionRepository;
 import com.pluxity.user.repository.RoleRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

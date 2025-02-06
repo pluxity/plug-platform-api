@@ -2,12 +2,11 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.*;
 
 @Entity
 @Table(name = "roles")
@@ -43,7 +42,8 @@ public class Role extends BaseEntity {
         Objects.requireNonNull(permission, "Permission must not be null");
 
         if (hasPermission(permission)) {
-            throw new IllegalStateException("Permission already exists for this role: " + permission.getDescription());
+            throw new IllegalStateException(
+                    "Permission already exists for this role: " + permission.getDescription());
         }
 
         RolePermission rolePermission = new RolePermission(this, permission);
@@ -103,5 +103,4 @@ public class Role extends BaseEntity {
     public List<Permission> getPermissions() {
         return rolePermissions.stream().map(RolePermission::getPermission).toList();
     }
-
 }

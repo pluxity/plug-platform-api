@@ -2,11 +2,10 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.Objects;
 
 @Entity
 @Table(name = "role_permissions")
@@ -39,5 +38,4 @@ public class RolePermission extends BaseEntity {
     public void changePermission(Permission permission) {
         this.permission = Objects.requireNonNull(permission, "permission must not be null");
     }
-
 }

@@ -63,22 +63,18 @@ public class AdminUserController {
     @PostMapping("/{userId}/template/{templateId}")
     @ResponseCreated
     public ResponseEntity<Long> assignTemplateToUser(
-            @PathVariable("userId") Long userId,
-            @PathVariable("templateId") Long templateId) {
+            @PathVariable("userId") Long userId, @PathVariable("templateId") Long templateId) {
         return ResponseEntity.ok(service.assignTemplateToUser(userId, templateId).id());
     }
 
     @GetMapping("/{userId}/template")
-    public ResponseEntity<TemplateResponse> getUserTemplate(
-            @PathVariable("userId") Long userId) {
+    public ResponseEntity<TemplateResponse> getUserTemplate(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(service.getUserTemplate(userId));
     }
 
     @DeleteMapping("/{userId}/template")
-    public ResponseEntity<Void> removeUserTemplate(
-            @PathVariable("userId") Long userId) {
+    public ResponseEntity<Void> removeUserTemplate(@PathVariable("userId") Long userId) {
         service.removeUserTemplate(userId);
         return ResponseEntity.noContent().build();
     }
-
 }

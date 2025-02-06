@@ -6,11 +6,10 @@ import com.pluxity.user.dto.PermissionResponse;
 import com.pluxity.user.dto.PermissionUpdateRequest;
 import com.pluxity.user.service.PermissionService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/permissions")

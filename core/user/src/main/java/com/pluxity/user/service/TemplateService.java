@@ -6,11 +6,10 @@ import com.pluxity.user.dto.TemplateUpdateRequest;
 import com.pluxity.user.entity.Template;
 import com.pluxity.user.repository.TemplateRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +19,7 @@ public class TemplateService {
 
     @Transactional
     public TemplateResponse save(TemplateCreateRequest request) {
-        Template template = Template.builder()
-                .name(request.name())
-                .url(request.url())
-                .build();
+        Template template = Template.builder().name(request.name()).url(request.url()).build();
 
         Template savedTemplate = templateRepository.save(template);
         return TemplateResponse.from(savedTemplate);
@@ -36,9 +32,7 @@ public class TemplateService {
 
     @Transactional(readOnly = true)
     public List<TemplateResponse> findAll() {
-        return templateRepository.findAll().stream()
-                .map(TemplateResponse::from)
-                .toList();
+        return templateRepository.findAll().stream().map(TemplateResponse::from).toList();
     }
 
     @Transactional
@@ -62,7 +56,8 @@ public class TemplateService {
     }
 
     Template findTemplateById(Long id) {
-        return templateRepository.findById(id)
+        return templateRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Template not found with id: " + id));
     }
 }

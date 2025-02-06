@@ -4,11 +4,10 @@ import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.service.RoleService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/roles")

@@ -36,5 +36,4 @@ public class Template extends BaseEntity {
     public void changeUrl(String url) {
         this.url = url;
     }
-
 }

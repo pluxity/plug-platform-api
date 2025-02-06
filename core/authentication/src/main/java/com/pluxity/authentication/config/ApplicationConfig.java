@@ -1,5 +1,7 @@
 package com.pluxity.authentication.config;
 
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
+
 import com.pluxity.authentication.security.CustomUserDetails;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
@@ -13,8 +15,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
 
 @Configuration
 @RequiredArgsConstructor
