@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -185,7 +186,7 @@ class RoleControllerTest {
                         resource(ResourceSnippetParameters.builder()
                                 .tag("role")
                                 .summary("역할 수정 API")
-                                .description("기존 역할의 정보를 수정합니다.")
+                                .description("기존 역할의 이름을 수정합니다.")
                                 .pathParameters(
                                         parameterWithName("id").description("수정할 역할 ID")
                                 )
@@ -196,6 +197,89 @@ class RoleControllerTest {
                                         fieldWithPath("id").type(JsonFieldType.NUMBER).description("역할 ID"),
                                         fieldWithPath("roleName").type(JsonFieldType.STRING).description("역할 이름"),
                                         fieldWithPath("permissions").type(JsonFieldType.ARRAY).description("역할에 할당된 권한 목록")
+                                )
+                                .build())));
+    }
+
+    @Test
+    @DisplayName("역할의 권한을 업데이트할 수 있다")
+    void updateRolePermissions() throws Exception {
+        // given
+        Role role = Role.builder().roleName("ADMIN").build();
+        Role savedRole = roleRepository.save(role);
+
+        Permission permission1 = Permission.builder().name("READ_USER").description("READ_USER").build();
+        Permission permission2 = Permission.builder().name("WRITE_USER").description("WRITE_USER").build();
+        permissionRepository.saveAll(List.of(permission1, permission2));
+
+        Map<String, Object> request = Map.of(
+                "permissionIds", List.of(permission1.getId(), permission2.getId())
+        );
+
+        // when & then
+        mockMvc.perform(put("/roles/{roleId}/permissions", savedRole.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(MockMvcRestDocumentationWrapper.document("role-update-permissions",
+                        resource(ResourceSnippetParameters.builder()
+                                .tag("role")
+                                .summary("역할 권한 업데이트 API")
+                                .description("역할의 권한 목록을 업데이트합니다.")
+                                .pathParameters(
+                                        parameterWithName("roleId").description("권한을 업데이트할 역할 ID")
+                                )
+                                .requestFields(
+                                        fieldWithPath("permissionIds").type(JsonFieldType.ARRAY).description("새로 할당할 권한 ID 목록")
+                                )
+                                .responseFields(
+                                        fieldWithPath("id").type(JsonFieldType.NUMBER).description("역할 ID"),
+                                        fieldWithPath("roleName").type(JsonFieldType.STRING).description("역할 이름"),
+                                        fieldWithPath("permissions").type(JsonFieldType.ARRAY).description("업데이트된 권한 목록"),
+                                        fieldWithPath("permissions[].id").type(JsonFieldType.NUMBER).description("권한 ID"),
+                                        fieldWithPath("permissions[].roleName").type(JsonFieldType.STRING).description("권한 이름"),
+                                        fieldWithPath("permissions[].description").type(JsonFieldType.STRING).description("권한 설명")
+                                )
+                                .build())));
+    }
+
+    @Test
+    @DisplayName("역할의 모든 권한을 제거할 수 있다")
+    void clearRolePermissions() throws Exception {
+        // given
+        Role role = Role.builder().roleName("ADMIN").build();
+        Role savedRole = roleRepository.save(role);
+
+        Permission permission = Permission.builder().name("READ_USER").description("READ_USER").build();
+        Permission savedPermission = permissionRepository.save(permission);
+        role.addPermission(savedPermission);
+
+        Map<String, Object> request = Map.of("permissionIds", List.of());
+
+        // when & then
+        mockMvc.perform(put("/roles/{roleId}/permissions", savedRole.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(MockMvcRestDocumentationWrapper.document("role-clear-permissions",
+                        resource(ResourceSnippetParameters.builder()
+                                .tag("role")
+                                .summary("역할 권한 초기화 API")
+                                .description("역할의 모든 권한을 제거합니다.")
+                                .pathParameters(
+                                        parameterWithName("roleId").description("권한을 초기화할 역할 ID")
+                                )
+                                .requestFields(
+                                        fieldWithPath("permissionIds").type(JsonFieldType.ARRAY).description("빈 권한 ID 목록")
+                                )
+                                .responseFields(
+                                        fieldWithPath("id").type(JsonFieldType.NUMBER).description("역할 ID"),
+                                        fieldWithPath("roleName").type(JsonFieldType.STRING).description("역할 이름"),
+                                        fieldWithPath("permissions").type(JsonFieldType.ARRAY).description("빈 권한 목록")
                                 )
                                 .build())));
     }
@@ -232,8 +316,8 @@ class RoleControllerTest {
         Role role = Role.builder().roleName("ADMIN").build();
         Role savedRole = roleRepository.save(role);
 
-        Permission permission1 = Permission.builder().description("READ_USER").build();
-        Permission permission2 = Permission.builder().description("WRITE_USER").build();
+        Permission permission1 = Permission.builder().name("READ_USER").description("READ_USER").build();
+        Permission permission2 = Permission.builder().name("WRITE_USER").description("WRITE_USER").build();
         permissionRepository.saveAll(List.of(permission1, permission2));
 
         RolePermissionAssignRequest request = new RolePermissionAssignRequest(
@@ -268,7 +352,7 @@ class RoleControllerTest {
         Role role = Role.builder().roleName("ADMIN").build();
         Role savedRole = roleRepository.save(role);
 
-        Permission permission = Permission.builder().description("READ_USER").build();
+        Permission permission = Permission.builder().name("READ_USER").description("READ_USER").build();
         permissionRepository.save(permission);
         role.addPermission(permission);
 
@@ -288,6 +372,7 @@ class RoleControllerTest {
                                 )
                                 .responseFields(
                                         fieldWithPath("[].id").type(JsonFieldType.NUMBER).description("권한 ID"),
+                                        fieldWithPath("[].name").type(JsonFieldType.STRING).description("권한 이름"),
                                         fieldWithPath("[].description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
@@ -300,7 +385,7 @@ class RoleControllerTest {
         Role role = Role.builder().roleName("ADMIN").build();
         Role savedRole = roleRepository.save(role);
 
-        Permission permission = Permission.builder().description("READ_USER").build();
+        Permission permission = Permission.builder().name("READ_USER").description("READ_USER").build();
         Permission savedPermission = permissionRepository.save(permission);
         role.addPermission(permission);
 

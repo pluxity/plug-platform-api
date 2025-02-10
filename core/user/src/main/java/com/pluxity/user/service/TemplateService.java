@@ -19,7 +19,8 @@ public class TemplateService {
 
     @Transactional
     public TemplateResponse save(TemplateCreateRequest request) {
-        Template template = Template.builder().name(request.name()).url(request.url()).build();
+        Template template =
+                Template.builder().name(request.name()).thumbnail(request.thumbnail()).build();
 
         Template savedTemplate = templateRepository.save(template);
         return TemplateResponse.from(savedTemplate);

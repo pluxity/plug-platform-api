@@ -4,10 +4,11 @@ import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.service.UserService;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/users")
@@ -39,6 +40,18 @@ public class AdminUserController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping(value = "/{id}/password")
+    public ResponseEntity<UserResponse> updatePassword(
+            @PathVariable("id") Long id, @Valid @RequestBody UserPasswordUpdateRequest dto) {
+        return ResponseEntity.ok(service.updateUserPassword(id, dto));
+    }
+
+    @PutMapping(value = "/{id}/roles")
+    public ResponseEntity<UserResponse> updateRoles(
+            @PathVariable("id") Long id, @Valid @RequestBody UserRoleUpdateRequest dto) {
+        return ResponseEntity.ok(service.updateUserRoles(id, dto));
+    }
+
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
         service.delete(id);
@@ -59,16 +72,16 @@ public class AdminUserController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{userId}/template")
+    public ResponseEntity<TemplateResponse> getUserTemplate(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(service.getUserTemplate(userId));
+    }
+
     @PostMapping("/{userId}/template/{templateId}")
     @ResponseCreated
     public ResponseEntity<Long> assignTemplateToUser(
             @PathVariable("userId") Long userId, @PathVariable("templateId") Long templateId) {
         return ResponseEntity.ok(service.assignTemplateToUser(userId, templateId).id());
-    }
-
-    @GetMapping("/{userId}/template")
-    public ResponseEntity<TemplateResponse> getUserTemplate(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(service.getUserTemplate(userId));
     }
 
     @DeleteMapping("/{userId}/template")

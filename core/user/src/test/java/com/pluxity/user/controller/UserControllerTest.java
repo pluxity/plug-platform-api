@@ -183,7 +183,6 @@ class UserControllerTest {
 
         Map<String, Object> updateRequest = Map.of(
                 "username", "updateduser",
-                "password", "newpass",
                 "name", "Updated User",
                 "code", "UPD123"
         );
@@ -200,7 +199,6 @@ class UserControllerTest {
                                 .pathParameters(parameterWithName("id").description("사용자 ID"))
                                 .requestFields(
                                         fieldWithPath("username").type(STRING).description("사용자명"),
-                                        fieldWithPath("password").type(STRING).description("비밀번호"),
                                         fieldWithPath("name").type(STRING).description("이름"),
                                         fieldWithPath("code").type(STRING).description("코드")
                                 )
@@ -210,6 +208,79 @@ class UserControllerTest {
                                         fieldWithPath("name").type(STRING).description("이름"),
                                         fieldWithPath("code").type(STRING).description("코드"),
                                         fieldWithPath("roles").type(ARRAY).description("사용자 역할 목록"),
+                                        fieldWithPath("template").type(OBJECT).optional().description("사용자 템플릿 (없을 수 있음)"),
+                                        fieldWithPath("permissions").type(ARRAY).optional().description("사용자 권한 (없을 수 있음)")
+                                )
+                                .build())));
+    }
+
+    @Test
+    @DisplayName("사용자 비밀번호 수정")
+    void updateUserPassword() throws Exception {
+        // given
+        User user = createUser("user", "oldpass", "User", "USER123");
+        User savedUser = userRepository.save(user);
+
+        Map<String, String> updateRequest = Map.of("password", "newpass");
+
+        // when & then
+        mockMvc.perform(put("/admin/users/{id}/password", savedUser.getId())
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andDo(document("user-update-password",
+                        resource(ResourceSnippetParameters.builder()
+                                .tag("user")
+                                .pathParameters(parameterWithName("id").description("사용자 ID"))
+                                .requestFields(
+                                        fieldWithPath("password").type(STRING).description("새 비밀번호")
+                                )
+                                .responseFields(
+                                        fieldWithPath("id").type(NUMBER).description("사용자 ID"),
+                                        fieldWithPath("username").type(STRING).description("사용자명"),
+                                        fieldWithPath("name").type(STRING).description("이름"),
+                                        fieldWithPath("code").type(STRING).description("코드"),
+                                        fieldWithPath("roles").type(ARRAY).description("사용자 역할 목록"),
+                                        fieldWithPath("template").type(OBJECT).optional().description("사용자 템플릿 (없을 수 있음)"),
+                                        fieldWithPath("permissions").type(ARRAY).optional().description("사용자 권한 (없을 수 있음)")
+                                )
+                                .build())));
+    }
+
+    @Test
+    @DisplayName("사용자 역할 업데이트")
+    void updateUserRoles() throws Exception {
+        // given
+        User user = createUser("roleuser", "rolepass", "Role User", "ROLE123");
+        User savedUser = userRepository.save(user);
+        Role role1 = roleRepository.save(Role.builder().roleName("ADMIN").build());
+        Role role2 = roleRepository.save(Role.builder().roleName("USER").build());
+
+        Map<String, Object> request = Map.of("roleIds", List.of(role1.getId(), role2.getId()));
+
+        // when & then
+        mockMvc.perform(put("/admin/users/{userId}/roles", savedUser.getId())
+                        .with(csrf())
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andDo(document("user-update-roles",
+                        resource(ResourceSnippetParameters.builder()
+                                .tag("user")
+                                .pathParameters(parameterWithName("userId").description("사용자 ID"))
+                                .requestFields(
+                                        fieldWithPath("roleIds").type(ARRAY).description("역할 ID 목록")
+                                )
+                                .responseFields(
+                                        fieldWithPath("id").type(NUMBER).description("사용자 ID"),
+                                        fieldWithPath("username").type(STRING).description("사용자명"),
+                                        fieldWithPath("name").type(STRING).description("이름"),
+                                        fieldWithPath("code").type(STRING).description("코드"),
+                                        fieldWithPath("roles").type(ARRAY).description("사용자 역할 목록"),
+                                        fieldWithPath("roles[].id").type(NUMBER).description("역할 ID"),
+                                        fieldWithPath("roles[].roleName").type(STRING).description("역할 이름"),
+                                        fieldWithPath("roles[].permissions").type(ARRAY).description("역할에 할당된 권한 목록"),
                                         fieldWithPath("template").type(OBJECT).optional().description("사용자 템플릿 (없을 수 있음)"),
                                         fieldWithPath("permissions").type(ARRAY).optional().description("사용자 권한 (없을 수 있음)")
                                 )
@@ -320,7 +391,7 @@ class UserControllerTest {
         mockMvc.perform(get("/admin/users/{userId}/template", savedUser.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test Template"))
-                .andExpect(jsonPath("$.url").value("http://test.com"))
+                .andExpect(jsonPath("$.thumbnail").value("http://test.com"))
                 .andDo(document("user-get-template",
                         resource(ResourceSnippetParameters.builder()
                                 .tag("user")
@@ -330,7 +401,7 @@ class UserControllerTest {
                                 .responseFields(
                                         fieldWithPath("id").type(NUMBER).description("템플릿 ID"),
                                         fieldWithPath("name").type(STRING).description("템플릿 이름"),
-                                        fieldWithPath("url").type(STRING).description("템플릿 URL")
+                                        fieldWithPath("thumbnail").type(STRING).description("템플릿 URL")
                                 )
                                 .build())));
     }

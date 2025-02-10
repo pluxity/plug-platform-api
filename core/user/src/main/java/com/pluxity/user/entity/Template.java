@@ -21,12 +21,12 @@ public class Template extends BaseEntity {
     private String name;
 
     @Column(nullable = false)
-    private String url;
+    private String thumbnail;
 
     @Builder
-    public Template(String name, String url) {
+    public Template(String name, String thumbnail) {
         this.name = name;
-        this.url = url;
+        this.thumbnail = thumbnail;
     }
 
     public void changeName(String name) {
@@ -34,6 +34,6 @@ public class Template extends BaseEntity {
     }
 
     public void changeUrl(String url) {
-        this.url = url;
+        this.thumbnail = url;
     }
 }

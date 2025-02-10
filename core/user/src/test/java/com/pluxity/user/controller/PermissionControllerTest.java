@@ -75,8 +75,8 @@ class PermissionControllerTest {
     @DisplayName("권한 목록을 조회할 수 있다")
     void getAllPermissions() throws Exception {
         // given
-        Permission permission1 = Permission.builder().description("READ_USER").build();
-        Permission permission2 = Permission.builder().description("WRITE_USER").build();
+        Permission permission1 = Permission.builder().name("READ_USER").description("READ_USER").build();
+        Permission permission2 = Permission.builder().name("WRITE_USER").description("WRITE_USER").build();
         permissionRepository.save(permission1);
         permissionRepository.save(permission2);
 
@@ -93,6 +93,7 @@ class PermissionControllerTest {
                                 .description("시스템에 등록된 모든 권한 목록을 조회합니다.")
                                 .responseFields(
                                         fieldWithPath("[].id").type(JsonFieldType.NUMBER).description("권한 ID"),
+                                        fieldWithPath("[].name").type(JsonFieldType.STRING).description("권한 이름"),
                                         fieldWithPath("[].description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
@@ -103,6 +104,7 @@ class PermissionControllerTest {
     void getPermission() throws Exception {
         // given
         Permission permission = Permission.builder()
+                .name("READ_USER")
                 .description("READ_USER")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
@@ -123,6 +125,7 @@ class PermissionControllerTest {
                                 )
                                 .responseFields(
                                         fieldWithPath("id").type(JsonFieldType.NUMBER).description("권한 ID"),
+                                        fieldWithPath("name").type(JsonFieldType.STRING).description("권한 이름"),
                                         fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
@@ -150,7 +153,7 @@ class PermissionControllerTest {
     @DisplayName("새로운 권한을 생성할 수 있다")
     void createPermission() throws Exception {
         // given
-        PermissionCreateRequest request = new PermissionCreateRequest("READ_USER");
+        PermissionCreateRequest request = new PermissionCreateRequest("PM", "READ_USER");
 
         // when & then
         mockMvc.perform(post("/permissions")
@@ -166,6 +169,7 @@ class PermissionControllerTest {
                                 .summary("권한 생성 API")
                                 .description("새로운 권한을 생성합니다.")
                                 .requestFields(
+                                        fieldWithPath("name").type(JsonFieldType.STRING).description("이름"),
                                         fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
@@ -175,7 +179,7 @@ class PermissionControllerTest {
     @DisplayName("잘못된 요청으로 권한 생성시 400 응답을 받는다")
     void createPermission_BadRequest() throws Exception {
         // given
-        PermissionCreateRequest request = new PermissionCreateRequest("");  // 빈 문자열
+        PermissionCreateRequest request = new PermissionCreateRequest("", "");  // 빈 문자열
 
         // when & then
         mockMvc.perform(post("/permissions")
@@ -190,6 +194,7 @@ class PermissionControllerTest {
                                 .summary("잘못된 권한 생성 요청 API")
                                 .description("잘못된 형식의 권한 생성 요청시 400 응답을 반환합니다.")
                                 .requestFields(
+                                        fieldWithPath("name").type(JsonFieldType.STRING).description("이름"),
                                         fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명 (빈 문자열)")
                                 )
                                 .build())));
@@ -200,10 +205,11 @@ class PermissionControllerTest {
     void updatePermission() throws Exception {
         // given
         Permission permission = Permission.builder()
+                .name("READ_USER")
                 .description("OLD_PERMISSION")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
-        PermissionCreateRequest request = new PermissionCreateRequest("UPDATED_PERMISSION");
+        PermissionCreateRequest request = new PermissionCreateRequest("UPDATED_PERMISSION", "");
 
         // when & then
         mockMvc.perform(put("/permissions/{id}", savedPermission.getId())
@@ -221,10 +227,12 @@ class PermissionControllerTest {
                                         parameterWithName("id").description("수정할 권한 ID")
                                 )
                                 .requestFields(
+                                        fieldWithPath("name").type(JsonFieldType.STRING).description("수정할 권한 이름"),
                                         fieldWithPath("description").type(JsonFieldType.STRING).description("수정할 권한 설명")
                                 )
                                 .responseFields(
                                         fieldWithPath("id").type(JsonFieldType.NUMBER).description("권한 ID"),
+                                        fieldWithPath("name").type(JsonFieldType.STRING).description("권한 이름"),
                                         fieldWithPath("description").type(JsonFieldType.STRING).description("권한 설명")
                                 )
                                 .build())));
@@ -234,7 +242,7 @@ class PermissionControllerTest {
     @DisplayName("존재하지 않는 권한 수정시 404 응답을 받는다")
     void updatePermission_NotFound() throws Exception {
         // given
-        PermissionCreateRequest request = new PermissionCreateRequest("UPDATED_PERMISSION");
+        PermissionCreateRequest request = new PermissionCreateRequest("UPDATED_PERMISSION", "");
 
         // when & then
         mockMvc.perform(put("/permissions/{id}", 999L)
@@ -252,6 +260,7 @@ class PermissionControllerTest {
                                         parameterWithName("id").description("존재하지 않는 권한 ID")
                                 )
                                 .requestFields(
+                                        fieldWithPath("name").type(JsonFieldType.STRING).description("이름"),
                                         fieldWithPath("description").type(JsonFieldType.STRING).description("수정할 권한 설명")
                                 )
                                 .build())));
@@ -262,6 +271,7 @@ class PermissionControllerTest {
     void deletePermission() throws Exception {
         // given
         Permission permission = Permission.builder()
+                .name("TO_BE_DELETED")
                 .description("TO_BE_DELETED")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);

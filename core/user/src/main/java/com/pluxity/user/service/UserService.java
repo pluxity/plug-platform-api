@@ -110,24 +110,6 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateUserTemplate(Long userId, TemplateUpdateRequest request) {
-        User user = findUserById(userId);
-        Template template = user.getTemplate();
-        if (template == null) {
-            throw new EntityNotFoundException("Template not found for user with id: " + userId);
-        }
-
-        if (request.name() != null && !request.name().isBlank()) {
-            template.changeName(request.name());
-        }
-        if (request.url() != null && !request.url().isBlank()) {
-            template.changeUrl(request.url());
-        }
-
-        return UserResponse.from(user);
-    }
-
-    @Transactional
     public void removeUserTemplate(Long userId) {
         User user = findUserById(userId);
         user.removeTemplate();
@@ -145,12 +127,24 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id));
     }
 
+    @Transactional
+    public UserResponse updateUserPassword(Long id, UserPasswordUpdateRequest request) {
+        User user = findUserById(id);
+        user.changePassword(passwordEncoder.encode(request.password()));
+        return UserResponse.from(user);
+    }
+
+    @Transactional
+    public UserResponse updateUserRoles(Long id, UserRoleUpdateRequest request) {
+        User user = findUserById(id);
+        List<Role> roles = roleRepository.findAllById(request.roleIds());
+        user.updateRoles(roles);
+        return UserResponse.from(user);
+    }
+
     private void updateUserFields(User user, UserUpdateRequest request) {
         if (request.username() != null && !request.username().isBlank()) {
             user.changeUsername(request.username());
-        }
-        if (request.password() != null && !request.password().isBlank()) {
-            user.changePassword(passwordEncoder.encode(request.password()));
         }
         if (request.name() != null && !request.name().isBlank()) {
             user.changeName(request.name());

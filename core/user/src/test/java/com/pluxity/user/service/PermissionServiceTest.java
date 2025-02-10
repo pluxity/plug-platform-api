@@ -39,9 +39,11 @@ class PermissionServiceTest {
     void findAll() {
         // given
         Permission permission1 = Permission.builder()
+                .name("READ_USER")
                 .description("READ_USER")
                 .build();
         Permission permission2 = Permission.builder()
+                .name("WRITE_USER")
                 .description("WRITE_USER")
                 .build();
         
@@ -62,6 +64,7 @@ class PermissionServiceTest {
     void findById() {
         // given
         Permission permission = Permission.builder()
+                .name("READ_USER")
                 .description("READ_USER")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
@@ -90,17 +93,17 @@ class PermissionServiceTest {
     @DisplayName("새로운 권한을 생성할 수 있다")
     void save() {
         // given
-        PermissionCreateRequest request = new PermissionCreateRequest("READ_USER");
+        PermissionCreateRequest request = new PermissionCreateRequest("READ_USER", "DESC");
 
         // when
         PermissionResponse result = permissionService.save(request);
 
         // then
         assertThat(result.id()).isNotNull();
-        assertThat(result.description()).isEqualTo("READ_USER");
 
         Permission savedPermission = permissionRepository.findById(result.id()).orElseThrow();
-        assertThat(savedPermission.getDescription()).isEqualTo("READ_USER");
+        assertThat(savedPermission.getName()).isEqualTo("READ_USER");
+        assertThat(savedPermission.getDescription()).isEqualTo("DESC");
     }
 
     @Test
@@ -108,20 +111,20 @@ class PermissionServiceTest {
     void update() {
         // given
         Permission permission = Permission.builder()
+                .name("OLD_PERMISSION")
                 .description("OLD_PERMISSION")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
         
-        PermissionUpdateRequest request = new PermissionUpdateRequest("UPDATED_PERMISSION");
+        PermissionUpdateRequest request = new PermissionUpdateRequest("UPDATED_PERMISSION", "DESC");
 
         // when
         PermissionResponse result = permissionService.update(savedPermission.getId(), request);
 
         // then
-        assertThat(result.description()).isEqualTo("UPDATED_PERMISSION");
-        
         Permission updatedPermission = permissionRepository.findById(savedPermission.getId()).orElseThrow();
-        assertThat(updatedPermission.getDescription()).isEqualTo("UPDATED_PERMISSION");
+        assertThat(updatedPermission.getName()).isEqualTo("UPDATED_PERMISSION");
+        assertThat(updatedPermission.getDescription()).isEqualTo("DESC");
     }
 
     @Test
@@ -129,7 +132,7 @@ class PermissionServiceTest {
     void update_NotFound() {
         // given
         Long id = 999L;
-        PermissionUpdateRequest request = new PermissionUpdateRequest("UPDATED_PERMISSION");
+        PermissionUpdateRequest request = new PermissionUpdateRequest("UPDATED_PERMISSION", "");
 
         // when & then
         assertThatThrownBy(() -> permissionService.update(id, request))
@@ -142,6 +145,7 @@ class PermissionServiceTest {
     void delete() {
         // given
         Permission permission = Permission.builder()
+                .name("TO_BE_DELETED")
                 .description("TO_BE_DELETED")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);

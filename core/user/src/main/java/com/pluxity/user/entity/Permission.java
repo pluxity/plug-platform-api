@@ -22,6 +22,9 @@ public class Permission extends BaseEntity {
     @Column(name = "permission_id")
     private Long id;
 
+    @Column(name = "name", nullable = false)
+    private String name;
+
     @Column(name = "description")
     private String description;
 
@@ -32,12 +35,17 @@ public class Permission extends BaseEntity {
     private final List<RolePermission> rolePermissions = new ArrayList<>();
 
     @Builder
-    public Permission(String description) {
-        this.description = Objects.requireNonNull(description, "Description must not be null");
+    public Permission(String name, String description) {
+        this.name = Objects.requireNonNull(name, "Permission name must not be null");
+        this.description = description;
     }
 
     public void changeDescription(String description) {
-        this.description = Objects.requireNonNull(description, "Description must not be null");
+        this.description = description;
+    }
+
+    public void changeName(String name) {
+        this.name = Objects.requireNonNull(name, "Permission name must not be null");
     }
 
     public List<RolePermission> getRolePermissions() {

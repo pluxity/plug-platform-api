@@ -6,10 +6,11 @@ import com.pluxity.user.entity.Role;
 import com.pluxity.user.repository.PermissionRepository;
 import com.pluxity.user.repository.RoleRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +46,25 @@ public class RoleService {
     @Transactional
     public RoleResponse update(Long id, RoleUpdateRequest request) {
         Role role = findRoleById(id);
-        role.changeRoleName(request.roleName());
+
+        if (request.roleName() != null && !request.roleName().isBlank()) {
+            role.changeRoleName(request.roleName());
+        }
+        return RoleResponse.from(role);
+    }
+
+    @Transactional
+    public RoleResponse updatePermissions(Long id, RolePermissionUpdateRequest request) {
+        Role role = findRoleById(id);
+
+        List<Permission> newPermissions = permissionRepository.findAllById(request.permissionIds());
+
+        if (newPermissions.size() != request.permissionIds().size()) {
+            throw new IllegalArgumentException("Some permissions were not found");
+        }
+
+        role.updatePermissions(newPermissions);
+
         return RoleResponse.from(role);
     }
 

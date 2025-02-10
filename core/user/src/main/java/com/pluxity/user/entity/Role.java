@@ -2,11 +2,12 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import java.util.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.*;
 
 @Entity
 @Table(name = "roles")
@@ -84,6 +85,21 @@ public class Role extends BaseEntity {
                                                 "Permission not found for this role: " + permission.getDescription()));
 
         this.rolePermissions.remove(rolePermissionToRemove);
+    }
+
+    public void updatePermissions(List<Permission> newPermissions) {
+        Objects.requireNonNull(newPermissions, "Permissions list must not be null");
+
+        Set<Permission> currentPermissions = new HashSet<>(getPermissions());
+        Set<Permission> updatedPermissions = new HashSet<>(newPermissions);
+
+        currentPermissions.stream()
+                .filter(permission -> !updatedPermissions.contains(permission))
+                .forEach(this::removePermission);
+
+        updatedPermissions.stream()
+                .filter(permission -> !currentPermissions.contains(permission))
+                .forEach(this::addPermission);
     }
 
     public void clearPermissions() {

@@ -106,6 +106,130 @@ class RoleServiceTest {
     }
 
     @Test
+    @DisplayName("역할의 권한을 업데이트할 수 있다")
+    void updatePermissions() {
+        // given
+        Role role = Role.builder()
+                .roleName("ROLE_TEST")
+                .build();
+        Role savedRole = roleRepository.save(role);
+
+        // 기존 권한 생성 및 할당
+        Permission permission1 = Permission.builder()
+                .name("PERMISSION_1")
+                .description("PERMISSION_1")
+                .build();
+        Permission permission2 = Permission.builder()
+                .name("PERMISSION_2")
+                .description("PERMISSION_2")
+                .build();
+        Permission permission3 = Permission.builder()
+                .name("PERMISSION_3")
+                .description("PERMISSION_3")
+                .build();
+        permissionRepository.saveAll(List.of(permission1, permission2, permission3));
+
+        // 초기 권한 할당
+        savedRole.addPermissions(List.of(permission1, permission2));
+        em.flush();
+        em.clear();
+
+        // permission1은 유지, permission2는 제거, permission3는 새로 추가
+        RolePermissionUpdateRequest request = new RolePermissionUpdateRequest(
+                List.of(permission1.getId(), permission3.getId())
+        );
+
+        // when
+        RoleResponse result = roleService.updatePermissions(savedRole.getId(), request);
+        em.flush();
+        em.clear();
+
+        // then
+        Role updatedRole = roleRepository.findById(savedRole.getId()).orElseThrow();
+        List<String> permissionDescriptions = updatedRole.getPermissions().stream()
+                .map(Permission::getDescription)
+                .sorted()
+                .toList();
+
+        assertThat(permissionDescriptions).hasSize(2);
+        assertThat(permissionDescriptions).containsExactly("PERMISSION_1", "PERMISSION_3");
+    }
+
+    @Test
+    @DisplayName("모든 권한을 제거할 수 있다")
+    void updatePermissions_Clear() {
+        // given
+        Role role = Role.builder()
+                .roleName("ROLE_TEST")
+                .build();
+        Role savedRole = roleRepository.save(role);
+
+        Permission permission1 = Permission.builder()
+                .name("PERMISSION_1")
+                .description("PERMISSION_1")
+                .build();
+        Permission permission2 = Permission.builder()
+                .name("PERMISSION_2")
+                .description("PERMISSION_2")
+                .build();
+        permissionRepository.saveAll(List.of(permission1, permission2));
+
+        savedRole.addPermissions(List.of(permission1, permission2));
+        em.flush();
+        em.clear();
+
+        RolePermissionUpdateRequest request = new RolePermissionUpdateRequest(List.of());
+
+        // when
+        RoleResponse result = roleService.updatePermissions(savedRole.getId(), request);
+        em.flush();
+        em.clear();
+
+        // then
+        Role updatedRole = roleRepository.findById(savedRole.getId()).orElseThrow();
+        assertThat(updatedRole.getPermissions()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 역할의 권한을 업데이트할 때 예외가 발생한다")
+    void updatePermissions_RoleNotFound() {
+        // given
+        Long notFoundId = 999L;
+        RolePermissionUpdateRequest request = new RolePermissionUpdateRequest(List.of(1L));
+
+        // when & then
+        assertThatThrownBy(() -> roleService.updatePermissions(notFoundId, request))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Role not found");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 권한으로 업데이트할 때 예외가 발생한다")
+    void updatePermissions_PermissionNotFound() {
+        // given
+        Role role = Role.builder()
+                .roleName("ROLE_TEST")
+                .build();
+        Role savedRole = roleRepository.save(role);
+
+        Permission permission = Permission.builder()
+                .name("PERMISSION")
+                .description("PERMISSION")
+                .build();
+        permissionRepository.save(permission);
+        savedRole.addPermission(permission);
+        em.flush();
+        em.clear();
+
+        RolePermissionUpdateRequest request = new RolePermissionUpdateRequest(List.of(999L));
+
+        // when & then
+        assertThatThrownBy(() -> roleService.updatePermissions(savedRole.getId(), request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Some permissions were not found");
+    }
+
+    @Test
     @DisplayName("역할 정보를 수정할 수 있다")
     void update() {
         // given
@@ -114,7 +238,9 @@ class RoleServiceTest {
                 .build();
         Role savedRole = roleRepository.save(role);
 
-        RoleUpdateRequest request = new RoleUpdateRequest("UPDATED_ROLE");
+        RoleUpdateRequest request = RoleUpdateRequest.builder()
+                .roleName("UPDATED_ROLE")
+                .build();
 
         // when
         RoleResponse result = roleService.update(savedRole.getId(), request);
@@ -124,19 +250,6 @@ class RoleServiceTest {
 
         Role updatedRole = roleRepository.findById(savedRole.getId()).orElseThrow();
         assertThat(updatedRole.getRoleName()).isEqualTo("UPDATED_ROLE");
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 역할 수정시 예외가 발생한다")
-    void update_NotFound() {
-        // given
-        Long id = 999L;
-        RoleUpdateRequest request = new RoleUpdateRequest("UPDATED_ROLE");
-
-        // when & then
-        assertThatThrownBy(() -> roleService.update(id, request))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Role not found");
     }
 
     @Test
@@ -177,9 +290,11 @@ class RoleServiceTest {
         Role savedRole = roleRepository.save(role);
 
         Permission permission1 = Permission.builder()
+                .name("READ_USER")
                 .description("READ_USER")
                 .build();
         Permission permission2 = Permission.builder()
+                .name("WRITE_USER")
                 .description("WRITE_USER")
                 .build();
         permissionRepository.saveAll(List.of(permission1, permission2));
@@ -212,6 +327,7 @@ class RoleServiceTest {
         Role savedRole = roleRepository.save(role);
 
         Permission permission = Permission.builder()
+                .name("READ_USER")
                 .description("READ_USER")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
@@ -238,6 +354,7 @@ class RoleServiceTest {
         Role savedRole = roleRepository.save(role);
 
         Permission permission = Permission.builder()
+                .name("READ_USER")
                 .description("READ_USER")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
@@ -264,6 +381,7 @@ class RoleServiceTest {
         Role savedRole = roleRepository.save(role);
 
         Permission permission = Permission.builder()
+                .name("READ_USER")
                 .description("READ_USER")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
@@ -290,6 +408,7 @@ class RoleServiceTest {
         Role savedRole = roleRepository.save(role);
 
         Permission permission = Permission.builder()
+                .name("READ_USER")
                 .description("READ_USER")
                 .build();
         Permission savedPermission = permissionRepository.save(permission);
@@ -299,4 +418,5 @@ class RoleServiceTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Permission not found for this role");
     }
+
 }

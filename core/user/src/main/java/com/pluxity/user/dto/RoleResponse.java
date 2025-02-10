@@ -4,7 +4,7 @@ import com.pluxity.user.entity.Role;
 import java.util.List;
 
 public record RoleResponse(Long id, String roleName, List<PermissionInfo> permissions) {
-    public record PermissionInfo(Long id, String description) {}
+    public record PermissionInfo(Long id, String roleName, String description) {}
 
     public static RoleResponse from(Role role) {
         return new RoleResponse(
@@ -15,6 +15,7 @@ public record RoleResponse(Long id, String roleName, List<PermissionInfo> permis
                                 rolePermission ->
                                         new PermissionInfo(
                                                 rolePermission.getPermission().getId(),
+                                                rolePermission.getPermission().getName(),
                                                 rolePermission.getPermission().getDescription()))
                         .toList());
     }

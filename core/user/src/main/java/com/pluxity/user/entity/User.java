@@ -2,14 +2,12 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -33,7 +31,7 @@ public class User extends BaseEntity {
     @Column(name = "code", nullable = false)
     private String code;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "template_id")
     private Template template;
 
@@ -99,6 +97,17 @@ public class User extends BaseEntity {
                                                 "Role not found for this user: " + role.getRoleName()));
 
         this.userRoles.remove(userRoleToRemove);
+    }
+
+    public void updateRoles(List<Role> newRoles) {
+        Objects.requireNonNull(newRoles, "Roles list must not be null");
+
+        Set<Role> currentRoles = new HashSet<>(getRoles());
+        Set<Role> updatedRoles = new HashSet<>(newRoles);
+
+        currentRoles.stream().filter(role -> !updatedRoles.contains(role)).forEach(this::removeRole);
+
+        updatedRoles.stream().filter(role -> !currentRoles.contains(role)).forEach(this::addRole);
     }
 
     public void clearRoles() {

@@ -29,7 +29,8 @@ public class PermissionService {
 
     @Transactional
     public PermissionResponse save(PermissionCreateRequest request) {
-        Permission permission = Permission.builder().description(request.description()).build();
+        Permission permission =
+                Permission.builder().name(request.name()).description(request.description()).build();
 
         return PermissionResponse.from(permissionRepository.save(permission));
     }
@@ -37,7 +38,12 @@ public class PermissionService {
     @Transactional
     public PermissionResponse update(Long id, PermissionUpdateRequest request) {
         Permission permission = findPermissionById(id);
-        permission.changeDescription(request.description());
+        if (request.name() != null && !request.name().isBlank()) {
+            permission.changeName(request.name());
+        }
+        if (request.description() != null && !request.description().isBlank()) {
+            permission.changeDescription(request.description());
+        }
         return PermissionResponse.from(permission);
     }
 

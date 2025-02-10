@@ -161,7 +161,6 @@ class UserServiceTest {
 
         UserUpdateRequest request = UserUpdateRequest.builder()
                 .username("new_username")
-                .password("new_password")
                 .name("new_name")
                 .code("new_code")
                 .build();
@@ -177,25 +176,238 @@ class UserServiceTest {
         assertThat(result.code()).isEqualTo("new_code");
 
         User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        assertThat(passwordEncoder.matches("old_password", updatedUser.getPassword())).isTrue();
+    }
+
+    @Test
+    @DisplayName("사용자 비밀번호를 수정할 수 있다")
+    void updatePassword() {
+        // given
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("old_password"))
+                .name("name")
+                .code("code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        UserPasswordUpdateRequest request = new UserPasswordUpdateRequest("new_password");
+
+        // when
+        UserResponse result = userService.updateUserPassword(savedUser.getId(), request);
+        em.flush();
+        em.clear();
+
+        // then
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
         assertThat(passwordEncoder.matches("new_password", updatedUser.getPassword())).isTrue();
     }
 
     @Test
-    @DisplayName("존재하지 않는 사용자 수정시 예외가 발생한다")
-    void update_notFound() {
+    @DisplayName("일부 필드만 수정할 수 있다")
+    void update_PartialUpdate() {
         // given
-        Long notFoundId = 999L;
+        User user = User.builder()
+                .username("old_username")
+                .password(passwordEncoder.encode("old_password"))
+                .name("old_name")
+                .code("old_code")
+                .build();
+        User savedUser = userRepository.save(user);
+
         UserUpdateRequest request = UserUpdateRequest.builder()
                 .username("new_username")
-                .password("new_password")
-                .name("new_name")
-                .code("new_code")
+                .name(null)
+                .code(null)
                 .build();
 
+        // when
+        UserResponse result = userService.update(savedUser.getId(), request);
+        em.flush();
+        em.clear();
+
+        // then
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        assertThat(updatedUser.getUsername()).isEqualTo("new_username");
+        assertThat(updatedUser.getName()).isEqualTo("old_name");
+        assertThat(updatedUser.getCode()).isEqualTo("old_code");
+    }
+
+    @Test
+    @DisplayName("빈 문자열은 업데이트하지 않는다")
+    void update_IgnoreEmptyStrings() {
+        // given
+        User user = User.builder()
+                .username("old_username")
+                .password(passwordEncoder.encode("old_password"))
+                .name("old_name")
+                .code("old_code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        UserUpdateRequest request = UserUpdateRequest.builder()
+                .username("")
+                .name("")
+                .code("")
+                .build();
+
+        // when
+        UserResponse result = userService.update(savedUser.getId(), request);
+        em.flush();
+        em.clear();
+
+        // then
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        assertThat(updatedUser.getUsername()).isEqualTo("old_username");
+        assertThat(updatedUser.getName()).isEqualTo("old_name");
+        assertThat(updatedUser.getCode()).isEqualTo("old_code");
+    }
+
+    @Test
+    @DisplayName("모든 필드가 null이면 아무것도 업데이트하지 않는다")
+    void update_IgnoreAllNull() {
+        // given
+        User user = User.builder()
+                .username("old_username")
+                .password(passwordEncoder.encode("old_password"))
+                .name("old_name")
+                .code("old_code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        UserUpdateRequest request = UserUpdateRequest.builder()
+                .username(null)
+                .name(null)
+                .code(null)
+                .build();
+
+        // when
+        UserResponse result = userService.update(savedUser.getId(), request);
+        em.flush();
+        em.clear();
+
+        // then
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        assertThat(updatedUser.getUsername()).isEqualTo("old_username");
+        assertThat(updatedUser.getName()).isEqualTo("old_name");
+        assertThat(updatedUser.getCode()).isEqualTo("old_code");
+    }
+
+    @Test
+    @DisplayName("사용자의 역할을 업데이트할 수 있다")
+    void updateRoles() {
+        // given
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("password"))
+                .name("name")
+                .code("code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        // 기존 역할 생성 및 할당
+        Role role1 = Role.builder().roleName("ROLE_1").build();
+        Role role2 = Role.builder().roleName("ROLE_2").build();
+        Role role3 = Role.builder().roleName("ROLE_3").build();
+        roleRepository.saveAll(List.of(role1, role2, role3));
+
+        // 초기 역할 할당
+        savedUser.addRoles(List.of(role1, role2));
+        em.flush();
+        em.clear();
+
+        // role1은 유지, role2는 제거, role3는 새로 추가
+        UserRoleUpdateRequest request = new UserRoleUpdateRequest(List.of(role1.getId(), role3.getId()));
+
+        // when
+        UserResponse result = userService.updateUserRoles(savedUser.getId(), request);
+        em.flush();
+        em.clear();
+
+        // then
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        List<String> roleNames = updatedUser.getRoles().stream()
+                .map(Role::getRoleName)
+                .sorted()
+                .toList();
+
+        assertThat(roleNames).hasSize(2);
+        assertThat(roleNames).containsExactly("ROLE_1", "ROLE_3");
+    }
+
+    @Test
+    @DisplayName("모든 역할을 제거할 수 있다")
+    void updateRoles_Clear() {
+        // given
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("password"))
+                .name("name")
+                .code("code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        Role role1 = Role.builder().roleName("ROLE_1").build();
+        Role role2 = Role.builder().roleName("ROLE_2").build();
+        roleRepository.saveAll(List.of(role1, role2));
+
+        savedUser.addRoles(List.of(role1, role2));
+        em.flush();
+        em.clear();
+
+        UserRoleUpdateRequest request = new UserRoleUpdateRequest(List.of());
+
+        // when
+        UserResponse result = userService.updateUserRoles(savedUser.getId(), request);
+        em.flush();
+        em.clear();
+
+        // then
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        assertThat(updatedUser.getRoles()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 사용자의 역할을 업데이트할 때 예외가 발생한다")
+    void updateRoles_UserNotFound() {
+        // given
+        Long notFoundId = 999L;
+        UserRoleUpdateRequest request = new UserRoleUpdateRequest(List.of(1L));
+
         // when & then
-        assertThatThrownBy(() -> userService.update(notFoundId, request))
+        assertThatThrownBy(() -> userService.updateUserRoles(notFoundId, request))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("User not found");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 역할로 업데이트할 때 빈 역할 목록이 할당된다")
+    void updateRoles_RoleNotFound() {
+        // given
+        User user = User.builder()
+                .username("username")
+                .password(passwordEncoder.encode("password"))
+                .name("name")
+                .code("code")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        Role role = Role.builder().roleName("ROLE_1").build();
+        roleRepository.save(role);
+        savedUser.addRole(role);
+        em.flush();
+        em.clear();
+
+        UserRoleUpdateRequest request = new UserRoleUpdateRequest(List.of(999L));
+
+        // when
+        UserResponse result = userService.updateUserRoles(savedUser.getId(), request);
+        em.flush();
+        em.clear();
+
+        // then
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        assertThat(updatedUser.getRoles()).isEmpty();
     }
 
     @Test
@@ -404,102 +616,6 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("일부 필드만 수정할 수 있다")
-    void update_PartialUpdate() {
-        // given
-        User user = User.builder()
-                .username("old_username")
-                .password(passwordEncoder.encode("old_password"))
-                .name("old_name")
-                .code("old_code")
-                .build();
-        User savedUser = userRepository.save(user);
-
-        UserUpdateRequest request = UserUpdateRequest.builder()
-                .username("new_username")
-                .password(null)
-                .name(null)
-                .code(null)
-                .build();
-
-        // when
-        UserResponse result = userService.update(savedUser.getId(), request);
-        em.flush();
-        em.clear();
-
-        // then
-        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
-        assertThat(updatedUser.getUsername()).isEqualTo("new_username");
-        assertThat(passwordEncoder.matches("old_password", updatedUser.getPassword())).isTrue();
-        assertThat(updatedUser.getName()).isEqualTo("old_name");
-        assertThat(updatedUser.getCode()).isEqualTo("old_code");
-    }
-
-    @Test
-    @DisplayName("빈 문자열은 업데이트하지 않는다")
-    void update_IgnoreEmptyStrings() {
-        // given
-        User user = User.builder()
-                .username("old_username")
-                .password(passwordEncoder.encode("old_password"))
-                .name("old_name")
-                .code("old_code")
-                .build();
-        User savedUser = userRepository.save(user);
-
-        UserUpdateRequest request = UserUpdateRequest.builder()
-                .username("")
-                .password("")
-                .name("")
-                .code("")
-                .build();
-
-        // when
-        UserResponse result = userService.update(savedUser.getId(), request);
-        em.flush();
-        em.clear();
-
-        // then
-        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
-        assertThat(updatedUser.getUsername()).isEqualTo("old_username");
-        assertThat(passwordEncoder.matches("old_password", updatedUser.getPassword())).isTrue();
-        assertThat(updatedUser.getName()).isEqualTo("old_name");
-        assertThat(updatedUser.getCode()).isEqualTo("old_code");
-    }
-
-    @Test
-    @DisplayName("모든 필드가 null이면 아무것도 업데이트하지 않는다")
-    void update_IgnoreAllNull() {
-        // given
-        User user = User.builder()
-                .username("old_username")
-                .password(passwordEncoder.encode("old_password"))
-                .name("old_name")
-                .code("old_code")
-                .build();
-        User savedUser = userRepository.save(user);
-
-        UserUpdateRequest request = UserUpdateRequest.builder()
-                .username(null)
-                .password(null)
-                .name(null)
-                .code(null)
-                .build();
-
-        // when
-        UserResponse result = userService.update(savedUser.getId(), request);
-        em.flush();
-        em.clear();
-
-        // then
-        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
-        assertThat(updatedUser.getUsername()).isEqualTo("old_username");
-        assertThat(passwordEncoder.matches("old_password", updatedUser.getPassword())).isTrue();
-        assertThat(updatedUser.getName()).isEqualTo("old_name");
-        assertThat(updatedUser.getCode()).isEqualTo("old_code");
-    }
-
-    @Test
     @DisplayName("사용자에게 템플릿을 할당할 수 있다")
     void assignTemplateToUser() {
         // given
@@ -513,10 +629,10 @@ class UserServiceTest {
 
         Template template = Template.builder()
                 .name("Test Template")
-                .url("http://test.com")
+                .thumbnail("http://test.com")
                 .build();
 
-        TemplateResponse savedTemplate = templateService.save(new TemplateCreateRequest(template.getName(), template.getUrl()));
+        TemplateResponse savedTemplate = templateService.save(new TemplateCreateRequest(template.getName(), template.getThumbnail()));
 
         // when
         UserResponse result = userService.assignTemplateToUser(savedUser.getId(), savedTemplate.id());
@@ -524,7 +640,7 @@ class UserServiceTest {
         // then
         assertThat(result.template()).isNotNull();
         assertThat(result.template().name()).isEqualTo("Test Template");
-        assertThat(result.template().url()).isEqualTo("http://test.com");
+        assertThat(result.template().thumbnail()).isEqualTo("http://test.com");
 
         User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
         assertThat(updatedUser.getTemplate()).isNotNull();
@@ -545,9 +661,9 @@ class UserServiceTest {
 
         Template template = Template.builder()
                 .name("Test Template")
-                .url("http://test.com")
+                .thumbnail("http://test.com")
                 .build();
-        TemplateResponse savedTemplate = templateService.save(new TemplateCreateRequest(template.getName(), template.getUrl()));
+        TemplateResponse savedTemplate = templateService.save(new TemplateCreateRequest(template.getName(), template.getThumbnail()));
 
         Template templateEntity = templateService.findTemplateById(savedTemplate.id());
 
@@ -561,7 +677,7 @@ class UserServiceTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.name()).isEqualTo("Test Template");
-        assertThat(result.url()).isEqualTo("http://test.com");
+        assertThat(result.thumbnail()).isEqualTo("http://test.com");
     }
 
     @Test
@@ -596,10 +712,10 @@ class UserServiceTest {
 
         Template template = Template.builder()
                 .name("Test Template")
-                .url("http://test.com")
+                .thumbnail("http://test.com")
                 .build();
 
-        TemplateResponse response = templateService.save(new TemplateCreateRequest(template.getName(), template.getUrl()));
+        TemplateResponse response = templateService.save(new TemplateCreateRequest(template.getName(), template.getThumbnail()));
         Template savedTemplate = templateService.findTemplateById(response.id());
 
         savedUser.changeTemplate(savedTemplate);
@@ -630,9 +746,9 @@ class UserServiceTest {
 
             Template template = Template.builder()
                     .name("Template " + i)
-                    .url("http://test" + i + ".com")
+                    .thumbnail("http://test" + i + ".com")
                     .build();
-            TemplateResponse savedTemplate = templateService.save(new TemplateCreateRequest(template.getName(), template.getUrl()));
+            TemplateResponse savedTemplate = templateService.save(new TemplateCreateRequest(template.getName(), template.getThumbnail()));
             Template templateEntity = templateService.findTemplateById(savedTemplate.id());
             
             savedUser.changeTemplate(templateEntity);
@@ -645,6 +761,7 @@ class UserServiceTest {
 
             // 각 역할에 권한 추가
             Permission permission = Permission.builder()
+                    .name("permission" + i)
                     .description("PERMISSION_" + i)
                     .build();
             Permission savedPermission = permissionRepository.save(permission);
@@ -673,7 +790,7 @@ class UserServiceTest {
         assertThat(users).allSatisfy(user -> {
             assertThat(user.template()).isNotNull();
             assertThat(user.template().name()).startsWith("Template ");
-            assertThat(user.template().url()).startsWith("http://test");
+            assertThat(user.template().thumbnail()).startsWith("http://test");
             assertThat(user.roles()).hasSize(1);
             assertThat(user.roles().get(0).roleName()).startsWith("ROLE_");
             assertThat(user.permissions()).hasSize(1);
