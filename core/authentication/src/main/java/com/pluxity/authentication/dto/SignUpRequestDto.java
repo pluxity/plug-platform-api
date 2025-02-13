@@ -1,6 +1,6 @@
 package com.pluxity.authentication.dto;
 
-import com.pluxity.user.constant.Role;
+import com.pluxity.user.entity.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -28,7 +28,7 @@ public record SignUpRequestDto(
 
     public SignUpRequestDto {
         if (role == null) {
-            role = Role.USER;
+            role = Role.builder().roleName("ROLE_USER").build();
         }
     }
 }

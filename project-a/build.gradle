@@ -1,3 +1,8 @@
+bootJar {
+    enabled = true
+}
+
 dependencies {
     implementation project(':core:authentication')
+    implementation project(':core:user')
 }

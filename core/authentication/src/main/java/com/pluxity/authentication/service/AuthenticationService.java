@@ -10,6 +10,7 @@ import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.authentication.security.CustomUserDetails;
 import com.pluxity.authentication.security.JwtProvider;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,8 +58,8 @@ public class AuthenticationService {
                         .password(passwordEncoder.encode(signUpRequestDto.password()))
                         .name(signUpRequestDto.name())
                         .code(signUpRequestDto.code())
-                        .role(signUpRequestDto.role())
                         .build();
+        user.addRole(Role.builder().roleName("ROLE_ADMIN").build());
 
         userRepository.save(user);
     }
