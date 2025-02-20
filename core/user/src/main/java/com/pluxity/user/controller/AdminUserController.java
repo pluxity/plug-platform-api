@@ -71,22 +71,4 @@ public class AdminUserController {
         service.removeRoleFromUser(userId, roleId);
         return ResponseEntity.noContent().build();
     }
-
-    @GetMapping("/{userId}/template")
-    public ResponseEntity<TemplateResponse> getUserTemplate(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(service.getUserTemplate(userId));
-    }
-
-    @PostMapping("/{userId}/template/{templateId}")
-    @ResponseCreated
-    public ResponseEntity<Long> assignTemplateToUser(
-            @PathVariable("userId") Long userId, @PathVariable("templateId") Long templateId) {
-        return ResponseEntity.ok(service.assignTemplateToUser(userId, templateId).id());
-    }
-
-    @DeleteMapping("/{userId}/template")
-    public ResponseEntity<Void> removeUserTemplate(@PathVariable("userId") Long userId) {
-        service.removeUserTemplate(userId);
-        return ResponseEntity.noContent().build();
-    }
 }

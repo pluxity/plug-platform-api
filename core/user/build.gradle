@@ -1,4 +1,5 @@
 dependencies {
-    implementation project(':core')
-    testImplementation project(path: ':core', configuration: 'testArtifacts')
+    implementation project(':common')
+
+    implementation('org.springframework.security:spring-security-core')
 }

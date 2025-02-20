@@ -4,4 +4,7 @@ include 'core'
 include 'core:user'
 include 'core:building'
 include 'core:authentication'
+
 include 'project-a'
+include 'common'
+

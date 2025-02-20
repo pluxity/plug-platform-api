@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/building")
+@RequestMapping("/buildings")
 @ConditionalOnProperty(name = "core.building.enabled", havingValue = "true", matchIfMissing = true)
 public class BuildingController {
 

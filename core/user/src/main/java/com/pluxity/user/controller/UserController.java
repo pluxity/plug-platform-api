@@ -1,5 +1,6 @@
 package com.pluxity.user.controller;
 
+import com.pluxity.user.dto.UserCreateRequest;
 import com.pluxity.user.dto.UserResponse;
 import com.pluxity.user.dto.UserUpdateRequest;
 import com.pluxity.user.service.UserService;
@@ -14,6 +15,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService service;
+
+    @PostMapping("/sign-up")
+    public ResponseEntity<UserResponse> signUp(@RequestBody UserCreateRequest dto) {
+        return ResponseEntity.ok(service.save(dto));
+    }
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getUser(Authentication authentication) {

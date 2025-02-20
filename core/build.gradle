@@ -1,32 +1,21 @@
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+bootJar {
+    enabled = true
 }
 
-bootJar { enabled = false }
-jar { enabled = true }
+dependencies {
+    implementation project(':common')
+    implementation project(':core:authentication')
+    implementation project(':core:user')
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+}
+
 
 subprojects {
     bootJar { enabled = false }
     jar { enabled = true }
 
     dependencies {
-        implementation 'org.springframework.boot:spring-boot-starter-security'
-        testImplementation 'org.springframework.security:spring-security-test'
     }
-}
-
-//testApplication
-configurations {
-    testArtifacts
-}
-
-tasks.register('testJar', Jar) {
-    archiveClassifier.set('tests')
-    from(sourceSets.test.output)
-}
-
-artifacts {
-    testArtifacts testJar
 }

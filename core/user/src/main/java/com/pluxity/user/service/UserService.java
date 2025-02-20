@@ -2,7 +2,6 @@ package com.pluxity.user.service;
 
 import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Role;
-import com.pluxity.user.entity.Template;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
@@ -20,7 +19,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final TemplateService templateService;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
@@ -91,30 +89,6 @@ public class UserService {
         user.removeRole(role);
     }
 
-    @Transactional
-    public UserResponse assignTemplateToUser(Long userId, Long templateId) {
-        User user = findUserById(userId);
-        Template template = templateService.findTemplateById(templateId);
-        user.changeTemplate(template);
-        return UserResponse.from(user);
-    }
-
-    @Transactional(readOnly = true)
-    public TemplateResponse getUserTemplate(Long userId) {
-        User user = findUserById(userId);
-        Template template = user.getTemplate();
-        if (template == null) {
-            throw new EntityNotFoundException("Template not found for user with id: " + userId);
-        }
-        return TemplateResponse.from(template);
-    }
-
-    @Transactional
-    public void removeUserTemplate(Long userId) {
-        User user = findUserById(userId);
-        user.removeTemplate();
-    }
-
     private User findUserById(Long id) {
         return userRepository
                 .findById(id)
@@ -151,10 +125,6 @@ public class UserService {
         }
         if (request.code() != null && !request.code().isBlank()) {
             user.changeCode(request.code());
-        }
-        if (request.templateId() != null) {
-            Template template = templateService.findTemplateById(request.templateId());
-            user.changeTemplate(template);
         }
     }
 }

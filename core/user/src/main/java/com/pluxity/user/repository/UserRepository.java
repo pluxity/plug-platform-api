@@ -10,7 +10,6 @@ import org.springframework.lang.NonNull;
 public interface UserRepository extends JpaRepository<User, Long> {
     @EntityGraph(
             attributePaths = {
-                "template",
                 "userRoles",
                 "userRoles.role",
                 "userRoles.role.rolePermissions",
@@ -21,7 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @EntityGraph(
             attributePaths = {
-                "template",
                 "userRoles",
                 "userRoles.role",
                 "userRoles.role.rolePermissions",
@@ -32,7 +30,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @EntityGraph(
             attributePaths = {
-                "template",
                 "userRoles",
                 "userRoles.role",
                 "userRoles.role.rolePermissions",

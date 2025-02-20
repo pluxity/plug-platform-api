@@ -3,6 +3,7 @@ bootJar {
 }
 
 dependencies {
+    implementation project(':common')
     implementation project(':core:authentication')
-    implementation project(':core:user')
+    implementation project(':core:building')
 }

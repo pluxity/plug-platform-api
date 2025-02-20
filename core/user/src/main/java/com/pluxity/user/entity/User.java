@@ -31,10 +31,6 @@ public class User extends BaseEntity {
     @Column(name = "code", nullable = false)
     private String code;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "template_id")
-    private Template template;
-
     @OneToMany(
             mappedBy = "user",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
@@ -42,12 +38,11 @@ public class User extends BaseEntity {
     private final Set<UserRole> userRoles = new LinkedHashSet<>();
 
     @Builder
-    public User(String username, String password, String name, String code, Template template) {
+    public User(String username, String password, String name, String code) {
         this.username = Objects.requireNonNull(username, "Username must not be null");
         this.password = Objects.requireNonNull(password, "Password must not be null");
         this.name = Objects.requireNonNull(name, "Name must not be null");
         this.code = Objects.requireNonNull(code, "Code must not be null");
-        this.template = template;
     }
 
     public void changeUsername(String username) {
@@ -142,11 +137,4 @@ public class User extends BaseEntity {
         this.code = code;
     }
 
-    public void changeTemplate(Template template) {
-        this.template = template;
-    }
-
-    public void removeTemplate() {
-        this.template = null;
-    }
 }

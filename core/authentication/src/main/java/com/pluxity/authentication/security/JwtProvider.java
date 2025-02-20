@@ -1,7 +1,5 @@
 package com.pluxity.authentication.security;
 
-import static com.pluxity.global.constant.ErrorCode.*;
-
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.global.exception.CustomException;
@@ -25,6 +23,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import static com.pluxity.global.constant.ErrorCode.*;
 
 @Service
 @Slf4j

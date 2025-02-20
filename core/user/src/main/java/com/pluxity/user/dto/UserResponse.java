@@ -9,7 +9,6 @@ public record UserResponse(
         String username,
         String name,
         String code,
-        TemplateResponse template,
         List<RoleResponse> roles,
         List<PermissionResponse> permissions) {
     public static UserResponse from(User user) {
@@ -18,7 +17,6 @@ public record UserResponse(
                 user.getUsername(),
                 user.getName(),
                 user.getCode(),
-                user.getTemplate() != null ? TemplateResponse.from(user.getTemplate()) : null,
                 user.getUserRoles().stream()
                         .map(userRole -> RoleResponse.from(userRole.getRole()))
                         .distinct()

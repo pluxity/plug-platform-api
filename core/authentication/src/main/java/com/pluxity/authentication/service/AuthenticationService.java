@@ -1,29 +1,25 @@
 package com.pluxity.authentication.service;
 
-import static com.pluxity.global.constant.ErrorCode.*;
-
-import com.pluxity.authentication.dto.SignInRequestDto;
-import com.pluxity.authentication.dto.SignInResponseDto;
-import com.pluxity.authentication.dto.SignUpRequestDto;
+import com.pluxity.authentication.dto.SignInRequest;
+import com.pluxity.authentication.dto.SignInResponse;
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.authentication.security.CustomUserDetails;
 import com.pluxity.authentication.security.JwtProvider;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.pluxity.global.constant.ErrorCode.*;
 
 @Service
 @Slf4j
@@ -34,7 +30,6 @@ public class AuthenticationService {
 
     private final UserRepository userRepository;
 
-    private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final AuthenticationManager authenticationManager;
 
@@ -42,38 +37,7 @@ public class AuthenticationService {
     private long refreshExpiration;
 
     @Transactional
-    public void signUp(final SignUpRequestDto signUpRequestDto) {
-
-        var username = signUpRequestDto.username();
-        userRepository
-                .findByUsername(username)
-                .ifPresent(
-                        user -> {
-                            throw new CustomException(DUPLICATE_USERNAME);
-                        });
-
-        var user =
-                User.builder()
-                        .username(signUpRequestDto.username())
-                        .password(passwordEncoder.encode(signUpRequestDto.password()))
-                        .name(signUpRequestDto.name())
-                        .code(signUpRequestDto.code())
-                        .build();
-        user.addRole(Role.builder().roleName("ROLE_ADMIN").build());
-
-        userRepository.save(user);
-    }
-
-    private boolean validateEmail(String email) {
-        var regexPattern =
-                "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@"
-                        + "[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
-
-        return Pattern.compile(regexPattern).matcher(email).matches();
-    }
-
-    @Transactional
-    public SignInResponseDto signIn(final SignInRequestDto signInRequestDto) {
+    public SignInResponse signIn(final SignInRequest signInRequestDto) {
 
         try {
             authenticationManager.authenticate(
@@ -97,7 +61,7 @@ public class AuthenticationService {
         refreshTokenRepository.save(
                 RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
 
-        return SignInResponseDto.builder()
+        return SignInResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
                 .name(user.getName())
@@ -105,7 +69,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    public SignInResponseDto refreshToken(HttpServletRequest request) {
+    public SignInResponse refreshToken(HttpServletRequest request) {
 
         String refreshToken = jwtProvider.getJwtFromRequest(request);
 
@@ -132,7 +96,7 @@ public class AuthenticationService {
 
         refreshTokenRepository.save(RefreshToken.of(username, newRefreshToken, refreshExpiration));
 
-        return SignInResponseDto.builder()
+        return SignInResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(newRefreshToken)
                 .name(user.getName())

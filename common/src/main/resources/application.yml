@@ -1,0 +1,7 @@
+jwt:
+  access-token:
+    secret: +iBcUJRWGvl+94+ow4nXV1fzWIq4rph8x7MyRmrtWio=
+    expiration: 3600000
+  refresh-token:
+    secret: gtzRlqF6bIkmOi5i15A9G5xbLdwiAMmZi6JPOeemC1E=
+    expiration: 86400000
