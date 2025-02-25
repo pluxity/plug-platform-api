@@ -21,6 +21,18 @@ public class CommonSecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .securityMatcher(request -> !request.getRequestURI().startsWith("/auth/"))
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(
+                                                "/error",
+                                                "/swagger-ui/**",
+                                                "/swagger-ui.html",
+                                                "/v3/api-docs/**",
+                                                "/api-docs/**",
+                                                "/swagger-config/**",
+                                                "/actuator/**",
+                                                "/docs/**")
+                                        .permitAll())
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
 
 

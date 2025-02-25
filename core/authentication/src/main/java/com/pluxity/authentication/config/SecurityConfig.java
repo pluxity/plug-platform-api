@@ -23,19 +23,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/admin/**").hasRole("ADMIN"))
-                .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers(
-                                                "/auth/**",
-                                                "/error",
-                                                "/swagger-ui/**",
-                                                "/swagger-ui.html",
-                                                "/v3/api-docs/**",
-                                                "/api-docs/**",
-                                                "/swagger-config/**",
-                                                "/actuator/**",
-                                                "/docs/**")
-                                        .permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll())
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .authenticationProvider(applicationConfig.authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
