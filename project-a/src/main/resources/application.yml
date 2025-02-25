@@ -9,7 +9,7 @@ management:
 
 spring:
   profiles:
-    include: common
+    include: common, auth
   application:
     name: project-a
   datasource:

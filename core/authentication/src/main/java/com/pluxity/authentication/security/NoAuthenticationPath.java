@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum NoAuthenticationPath {
     AUTH("auth"),
     ACTUATOR("actuator"),
-    APIDOC("api-docs");
+    APIDOC("api-docs"),
+    FILES("files"),;
 
     private final String path;
 
