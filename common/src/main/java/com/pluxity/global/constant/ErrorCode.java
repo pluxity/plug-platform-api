@@ -25,6 +25,7 @@ public enum ErrorCode implements Code {
     EXPIRED_REFRESH_TOKEN(UNAUTHORIZED, "REFRESH 토큰이 만료되었습니다."),
 
     FAILED_TO_ZIP_FILE(BAD_REQUEST, "파일 압축에 실패했습니다."),
+    FAILED_TO_UPLOAD_FILE(INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
 
     NOT_FOUND_USER(BAD_REQUEST, "해당 회원이 존재하지 않습니다."),
 

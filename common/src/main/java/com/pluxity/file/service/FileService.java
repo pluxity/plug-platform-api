@@ -26,13 +26,14 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static com.pluxity.global.constant.ErrorCode.INVALID_FILE_STATUS;
+import static com.pluxity.global.constant.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -77,7 +78,7 @@ public class FileService {
                     }
                 });
 
-        String s3Key = "temp/" + UUID.randomUUID() + "_" + originalFileName;
+        String s3Key = "temp/" + UUID.randomUUID() + "-" + originalFileName;
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(s3Config.getBucketName())
@@ -109,7 +110,7 @@ public class FileService {
     }
 
     @Transactional
-    public UploadResponse finalizeUpload(Long fileId, String newKey) throws IOException {
+    public FileEntity finalizeUpload(Long fileId, String newKey) throws IOException {
         FileEntity file = repository.findById(fileId)
                 .orElseThrow(() -> new CustomException("File not found", HttpStatus.NOT_FOUND, "해당 파일 아이디를 찾지 못했습니다"));
 
@@ -128,42 +129,72 @@ public class FileService {
                 .build();
         s3Client.copyObject(copyRequest);
 
-        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(oldKey)
-                .build();
-        s3Client.deleteObject(deleteRequest);
-
         file.makeComplete(permanentKey);
 
         if (file.getFileType().equalsIgnoreCase("application/zip") || permanentKey.endsWith(".zip")) {
             decompressAndUpload(permanentKey);
         }
 
-        return FileUploadResponse.from(file);
-    }
-
-    private void decompressAndUpload(String zipKey) throws IOException {
-        Path tempZipFilePath = FileUtils.createTempFile(".zip");
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
                 .bucket(s3Config.getBucketName())
-                .key(zipKey)
+                .key(oldKey)
                 .build();
-        s3Client.getObject(getObjectRequest, tempZipFilePath);
+        s3Client.deleteObject(deleteRequest);
 
-        Path tempDir = FileUtils.createTempDirectory("unzipped");
-        try (InputStream is = Files.newInputStream(tempZipFilePath)) {
-            ZipUtils.unzip(is, tempDir);
-        }
-
-        String baseFolder = zipKey.substring(zipKey.lastIndexOf('/') + 1).replace(".zip", "");
-        Path finalBasePath = Path.of("files", baseFolder);
-        uploadDirectoryToS3(tempDir, finalBasePath.toString());
-
-        Files.deleteIfExists(tempZipFilePath);
-
-        FileUtils.deleteDirectoryRecursively(tempDir);
+        return file;
     }
+
+    private void decompressAndUpload(String permanentKey) {
+        Path tempZipFilePath = null;
+        Path tempDir = null;
+        try {
+            tempZipFilePath = FileUtils.createTempFile(".zip");
+
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(s3Config.getBucketName())
+                    .key(permanentKey)
+                    .build();
+
+            try (InputStream s3ObjectContent = s3Client.getObject(getObjectRequest);
+                 OutputStream outputStream = Files.newOutputStream(tempZipFilePath,
+                         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = s3ObjectContent.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+
+            tempDir = FileUtils.createTempDirectory("unzipped");
+            try (InputStream is = Files.newInputStream(tempZipFilePath)) {
+                ZipUtils.unzip(is, tempDir);
+            }
+
+            String baseFolder = permanentKey.replace(".zip", "");
+            uploadDirectoryToS3(tempDir, baseFolder);
+
+        } catch (Exception e) {
+            log.error("압축 파일 처리 중 오류 발생 (zipKey: {}): {}", permanentKey, e.getMessage(), e);
+            throw new CustomException(FAILED_TO_ZIP_FILE, "압축 파일 처리 중 오류 발생");
+        } finally {
+            if (tempZipFilePath != null) {
+                try {
+                    Files.deleteIfExists(tempZipFilePath);
+                } catch (IOException ex) {
+                    log.warn("임시 ZIP 파일 삭제 실패: {}", tempZipFilePath, ex);
+                }
+            }
+
+            if (tempDir != null) {
+                try {
+                    FileUtils.deleteDirectoryRecursively(tempDir);
+                } catch (IOException ex) {
+                    log.warn("임시 디렉토리 삭제 실패: {}", tempDir, ex);
+                }
+            }
+        }
+    }
+
 
     private void uploadDirectoryToS3(Path dir, String s3BaseKey) {
         try (Stream<Path> paths = Files.walk(dir)) { // try-with-resources 사용
@@ -182,7 +213,8 @@ public class FileService {
                         }
                     });
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("압축 해제 된 파일 업로드 실패 {}: {}", dir, e.getMessage());
+            throw new CustomException(FAILED_TO_UPLOAD_FILE);
         }
     }
 }
