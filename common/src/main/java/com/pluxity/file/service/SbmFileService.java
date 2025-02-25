@@ -1,6 +1,7 @@
 package com.pluxity.file.service;
 
 import com.pluxity.file.dto.SbmFileUploadResponse;
+import com.pluxity.file.dto.SbmFloorGroup;
 import com.pluxity.file.dto.SbmFloorInfo;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.exception.CustomException;
@@ -23,8 +24,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -54,7 +58,7 @@ public class SbmFileService {
 
             Path xmlPath = xmlFileOpt.orElseThrow(() -> new CustomException(INVALID_SBM_FILE));
 
-            List<SbmFloorInfo> sbmFloorInfoList = parseFloors(xmlPath);
+            List<SbmFloorGroup> sbmFloorGroupList = parseFloors(xmlPath);
 
             FileUtils.deleteDirectoryRecursively(unzipDir);
 
@@ -64,7 +68,7 @@ public class SbmFileService {
                     entity.getFilePath(),
                     entity.getFileType(),
                     entity.getCreatedAt().toString(),
-                    sbmFloorInfoList
+                    sbmFloorGroupList
             );
         } catch (Exception e) {
             log.error("Failed to process SBM file: {}", e.getMessage());
@@ -72,18 +76,35 @@ public class SbmFileService {
         }
     }
 
-    private List<SbmFloorInfo> parseFloors(Path xmlFilePath) {
+    private List<SbmFloorGroup> parseFloors(Path xmlFilePath) {
         Document doc = getDocument(xmlFilePath.toString());
         NodeList floorNodeList = doc.getElementsByTagName("Floor");
 
-        return IntStream.range(0, floorNodeList.getLength())
+        List<SbmFloorInfo> floorInfoList = new ArrayList<>(IntStream.range(0, floorNodeList.getLength())
                 .mapToObj(floorNodeList::item)
                 .filter(floorNode -> floorNode.getNodeType() == Node.ELEMENT_NODE &&
                         floorNode.getParentNode().getNodeName().equals("Floors"))
                 .map(Element.class::cast)
-                .filter(this::isMain)
                 .map(this::buildSbmFloor)
+                .toList());
+
+        Map<String, List<SbmFloorInfo>> grouped = floorInfoList.stream()
+                .collect(Collectors.groupingBy(SbmFloorInfo::floorGroup));
+
+        return grouped.entrySet().stream()
+                .map(entry -> {
+                    String groupId = entry.getKey();
+                    List<SbmFloorInfo> floors = entry.getValue();
+
+                    SbmFloorInfo mainFloorOpt = floors.stream()
+                            .filter(floor -> "True".equalsIgnoreCase(floor.isMain()))
+                            .findFirst()
+                            .orElseThrow(() -> new CustomException(INVALID_SBM_FILE, "메인 층이 존재하지 않습니다"));
+
+                    return new SbmFloorGroup(groupId, mainFloorOpt, floors);
+                })
                 .toList();
+
     }
 
     private Document getDocument(String xmlFilePath) {
@@ -98,16 +119,26 @@ public class SbmFileService {
         }
     }
 
-    private boolean isMain(Element floorElement) {
-        return "True".equals(floorElement.getAttribute("isMain"));
-    }
-
     private SbmFloorInfo buildSbmFloor(Element floorElement) {
+        String id = floorElement.getAttribute("id");
         String name = floorElement.getAttribute("name");
-        String groupId = floorElement.getAttribute("groupID");
+        String baseFloor = floorElement.getAttribute("baseFloor");
+        String groupID = floorElement.getAttribute("groupID");
+        String isMain = floorElement.getAttribute("isMain");
+        String fileFileName = floorElement.getElementsByTagName("FileSource")
+                .item(0)
+                .getAttributes()
+                .getNamedItem("name")
+                .getNodeValue()
+                .substring(2);
+
         return SbmFloorInfo.builder()
-                .name(name)
-                .groupId(groupId)
+                .floorId(id)
+                .floorName(name)
+                .fileName(fileFileName)
+                .floorBase(baseFloor)
+                .floorGroup(groupID)
+                .isMain(isMain)
                 .build();
     }
 }

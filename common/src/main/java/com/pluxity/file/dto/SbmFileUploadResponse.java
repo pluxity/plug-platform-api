@@ -10,17 +10,17 @@ public record SbmFileUploadResponse(
         String filePath,
         String type,
         String createdAt,
-        List<SbmFloorInfo> floorInfoList
+        List<SbmFloorGroup> floorList
 ) implements UploadResponse {
 
-    public static SbmFileUploadResponse from(FileEntity entity, List<SbmFloorInfo> floorInfoList) {
+    public static SbmFileUploadResponse from(FileEntity entity, List<SbmFloorGroup> floorList) {
         return new SbmFileUploadResponse(
                 entity.getId(),
                 entity.getOriginalFileName(),
                 entity.getFilePath(),
                 entity.getFileType(),
                 entity.getCreatedAt().toString(),
-                floorInfoList
+                floorList
         );
     }
 

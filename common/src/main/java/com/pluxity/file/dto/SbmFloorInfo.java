@@ -4,6 +4,10 @@ import lombok.Builder;
 
 @Builder
 public record SbmFloorInfo(
-        String name,
-        String groupId
+        String floorId,
+        String floorName,
+        String fileName,
+        String floorBase,
+        String floorGroup,
+        String isMain
 ) {}
