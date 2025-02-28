@@ -4,6 +4,9 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
 
+file:
+  storage-strategy: s3
+
 aws:
   s3:
     endpoint-url: http://192.168.4.56:9000

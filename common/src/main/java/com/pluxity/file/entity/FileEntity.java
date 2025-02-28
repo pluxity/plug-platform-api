@@ -1,6 +1,7 @@
 package com.pluxity.file.entity;
 
 import com.pluxity.file.constant.FileStatus;
+import com.pluxity.file.constant.FileType;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -30,10 +31,15 @@ public class FileEntity extends BaseEntity {
     @Column(name = "original_file_name",nullable = false)
     private String originalFileName;
 
+    @Column(name = "content_type",nullable = false)
+    private String contentType;
+
     @Column(name = "file_type",nullable = false)
-    private String fileType;
+    @Enumerated(EnumType.STRING)
+    private FileType fileType;
 
     @Column(name = "file_status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private FileStatus fileStatus;
 
     @CreatedDate
@@ -45,9 +51,10 @@ public class FileEntity extends BaseEntity {
     private LocalDateTime modifiedAt;
 
     @Builder
-    public FileEntity(String filePath, String originalFileName, String fileType) {
+    public FileEntity(String filePath, String originalFileName, String contentType, FileType fileType) {
         this.filePath = filePath;
         this.originalFileName = originalFileName;
+        this.contentType = contentType;
         this.fileType = fileType;
         this.fileStatus = FileStatus.TEMP;
     }

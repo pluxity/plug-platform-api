@@ -1,4 +1,4 @@
-package com.pluxity.file.strategy;
+package com.pluxity.file.strategy.process;
 
 import org.springframework.web.multipart.MultipartFile;
 

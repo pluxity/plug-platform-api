@@ -1,10 +1,13 @@
 package com.pluxity.file.service;
 
 import com.pluxity.file.constant.FileStatus;
+import com.pluxity.file.constant.FileType;
 import com.pluxity.file.dto.FileUploadResponse;
 import com.pluxity.file.dto.UploadResponse;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.repository.FileRepository;
+import com.pluxity.file.strategy.storage.FileProcessingContext;
+import com.pluxity.file.strategy.storage.StorageStrategy;
 import com.pluxity.global.config.S3Config;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.FileUtils;
@@ -43,6 +46,9 @@ public class FileService {
     private final S3Presigner s3Presigner;
     private final S3Config s3Config;
     private final S3Client s3Client;
+
+    private final StorageStrategy storageStrategy;
+
     private final FileRepository repository;
 
     private final SbmFileService sbmFileService;
@@ -64,7 +70,9 @@ public class FileService {
     }
 
     @Transactional
-    public UploadResponse initiateUpload(MultipartFile multipartFile, Boolean isSbm) throws Exception {
+    public UploadResponse initiateUpload(MultipartFile multipartFile, FileType type) throws Exception {
+
+        FileProcessingContext context = storageStrategy.save(multipartFile, type);
         Path tempPath = FileUtils.createTempFile(multipartFile.getOriginalFilename());
         multipartFile.transferTo(tempPath.toFile());
 

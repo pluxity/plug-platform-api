@@ -1,5 +1,6 @@
 package com.pluxity.file.controller;
 
+import com.pluxity.file.constant.FileType;
 import com.pluxity.file.dto.UploadResponse;
 import com.pluxity.file.service.FileService;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +23,9 @@ public class FileController {
 
     @PostMapping("/upload")
     public ResponseEntity<UploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
-                                                     @RequestParam(value = "isSbm", required = false, defaultValue = "false") Boolean isSbm) {
+                                                     @RequestParam(value = "type", required = false, defaultValue = "DEFAULT") FileType type) {
         try {
-            return ResponseEntity.ok(fileService.initiateUpload(file, isSbm));
+            return ResponseEntity.ok(fileService.initiateUpload(file, type));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
