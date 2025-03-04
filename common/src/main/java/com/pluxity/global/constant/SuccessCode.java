@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum SuccessCode implements Code {
     SUCCESS(OK, "성공"),
-    SUCCESS_CREATE(CREATED, "등록 성공"),
+    SUCCESS_CREATED(CREATED, "등록 성공"),
     SUCCESS_PUT(ACCEPTED, "수정 성공"),
     SUCCESS_PATCH(ACCEPTED, "수정 성공"),
     SUCCESS_DELETE(NO_CONTENT, "삭제 성공"),

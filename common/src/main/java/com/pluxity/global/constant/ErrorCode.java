@@ -17,12 +17,20 @@ public enum ErrorCode implements Code {
     INVALID_REFRESH_TOKEN(UNAUTHORIZED, "REFRESH 토큰이 유효하지 않습니다."),
     INVALID_TOKEN_FORMAT(UNAUTHORIZED, "유효하지 않은 토큰 형식입니다."),
 
+    INVALID_FILE_TYPE(BAD_REQUEST, "적절하지 않은 파일 유형입니다."),
+    INVALID_FILE_STATUS(BAD_REQUEST, "적절하지 않은 파일 상태입니다."),
+    INVALID_SBM_FILE(BAD_REQUEST, "적절하지 않은 SBM 파일입니다."),
+
     EXPIRED_ACCESS_TOKEN(UNAUTHORIZED, "ACCESS 토큰이 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(UNAUTHORIZED, "REFRESH 토큰이 만료되었습니다."),
+
+    FAILED_TO_ZIP_FILE(BAD_REQUEST, "파일 압축에 실패했습니다."),
+    FAILED_TO_UPLOAD_FILE(INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
 
     NOT_FOUND_USER(BAD_REQUEST, "해당 회원이 존재하지 않습니다."),
 
     NOT_AUTHORIZED(UNAUTHORIZED, "권한이 없습니다.");
+
 
     private final HttpStatus httpStatus;
     private final String message;

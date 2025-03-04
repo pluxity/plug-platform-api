@@ -1,0 +1,22 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+file:
+  storage-strategy: s3
+  upload:
+    path: C:\Dev\Upload\
+
+aws:
+  s3:
+    endpoint-url: http://192.168.4.56:9000
+    bucket: plug-platform
+    region: ap-northeast-2
+    access-key: pluxity
+    secret-key: pluxity123!@#
+#    access-key: pluxity
+#    secret-key: pluxity123!@#
+    pre-signed-url-expiration: 600
+

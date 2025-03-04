@@ -1,21 +1,12 @@
 dependencies {
-//    implementation 'org.springframework.boot:spring-boot-starter-security'
-//    testImplementation 'org.springframework.security:spring-security-test'
+    implementation('software.amazon.awssdk:s3:2.30.24')
+
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.security:spring-security-core')
+
+    testImplementation('org.springframework.security:spring-security-test')
 }
 
 test {
     useJUnitPlatform()
-}
-
-configurations {
-    testArtifacts
-}
-
-tasks.register('testJar', Jar) {
-    archiveClassifier.set('tests')
-    from(sourceSets.test.output)
-}
-
-artifacts {
-    testArtifacts testJar
 }

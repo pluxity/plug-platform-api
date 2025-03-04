@@ -1,0 +1,16 @@
+@filePath = file:///C:/Users/NA/Desktop/sbm.zip
+
+### 파일 PresignedURL
+GET {{domain}}/files/pre-signed-url?s3Key=drawings/test_01/test_01.glb
+Content-Type: application/json
+
+### 파일 업로드
+POST {{domain}}/files/upload
+Content-Type: multipart/form-data; boundary=----boundary123
+
+------boundary123
+Content-Disposition: form-data; name="file"; filename="sbm.zip"
+Content-Type: text/plain
+
+< {{filePath}}
+------boundary123--

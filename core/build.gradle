@@ -17,5 +17,6 @@ subprojects {
     jar { enabled = true }
 
     dependencies {
+
     }
 }

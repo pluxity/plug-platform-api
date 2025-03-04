@@ -1,4 +1,4 @@
-package com.pluxity.user.auditing;
+package com.pluxity.global.auditing;
 
 import jakarta.annotation.Nonnull;
 import org.springframework.data.domain.AuditorAware;
