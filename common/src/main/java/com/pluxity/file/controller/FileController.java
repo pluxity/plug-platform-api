@@ -3,6 +3,8 @@ package com.pluxity.file.controller;
 import com.pluxity.file.constant.FileType;
 import com.pluxity.file.dto.UploadResponse;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.constant.ErrorCode;
+import com.pluxity.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,10 +26,6 @@ public class FileController {
     @PostMapping("/upload")
     public ResponseEntity<UploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
                                                      @RequestParam(value = "type", required = false, defaultValue = "DEFAULT") FileType type) {
-        try {
-            return ResponseEntity.ok(fileService.initiateUpload(file, type));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok(fileService.initiateUpload(file, type));
     }
 }

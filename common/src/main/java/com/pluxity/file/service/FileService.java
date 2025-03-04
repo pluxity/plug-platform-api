@@ -11,28 +11,19 @@ import com.pluxity.file.strategy.storage.FileProcessingContext;
 import com.pluxity.file.strategy.storage.StorageStrategy;
 import com.pluxity.global.config.S3Config;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.FileUtils;
-import com.pluxity.global.utils.ZipUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
-import java.nio.file.*;
 import java.time.Duration;
-import java.util.stream.Stream;
 
 import static com.pluxity.global.constant.ErrorCode.*;
 
@@ -90,7 +81,7 @@ public class FileService {
 
         } catch (Exception e) {
             log.error("File Save Exception : {}",e.getMessage());
-            throw new CustomException(INVALID_FILE_STATUS, e.getMessage());
+            throw new CustomException(INVALID_FILE_TYPE, e.getMessage());
         }
     }
 
