@@ -78,14 +78,6 @@ public class SbmFileService {
         } catch (Exception e) {
             log.error("Failed to process SBM file: {}", e.getMessage(), e);
             throw new CustomException(INVALID_SBM_FILE, "XML 파싱에 실패했습니다");
-        } finally {
-            if(unzipDir!= null){
-                try{
-                    FileUtils.deleteDirectoryRecursively(unzipDir);
-                }catch (IOException e){
-                    log.error("Failed to delete unzipDir : {}", e.getMessage(), e);
-                }
-            }
         }
     }
 

@@ -32,10 +32,14 @@ public class LocalStorageStrategy implements StorageStrategy {
     @Override
     public String save(FileProcessingContext context) throws Exception {
 
-        Path uploadTempPath = Paths.get(uploadPath, "temp");
-        Files.copy(context.tempPath(), uploadTempPath, StandardCopyOption.REPLACE_EXISTING);
+        Path targetFolder = Paths.get(uploadPath, "temp");
+        Files.createDirectories(targetFolder);
 
-        return uploadTempPath.toString();
+        Path targetPath = targetFolder.resolve(context.tempPath().getFileName());
+
+        Files.copy(context.tempPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+        return targetPath.toString();
     }
 
     @Override
