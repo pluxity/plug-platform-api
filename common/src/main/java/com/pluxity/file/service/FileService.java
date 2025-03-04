@@ -6,6 +6,7 @@ import com.pluxity.file.dto.FileUploadResponse;
 import com.pluxity.file.dto.UploadResponse;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.repository.FileRepository;
+import com.pluxity.file.strategy.storage.FilePersistenceContext;
 import com.pluxity.file.strategy.storage.FileProcessingContext;
 import com.pluxity.file.strategy.storage.StorageStrategy;
 import com.pluxity.global.config.S3Config;
@@ -20,8 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -33,10 +32,8 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.*;
 import java.time.Duration;
-import java.util.*;
 import java.util.stream.Stream;
 
-import static com.pluxity.file.constant.FileType.SBM;
 import static com.pluxity.global.constant.ErrorCode.*;
 
 @Service
@@ -98,111 +95,30 @@ public class FileService {
     }
 
     @Transactional
-    public FileEntity finalizeUpload(Long fileId, String newKey) throws IOException {
-        FileEntity file = repository.findById(fileId)
-                .orElseThrow(() -> new CustomException("File not found", HttpStatus.NOT_FOUND, "해당 파일 아이디를 찾지 못했습니다"));
+    public FileEntity finalizeUpload(Long fileId, String newPath) {
 
-        if (file.getFileStatus() != FileStatus.TEMP) {
-            throw new CustomException(INVALID_FILE_STATUS, "임시 파일이 아닌 경우에는 영구 저장할 수 없습니다");
-        }
-
-        String oldKey = file.getFilePath();
-        String permanentKey = oldKey.replace("temp/", newKey);
-
-        CopyObjectRequest copyRequest = CopyObjectRequest.builder()
-                .sourceBucket(s3Config.getBucketName())
-                .sourceKey(oldKey)
-                .destinationBucket(s3Config.getBucketName())
-                .destinationKey(permanentKey)
-                .build();
-        s3Client.copyObject(copyRequest);
-
-        file.makeComplete(permanentKey);
-
-        if (file.getContentType().equalsIgnoreCase("application/zip") || permanentKey.endsWith(".zip")) {
-            decompressAndUpload(permanentKey);
-        }
-
-        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(oldKey)
-                .build();
-        s3Client.deleteObject(deleteRequest);
-
-        return file;
-    }
-
-    private void decompressAndUpload(String permanentKey) {
-        Path tempZipFilePath = null;
-        Path tempDir = null;
         try {
-            tempZipFilePath = FileUtils.createTempFile(".zip");
+            FileEntity file = repository.findById(fileId)
+                    .orElseThrow(() -> new CustomException("File not found", HttpStatus.NOT_FOUND, "해당 파일 아이디를 찾지 못했습니다"));
 
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(s3Config.getBucketName())
-                    .key(permanentKey)
+            if (file.getFileStatus() != FileStatus.TEMP) {
+                throw new CustomException(INVALID_FILE_STATUS, "임시 파일이 아닌 경우에는 영구 저장할 수 없습니다");
+            }
+
+            var context = FilePersistenceContext.builder()
+                    .filePath(file.getFilePath())
+                    .newPath(newPath)
+                    .contentType(file.getContentType())
                     .build();
 
-            try (InputStream s3ObjectContent = s3Client.getObject(getObjectRequest);
-                 OutputStream outputStream = Files.newOutputStream(tempZipFilePath,
-                         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = s3ObjectContent.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-            }
+            String persistPath = storageStrategy.persist(context);
 
-            tempDir = FileUtils.createTempDirectory("unzipped");
-            try (InputStream is = Files.newInputStream(tempZipFilePath)) {
-                ZipUtils.unzip(is, tempDir);
-            }
-
-            String baseFolder = permanentKey.replace(".zip", "");
-            uploadDirectoryToS3(tempDir, baseFolder);
+            file.makeComplete(persistPath);
+            return file;
 
         } catch (Exception e) {
-            log.error("압축 파일 처리 중 오류 발생 (zipKey: {}): {}", permanentKey, e.getMessage(), e);
-            throw new CustomException(FAILED_TO_ZIP_FILE, "압축 파일 처리 중 오류 발생");
-        } finally {
-            if (tempZipFilePath != null) {
-                try {
-                    Files.deleteIfExists(tempZipFilePath);
-                } catch (IOException ex) {
-                    log.warn("임시 ZIP 파일 삭제 실패: {}", tempZipFilePath, ex);
-                }
-            }
-
-            if (tempDir != null) {
-                try {
-                    FileUtils.deleteDirectoryRecursively(tempDir);
-                } catch (IOException ex) {
-                    log.warn("임시 디렉토리 삭제 실패: {}", tempDir, ex);
-                }
-            }
-        }
-    }
-
-
-    private void uploadDirectoryToS3(Path dir, String s3BaseKey) {
-        try (Stream<Path> paths = Files.walk(dir)) { // try-with-resources 사용
-            paths.filter(Files::isRegularFile)
-                    .forEach(path -> {
-                        try {
-                            String relativePath = dir.relativize(path).toString().replace("\\", "/");
-                            String key = s3BaseKey + "/" + relativePath;
-                            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                                    .bucket(s3Config.getBucketName())
-                                    .key(key)
-                                    .build();
-                            s3Client.putObject(putObjectRequest, RequestBody.fromFile(path.toFile()));
-                        } catch (Exception e) {
-                            log.error("Failed to upload file {}: {}", path, e.getMessage());
-                        }
-                    });
-        } catch (IOException e) {
-            log.error("압축 해제 된 파일 업로드 실패 {}: {}", dir, e.getMessage());
-            throw new CustomException(FAILED_TO_UPLOAD_FILE);
+            log.error("File Persist Exception : {}", e.getMessage());
+            throw new CustomException(INVALID_FILE_STATUS, e.getMessage());
         }
     }
 }

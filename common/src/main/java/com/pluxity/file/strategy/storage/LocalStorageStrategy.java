@@ -40,4 +40,10 @@ public class LocalStorageStrategy implements StorageStrategy {
                 .savedPath(savedPath.toString())
                 .build();
     }
+
+    @Override
+    public String persist(FilePersistenceContext context) throws Exception {
+
+        return "";
+    }
 }

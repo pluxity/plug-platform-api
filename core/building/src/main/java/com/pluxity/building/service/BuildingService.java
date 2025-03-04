@@ -39,7 +39,7 @@ public class BuildingService {
         try {
             FileEntity file = fileService.finalizeUpload(dto.fileId(), "drawings/" + savedBuilding.getId() + "/");
             building.updateFile(file);
-        } catch (IOException e) {
+        } catch (CustomException e) {
             log.error("파일 업로드 실패: {}", savedBuilding.getId(), e);
             throw new CustomException(FAILED_TO_UPLOAD_FILE, "파일 업로드 실패");
         }
