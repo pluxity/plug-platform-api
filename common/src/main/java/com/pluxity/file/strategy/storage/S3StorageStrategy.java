@@ -3,6 +3,7 @@ package com.pluxity.file.strategy.storage;
 import com.pluxity.global.config.S3Config;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.FileUtils;
+import com.pluxity.global.utils.UUIDUtils;
 import com.pluxity.global.utils.ZipUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,10 +39,11 @@ public class S3StorageStrategy implements StorageStrategy {
     @Override
     public FileProcessingContext save(MultipartFile multipartFile) throws Exception {
 
-        InputStream inputStream = multipartFile.getInputStream();
-
         Path tempPath = FileUtils.createTempFile(multipartFile.getOriginalFilename());
-        Files.copy(inputStream, tempPath, StandardCopyOption.REPLACE_EXISTING);
+
+        try (InputStream inputStream = new BufferedInputStream(multipartFile.getInputStream())) {
+            Files.copy(inputStream, tempPath, StandardCopyOption.REPLACE_EXISTING);
+        }
 
         String originalFileName = multipartFile.getOriginalFilename();
         String contentType = FileUtils.getContentType(multipartFile);
@@ -64,7 +67,7 @@ public class S3StorageStrategy implements StorageStrategy {
     }
 
     @Override
-    public String persist(FilePersistenceContext context) throws Exception {
+    public String persist(FilePersistenceContext context) {
 
         String oldKey = context.filePath();
         String persistKey = oldKey.replace("temp/", context.newPath());
@@ -119,7 +122,8 @@ public class S3StorageStrategy implements StorageStrategy {
                 ZipUtils.unzip(is, tempDir);
             }
 
-            String baseFolder = persistKey.replace(".zip", "");
+            int lastSlashIndex = persistKey.lastIndexOf('/');
+            String baseFolder = (lastSlashIndex != -1) ? persistKey.substring(0, lastSlashIndex) : persistKey;
             uploadDirectoryToS3(tempDir, baseFolder);
 
         } catch (Exception e) {

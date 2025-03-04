@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
@@ -22,8 +23,10 @@ public class FileUtils {
         Path targetPath = Paths.get(targetDirectory.toString(), uniqueFileName);
         Files.createDirectories(targetPath.getParent());
 
-        InputStream inputStream = multipartFile.getInputStream();
-        Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+        try (InputStream inputStream = new BufferedInputStream(multipartFile.getInputStream())) {
+            Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+        }
+
         return targetPath;
     }
 

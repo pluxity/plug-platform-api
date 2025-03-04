@@ -100,6 +100,7 @@ public class FileService {
                     .filePath(file.getFilePath())
                     .newPath(newPath)
                     .contentType(file.getContentType())
+                    .originalFileName(file.getOriginalFileName())
                     .build();
 
             String persistPath = storageStrategy.persist(context);

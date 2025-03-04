@@ -6,6 +6,7 @@ import lombok.Builder;
 public record FilePersistenceContext(
         String filePath,
         String newPath,
-        String contentType
+        String contentType,
+        String originalFileName
 ) {
 }
