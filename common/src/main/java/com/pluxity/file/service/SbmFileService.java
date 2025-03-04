@@ -40,8 +40,10 @@ import static com.pluxity.global.constant.ErrorCode.INVALID_SBM_FILE;
 public class SbmFileService {
 
     public SbmFileUploadResponse processSbmFile(Path tempPath, FileEntity entity) {
+
+        Path unzipDir = null;
         try {
-            Path unzipDir = FileUtils.createTempDirectory("temp_unzip");
+            unzipDir = FileUtils.createTempDirectory("temp_unzip");
 
             try (InputStream is = Files.newInputStream(tempPath)) {
                 ZipUtils.unzip(is, unzipDir);
@@ -53,10 +55,11 @@ public class SbmFileService {
                         .filter(path -> path.getFileName().toString().toLowerCase().endsWith(".xml"))
                         .findFirst();
             } catch (IOException e) {
+                log.error("Failed to search xml file: {}", e.getMessage(), e);
                 throw new CustomException(INVALID_SBM_FILE);
             }
 
-            Path xmlPath = xmlFileOpt.orElseThrow(() -> new CustomException(INVALID_SBM_FILE));
+            Path xmlPath = xmlFileOpt.orElseThrow(() -> new CustomException(INVALID_SBM_FILE, "SBM 파일 내부에 XML 파일이 존재하지 않습니다."));
 
             List<SbmFloorGroup> sbmFloorGroupList = parseFloors(xmlPath);
 
@@ -70,9 +73,19 @@ public class SbmFileService {
                     entity.getCreatedAt().toString(),
                     sbmFloorGroupList
             );
+        } catch (CustomException e) {
+            throw e; // CustomException 을 던짐
         } catch (Exception e) {
-            log.error("Failed to process SBM file: {}", e.getMessage());
-            throw new CustomException("Failed to process SBM file", HttpStatus.INTERNAL_SERVER_ERROR, "XML 파싱에 실패했습니다");
+            log.error("Failed to process SBM file: {}", e.getMessage(), e);
+            throw new CustomException(INVALID_SBM_FILE, "XML 파싱에 실패했습니다");
+        } finally {
+            if(unzipDir!= null){
+                try{
+                    FileUtils.deleteDirectoryRecursively(unzipDir);
+                }catch (IOException e){
+                    log.error("Failed to delete unzipDir : {}", e.getMessage(), e);
+                }
+            }
         }
     }
 
@@ -114,8 +127,15 @@ public class SbmFileService {
             Document doc = dBuilder.parse(xmlFilePath);
             doc.getDocumentElement().normalize();
             return doc;
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            throw new CustomException(INVALID_SBM_FILE, "XML 파싱 실패");
+        } catch (ParserConfigurationException e) {
+            log.error("XML 파싱 설정 오류: {}", e.getMessage(), e);
+            throw new CustomException(INVALID_SBM_FILE, "XML 파싱 설정 오류");
+        } catch (SAXException e) {
+            log.error("XML 파싱 중 오류: {}", e.getMessage(), e);
+            throw new CustomException(INVALID_SBM_FILE, "XML 파싱 중 오류");
+        } catch (IOException e) {
+            log.error("XML 파일 읽기 오류: {}", e.getMessage(), e);
+            throw new CustomException(INVALID_SBM_FILE, "XML 파일 읽기 오류");
         }
     }
 

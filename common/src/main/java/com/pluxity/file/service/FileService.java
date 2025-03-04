@@ -11,6 +11,7 @@ import com.pluxity.file.strategy.storage.FileProcessingContext;
 import com.pluxity.file.strategy.storage.StorageStrategy;
 import com.pluxity.global.config.S3Config;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.FileUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,13 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 
 import static com.pluxity.global.constant.ErrorCode.*;
@@ -34,7 +41,6 @@ public class FileService {
 
     private final S3Presigner s3Presigner;
     private final S3Config s3Config;
-    private final S3Client s3Client;
 
     private final StorageStrategy storageStrategy;
 
@@ -62,11 +68,31 @@ public class FileService {
     public UploadResponse initiateUpload(MultipartFile multipartFile, FileType fileType) {
 
         try {
-            FileProcessingContext context = storageStrategy.save(multipartFile);
+            String originalFileName = multipartFile.getOriginalFilename();
+            assert originalFileName != null;
+            if (originalFileName.contains("..") || originalFileName.contains("/") || originalFileName.contains("\\")) {
+                throw new IllegalArgumentException("Invalid filename");
+            }
+
+            Path tempPath = FileUtils.createTempFile(originalFileName);
+
+            try (InputStream inputStream = new BufferedInputStream(multipartFile.getInputStream())) {
+                Files.copy(inputStream, tempPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            String contentType = FileUtils.getContentType(multipartFile);
+
+            FileProcessingContext context = FileProcessingContext.builder()
+                    .contentType(contentType)
+                    .tempPath(tempPath)
+                    .originalFileName(originalFileName)
+                    .build();
+
+            String savedPath = storageStrategy.save(context);
 
             FileEntity fileEntity = FileEntity.builder()
                     .fileType(fileType)
-                    .filePath(context.savedPath())
+                    .filePath(savedPath)
                     .originalFileName(context.originalFileName())
                     .contentType(context.contentType())
                     .build();
@@ -74,7 +100,7 @@ public class FileService {
             repository.save(fileEntity);
 
             if (fileType.equals(FileType.SBM)) {
-                return sbmFileService.processSbmFile(context.originalFilePath(), fileEntity);
+                return sbmFileService.processSbmFile(tempPath, fileEntity);
             }
 
             return FileUploadResponse.from(fileEntity);

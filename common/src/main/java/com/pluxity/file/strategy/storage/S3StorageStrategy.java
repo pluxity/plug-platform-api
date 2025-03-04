@@ -37,33 +37,19 @@ public class S3StorageStrategy implements StorageStrategy {
     private final S3Client s3Client;
 
     @Override
-    public FileProcessingContext save(MultipartFile multipartFile) throws Exception {
+    public String save(FileProcessingContext context) throws Exception {
 
-        Path tempPath = FileUtils.createTempFile(multipartFile.getOriginalFilename());
-
-        try (InputStream inputStream = new BufferedInputStream(multipartFile.getInputStream())) {
-            Files.copy(inputStream, tempPath, StandardCopyOption.REPLACE_EXISTING);
-        }
-
-        String originalFileName = multipartFile.getOriginalFilename();
-        String contentType = FileUtils.getContentType(multipartFile);
-
-        String s3Key = "temp/" + UUID.randomUUID() + "/" + originalFileName;
+        String s3Key = "temp/" + UUID.randomUUID() + "/" + context.originalFileName();
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(s3Config.getBucketName())
                 .key(s3Key)
-                .contentType(contentType)
+                .contentType(context.contentType())
                 .build();
 
-        s3Client.putObject(putObjectRequest, RequestBody.fromFile(tempPath.toFile()));
+        s3Client.putObject(putObjectRequest, RequestBody.fromFile(context.tempPath().toFile()));
 
-        return FileProcessingContext.builder()
-                .contentType(contentType)
-                .originalFilePath(tempPath)
-                .originalFileName(multipartFile.getOriginalFilename())
-                .savedPath(s3Key)
-                .build();
+        return s3Key;
     }
 
     @Override

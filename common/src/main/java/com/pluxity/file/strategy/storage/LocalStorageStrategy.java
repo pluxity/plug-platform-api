@@ -30,25 +30,12 @@ public class LocalStorageStrategy implements StorageStrategy {
     private String uploadPath;
 
     @Override
-    public FileProcessingContext save(MultipartFile multipartFile) throws Exception {
-
-        Path tempPath = FileUtils.createTempFile(multipartFile.getOriginalFilename());
-
-        try (InputStream inputStream = new BufferedInputStream(multipartFile.getInputStream())) {
-            Files.copy(inputStream, tempPath, StandardCopyOption.REPLACE_EXISTING);
-        }
-
-        String contentType = FileUtils.getContentType(multipartFile);
+    public String save(FileProcessingContext context) throws Exception {
 
         Path uploadTempPath = Paths.get(uploadPath, "temp");
-        Path savedPath = FileUtils.saveFileToDirectory(multipartFile, uploadTempPath);
+        Files.copy(context.tempPath(), uploadTempPath, StandardCopyOption.REPLACE_EXISTING);
 
-        return FileProcessingContext.builder()
-                .contentType(contentType)
-                .originalFilePath(tempPath)
-                .originalFileName(multipartFile.getOriginalFilename())
-                .savedPath(savedPath.toString())
-                .build();
+        return uploadTempPath.toString();
     }
 
     @Override

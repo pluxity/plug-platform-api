@@ -16,8 +16,8 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 public class FileConfig {
 
     @Bean
-    public FileService fileService(StorageStrategy storageStrategy, FileRepository fileRepository, SbmFileService sbmFileService, S3Config s3Config, S3Presigner s3Presigner, S3Client s3Client) {
-        return new FileService(s3Presigner, s3Config, s3Client, storageStrategy, fileRepository, sbmFileService);
+    public FileService fileService(StorageStrategy storageStrategy, FileRepository fileRepository, SbmFileService sbmFileService, S3Config s3Config, S3Presigner s3Presigner) {
+        return new FileService(s3Presigner, s3Config, storageStrategy, fileRepository, sbmFileService);
     }
     @Bean
     @ConditionalOnProperty(name = "file.storage-strategy", havingValue = "local")
