@@ -31,12 +31,12 @@ public class FileEntity extends BaseEntity {
     @Column(name = "original_file_name",nullable = false)
     private String originalFileName;
 
-    @Column(name = "content_type",nullable = false)
-    private String contentType;
-
     @Column(name = "file_type",nullable = false)
     @Enumerated(EnumType.STRING)
     private FileType fileType;
+
+    @Column(name = "content_type",nullable = false)
+    private String contentType;
 
     @Column(name = "file_status", nullable = false)
     @Enumerated(EnumType.STRING)

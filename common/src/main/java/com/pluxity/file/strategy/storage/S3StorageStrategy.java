@@ -10,9 +10,10 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
+import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -23,14 +24,17 @@ public class S3StorageStrategy implements StorageStrategy {
     private final S3Client s3Client;
 
     @Override
-    public FileProcessingContext save(MultipartFile multipartFile, FileType fileType) {
+    public FileProcessingContext save(MultipartFile multipartFile) throws Exception {
+
+        InputStream inputStream = multipartFile.getInputStream();
+
         Path tempPath = FileUtils.createTempFile(multipartFile.getOriginalFilename());
-        multipartFile.transferTo(tempPath.toFile());
+        Files.copy(inputStream, tempPath, StandardCopyOption.REPLACE_EXISTING);
 
         String originalFileName = multipartFile.getOriginalFilename();
         String contentType = FileUtils.getContentType(multipartFile);
 
-        String s3Key = "temp/" + UUID.randomUUID() + "-" + originalFileName;
+        String s3Key = "temp/" + UUID.randomUUID() + "/" + originalFileName;
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(s3Config.getBucketName())
@@ -40,6 +44,11 @@ public class S3StorageStrategy implements StorageStrategy {
 
         s3Client.putObject(putObjectRequest, RequestBody.fromFile(tempPath.toFile()));
 
-        return new FileProcessingContext(fileType, tempPath, contentType, s3Key, originalFileName);
+        return FileProcessingContext.builder()
+                .contentType(contentType)
+                .originalFilePath(tempPath)
+                .originalFileName(multipartFile.getOriginalFilename())
+                .savedPath(s3Key)
+                .build();
     }
 }

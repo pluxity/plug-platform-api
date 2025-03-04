@@ -6,7 +6,7 @@ public record FileUploadResponse(
         Long id,
         String originalFileName,
         String filePath,
-        String type,
+        String contentType,
         String createdAt
 ) implements UploadResponse {
     public static FileUploadResponse from(FileEntity entity) {
@@ -14,7 +14,7 @@ public record FileUploadResponse(
                 entity.getId(),
                 entity.getOriginalFileName(),
                 entity.getFilePath(),
-                entity.getFileType(),
+                entity.getContentType(),
                 entity.getCreatedAt().toString()
         );
     }

@@ -36,6 +36,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static com.pluxity.file.constant.FileType.SBM;
 import static com.pluxity.global.constant.ErrorCode.*;
 
 @Service
@@ -70,51 +71,30 @@ public class FileService {
     }
 
     @Transactional
-    public UploadResponse initiateUpload(MultipartFile multipartFile, FileType type) throws Exception {
-
-        FileProcessingContext context = storageStrategy.save(multipartFile, type);
-        Path tempPath = FileUtils.createTempFile(multipartFile.getOriginalFilename());
-        multipartFile.transferTo(tempPath.toFile());
-
-        String originalFileName = multipartFile.getOriginalFilename();
-        String fileType = Optional.ofNullable(multipartFile.getContentType())
-                .orElseGet(() -> {
-                    try {
-                        return Files.probeContentType(tempPath);
-                    } catch (IOException e) {
-                        return "application/octet-stream";
-                    }
-                });
-
-        String s3Key = "temp/" + UUID.randomUUID() + "-" + originalFileName;
-
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(s3Key)
-                .contentType(fileType)
-                .build();
-
-        s3Client.putObject(putObjectRequest, RequestBody.fromFile(tempPath.toFile()));
-
-        var fileEntity = FileEntity.builder()
-                .fileType(fileType)
-                .originalFileName(originalFileName)
-                .filePath(s3Key)
-                .build();
-
-        repository.save(fileEntity);
-
-        if (isSbm) {
-            return sbmFileService.processSbmFile(tempPath, fileEntity);
-        }
+    public UploadResponse initiateUpload(MultipartFile multipartFile, FileType fileType) {
 
         try {
-            Files.deleteIfExists(tempPath);
-        } catch (IOException e) {
-            log.warn("Failed to delete temp file: {}", tempPath);
-        }
+            FileProcessingContext context = storageStrategy.save(multipartFile);
 
-        return FileUploadResponse.from(fileEntity);
+            FileEntity fileEntity = FileEntity.builder()
+                    .fileType(fileType)
+                    .filePath(context.savedPath())
+                    .originalFileName(context.originalFileName())
+                    .contentType(context.contentType())
+                    .build();
+
+            repository.save(fileEntity);
+
+            if (fileType.equals(FileType.SBM)) {
+                return sbmFileService.processSbmFile(context.originalFilePath(), fileEntity);
+            }
+
+            return FileUploadResponse.from(fileEntity);
+
+        } catch (Exception e) {
+            log.error("File Save Exception : {}",e.getMessage());
+            throw new CustomException(INVALID_FILE_STATUS, e.getMessage());
+        }
     }
 
     @Transactional
@@ -139,7 +119,7 @@ public class FileService {
 
         file.makeComplete(permanentKey);
 
-        if (file.getFileType().equalsIgnoreCase("application/zip") || permanentKey.endsWith(".zip")) {
+        if (file.getContentType().equalsIgnoreCase("application/zip") || permanentKey.endsWith(".zip")) {
             decompressAndUpload(permanentKey);
         }
 

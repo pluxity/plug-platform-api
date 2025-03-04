@@ -4,8 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Optional;
@@ -18,9 +18,12 @@ public class FileUtils {
     private static final String PREFIX = "pluxity-";
 
     public static Path saveFileToDirectory(MultipartFile multipartFile, Path targetDirectory) throws Exception {
-        String uniqueFileName = UUID.randomUUID().toString() + "_" + multipartFile.getOriginalFilename();
+        String uniqueFileName = UUID.randomUUID() + "_" + multipartFile.getOriginalFilename();
         Path targetPath = Paths.get(targetDirectory.toString(), uniqueFileName);
-        multipartFile.transferTo(targetPath);
+        Files.createDirectories(targetPath.getParent());
+
+        InputStream inputStream = multipartFile.getInputStream();
+        Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
         return targetPath;
     }
 
@@ -42,10 +45,9 @@ public class FileUtils {
 
     public static Path createTempFile(String originalFileName) throws IOException {
         String tempDir = System.getProperty("java.io.tmpdir");
-        String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+        String uniqueFileName = UUID.randomUUID() + "_" + originalFileName;
         Path tempFilePath = Paths.get(tempDir, uniqueFileName);
 
-        // Create directory if not exist
         Files.createDirectories(tempFilePath.getParent());
 
         return tempFilePath;
@@ -61,4 +63,3 @@ public class FileUtils {
     }
 
 }
-

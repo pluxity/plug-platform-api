@@ -64,9 +64,9 @@ public class SbmFileService {
 
             return new SbmFileUploadResponse(
                     entity.getId(),
-                    entity.getOriginalFileName(),
                     entity.getFilePath(),
-                    entity.getFileType(),
+                    entity.getOriginalFileName(),
+                    entity.getContentType(),
                     entity.getCreatedAt().toString(),
                     sbmFloorGroupList
             );

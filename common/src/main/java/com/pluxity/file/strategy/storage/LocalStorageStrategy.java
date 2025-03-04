@@ -7,40 +7,37 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @RequiredArgsConstructor
 @Slf4j
 public class LocalStorageStrategy implements StorageStrategy {
+
     @Value("${file.upload.path}")
     private String uploadPath;
 
     @Override
-    public FileProcessingContext save(MultipartFile multipartFile, FileType fileType) throws Exception {
-        String subDirectory = getSubDirectory(fileType);
-        Path targetDirectory = Paths.get(uploadPath, subDirectory);
-        Files.createDirectories(targetDirectory);
+    public FileProcessingContext save(MultipartFile multipartFile) throws Exception {
+
+        InputStream inputStream = multipartFile.getInputStream();
+
+        Path tempPath = FileUtils.createTempFile(multipartFile.getOriginalFilename());
+        Files.copy(inputStream, tempPath, StandardCopyOption.REPLACE_EXISTING);
 
         String contentType = FileUtils.getContentType(multipartFile);
 
-        // 파일 저장
-        Path savedFile = FileUtils.saveFileToDirectory(multipartFile, targetDirectory);
-        return new FileProcessingContext(fileType, savedFile, contentType, savedFile.getFileName().toString(), multipartFile.getOriginalFilename());
-    }
-    private String getSubDirectory(FileType fileType) {
-        switch (fileType) {
-            case THUMBNAIL:
-                return "thumbnails";
-            case DRAWING:
-                return "drawings";
-            case ICON:
-                return "icons";
-            case SBM:
-                return "sbm";
-            default:
-                throw new IllegalArgumentException("Unsupported file type: " + fileType);
-        }
+        Path uploadTempPath = Paths.get(uploadPath, "temp");
+        Path savedPath = FileUtils.saveFileToDirectory(multipartFile, uploadTempPath);
+
+        return FileProcessingContext.builder()
+                .contentType(contentType)
+                .originalFilePath(tempPath)
+                .originalFileName(multipartFile.getOriginalFilename())
+                .savedPath(savedPath.toString())
+                .build();
     }
 }

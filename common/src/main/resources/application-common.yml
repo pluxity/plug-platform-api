@@ -5,7 +5,9 @@ spring:
       max-request-size: 100MB
 
 file:
-  storage-strategy: s3
+  storage-strategy: local
+  upload:
+    path: C:\Dev\Upload\
 
 aws:
   s3:
