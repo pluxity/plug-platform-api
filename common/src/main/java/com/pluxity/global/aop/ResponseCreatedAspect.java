@@ -4,7 +4,6 @@ import com.pluxity.global.annotation.ResponseCreated;
 import java.net.URI;
 
 import com.pluxity.global.response.CreatedResponseBody;
-import com.pluxity.global.response.ResponseBody;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -23,10 +22,19 @@ public class ResponseCreatedAspect {
 
         if (body instanceof CreatedResponseBody) {
             Long newId = ((CreatedResponseBody) body).getId();
-            URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                    .path(responseCreated.path())
-                    .buildAndExpand(newId)
-                    .toUri();
+            URI location;
+
+            if ("/{id}".equals(responseCreated.path())) {
+                location = ServletUriComponentsBuilder.fromCurrentRequest()
+                        .path(responseCreated.path())
+                        .buildAndExpand(newId)
+                        .toUri();
+            } else {
+                location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path(responseCreated.path())
+                        .buildAndExpand(newId)
+                        .toUri();
+            }
             return ResponseEntity.created(location).body(body);
         }
         return result;

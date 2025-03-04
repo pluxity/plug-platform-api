@@ -2,6 +2,7 @@ package com.pluxity.authentication.service;
 
 import com.pluxity.authentication.dto.SignInRequest;
 import com.pluxity.authentication.dto.SignInResponse;
+import com.pluxity.authentication.dto.SignUpRequest;
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.authentication.security.CustomUserDetails;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,24 @@ public class AuthenticationService {
 
     @Value("${jwt.refresh-token.expiration}")
     private long refreshExpiration;
+
+    private final PasswordEncoder passwordEncoder;
+
+    @Transactional
+    public Long signUp(final SignUpRequest signUpRequest) {
+        User user =
+                User.builder()
+                        .username(signUpRequest.username())
+                        .password(passwordEncoder.encode(signUpRequest.password()))
+                        .name(signUpRequest.name())
+                        .code(signUpRequest.code())
+                        .build();
+
+        User savedUser = userRepository.save(user);
+
+        return savedUser.getId();
+    }
+
 
     @Transactional
     public SignInResponse signIn(final SignInRequest signInRequestDto) {

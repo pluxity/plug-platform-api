@@ -4,9 +4,9 @@ POST {{domain}}/auth/sign-up
 Content-Type: application/json
 
 {
-  "username": "user45",
+  "username": "user43",
   "password": "test123",
-  "name": "홍길동",
+  "name": "홍길동41",
   "code": "1234"
 }
 
@@ -17,7 +17,7 @@ POST {{domain}}/auth/sign-in
 Content-Type: application/json
 
 {
-  "username": "user",
+  "username": "user43",
   "password": "test123"
 }
 
