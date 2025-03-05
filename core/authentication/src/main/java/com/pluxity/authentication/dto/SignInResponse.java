@@ -4,4 +4,4 @@ import lombok.Builder;
 
 @Builder
 public record SignInResponse(
-        String accessToken, String refreshToken, String name, String code) {}
+        String accessToken, String name, String code) {}

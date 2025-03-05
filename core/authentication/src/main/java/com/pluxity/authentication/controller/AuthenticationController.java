@@ -8,6 +8,7 @@ import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.CreatedResponseBody;
 import com.pluxity.global.response.DataResponseBody;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,12 +30,16 @@ public class AuthenticationController {
 
     @PostMapping(value = "/sign-in", produces = "application/json")
     public DataResponseBody<SignInResponse> signIn(
-            @RequestBody SignInRequest signInRequestDto) {
-        return DataResponseBody.of(authenticationService.signIn(signInRequestDto));
+            @RequestBody SignInRequest signInRequestDto,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        return DataResponseBody.of(authenticationService.signIn(signInRequestDto, request, response));
     }
 
     @PostMapping(value = "/refresh-token")
-    public DataResponseBody<SignInResponse> refreshToken(HttpServletRequest request) {
-        return DataResponseBody.of(authenticationService.refreshToken(request));
+    public DataResponseBody<SignInResponse> refreshToken(HttpServletRequest request,
+                                                         HttpServletResponse response) {
+        return DataResponseBody.of(authenticationService.refreshToken(request, response));
     }
 }

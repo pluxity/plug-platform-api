@@ -17,13 +17,13 @@ public class RefreshToken {
 
     @Indexed private String token;
 
-    @TimeToLive private Long timeToLive;
+    @TimeToLive private int timeToLive;
 
-    public static RefreshToken of(String username, String token, Long timeToLive) {
+    public static RefreshToken of(String username, String token, int timeToLive) {
         return RefreshToken.builder().username(username).token(token).timeToLive(timeToLive).build();
     }
 
-    public void update(String token, Long timeToLive) {
+    public void update(String token, int timeToLive) {
         this.token = token;
         this.timeToLive = timeToLive;
     }

@@ -4,7 +4,7 @@ import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.user.dto.PermissionCreateRequest;
 import com.pluxity.user.dto.PermissionResponse;
 import com.pluxity.user.dto.PermissionUpdateRequest;
-import com.pluxity.user.service.PermissionService;
+import com.pluxity.user.service.PermissionServiceImpl;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PermissionController {
 
-    private final PermissionService permissionService;
+    private final PermissionServiceImpl permissionService;
 
     @GetMapping
     public ResponseEntity<List<PermissionResponse>> getAllPermissions() {
