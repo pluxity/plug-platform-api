@@ -3,15 +3,15 @@ package com.pluxity.authentication.security;
 import lombok.Getter;
 
 @Getter
-public enum NoAuthenticationPath {
+public enum WhiteListPath {
     AUTH("auth"),
     ACTUATOR("actuator"),
     APIDOC("api-docs"),
-    FILES("files"),;
+    FILES("files");
 
     private final String path;
 
-    NoAuthenticationPath(String path) {
+    WhiteListPath(String path) {
         this.path = path;
     }
 

@@ -33,7 +33,7 @@ public class CommonSecurityConfig {
                                                 "/actuator/**",
                                                 "/docs/**")
                                         .permitAll())
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
 
 
         return http.build();
