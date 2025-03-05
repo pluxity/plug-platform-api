@@ -1,6 +1,7 @@
 package com.pluxity.user.controller;
 
 import com.pluxity.global.annotation.ResponseCreated;
+import com.pluxity.global.response.CreatedResponseBody;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.service.UserService;
 import jakarta.validation.Valid;
@@ -29,8 +30,8 @@ public class AdminUserController {
 
     @PostMapping
     @ResponseCreated
-    public ResponseEntity<Long> saveUser(@Valid @RequestBody UserCreateRequest request) {
-        return ResponseEntity.ok(service.save(request).id());
+    public ResponseEntity<CreatedResponseBody<Long>> saveUser(@Valid @RequestBody UserCreateRequest request) {
+        return ResponseEntity.ok(CreatedResponseBody.of(service.save(request).id()));
     }
 
     @PutMapping(value = "/{id}")
@@ -60,14 +61,16 @@ public class AdminUserController {
 
     @PostMapping("/{userId}/roles")
     @ResponseCreated
-    public ResponseEntity<Long> assignRolesToUser(
-            @PathVariable("userId") Long userId, @RequestBody UserRoleAssignRequest request) {
-        return ResponseEntity.ok(service.assignRolesToUser(userId, request).id());
+    public ResponseEntity<CreatedResponseBody<Long>> assignRolesToUser(
+            @PathVariable("userId") Long userId,
+            @RequestBody UserRoleAssignRequest request) {
+        return ResponseEntity.ok(CreatedResponseBody.of(service.assignRolesToUser(userId, request).id()));
     }
 
     @DeleteMapping("/{userId}/roles/{roleId}")
     public ResponseEntity<Void> removeRoleFromUser(
-            @PathVariable("userId") Long userId, @PathVariable("roleId") Long roleId) {
+            @PathVariable("userId") Long userId,
+            @PathVariable("roleId") Long roleId) {
         service.removeRoleFromUser(userId, roleId);
         return ResponseEntity.noContent().build();
     }

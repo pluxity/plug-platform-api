@@ -21,7 +21,7 @@ public class ResponseCreatedAspect {
         Object body = result.getBody();
 
         if (body instanceof CreatedResponseBody) {
-            Long newId = ((CreatedResponseBody) body).getId();
+            Object newId = ((CreatedResponseBody<Long>) body).getId();
             URI location;
 
             if ("/{id}".equals(responseCreated.path())) {

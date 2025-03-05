@@ -9,21 +9,21 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public class CreatedResponseBody extends ResponseBody {
+public class CreatedResponseBody<ID> extends ResponseBody {
 
     @JsonIgnore
-    private final Long id;
+    private final ID id;
 
-    public CreatedResponseBody(HttpStatus status, String message, Long id) {
+    public CreatedResponseBody(HttpStatus status, String message, ID id) {
         super(status, message);
         this.id = id;
     }
 
-    public static CreatedResponseBody of(@NotNull Long id) {
-        return new CreatedResponseBody(CREATED, SUCCESS.getMessage(), id);
+    public static <T> CreatedResponseBody<T> of(@NotNull T id) {
+        return new CreatedResponseBody<>(CREATED, SUCCESS.getMessage(), id);
     }
 
-    public static CreatedResponseBody of(HttpStatus status, String message, @NotNull Long id) {
-        return new CreatedResponseBody(status, message, id);
+    public static <T> CreatedResponseBody<T> of(HttpStatus status, String message, @NotNull T id) {
+        return new CreatedResponseBody<>(status, message, id);
     }
 }

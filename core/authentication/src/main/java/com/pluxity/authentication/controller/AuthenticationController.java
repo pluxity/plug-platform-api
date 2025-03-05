@@ -24,7 +24,7 @@ public class AuthenticationController {
 
     @PostMapping("/sign-up")
     @ResponseCreated(path = "/users/me")
-    public ResponseEntity<CreatedResponseBody> signUp(@RequestBody SignUpRequest dto) {
+    public ResponseEntity<CreatedResponseBody<Long>> signUp(@RequestBody SignUpRequest dto) {
         return ResponseEntity.ok(CreatedResponseBody.of(authenticationService.signUp(dto)));
     }
 
