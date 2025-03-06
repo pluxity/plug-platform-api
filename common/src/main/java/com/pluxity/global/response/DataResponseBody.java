@@ -10,11 +10,11 @@ import org.springframework.http.HttpStatus;
 @Getter
 public class DataResponseBody<T> extends ResponseBody {
 
-    private final T result;
+    private final T data;
 
     public DataResponseBody(HttpStatus status, String message, T data) {
         super(status, message);
-        this.result = data;
+        this.data = data;
     }
 
     public static <T> DataResponseBody<T> of(T data) {

@@ -41,8 +41,6 @@ public class AuthenticationService {
     private final JwtProvider jwtProvider;
     private final AuthenticationManager authenticationManager;
 
-    @Value("${jwt.access-token.expiration}")
-    private int accessExpiration;
     @Value("${jwt.refresh-token.expiration}")
     private int refreshExpiration;
 
@@ -84,7 +82,7 @@ public class AuthenticationService {
         String accessToken = jwtProvider.generateAccessToken(user.getUsername());
         String refreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
-        createCookie(REFRESH_TOKEN, refreshToken, refreshExpiration, request, response);
+        createCookie(refreshToken, refreshExpiration, request, response);
 
         refreshTokenRepository.save(
                 RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
@@ -142,7 +140,7 @@ public class AuthenticationService {
         accessToken = jwtProvider.generateAccessToken(user.getUsername());
         newRefreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
-        createCookie(REFRESH_TOKEN, refreshToken, refreshExpiration, request, response);
+        createCookie(refreshToken, refreshExpiration, request, response);
 
         refreshTokenRepository.save(RefreshToken.of(username, newRefreshToken, refreshExpiration));
 
@@ -151,13 +149,13 @@ public class AuthenticationService {
                 .build();
     }
 
-    private void createCookie(String name, String value, int expiry,
+    private void createCookie(String value, int expiry,
                               HttpServletRequest request,
                               HttpServletResponse response) {
 
         Cookie refreshCookie = WebUtils.getCookie(request, REFRESH_TOKEN);
         if (refreshCookie == null) {
-            Cookie cookie = new Cookie(name, value);
+            Cookie cookie = new Cookie(REFRESH_TOKEN, value);
             cookie.setMaxAge(expiry);
             cookie.setHttpOnly(true);
             cookie.setSecure(true);
