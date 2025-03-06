@@ -25,8 +25,12 @@ public class Building {
     private String name;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "file_id")
-    private FileEntity file;
+    @JoinColumn(name = "drawing_file_id")
+    private FileEntity drawing;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "thumbnail_file_id")
+    private FileEntity thumbnail;
 
     @Column(name = "is_deleted")
     private boolean isDeleted = false;
@@ -39,9 +43,13 @@ public class Building {
     public void update(String name) {
         this.name = name;
     }
-
-    public void updateFile(FileEntity file) {
-        this.file = file;
+    
+    public void setDrawing(FileEntity drawing) {
+        this.drawing = drawing;
+    }
+    
+    public void setThumbnail(FileEntity thumbnail) {
+        this.thumbnail = thumbnail;
     }
 
     public void delete() {

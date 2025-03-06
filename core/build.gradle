@@ -15,6 +15,6 @@ subprojects {
     jar { enabled = true }
 
     dependencies {
-
+        implementation project(':common')
     }
 }

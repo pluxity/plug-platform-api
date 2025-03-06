@@ -8,9 +8,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.*;
+import java.util.ArrayList;
 
 @Entity
-@Table(name = "roles")
+@Table(name = "role")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Role extends BaseEntity {
@@ -22,6 +23,9 @@ public class Role extends BaseEntity {
 
     @Column(name = "role_name", nullable = false, unique = true)
     private String roleName;
+    
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserRole> userRoles = new ArrayList<>();
 
     @Builder
     public Role(String roleName) {
