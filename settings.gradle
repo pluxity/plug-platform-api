@@ -1,10 +1,8 @@
 rootProject.name = 'plug-platform-api'
 
+include 'common'
 include 'core'
-include 'core:user'
 include 'core:building'
-include 'core:authentication'
 
 include 'project-a'
-include 'common'
 
