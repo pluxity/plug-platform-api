@@ -3,6 +3,7 @@ package com.pluxity.authentication.service;
 import com.pluxity.authentication.dto.SignInRequest;
 import com.pluxity.authentication.dto.SignInResponse;
 import com.pluxity.authentication.dto.SignUpRequest;
+import com.pluxity.authentication.dto.TokenResponse;
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.authentication.security.CustomUserDetails;
@@ -31,7 +32,6 @@ import static com.pluxity.global.constant.ErrorCode.*;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    public static final String ACCESS_TOKEN = "AccessToken";
     public static final String REFRESH_TOKEN = "RefreshToken";
 
     private final RefreshTokenRepository refreshTokenRepository;
@@ -81,10 +81,8 @@ public class AuthenticationService {
                         .findByUsername(signInRequestDto.username())
                         .orElseThrow(() -> new CustomException(NOT_FOUND_USER));
 
-        CustomUserDetails userDetails = new CustomUserDetails(user);
-
-        String accessToken = jwtProvider.generateAccessToken(userDetails);
-        String refreshToken = jwtProvider.generateRefreshToken(userDetails);
+        String accessToken = jwtProvider.generateAccessToken(user.getUsername());
+        String refreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
         createCookie(REFRESH_TOKEN, refreshToken, refreshExpiration, request, response);
 
@@ -98,7 +96,28 @@ public class AuthenticationService {
                 .build();
     }
 
-    public SignInResponse refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    @Transactional
+    public void signOut(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = jwtProvider.getJwtFromRequest(request);
+
+        if (refreshToken != null && !refreshToken.isEmpty()) {
+            refreshTokenRepository.deleteByToken(refreshToken);
+
+            Cookie cookie = new Cookie(REFRESH_TOKEN, null);
+            cookie.setMaxAge(0);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
+            cookie.setDomain("localhost");
+            cookie.setPath("/");
+            response.addCookie(cookie);
+
+        } else {
+            log.warn("No refresh token found for sign out");
+        }
+    }
+
+    @Transactional
+    public TokenResponse refreshToken(HttpServletRequest request, HttpServletResponse response) {
 
         String refreshToken = jwtProvider.getJwtFromRequest(request);
 
@@ -120,17 +139,15 @@ public class AuthenticationService {
 
         User user = userDetails.user();
 
-        accessToken = jwtProvider.generateAccessToken(userDetails);
-        newRefreshToken = jwtProvider.generateRefreshToken(userDetails);
+        accessToken = jwtProvider.generateAccessToken(user.getUsername());
+        newRefreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
         createCookie(REFRESH_TOKEN, refreshToken, refreshExpiration, request, response);
 
         refreshTokenRepository.save(RefreshToken.of(username, newRefreshToken, refreshExpiration));
 
-        return SignInResponse.builder()
+        return TokenResponse.builder()
                 .accessToken(accessToken)
-                .name(user.getName())
-                .code(user.getCode())
                 .build();
     }
 
@@ -149,4 +166,5 @@ public class AuthenticationService {
             response.addCookie(cookie);
         }
     }
+
 }

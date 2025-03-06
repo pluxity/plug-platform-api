@@ -12,8 +12,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             attributePaths = {
                 "userRoles",
                 "userRoles.role",
-                "userRoles.role.rolePermissions",
-                "userRoles.role.rolePermissions.permission"
             })
     @NonNull
     List<User> findAll();
@@ -22,8 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             attributePaths = {
                 "userRoles",
                 "userRoles.role",
-                "userRoles.role.rolePermissions",
-                "userRoles.role.rolePermissions.permission"
             })
     @NonNull
     Optional<User> findById(@NonNull Long id);
@@ -32,8 +28,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
             attributePaths = {
                 "userRoles",
                 "userRoles.role",
-                "userRoles.role.rolePermissions",
-                "userRoles.role.rolePermissions.permission"
             })
     Optional<User> findByUsername(@NonNull String username);
+
+    boolean existsByUsername(@NonNull String username);
 }

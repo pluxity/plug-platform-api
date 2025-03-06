@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -79,26 +78,26 @@ public class JwtProvider {
                 .getPayload();
     }
 
-    public String generateAccessToken(UserDetails userDetails) {
-        return generateAccessToken(new HashMap<>(), userDetails);
+    public String generateAccessToken(String username) {
+        return generateAccessToken(new HashMap<>(), username);
     }
 
-    public String generateAccessToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, accessExpiration, false);
+    public String generateAccessToken(Map<String, Object> extraClaims, String username) {
+        return buildToken(extraClaims, username, accessExpiration, false);
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        return buildToken(new HashMap<>(), userDetails, refreshExpiration, true);
+    public String generateRefreshToken(String username) {
+        return buildToken(new HashMap<>(), username, refreshExpiration, true);
     }
 
     private String buildToken(
             Map<String, Object> extraClaims,
-            UserDetails userDetails,
+            String username,
             long expiration,
             final boolean isRefreshToken) {
         return Jwts.builder()
                 .claims(extraClaims)
-                .subject(userDetails.getUsername())
+                .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSecretKey(isRefreshToken), Jwts.SIG.HS256)

@@ -3,6 +3,7 @@ package com.pluxity.authentication.controller;
 import com.pluxity.authentication.dto.SignInRequest;
 import com.pluxity.authentication.dto.SignInResponse;
 import com.pluxity.authentication.dto.SignUpRequest;
+import com.pluxity.authentication.dto.TokenResponse;
 import com.pluxity.authentication.service.AuthenticationService;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.CreatedResponseBody;
@@ -40,9 +41,19 @@ public class AuthenticationController {
         return DataResponseBody.of(authenticationService.signIn(signInRequestDto, request, response));
     }
 
+    @PostMapping(value = "/sign-out", produces = "application/json")
+    public ResponseEntity<Void> signOut(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        authenticationService.signOut(request, response);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping(value = "/refresh-token")
-    public DataResponseBody<SignInResponse> refreshToken(HttpServletRequest request,
-                                                         HttpServletResponse response) {
+    public DataResponseBody<TokenResponse> refreshToken(HttpServletRequest request,
+                                                        HttpServletResponse response) {
         return DataResponseBody.of(authenticationService.refreshToken(request, response));
     }
 }
