@@ -4,5 +4,4 @@ bootJar {
 
 dependencies {
     implementation project(':common')
-    implementation project(':core:building')
 }

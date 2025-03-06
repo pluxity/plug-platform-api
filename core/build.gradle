@@ -4,8 +4,6 @@ bootJar {
 
 dependencies {
     implementation project(':common')
-    implementation project(':core:authentication')
-    implementation project(':core:user')
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
