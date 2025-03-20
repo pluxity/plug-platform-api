@@ -3,7 +3,6 @@ package com.pluxity.user.service;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
-import com.pluxity.user.entity.UserRole;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,13 +18,11 @@ import org.mockito.quality.Strictness;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
