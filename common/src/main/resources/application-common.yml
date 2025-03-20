@@ -13,8 +13,6 @@ file:
   storage-strategy: local
   upload:
     path: C:\Dev\Upload\
-
-aws:
   s3:
     endpoint-url: http://192.168.4.56:9000
     bucket: plug-platform
