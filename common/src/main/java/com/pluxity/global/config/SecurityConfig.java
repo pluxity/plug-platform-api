@@ -54,6 +54,8 @@ public class SecurityConfig {
                                         .permitAll())
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/admin/**").hasRole("ADMIN"))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/buildings/**").authenticated())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/building-permissions/**").authenticated())
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)

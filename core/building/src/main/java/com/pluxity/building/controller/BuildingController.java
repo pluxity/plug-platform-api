@@ -1,5 +1,6 @@
 package com.pluxity.building.controller;
 
+import com.pluxity.authentication.security.CustomUserDetails;
 import com.pluxity.building.dto.BuildingCreateRequest;
 import com.pluxity.building.dto.BuildingListResponse;
 import com.pluxity.building.service.BuildingService;
@@ -8,15 +9,14 @@ import com.pluxity.global.response.CreatedResponseBody;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ResponseBody;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import static com.pluxity.global.constant.SuccessCode.SUCCESS_CREATED;
+import java.util.List;
 
 @RestController
 @RequestMapping("/buildings")
-@ConditionalOnProperty(name = "core.building.enabled", havingValue = "true", matchIfMissing = true)
 public class BuildingController {
 
     private final BuildingService service;
@@ -26,9 +26,20 @@ public class BuildingController {
     }
 
     @GetMapping
-    public DataResponseBody<BuildingListResponse> getBuilding() {
+    public DataResponseBody<List<BuildingListResponse>> getBuildings(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return DataResponseBody.of(service.findAll(userDetails.user().getId()));
+    }
+    
+    @GetMapping("/{id}")
+    public DataResponseBody<BuildingListResponse> getBuilding(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        var building = service.findById(id, userDetails.user().getId());
         return DataResponseBody.of(
-                BuildingListResponse.builder().id(1L).name("building").build());
+                BuildingListResponse.builder()
+                        .id(building.getId())
+                        .name(building.getName())
+                        .build());
     }
 
     @PostMapping

@@ -29,7 +29,9 @@ public enum ErrorCode implements Code {
 
     NOT_FOUND_USER(BAD_REQUEST, "해당 회원이 존재하지 않습니다."),
 
-    NOT_AUTHORIZED(UNAUTHORIZED, "권한이 없습니다.");
+    NOT_AUTHORIZED(UNAUTHORIZED, "권한이 없습니다."),
+    
+    PERMISSION_DENIED(FORBIDDEN, "접근 권한이 없습니다.");
 
 
     private final HttpStatus httpStatus;

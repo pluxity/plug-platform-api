@@ -1,7 +1,7 @@
 dependencies {
     implementation('software.amazon.awssdk:s3:2.30.24')
 
-    implementation('org.springframework.boot:spring-boot-starter-security')
+    api('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-data-redis')
 
     implementation('io.jsonwebtoken:jjwt-api:0.12.6')

@@ -1,0 +1,103 @@
+### 환경 변수 설정
+@baseUrl = http://localhost:8080
+@token = 
+
+### 사용자 로그인 (관리자)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### 로그인 응답에서 토큰 저장
+{% 
+    if (login.response.body.data && login.response.body.data.token) {
+        client.global.set("token", login.response.body.data.token);
+    }
+%}
+
+### 모든 역할 조회
+GET {{baseUrl}}/admin/roles
+Authorization: Bearer {{token}}
+
+### 특정 역할 조회
+GET {{baseUrl}}/admin/roles/1
+Authorization: Bearer {{token}}
+
+### 새 역할 생성
+POST {{baseUrl}}/admin/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "roleName": "BUILDING_MANAGER",
+  "description": "빌딩 관리자 역할"
+}
+
+### 역할 수정
+PUT {{baseUrl}}/admin/roles/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "roleName": "BUILDING_MANAGER",
+  "description": "수정된 빌딩 관리자 역할 설명"
+}
+
+### 역할 삭제
+DELETE {{baseUrl}}/admin/roles/3
+Authorization: Bearer {{token}}
+
+### 사용자에게 역할 할당
+POST {{baseUrl}}/admin/users/2/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "roleId": 2
+}
+
+### 사용자의 역할 조회
+GET {{baseUrl}}/admin/users/2/roles
+Authorization: Bearer {{token}}
+
+### 사용자의 역할 제거
+DELETE {{baseUrl}}/admin/users/2/roles/2
+Authorization: Bearer {{token}}
+
+### 역할에 권한 추가 (빌딩 접근 권한)
+POST {{baseUrl}}/admin/roles/2/permissions/building
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "buildingId": 1
+}
+
+### 역할에 권한 추가 (관리자 권한)
+POST {{baseUrl}}/admin/roles/1/permissions/admin
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "resourceId": 0
+}
+
+### 역할의 모든 권한 조회
+GET {{baseUrl}}/admin/roles/2/permissions
+Authorization: Bearer {{token}}
+
+### 역할의 특정 타입 권한 조회
+GET {{baseUrl}}/admin/roles/2/permissions?type=BUILDING
+Authorization: Bearer {{token}}
+
+### 역할의 특정 권한 제거
+DELETE {{baseUrl}}/admin/roles/2/permissions/5
+Authorization: Bearer {{token}}
+
+### 특정 리소스에 대한 역할 권한 확인
+GET {{baseUrl}}/admin/roles/2/permissions/check?resourceType=BUILDING&resourceId=1
+Authorization: Bearer {{token}} 
