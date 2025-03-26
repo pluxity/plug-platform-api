@@ -37,13 +37,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
 
-            Optional.of(request)
-                    .filter(this::authenticationRequired)
-                    .map(jwtProvider::getJwtFromRequest)
-                    .filter(jwtProvider::isAccessTokenValid)
-                    .map(jwtProvider::extractUsername)
-                    .map(userDetailsService::loadUserByUsername)
-                    .ifPresent(userDetails -> setAuthenticationContext(request, userDetails));
+//            Optional.of(request)
+//                    .filter(this::authenticationRequired)
+//                    .map(jwtProvider::getJwtFromRequest)
+//                    .filter(jwtProvider::isAccessTokenValid)
+//                    .map(jwtProvider::extractUsername)
+//                    .map(userDetailsService::loadUserByUsername)
+//                    .ifPresent(userDetails -> setAuthenticationContext(request, userDetails));
 
         } catch (CustomException e) {
 

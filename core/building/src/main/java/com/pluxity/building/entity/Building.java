@@ -1,58 +1,66 @@
 package com.pluxity.building.entity;
 
-import com.pluxity.file.entity.FileEntity;
+import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "building")
-@SQLDelete(sql = "UPDATE building SET is_deleted = true WHERE id = ?")
-@SQLRestriction("is_deleted = false")
+@Table(name = "buildings")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Building {
+@EntityListeners(AuditingEntityListener.class)
+public class Building extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "drawing_file_id")
-    private FileEntity drawing;
+    @Column(name = "description")
+    private String description;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "thumbnail_file_id")
-    private FileEntity thumbnail;
+    @Column(name = "file_id")
+    private Long fileId;
+    
+    @Column(name = "thumbnail_id")
+    private Long thumbnailId;
 
-    @Column(name = "is_deleted")
-    private boolean isDeleted = false;
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "modified_at", nullable = false)
+    private LocalDateTime modifiedAt;
 
     @Builder
-    public Building(String name) {
+    public Building(String name, String description, Long fileId, Long thumbnailId) {
         this.name = name;
+        this.description = description;
+        this.fileId = fileId;
+        this.thumbnailId = thumbnailId;
     }
 
-    public void update(String name) {
+    public void update(String name, String description) {
         this.name = name;
+        this.description = description;
     }
     
-    public void setDrawing(FileEntity drawing) {
-        this.drawing = drawing;
+    public void updateFileId(Long fileId) {
+        this.fileId = fileId;
     }
     
-    public void setThumbnail(FileEntity thumbnail) {
-        this.thumbnail = thumbnail;
-    }
-
-    public void delete() {
-        this.isDeleted = true;
+    public void updateThumbnailId(Long thumbnailId) {
+        this.thumbnailId = thumbnailId;
     }
 }

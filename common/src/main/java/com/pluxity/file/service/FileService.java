@@ -139,4 +139,10 @@ public class FileService {
             throw new CustomException(INVALID_FILE_STATUS, e.getMessage());
         }
     }
+
+    @Transactional(readOnly = true)
+    public FileEntity getFile(Long fileId) {
+        return repository.findById(fileId)
+                .orElseThrow(() -> new CustomException("File not found", HttpStatus.NOT_FOUND, "해당 파일을 찾을 수 없습니다"));
+    }
 }
