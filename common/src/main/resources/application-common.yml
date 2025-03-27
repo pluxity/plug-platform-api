@@ -10,9 +10,10 @@ spring:
       max-request-size: 100MB
 
 file:
-  storage-strategy: local
+  storage-strategy: local  # local, s3
   upload:
-    path: C:\Dev\Upload\
+    path: C:/Dev/Upload/
+    temp-dir: C:/Dev/Upload/temp/
   s3:
     endpoint-url: http://192.168.4.56:9000
     bucket: plug-platform
