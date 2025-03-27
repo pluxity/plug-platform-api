@@ -6,7 +6,6 @@ import java.util.List;
 
 public record SbmFileUploadResponse(
         Long id,
-        String filePath,
         String originalFileName,
         String contentType,
         String createdAt,
@@ -16,7 +15,6 @@ public record SbmFileUploadResponse(
     public static SbmFileUploadResponse from(FileEntity entity, List<SbmFloorGroup> floorList) {
         return new SbmFileUploadResponse(
                 entity.getId(),
-                entity.getFilePath(),
                 entity.getOriginalFileName(),
                 entity.getContentType(),
                 entity.getCreatedAt().toString(),

@@ -30,41 +30,42 @@ public class LocalStorageStrategy implements StorageStrategy {
     private String uploadPath;
 
     @Override
-    public String save(FileProcessingContext context) throws Exception {
+    public String save(FileProcessingContext context) {
+        try {
+            String uniqueFileName = UUIDUtils.generateUUID();
+            String fileExtension = FileUtils.getFileExtension(context.originalFileName());
+            String fileName = uniqueFileName + fileExtension;
 
-        Path targetFolder = Paths.get(uploadPath, "temp");
-        Files.createDirectories(targetFolder);
+            Path uploadDir = Paths.get(uploadPath);
+            Path filePath = uploadDir.resolve(fileName);
 
-        Path targetPath = targetFolder.resolve(context.tempPath().getFileName());
+            Files.createDirectories(uploadDir);
+            Files.copy(context.tempPath(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        Files.copy(context.tempPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-        return targetPath.toString();
+            // 전체 경로 대신 Upload 디렉토리 이후의 상대 경로만 반환
+            return fileName;
+        } catch (Exception e) {
+            log.error("Failed to save file: {}", e.getMessage());
+            throw new CustomException(FAILED_TO_UPLOAD_FILE);
+        }
     }
 
     @Override
-    public String persist(FilePersistenceContext context) throws Exception {
+    public String persist(FilePersistenceContext context) {
+        try {
+            Path sourcePath = Paths.get(uploadPath, context.filePath());
+            Path targetDir = Paths.get(uploadPath, context.newPath());
+            Path targetPath = targetDir.resolve(context.originalFileName());
 
-        String oldPath = context.filePath();
-        String contentType = context.contentType();
-
-        Path sourcePath = Paths.get(oldPath);
-        Path targetDir = Paths.get(uploadPath, context.newPath(), UUIDUtils.generateShortUUID());
-
-        if (!Files.exists(targetDir)) {
             Files.createDirectories(targetDir);
+            Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            // 전체 경로 대신 Upload 디렉토리 이후의 상대 경로만 반환
+            return context.newPath() + "/" + context.originalFileName();
+        } catch (Exception e) {
+            log.error("Failed to persist file: {}", e.getMessage());
+            throw new CustomException(FAILED_TO_UPLOAD_FILE);
         }
-
-        Path targetPath = targetDir.resolve(context.originalFileName());
-        Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-        if (contentType.equalsIgnoreCase("application/zip") || targetPath.toString().endsWith(".zip")) {
-            decompressAndMove(targetPath, targetDir);
-        }
-
-        Files.deleteIfExists(sourcePath);
-
-        return targetDir.toString();
     }
 
     private void decompressAndMove(Path zipFilePath, Path baseDirPath) {

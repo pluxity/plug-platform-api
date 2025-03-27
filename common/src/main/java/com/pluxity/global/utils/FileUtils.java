@@ -65,4 +65,9 @@ public class FileUtils {
                 .orElseGet(() -> "application/octet-stream");
     }
 
+    public static String getFileExtension(String fileName) {
+        int lastDotIndex = fileName.lastIndexOf('.');
+        return lastDotIndex > 0 ? fileName.substring(lastDotIndex) : "";
+    }
+
 }

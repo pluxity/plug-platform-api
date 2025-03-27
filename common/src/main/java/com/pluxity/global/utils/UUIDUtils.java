@@ -9,11 +9,11 @@ import java.util.UUID;
 @Slf4j
 public class UUIDUtils {
 
+    public static String generateUUID() {
+        return UUID.randomUUID().toString();
+    }
+
     public static String generateShortUUID() {
-        UUID uuid = UUID.randomUUID();
-        ByteBuffer buffer = ByteBuffer.wrap(new byte[16]);
-        buffer.putLong(uuid.getMostSignificantBits());
-        buffer.putLong(uuid.getLeastSignificantBits());
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(buffer.array());
+        return UUID.randomUUID().toString().substring(0, 8);
     }
 }

@@ -42,7 +42,7 @@ public class BuildingService {
             if (request.fileId() != null) {
                 String filePath = "buildings/" + savedBuilding.getId() + "/file";
                 FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
-                String fileUrl = fileService.generatePreSignedUrl(fileEntity.getFilePath());
+                String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
                 fileResponse = FileResponse.from(fileEntity, fileUrl);
             }
             
@@ -50,7 +50,7 @@ public class BuildingService {
             if (request.thumbnailId() != null) {
                 String thumbnailPath = "buildings/" + savedBuilding.getId() + "/thumbnail";
                 FileEntity thumbnailEntity = fileService.finalizeUpload(request.thumbnailId(), thumbnailPath);
-                String thumbnailUrl = fileService.generatePreSignedUrl(thumbnailEntity.getFilePath());
+                String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
                 thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
             }
             
@@ -69,14 +69,14 @@ public class BuildingService {
         FileResponse fileResponse = null;
         if (building.getFileId() != null) {
             FileEntity fileEntity = fileService.getFile(building.getFileId());
-            String fileUrl = fileService.generatePreSignedUrl(fileEntity.getFilePath());
+            String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
             fileResponse = FileResponse.from(fileEntity, fileUrl);
         }
         
         FileResponse thumbnailResponse = null;
         if (building.getThumbnailId() != null) {
             FileEntity thumbnailEntity = fileService.getFile(building.getThumbnailId());
-            String thumbnailUrl = fileService.generatePreSignedUrl(thumbnailEntity.getFilePath());
+            String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
             thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
         }
         
@@ -92,14 +92,14 @@ public class BuildingService {
                     FileResponse fileResponse = null;
                     if (building.getFileId() != null) {
                         FileEntity fileEntity = fileService.getFile(building.getFileId());
-                        String fileUrl = fileService.generatePreSignedUrl(fileEntity.getFilePath());
+                        String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
                         fileResponse = FileResponse.from(fileEntity, fileUrl);
                     }
                     
                     FileResponse thumbnailResponse = null;
                     if (building.getThumbnailId() != null) {
                         FileEntity thumbnailEntity = fileService.getFile(building.getThumbnailId());
-                        String thumbnailUrl = fileService.generatePreSignedUrl(thumbnailEntity.getFilePath());
+                        String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
                         thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
                     }
                     
@@ -120,11 +120,11 @@ public class BuildingService {
             String filePath = "buildings/" + building.getId() + "/file";
             FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
             building.updateFileId(fileEntity.getId());
-            String fileUrl = fileService.generatePreSignedUrl(fileEntity.getFilePath());
+            String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
             fileResponse = FileResponse.from(fileEntity, fileUrl);
         } else if (building.getFileId() != null) {
             FileEntity fileEntity = fileService.getFile(building.getFileId());
-            String fileUrl = fileService.generatePreSignedUrl(fileEntity.getFilePath());
+            String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
             fileResponse = FileResponse.from(fileEntity, fileUrl);
         }
         
@@ -133,11 +133,11 @@ public class BuildingService {
             String thumbnailPath = "buildings/" + building.getId() + "/thumbnail";
             FileEntity thumbnailEntity = fileService.finalizeUpload(request.thumbnailId(), thumbnailPath);
             building.updateThumbnailId(thumbnailEntity.getId());
-            String thumbnailUrl = fileService.generatePreSignedUrl(thumbnailEntity.getFilePath());
+            String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
             thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
         } else if (building.getThumbnailId() != null) {
             FileEntity thumbnailEntity = fileService.getFile(building.getThumbnailId());
-            String thumbnailUrl = fileService.generatePreSignedUrl(thumbnailEntity.getFilePath());
+            String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
             thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
         }
         

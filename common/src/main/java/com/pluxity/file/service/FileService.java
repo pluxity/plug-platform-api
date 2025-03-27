@@ -22,6 +22,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -41,12 +42,20 @@ public class FileService {
 
     private final S3Presigner s3Presigner;
     private final S3Config s3Config;
-
     private final StorageStrategy storageStrategy;
-
     private final FileRepository repository;
-
     private final SbmFileService sbmFileService;
+
+    @Value("${file.storage-strategy}")
+    private String storageStrategyType;
+
+    public String generateFileUrl(String filePath) {
+        if ("s3".equals(storageStrategyType)) {
+            return generatePreSignedUrl(filePath);
+        } else {
+            return "/files/" + filePath;
+        }
+    }
 
     // TODO: PreSigned URL 생성 시 추가 로직 필요 (예: Drawing / ID 등)
     public String generatePreSignedUrl(String s3Key) {

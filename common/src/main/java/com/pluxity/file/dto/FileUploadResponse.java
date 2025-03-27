@@ -5,7 +5,6 @@ import com.pluxity.file.entity.FileEntity;
 public record FileUploadResponse(
         Long id,
         String originalFileName,
-        String filePath,
         String contentType,
         String createdAt
 ) implements UploadResponse {
@@ -13,7 +12,6 @@ public record FileUploadResponse(
         return new FileUploadResponse(
                 entity.getId(),
                 entity.getOriginalFileName(),
-                entity.getFilePath(),
                 entity.getContentType(),
                 entity.getCreatedAt().toString()
         );
