@@ -7,6 +7,7 @@ public enum WhiteListPath {
     AUTH("auth"),
     ACTUATOR("actuator"),
     APIDOC("api-docs"),
+    SWAGGER("swagger-ui"),
     FILES("files");
 
     private final String path;

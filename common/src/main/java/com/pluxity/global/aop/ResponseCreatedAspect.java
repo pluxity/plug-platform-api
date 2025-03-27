@@ -16,11 +16,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class ResponseCreatedAspect {
 
     @Around("@annotation(responseCreated)")
+    @SuppressWarnings("unchecked")
     public ResponseEntity<?> handleResponseCreated(ProceedingJoinPoint joinPoint, ResponseCreated responseCreated) throws Throwable {
         ResponseEntity<?> result = (ResponseEntity<?>) joinPoint.proceed();
         Object body = result.getBody();
 
         if (body instanceof CreatedResponseBody) {
+
             Object newId = ((CreatedResponseBody<Long>) body).getId();
             URI location;
 

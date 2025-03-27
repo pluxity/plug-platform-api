@@ -1,0 +1,21 @@
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  show-actuator: true
+  packages-to-scan: com.pluxity
+  paths-to-match: /**
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  info:
+    title: Plug Platform API
+    description: Plug Platform API Documentation
+    version: 1.0.0
+    contact:
+      name: Pluxity
+      email: support@pluxity.com
+    license:
+      name: Apache 2.0
+      url: http://www.apache.org/licenses/LICENSE-2.0.html 
