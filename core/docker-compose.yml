@@ -1,34 +1,30 @@
-version: '3.8'
-
 services:
   app:
     build:
       context: ..
       dockerfile: core/Dockerfile
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-stage}
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mariadb:3306/plugdb
-      - SPRING_DATASOURCE_USERNAME=plug
-      - SPRING_DATASOURCE_PASSWORD=plug123!@#
+      - SPRING_PROFILES_ACTIVE=stage,common
+      - DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/plugdb?useSSL=false&allowPublicKeyRetrieval=true&autoReconnect=true
+      - DATASOURCE_USERNAME=pluxity
+      - DATASOURCE_PASSWORD=pluxity123
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_DATA_REDIS_HOST=host.docker.internal
+      - SPRING_DATA_REDIS_PORT=6379
+      - SERVER_PORT=8080
+      - FILE_STORAGE_STRATEGY=local
+      - FILE_UPLOAD_PATH=/app/upload/
     ports:
       - "8080:8080"
-    depends_on:
-      - mariadb
     volumes:
       - upload:/app/upload
-
-  mariadb:
-    image: mariadb:10.11
-    environment:
-      - MYSQL_ROOT_PASSWORD=root123!@#
-      - MYSQL_DATABASE=plugdb
-      - MYSQL_USER=plug
-      - MYSQL_PASSWORD=plug123!@#
-    ports:
-      - "3306:3306"
-    volumes:
-      - mariadb_data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - plug-network
 
 volumes:
-  mariadb_data:
-  upload: 
+  upload:
+
+networks:
+  plug-network:
+    driver: bridge 

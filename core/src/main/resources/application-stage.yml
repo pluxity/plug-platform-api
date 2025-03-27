@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 management:
   endpoints:
@@ -14,27 +14,22 @@ spring:
   application:
     name: core
   datasource:
-    url: jdbc:mysql://mariadb:3306/plugdb
-    username: plug
-    password: plug123!@#
+    url: ${DATASOURCE_URL:jdbc:mysql://mariadb:3306/plugdb}
+    username: ${DATASOURCE_USERNAME:plug}
+    password: ${DATASOURCE_PASSWORD:plug123!@#}
   jpa:
     database-platform: org.hibernate.dialect.MariaDBDialect
     show-sql: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
 
 file:
   storage-strategy: s3
   upload:
-    path: /app/upload/
-    temp-dir: /app/upload/temp/
-  s3:
-    endpoint-url: http://192.168.4.56:9000
-    bucket: plug-platform
-    region: ap-northeast-2
-    access-key: pluxity
-    secret-key: pluxity123!@#
-    pre-signed-url-expiration: 600
+    path: ${FILE_UPLOAD_PATH:/app/upload/}
 
 logging:
   level:

@@ -27,7 +27,7 @@ public class BuildingService {
     private final FileService fileService;
 
     @Transactional
-    public BuildingResponse createBuilding(BuildingCreateRequest request) {
+    public Long createBuilding(BuildingCreateRequest request) {
         try {
             Building building = Building.builder()
                     .name(request.name())
@@ -54,7 +54,7 @@ public class BuildingService {
                 thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
             }
             
-            return BuildingResponse.from(savedBuilding, fileResponse, thumbnailResponse);
+            return savedBuilding.getId();
         } catch (Exception e) {
             log.error("Building creation failed: {}", e.getMessage());
             throw new CustomException("Building creation failed", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());

@@ -74,49 +74,43 @@ public class FileService {
     }
 
     @Transactional
-    public UploadResponse initiateUpload(MultipartFile multipartFile, FileType fileType) {
-
+    public UploadResponse initiateUpload(MultipartFile file, FileType type) {
         try {
-            String originalFileName = multipartFile.getOriginalFilename();
-            assert originalFileName != null;
-            if (originalFileName.contains("..") || originalFileName.contains("/") || originalFileName.contains("\\")) {
-                throw new IllegalArgumentException("Invalid filename");
-            }
+            // 임시 파일로 저장
+            Path tempPath = FileUtils.createTempFile(file.getOriginalFilename());
+            file.transferTo(tempPath);
 
-            Path tempPath = FileUtils.createTempFile(originalFileName);
-
-            try (InputStream inputStream = new BufferedInputStream(multipartFile.getInputStream())) {
-                Files.copy(inputStream, tempPath, StandardCopyOption.REPLACE_EXISTING);
-            }
-
-            String contentType = FileUtils.getContentType(multipartFile);
-
-            FileProcessingContext context = FileProcessingContext.builder()
-                    .contentType(contentType)
+            // 파일 컨텍스트 생성
+            var context = FileProcessingContext.builder()
+                    .contentType(FileUtils.getContentType(file))
                     .tempPath(tempPath)
-                    .originalFileName(originalFileName)
+                    .originalFileName(file.getOriginalFilename())
                     .build();
 
-            String savedPath = storageStrategy.save(context);
+            // 스토리지에 저장
+            String filePath = storageStrategy.save(context);
 
+            // 엔티티 생성 및 저장
             FileEntity fileEntity = FileEntity.builder()
-                    .fileType(fileType)
-                    .filePath(savedPath)
-                    .originalFileName(context.originalFileName())
-                    .contentType(context.contentType())
+                    .filePath(filePath)
+                    .originalFileName(file.getOriginalFilename())
+                    .contentType(FileUtils.getContentType(file))
+                    .fileType(type)
                     .build();
 
-            repository.save(fileEntity);
+            FileEntity savedFile = repository.save(fileEntity);
 
-            if (fileType.equals(FileType.SBM)) {
-                return sbmFileService.processSbmFile(tempPath, fileEntity);
+            // 임시 파일 삭제
+            Files.deleteIfExists(tempPath);
+
+            if (type == FileType.SBM) {
+                return sbmFileService.processSbmFile(savedFile);
             }
 
-            return FileUploadResponse.from(fileEntity);
-
+            return FileUploadResponse.from(savedFile);
         } catch (Exception e) {
-            log.error("File Save Exception : {}",e.getMessage());
-            throw new CustomException(INVALID_FILE_TYPE, e.getMessage());
+            log.error("File Upload Exception : {}", e.getMessage(), e);
+            throw new CustomException(FAILED_TO_UPLOAD_FILE, e.getMessage());
         }
     }
 

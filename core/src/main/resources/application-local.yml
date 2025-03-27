@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 management:
   endpoints:
@@ -14,23 +14,19 @@ spring:
   application:
     name: core
   datasource:
-    url: jdbc:h2:tcp://localhost/~/pluxity;
-    username: pluxity
-    password:
+    url: ${DATASOURCE_URL:jdbc:h2:tcp://localhost/~/pluxity}
+    username: ${DATASOURCE_USERNAME:pluxity}
+    password: ${DATASOURCE_PASSWORD:}
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: true
     hibernate:
       ddl-auto: create-drop
-    properties:
-      hibernate:
-        format_sql: true
 
 file:
   storage-strategy: local
   upload:
     path: C:/Dev/Upload/
-    temp-dir: C:/Dev/Upload/temp/
 
 logging:
   level:

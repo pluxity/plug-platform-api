@@ -5,8 +5,8 @@ import com.pluxity.building.dto.BuildingResponse;
 import com.pluxity.building.dto.BuildingUpdateRequest;
 import com.pluxity.building.service.BuildingService;
 import com.pluxity.global.annotation.ResponseCreated;
+import com.pluxity.global.response.CreatedResponseBody;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +22,8 @@ public class BuildingController {
 
     @PostMapping
     @ResponseCreated
-    public ResponseEntity<BuildingResponse> createBuilding(@RequestBody @Valid BuildingCreateRequest request) {
-        BuildingResponse response = buildingService.createBuilding(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<CreatedResponseBody<Long>> createBuilding(@RequestBody @Valid BuildingCreateRequest request) {
+        return ResponseEntity.ok(CreatedResponseBody.of(buildingService.createBuilding(request)));
     }
 
     @GetMapping("/{id}")
