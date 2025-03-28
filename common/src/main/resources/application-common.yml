@@ -1,31 +1,21 @@
-spring:
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      timeout: 1000
-  jpa:
-    properties:
-      hibernate:
-        format_sql: true
+server:
+  port: ${SERVER_PORT:8080}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus"
+
+spring:
   servlet:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
-
-file:
-  storage-strategy: local  # local, s3
-  upload:
-    path: C:/Dev/Upload/
-  s3:
-    endpoint-url: http://192.168.4.56:9000
-    bucket: plug-platform
-    region: ap-northeast-2
-    access-key: pluxity
-    secret-key: pluxity123!@#
-    pre-signed-url-expiration: 600
-
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
 jwt:
   access-token:
     secret: +iBcUJRWGvl+94+ow4nXV1fzWIq4rph8x7MyRmrtWio=
@@ -45,13 +35,3 @@ springdoc:
   paths-to-match: /**
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
-  info:
-    title: Plug Platform API
-    description: Plug Platform API Documentation
-    version: 1.0.0
-    contact:
-      name: Pluxity
-      email: support@pluxity.com
-    license:
-      name: Apache 2.0
-      url: http://www.apache.org/licenses/LICENSE-2.0.html

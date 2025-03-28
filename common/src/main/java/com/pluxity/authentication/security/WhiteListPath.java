@@ -6,6 +6,9 @@ import lombok.Getter;
 public enum WhiteListPath {
     AUTH("auth"),
     ACTUATOR("actuator"),
+    HEALTH("health"),
+    INFO("info"),
+    PROMETHEUS("prometheus"),
     APIDOC("api-docs"),
     SWAGGER("swagger-ui"),
     FILES("files");

@@ -10,6 +10,7 @@ import com.pluxity.file.constant.FileType;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.entity.BaseEntity;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +54,7 @@ class BuildingServiceTest {
     private FileResponse thumbnailResponse;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         building = Building.builder()
                 .name("테스트 빌딩")
                 .description("테스트 빌딩 설명")
@@ -66,13 +67,13 @@ class BuildingServiceTest {
             idField.setAccessible(true);
             idField.set(building, 1L);
             
-            java.lang.reflect.Field createdAtField = Building.class.getDeclaredField("createdAt");
+            java.lang.reflect.Field createdAtField = BaseEntity.class.getDeclaredField("createdAt");
             createdAtField.setAccessible(true);
             createdAtField.set(building, LocalDateTime.now());
             
-            java.lang.reflect.Field modifiedAtField = Building.class.getDeclaredField("modifiedAt");
-            modifiedAtField.setAccessible(true);
-            modifiedAtField.set(building, LocalDateTime.now());
+            java.lang.reflect.Field updatedByField = BaseEntity.class.getDeclaredField("updatedAt");
+            updatedByField.setAccessible(true);
+            updatedByField.set(building, LocalDateTime.now());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -95,30 +96,26 @@ class BuildingServiceTest {
 
         thumbnailEntity.makeComplete("buildings/1/thumbnail");
         
-        try {
-            java.lang.reflect.Field idField = FileEntity.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(fileEntity, 1L);
-            idField.set(thumbnailEntity, 2L);
-            
-            java.lang.reflect.Field createdAtField = FileEntity.class.getDeclaredField("createdAt");
-            createdAtField.setAccessible(true);
-            createdAtField.set(fileEntity, LocalDateTime.now());
-            createdAtField.set(thumbnailEntity, LocalDateTime.now());
-            
-            java.lang.reflect.Field modifiedAtField = FileEntity.class.getDeclaredField("modifiedAt");
-            modifiedAtField.setAccessible(true);
-            modifiedAtField.set(fileEntity, LocalDateTime.now());
-            modifiedAtField.set(thumbnailEntity, LocalDateTime.now());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        java.lang.reflect.Field fileIdField = FileEntity.class.getDeclaredField("id");
+        fileIdField.setAccessible(true);
+        fileIdField.set(fileEntity, 1L);
+        fileIdField.set(thumbnailEntity, 2L);
+
+        java.lang.reflect.Field fileCreatedAtField = BaseEntity.class.getDeclaredField("createdAt");
+        fileCreatedAtField.setAccessible(true);
+        fileCreatedAtField.set(fileEntity, LocalDateTime.now());
+        fileCreatedAtField.set(thumbnailEntity, LocalDateTime.now());
+
+        java.lang.reflect.Field fileUpdatedAtField = BaseEntity.class.getDeclaredField("updatedAt");
+        fileUpdatedAtField.setAccessible(true);
+        fileUpdatedAtField.set(fileEntity, LocalDateTime.now());
+        fileUpdatedAtField.set(thumbnailEntity, LocalDateTime.now());
 
         createRequest = BuildingCreateRequest.of("테스트 빌딩", "테스트 빌딩 설명", 1L, 2L);
         updateRequest = BuildingUpdateRequest.of("업데이트된 빌딩", "업데이트된 설명", 3L, 4L);
         
-        fileResponse = FileResponse.from(fileEntity, "https://example.com/buildings/1/file");
-        thumbnailResponse = FileResponse.from(thumbnailEntity, "https://example.com/buildings/1/thumbnail");
+        fileResponse = FileResponse.from(fileEntity);
+        thumbnailResponse = FileResponse.from(thumbnailEntity);
     }
 
     @Test
@@ -127,8 +124,8 @@ class BuildingServiceTest {
         given(buildingRepository.save(any(Building.class))).willReturn(building);
         given(fileService.finalizeUpload(1L, "buildings/1/file")).willReturn(fileEntity);
         given(fileService.finalizeUpload(2L, "buildings/1/thumbnail")).willReturn(thumbnailEntity);
-        given(fileService.generatePreSignedUrl("buildings/1/file")).willReturn("https://example.com/buildings/1/file");
-        given(fileService.generatePreSignedUrl("buildings/1/thumbnail")).willReturn("https://example.com/buildings/1/thumbnail");
+        given(fileService.getFile(1L)).willReturn(fileEntity);
+        given(fileService.getFile(2L)).willReturn(thumbnailEntity);
 
         BuildingResponse response = buildingService.createBuilding(createRequest);
 
@@ -138,16 +135,12 @@ class BuildingServiceTest {
         assertThat(response.description()).isEqualTo("테스트 빌딩 설명");
         assertThat(response.file()).isNotNull();
         assertThat(response.file().id()).isEqualTo(1L);
-        assertThat(response.file().fileUrl()).isEqualTo("https://example.com/buildings/1/file");
         assertThat(response.thumbnail()).isNotNull();
         assertThat(response.thumbnail().id()).isEqualTo(2L);
-        assertThat(response.thumbnail().fileUrl()).isEqualTo("https://example.com/buildings/1/thumbnail");
         
         verify(buildingRepository).save(any(Building.class));
         verify(fileService).finalizeUpload(1L, "buildings/1/file");
         verify(fileService).finalizeUpload(2L, "buildings/1/thumbnail");
-        verify(fileService).generatePreSignedUrl("buildings/1/file");
-        verify(fileService).generatePreSignedUrl("buildings/1/thumbnail");
     }
 
     @Test
@@ -156,8 +149,6 @@ class BuildingServiceTest {
         given(buildingRepository.findById(1L)).willReturn(Optional.of(building));
         given(fileService.getFile(1L)).willReturn(fileEntity);
         given(fileService.getFile(2L)).willReturn(thumbnailEntity);
-        given(fileService.generatePreSignedUrl("buildings/1/file")).willReturn("https://example.com/buildings/1/file");
-        given(fileService.generatePreSignedUrl("buildings/1/thumbnail")).willReturn("https://example.com/buildings/1/thumbnail");
 
         BuildingResponse response = buildingService.getBuilding(1L);
 
@@ -167,16 +158,12 @@ class BuildingServiceTest {
         assertThat(response.description()).isEqualTo("테스트 빌딩 설명");
         assertThat(response.file()).isNotNull();
         assertThat(response.file().id()).isEqualTo(1L);
-        assertThat(response.file().fileUrl()).isEqualTo("https://example.com/buildings/1/file");
         assertThat(response.thumbnail()).isNotNull();
         assertThat(response.thumbnail().id()).isEqualTo(2L);
-        assertThat(response.thumbnail().fileUrl()).isEqualTo("https://example.com/buildings/1/thumbnail");
         
         verify(buildingRepository).findById(1L);
         verify(fileService).getFile(1L);
         verify(fileService).getFile(2L);
-        verify(fileService).generatePreSignedUrl("buildings/1/file");
-        verify(fileService).generatePreSignedUrl("buildings/1/thumbnail");
     }
 
     @Test
@@ -197,8 +184,6 @@ class BuildingServiceTest {
         given(buildingRepository.findAll()).willReturn(List.of(building));
         given(fileService.getFile(1L)).willReturn(fileEntity);
         given(fileService.getFile(2L)).willReturn(thumbnailEntity);
-        given(fileService.generatePreSignedUrl("buildings/1/file")).willReturn("https://example.com/buildings/1/file");
-        given(fileService.generatePreSignedUrl("buildings/1/thumbnail")).willReturn("https://example.com/buildings/1/thumbnail");
 
         List<BuildingResponse> responses = buildingService.getAllBuildings();
 
@@ -208,16 +193,12 @@ class BuildingServiceTest {
         assertThat(responses.getFirst().description()).isEqualTo("테스트 빌딩 설명");
         assertThat(responses.getFirst().file()).isNotNull();
         assertThat(responses.getFirst().file().id()).isEqualTo(1L);
-        assertThat(responses.getFirst().file().fileUrl()).isEqualTo("https://example.com/buildings/1/file");
         assertThat(responses.getFirst().thumbnail()).isNotNull();
         assertThat(responses.getFirst().thumbnail().id()).isEqualTo(2L);
-        assertThat(responses.getFirst().thumbnail().fileUrl()).isEqualTo("https://example.com/buildings/1/thumbnail");
         
         verify(buildingRepository).findAll();
         verify(fileService).getFile(1L);
         verify(fileService).getFile(2L);
-        verify(fileService).generatePreSignedUrl("buildings/1/file");
-        verify(fileService).generatePreSignedUrl("buildings/1/thumbnail");
     }
 
     @Test
@@ -253,28 +234,28 @@ class BuildingServiceTest {
             idField.setAccessible(true);
             idField.set(updatedBuilding, 1L);
             
-            java.lang.reflect.Field createdAtField = Building.class.getDeclaredField("createdAt");
+            java.lang.reflect.Field createdAtField = BaseEntity.class.getDeclaredField("createdAt");
             createdAtField.setAccessible(true);
             createdAtField.set(updatedBuilding, LocalDateTime.now());
             
-            java.lang.reflect.Field modifiedAtField = Building.class.getDeclaredField("modifiedAt");
-            modifiedAtField.setAccessible(true);
-            modifiedAtField.set(updatedBuilding, LocalDateTime.now());
+            java.lang.reflect.Field updatedByField = BaseEntity.class.getDeclaredField("updatedAt");
+            updatedByField.setAccessible(true);
+            updatedByField.set(updatedBuilding, LocalDateTime.now());
             
             idField = FileEntity.class.getDeclaredField("id");
             idField.setAccessible(true);
             idField.set(updatedFileEntity, 3L);
             idField.set(updatedThumbnailEntity, 4L);
             
-            createdAtField = FileEntity.class.getDeclaredField("createdAt");
+            createdAtField = BaseEntity.class.getDeclaredField("createdAt");
             createdAtField.setAccessible(true);
             createdAtField.set(updatedFileEntity, LocalDateTime.now());
             createdAtField.set(updatedThumbnailEntity, LocalDateTime.now());
             
-            modifiedAtField = FileEntity.class.getDeclaredField("modifiedAt");
-            modifiedAtField.setAccessible(true);
-            modifiedAtField.set(updatedFileEntity, LocalDateTime.now());
-            modifiedAtField.set(updatedThumbnailEntity, LocalDateTime.now());
+            updatedByField = BaseEntity.class.getDeclaredField("updatedAt");
+            updatedByField.setAccessible(true);
+            updatedByField.set(updatedFileEntity, LocalDateTime.now());
+            updatedByField.set(updatedThumbnailEntity, LocalDateTime.now());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -283,8 +264,8 @@ class BuildingServiceTest {
         given(fileService.finalizeUpload(3L, "buildings/1/file")).willReturn(updatedFileEntity);
         given(fileService.finalizeUpload(4L, "buildings/1/thumbnail")).willReturn(updatedThumbnailEntity);
         given(buildingRepository.save(any(Building.class))).willReturn(updatedBuilding);
-        given(fileService.generatePreSignedUrl("buildings/1/file")).willReturn("https://example.com/buildings/1/file/updated");
-        given(fileService.generatePreSignedUrl("buildings/1/thumbnail")).willReturn("https://example.com/buildings/1/thumbnail/updated");
+        given(fileService.getFile(3L)).willReturn(updatedFileEntity);
+        given(fileService.getFile(4L)).willReturn(updatedThumbnailEntity);
 
         BuildingResponse response = buildingService.updateBuilding(1L, updateRequest);
 
@@ -294,17 +275,13 @@ class BuildingServiceTest {
         assertThat(response.description()).isEqualTo("업데이트된 설명");
         assertThat(response.file()).isNotNull();
         assertThat(response.file().id()).isEqualTo(3L);
-        assertThat(response.file().fileUrl()).isEqualTo("https://example.com/buildings/1/file/updated");
         assertThat(response.thumbnail()).isNotNull();
         assertThat(response.thumbnail().id()).isEqualTo(4L);
-        assertThat(response.thumbnail().fileUrl()).isEqualTo("https://example.com/buildings/1/thumbnail/updated");
         
         verify(buildingRepository).findById(1L);
         verify(fileService).finalizeUpload(3L, "buildings/1/file");
         verify(fileService).finalizeUpload(4L, "buildings/1/thumbnail");
         verify(buildingRepository).save(any(Building.class));
-        verify(fileService).generatePreSignedUrl("buildings/1/file");
-        verify(fileService).generatePreSignedUrl("buildings/1/thumbnail");
     }
 
     @Test

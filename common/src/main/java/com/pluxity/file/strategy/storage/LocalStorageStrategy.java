@@ -7,16 +7,13 @@ import com.pluxity.global.utils.ZipUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
@@ -26,7 +23,7 @@ import static com.pluxity.global.constant.ErrorCode.FAILED_TO_ZIP_FILE;
 @Slf4j
 public class LocalStorageStrategy implements StorageStrategy {
 
-    @Value("${file.upload.path}")
+    @Value("${file.local.path}")
     private String uploadPath;
 
     @Override
@@ -36,14 +33,14 @@ public class LocalStorageStrategy implements StorageStrategy {
             String fileExtension = FileUtils.getFileExtension(context.originalFileName());
             String fileName = uniqueFileName + fileExtension;
 
-            Path uploadDir = Paths.get(uploadPath);
-            Path filePath = uploadDir.resolve(fileName);
+            // 임시저장을 위한 temp 디렉토리 경로 (uploadPath/temp)
+            Path tempDir = Paths.get(uploadPath, "temp");
+            Files.createDirectories(tempDir);
+            Path filePath = tempDir.resolve(fileName);
 
-            Files.createDirectories(uploadDir);
             Files.copy(context.tempPath(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            // 전체 경로 대신 Upload 디렉토리 이후의 상대 경로만 반환
-            return fileName;
+            return "temp/" + fileName;
         } catch (Exception e) {
             log.error("Failed to save file: {}", e.getMessage());
             throw new CustomException(FAILED_TO_UPLOAD_FILE);
@@ -60,7 +57,6 @@ public class LocalStorageStrategy implements StorageStrategy {
             Files.createDirectories(targetDir);
             Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-            // 전체 경로 대신 Upload 디렉토리 이후의 상대 경로만 반환
             return context.newPath() + "/" + context.originalFileName();
         } catch (Exception e) {
             log.error("Failed to persist file: {}", e.getMessage());

@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.ArrayList;
 
 @Entity
-@Table(name = "role")
+@Table(name = "roles")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Role extends BaseEntity {

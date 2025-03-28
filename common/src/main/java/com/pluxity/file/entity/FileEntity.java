@@ -8,11 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "files")
@@ -32,8 +28,7 @@ public class FileEntity extends BaseEntity {
     private String originalFileName;
 
     @Column(name = "file_type",nullable = false)
-    @Enumerated(EnumType.STRING)
-    private FileType fileType;
+    private String fileType;
 
     @Column(name = "content_type",nullable = false)
     private String contentType;
@@ -42,20 +37,12 @@ public class FileEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private FileStatus fileStatus;
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "modified_at", nullable = false)
-    private LocalDateTime modifiedAt;
-
     @Builder
     public FileEntity(String filePath, String originalFileName, String contentType, FileType fileType) {
         this.filePath = filePath;
         this.originalFileName = originalFileName;
         this.contentType = contentType;
-        this.fileType = fileType;
+        this.fileType = fileType.name();
         this.fileStatus = FileStatus.TEMP;
     }
 

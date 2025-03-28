@@ -6,14 +6,10 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "buildings")
+@Table(name = "building")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
@@ -34,14 +30,6 @@ public class Building extends BaseEntity {
     
     @Column(name = "thumbnail_id")
     private Long thumbnailId;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "modified_at", nullable = false)
-    private LocalDateTime modifiedAt;
 
     @Builder
     public Building(String name, String description, Long fileId, Long thumbnailId) {

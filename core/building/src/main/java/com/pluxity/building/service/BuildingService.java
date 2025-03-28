@@ -38,22 +38,15 @@ public class BuildingService {
             
             Building savedBuilding = buildingRepository.save(building);
             
-            FileResponse fileResponse = null;
+            String filePath = "buildings/" + savedBuilding.getId() + "/";
             if (request.fileId() != null) {
-                String filePath = "buildings/" + savedBuilding.getId() + "/file";
-                FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
-                String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
-                fileResponse = FileResponse.from(fileEntity, fileUrl);
+                fileService.finalizeUpload(request.fileId(), filePath);
             }
             
-            FileResponse thumbnailResponse = null;
             if (request.thumbnailId() != null) {
-                String thumbnailPath = "buildings/" + savedBuilding.getId() + "/thumbnail";
-                FileEntity thumbnailEntity = fileService.finalizeUpload(request.thumbnailId(), thumbnailPath);
-                String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
-                thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
+                fileService.finalizeUpload(request.thumbnailId(), filePath);
             }
-            
+
             return savedBuilding.getId();
         } catch (Exception e) {
             log.error("Building creation failed: {}", e.getMessage());
@@ -66,19 +59,8 @@ public class BuildingService {
         Building building = buildingRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Building not found", HttpStatus.NOT_FOUND, "해당 건물을 찾을 수 없습니다."));
         
-        FileResponse fileResponse = null;
-        if (building.getFileId() != null) {
-            FileEntity fileEntity = fileService.getFile(building.getFileId());
-            String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
-            fileResponse = FileResponse.from(fileEntity, fileUrl);
-        }
-        
-        FileResponse thumbnailResponse = null;
-        if (building.getThumbnailId() != null) {
-            FileEntity thumbnailEntity = fileService.getFile(building.getThumbnailId());
-            String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
-            thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
-        }
+        FileResponse fileResponse = fileService.getFileResponse(building.getFileId());
+        FileResponse thumbnailResponse = fileService.getFileResponse(building.getThumbnailId());
         
         return BuildingResponse.from(building, fileResponse, thumbnailResponse);
     }
@@ -89,19 +71,8 @@ public class BuildingService {
         
         return buildings.stream()
                 .map(building -> {
-                    FileResponse fileResponse = null;
-                    if (building.getFileId() != null) {
-                        FileEntity fileEntity = fileService.getFile(building.getFileId());
-                        String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
-                        fileResponse = FileResponse.from(fileEntity, fileUrl);
-                    }
-                    
-                    FileResponse thumbnailResponse = null;
-                    if (building.getThumbnailId() != null) {
-                        FileEntity thumbnailEntity = fileService.getFile(building.getThumbnailId());
-                        String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
-                        thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
-                    }
+                    FileResponse fileResponse = fileService.getFileResponse(building.getFileId());
+                    FileResponse thumbnailResponse = fileService.getFileResponse(building.getThumbnailId());
                     
                     return BuildingResponse.from(building, fileResponse, thumbnailResponse);
                 })
@@ -116,29 +87,22 @@ public class BuildingService {
         building.update(request.name(), request.description());
         
         FileResponse fileResponse = null;
+        String filePath = "buildings/" + building.getId() + "/";
         if (request.fileId() != null) {
-            String filePath = "buildings/" + building.getId() + "/file";
             FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
             building.updateFileId(fileEntity.getId());
-            String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
-            fileResponse = FileResponse.from(fileEntity, fileUrl);
+            fileResponse = fileService.getFileResponse(fileEntity);
         } else if (building.getFileId() != null) {
-            FileEntity fileEntity = fileService.getFile(building.getFileId());
-            String fileUrl = fileService.generateFileUrl(fileEntity.getFilePath());
-            fileResponse = FileResponse.from(fileEntity, fileUrl);
+            fileResponse = fileService.getFileResponse(building.getFileId());
         }
         
         FileResponse thumbnailResponse = null;
         if (request.thumbnailId() != null) {
-            String thumbnailPath = "buildings/" + building.getId() + "/thumbnail";
-            FileEntity thumbnailEntity = fileService.finalizeUpload(request.thumbnailId(), thumbnailPath);
+            FileEntity thumbnailEntity = fileService.finalizeUpload(request.thumbnailId(), filePath);
             building.updateThumbnailId(thumbnailEntity.getId());
-            String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
-            thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
+            thumbnailResponse = fileService.getFileResponse(thumbnailEntity);
         } else if (building.getThumbnailId() != null) {
-            FileEntity thumbnailEntity = fileService.getFile(building.getThumbnailId());
-            String thumbnailUrl = fileService.generateFileUrl(thumbnailEntity.getFilePath());
-            thumbnailResponse = FileResponse.from(thumbnailEntity, thumbnailUrl);
+            thumbnailResponse = fileService.getFileResponse(building.getThumbnailId());
         }
         
         Building updatedBuilding = buildingRepository.save(building);

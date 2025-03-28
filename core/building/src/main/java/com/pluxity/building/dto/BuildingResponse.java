@@ -12,7 +12,7 @@ public record BuildingResponse(
     FileResponse file,
     FileResponse thumbnail,
     LocalDateTime createdAt,
-    LocalDateTime modifiedAt
+    LocalDateTime updatedAt
 ) {
     public static BuildingResponse from(Building building, FileResponse file, FileResponse thumbnail) {
         return new BuildingResponse(
@@ -22,7 +22,7 @@ public record BuildingResponse(
             file != null ? file : FileResponse.empty(),
             thumbnail != null ? thumbnail : FileResponse.empty(),
             building.getCreatedAt(),
-            building.getModifiedAt()
+            building.getUpdatedAt()
         );
     }
 } 

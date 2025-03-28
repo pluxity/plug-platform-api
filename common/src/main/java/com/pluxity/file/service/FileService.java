@@ -2,6 +2,7 @@ package com.pluxity.file.service;
 
 import com.pluxity.file.constant.FileStatus;
 import com.pluxity.file.constant.FileType;
+import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.dto.FileUploadResponse;
 import com.pluxity.file.dto.UploadResponse;
 import com.pluxity.file.entity.FileEntity;
@@ -48,14 +49,6 @@ public class FileService {
 
     @Value("${file.storage-strategy}")
     private String storageStrategyType;
-
-    public String generateFileUrl(String filePath) {
-        if ("s3".equals(storageStrategyType)) {
-            return generatePreSignedUrl(filePath);
-        } else {
-            return "/files/" + filePath;
-        }
-    }
 
     // TODO: PreSigned URL 생성 시 추가 로직 필요 (예: Drawing / ID 등)
     public String generatePreSignedUrl(String s3Key) {
@@ -147,5 +140,33 @@ public class FileService {
     public FileEntity getFile(Long fileId) {
         return repository.findById(fileId)
                 .orElseThrow(() -> new CustomException("File not found", HttpStatus.NOT_FOUND, "해당 파일을 찾을 수 없습니다"));
+    }
+
+    @Transactional(readOnly = true)
+    public FileResponse getFileResponse(Long fileId) {
+
+        if (fileId == null) {
+            return null;
+        }
+
+        return getFileResponse(getFile(fileId));
+    }
+
+    public FileResponse getFileResponse(FileEntity fileEntity) {
+
+        String url = "local".equals(storageStrategyType) ?
+                "/files/" + fileEntity.getFilePath() :
+                this.generatePreSignedUrl(fileEntity.getFilePath());
+
+        return FileResponse.builder()
+                .id(fileEntity.getId())
+                .url(url)
+                .originalFileName(fileEntity.getOriginalFileName())
+                .fileType(fileEntity.getFileType())
+                .contentType(fileEntity.getContentType())
+                .fileStatus(fileEntity.getFileStatus().name())
+                .createdAt(fileEntity.getCreatedAt())
+                .updatedAt(fileEntity.getUpdatedAt())
+                .build();
     }
 }

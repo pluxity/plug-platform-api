@@ -43,13 +43,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         auth ->
                                 auth.requestMatchers(
+                                                "/actuator/**",
+                                                "/health",
+                                                "/info",
+                                                "/prometheus",
                                                 "/error",
                                                 "/swagger-ui/**",
                                                 "/swagger-ui.html",
-                                                "/v3/api-docs/**",
                                                 "/api-docs/**",
                                                 "/swagger-config/**",
-                                                "/actuator/**",
                                                 "/docs/**")
                                         .permitAll())
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/admin/**").hasRole("ADMIN"))

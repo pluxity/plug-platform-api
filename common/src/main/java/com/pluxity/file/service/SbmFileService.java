@@ -52,7 +52,7 @@ public class SbmFileService {
     private final S3Config s3Config;
     private final S3Client s3Client;
 
-    @Value("${file.upload.path}")
+    @Value("${file.local.path}")
     private String uploadPath;
 
     public SbmFileUploadResponse processSbmFile(Path tempPath, FileEntity fileEntity) {

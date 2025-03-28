@@ -1,39 +1,25 @@
 package com.pluxity.file.dto;
 
-import com.pluxity.file.constant.FileStatus;
-import com.pluxity.file.constant.FileType;
 import com.pluxity.file.entity.FileEntity;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
+@Builder
 public record FileResponse(
     Long id,
-    String filePath,
+    String url,
     String originalFileName,
+    String fileType,
     String contentType,
-    FileType fileType,
-    FileStatus fileStatus,
-    String fileUrl,
+    String fileStatus,
     LocalDateTime createdAt,
-    LocalDateTime modifiedAt
+    LocalDateTime updatedAt
 ) {
-    public static FileResponse from(FileEntity fileEntity, String fileUrl) {
-        return new FileResponse(
-            fileEntity.getId(),
-            fileEntity.getFilePath(),
-            fileEntity.getOriginalFileName(),
-            fileEntity.getContentType(),
-            fileEntity.getFileType(),
-            fileEntity.getFileStatus(),
-            fileUrl,
-            fileEntity.getCreatedAt(),
-            fileEntity.getModifiedAt()
-        );
-    }
     
     public static FileResponse empty() {
         return new FileResponse(
-            null, null, null, null, null, null, null, null, null
+            null, null, null, null, null, null, null, null
         );
     }
 } 

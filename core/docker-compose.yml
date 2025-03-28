@@ -1,29 +1,57 @@
 services:
   app:
-    build:
-      context: ..
-      dockerfile: core/Dockerfile
-    environment:
-      - SPRING_PROFILES_ACTIVE=stage,common
-      - DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/plugdb?useSSL=false&allowPublicKeyRetrieval=true&autoReconnect=true
-      - DATASOURCE_USERNAME=pluxity
-      - DATASOURCE_PASSWORD=pluxity123
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_DATA_REDIS_HOST=host.docker.internal
-      - SPRING_DATA_REDIS_PORT=6379
-      - SERVER_PORT=8080
-      - FILE_STORAGE_STRATEGY=local
-      - FILE_UPLOAD_PATH=/app/upload/
+    image: plug-platform-api:0.1.0
     ports:
       - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=stage
+      - DATASOURCE_URL=jdbc:mysql://mariadb:3306/plug_db
+      - DATASOURCE_USERNAME=pluxity
+      - DATASOURCE_PASSWORD=pluxity123!@#
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     volumes:
-      - upload:/app/upload
-    restart: unless-stopped
-    networks:
-      - plug-network
+      - C:\Dev\Upload:/app/upload
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  mariadb:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: pluxity123
+      MYSQL_DATABASE: plug_db
+      MYSQL_USER: pluxity
+      MYSQL_PASSWORD: pluxity123!@#
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7.0-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
-  upload:
+  mariadb_data:
+  redis_data:
 
 networks:
   plug-network:
