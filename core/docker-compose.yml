@@ -10,8 +10,10 @@ services:
       - DATASOURCE_PASSWORD=pluxity123!@#
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - FILE_STORAGE_STRATEGY=local
+      - FILE_LOCAL_PATH=/app/uploads
     volumes:
-      - C:\Dev\Upload:/app/upload
+      - C:\Dev\Upload:/app/uploads
     depends_on:
       mariadb:
         condition: service_healthy

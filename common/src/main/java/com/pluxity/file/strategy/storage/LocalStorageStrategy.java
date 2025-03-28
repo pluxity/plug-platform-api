@@ -57,7 +57,7 @@ public class LocalStorageStrategy implements StorageStrategy {
             Files.createDirectories(targetDir);
             Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-            return context.newPath() + "/" + context.originalFileName();
+            return context.newPath() + context.originalFileName();
         } catch (Exception e) {
             log.error("Failed to persist file: {}", e.getMessage());
             throw new CustomException(FAILED_TO_UPLOAD_FILE);

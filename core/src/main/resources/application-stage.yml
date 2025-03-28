@@ -17,9 +17,9 @@ spring:
       ddl-auto: validate
 
 file:
-  storage-strategy: s3
+  storage-strategy: ${FILE_STORAGE_STRATEGY:s3}
   local:
-    path: /app/upload
+    path: ${FILE_LOCAL_PATH:/app/upload}
   s3:
     endpoint-url: ${S3_ENDPOINT_URL:http://192.168.4.56:9000}
     bucket: ${S3_BUCKET:plug-platform}

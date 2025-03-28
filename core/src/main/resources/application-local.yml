@@ -19,7 +19,7 @@ spring:
     enabled: false
 
 file:
-  storage-strategy: s3
+  storage-strategy: local
   local:
     path: C:/Dev/Upload/
   s3:
