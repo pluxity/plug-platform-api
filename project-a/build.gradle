@@ -1,7 +1,0 @@
-bootJar {
-    enabled = true
-}
-
-dependencies {
-    implementation project(':common')
-}

@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,6 +22,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
 
@@ -40,29 +46,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers(
-                                                "/actuator/**",
-                                                "/health",
-                                                "/info",
-                                                "/prometheus",
-                                                "/error",
-                                                "/swagger-ui/**",
-                                                "/swagger-ui.html",
-                                                "/api-docs/**",
-                                                "/swagger-config/**",
-                                                "/docs/**")
-                                        .permitAll())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/admin/**").hasRole("ADMIN"))
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/buildings/**").permitAll())
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(
-                        sessionManagement ->
-                                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            .cors(Customizer.withDefaults())
+            .authorizeHttpRequests(
+                    auth ->
+                            auth.requestMatchers(
+                                            "/actuator/**",
+                                            "/health",
+                                            "/info",
+                                            "/prometheus",
+                                            "/error",
+                                            "/swagger-ui/**",
+                                            "/swagger-ui.html",
+                                            "/api-docs/**",
+                                            "/swagger-config/**",
+                                            "/docs/**")
+                                    .permitAll())
+            .authorizeHttpRequests(auth -> auth.requestMatchers("/admin/**").hasRole("ADMIN"))
+            .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll())
+            .authorizeHttpRequests(auth -> auth.requestMatchers("/buildings/**").permitAll())
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+            .sessionManagement(
+                    sessionManagement ->
+                            sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
@@ -93,5 +100,19 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtProvider, userDetailsService());
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Content-Type", "Authorization"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // 모든 경로에 대해 CORS 설정 적용
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
