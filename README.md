@@ -37,4 +37,14 @@ UserResponse
 
 와 같이 사용하시면 됩니다.
 
+## Method 별 응답 규칙 컨벤션
+
+GET : DataResponseBody<T>
+POST : CreatedResponseBody<Long> or ResponseBody
+PUT : ResponseBody
+PATCH : DataResponseBody<T>
+DELETE : void
+
 ## 참고문서
+
+
