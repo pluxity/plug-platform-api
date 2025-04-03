@@ -40,7 +40,7 @@ UserResponse
 ## Method 별 응답 규칙 컨벤션
 
 GET : DataResponseBody<T>
-POST : CreatedResponseBody<Long> or ResponseBody
+POST : CreatedResponseBody<Long> or DataResponseBody<T>
 PUT : ResponseBody
 PATCH : DataResponseBody<T>
 DELETE : void
