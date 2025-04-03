@@ -6,6 +6,8 @@ import com.pluxity.building.dto.BuildingUpdateRequest;
 import com.pluxity.building.service.BuildingService;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.CreatedResponseBody;
+import com.pluxity.global.response.DataResponseBody;
+import com.pluxity.global.response.ResponseBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,23 +29,23 @@ public class BuildingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BuildingResponse> getBuilding(@PathVariable Long id) {
+    public ResponseEntity<DataResponseBody<BuildingResponse>> getBuilding(@PathVariable Long id) {
         BuildingResponse response = buildingService.getBuilding(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(DataResponseBody.of(response));
     }
 
     @GetMapping
-    public ResponseEntity<List<BuildingResponse>> getAllBuildings() {
+    public ResponseEntity<DataResponseBody<List<BuildingResponse>>> getAllBuildings() {
         List<BuildingResponse> responses = buildingService.getAllBuildings();
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(DataResponseBody.of(responses));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BuildingResponse> updateBuilding(
+    public ResponseEntity<ResponseBody> updateBuilding(
             @PathVariable Long id,
             @RequestBody @Valid BuildingUpdateRequest request) {
-        BuildingResponse response = buildingService.updateBuilding(id, request);
-        return ResponseEntity.ok(response);
+        buildingService.updateBuilding(id, request);
+        return ResponseEntity.ok(ResponseBody.of());
     }
 
     @DeleteMapping("/{id}")

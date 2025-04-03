@@ -1,6 +1,8 @@
 package com.pluxity.user.controller;
 
 import com.pluxity.global.annotation.ResponseCreated;
+import com.pluxity.global.response.DataResponseBody;
+import com.pluxity.global.response.ResponseBody;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.service.RoleService;
 import jakarta.validation.Valid;
@@ -18,13 +20,13 @@ public class RoleController {
     private final RoleService roleService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<RoleResponse> getRole(@PathVariable(name = "id") Long id) {
-        return ResponseEntity.ok(roleService.findById(id));
+    public ResponseEntity<DataResponseBody<RoleResponse>> getRole(@PathVariable(name = "id") Long id) {
+        return ResponseEntity.ok(DataResponseBody.of(roleService.findById(id)));
     }
 
     @GetMapping
-    public ResponseEntity<List<RoleResponse>> getAllRoles() {
-        return ResponseEntity.ok(roleService.findAll());
+    public ResponseEntity<DataResponseBody<List<RoleResponse>>> getAllRoles() {
+        return ResponseEntity.ok(DataResponseBody.of(roleService.findAll()));
     }
 
     @PostMapping
@@ -34,9 +36,10 @@ public class RoleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RoleResponse> updateRole(
+    public ResponseEntity<ResponseBody> updateRole(
             @PathVariable(name = "id") Long id, @Valid @RequestBody RoleUpdateRequest request) {
-        return ResponseEntity.ok(roleService.update(id, request));
+        roleService.update(id, request);
+        return ResponseEntity.ok(ResponseBody.of());
     }
 
     @DeleteMapping("/{id}")

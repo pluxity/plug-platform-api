@@ -33,12 +33,12 @@ public class AuthenticationController {
     }
 
     @PostMapping(value = "/sign-in", produces = "application/json")
-    public DataResponseBody<SignInResponse> signIn(
+    public ResponseEntity<DataResponseBody<SignInResponse>> signIn(
             @RequestBody SignInRequest signInRequestDto,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        return DataResponseBody.of(authenticationService.signIn(signInRequestDto, request, response));
+        return ResponseEntity.ok(DataResponseBody.of(authenticationService.signIn(signInRequestDto, request, response)));
     }
 
     @PostMapping(value = "/sign-out", produces = "application/json")
@@ -52,8 +52,8 @@ public class AuthenticationController {
     }
 
     @PostMapping(value = "/refresh-token")
-    public DataResponseBody<TokenResponse> refreshToken(HttpServletRequest request,
+    public ResponseEntity<DataResponseBody<TokenResponse>> refreshToken(HttpServletRequest request,
                                                         HttpServletResponse response) {
-        return DataResponseBody.of(authenticationService.refreshToken(request, response));
+        return ResponseEntity.ok(DataResponseBody.of(authenticationService.refreshToken(request, response)));
     }
 }

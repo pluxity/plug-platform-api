@@ -2,6 +2,8 @@ package com.pluxity.user.controller;
 
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.CreatedResponseBody;
+import com.pluxity.global.response.DataResponseBody;
+import com.pluxity.global.response.ResponseBody;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.service.UserService;
 import jakarta.validation.Valid;
@@ -19,13 +21,13 @@ public class AdminUserController {
     private final UserService service;
 
     @GetMapping
-    public ResponseEntity<List<UserResponse>> getUsers() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<DataResponseBody<List<UserResponse>>> getUsers() {
+        return ResponseEntity.ok(DataResponseBody.of(service.findAll()));
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable("id") Long id) {
-        return ResponseEntity.ok(service.findById(id));
+    public ResponseEntity<DataResponseBody<UserResponse>> getUser(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(DataResponseBody.of(service.findById(id)));
     }
 
     @PostMapping
@@ -34,37 +36,39 @@ public class AdminUserController {
         return ResponseEntity.ok(CreatedResponseBody.of(service.save(request).id()));
     }
 
-    @PutMapping(value = "/{id}")
-    public ResponseEntity<UserResponse> updateUser(
-            @PathVariable("id") Long id, @RequestBody UserUpdateRequest dto) {
-        UserResponse response = service.update(id, dto);
-        return ResponseEntity.ok(response);
-    }
-
-    @PutMapping(value = "/{id}/password")
-    public ResponseEntity<UserResponse> updatePassword(
-            @PathVariable("id") Long id, @Valid @RequestBody UserPasswordUpdateRequest dto) {
-        return ResponseEntity.ok(service.updateUserPassword(id, dto));
-    }
-
-    @PutMapping(value = "/{id}/roles")
-    public ResponseEntity<UserResponse> updateRoles(
-            @PathVariable("id") Long id, @Valid @RequestBody UserRoleUpdateRequest dto) {
-        return ResponseEntity.ok(service.updateUserRoles(id, dto));
-    }
-
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @PostMapping("/{userId}/roles")
     @ResponseCreated
     public ResponseEntity<CreatedResponseBody<Long>> assignRolesToUser(
             @PathVariable("userId") Long userId,
             @RequestBody UserRoleAssignRequest request) {
         return ResponseEntity.ok(CreatedResponseBody.of(service.assignRolesToUser(userId, request).id()));
+    }
+
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<ResponseBody> updateUser(
+            @PathVariable("id") Long id, @RequestBody UserUpdateRequest dto) {
+        service.update(id, dto);
+        return ResponseEntity.ok(ResponseBody.of());
+    }
+
+    @PutMapping(value = "/{id}/password")
+    public ResponseEntity<ResponseBody> updatePassword(
+            @PathVariable("id") Long id, @Valid @RequestBody UserPasswordUpdateRequest dto) {
+        service.updateUserPassword(id, dto);
+        return ResponseEntity.ok(ResponseBody.of());
+    }
+
+    @PutMapping(value = "/{id}/roles")
+    public ResponseEntity<ResponseBody> updateRoles(
+            @PathVariable("id") Long id, @Valid @RequestBody UserRoleUpdateRequest dto) {
+        service.updateUserRoles(id, dto);
+        return ResponseEntity.ok(ResponseBody.of());
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{userId}/roles/{roleId}")

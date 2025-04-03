@@ -1,5 +1,7 @@
 package com.pluxity.user.controller;
 
+import com.pluxity.global.response.DataResponseBody;
+import com.pluxity.global.response.ResponseBody;
 import com.pluxity.user.dto.UserResponse;
 import com.pluxity.user.dto.UserUpdateRequest;
 import com.pluxity.user.service.UserService;
@@ -16,15 +18,16 @@ public class UserController {
     private final UserService service;
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getUser(Authentication authentication) {
+    public ResponseEntity<DataResponseBody<UserResponse>> getUser(Authentication authentication) {
         var username = authentication.getName();
-        return ResponseEntity.ok(service.findByUsername(username));
+        return ResponseEntity.ok(DataResponseBody.of(service.findByUsername(username)));
     }
 
     @PutMapping("/me")
-    public ResponseEntity<UserResponse> updateUser(
+    public ResponseEntity<ResponseBody> updateUser(
             Authentication authentication, @RequestBody UserUpdateRequest dto) {
         Long id = service.findByUsername(authentication.getName()).id();
-        return ResponseEntity.ok(service.update(id, dto));
+        service.update(id, dto);
+        return ResponseEntity.ok(ResponseBody.of());
     }
 }

@@ -5,6 +5,7 @@ import com.pluxity.file.dto.UploadResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.response.DataResponseBody;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -32,8 +33,8 @@ public class FileController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<UploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
-                                                     @RequestParam(value = "type", required = false, defaultValue = "DEFAULT") FileType type) {
-        return ResponseEntity.ok(fileService.initiateUpload(file, type));
+    public ResponseEntity<DataResponseBody<UploadResponse>> uploadFile(@RequestParam("file") MultipartFile file,
+                                                                      @RequestParam(value = "type", required = false, defaultValue = "DEFAULT") FileType type) {
+        return ResponseEntity.ok(DataResponseBody.of(fileService.initiateUpload(file, type)));
     }
 }
