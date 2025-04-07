@@ -28,11 +28,14 @@ public enum ErrorCode implements Code {
     FAILED_TO_UPLOAD_FILE(INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
     FAILED_TO_PROCESS_SBM_FILE(BAD_REQUEST, "SBM 파일 처리에 실패했습니다."),
 
+    NOT_FOUND(HttpStatus.NOT_FOUND, "해당 리소스를 찾을 수 없습니다."),
     NOT_FOUND_USER(BAD_REQUEST, "해당 회원이 존재하지 않습니다."),
 
     NOT_AUTHORIZED(UNAUTHORIZED, "권한이 없습니다."),
     
-    PERMISSION_DENIED(FORBIDDEN, "접근 권한이 없습니다.");
+    PERMISSION_DENIED(FORBIDDEN, "접근 권한이 없습니다."),
+
+    EXCEED_CATEGORY_DEPTH(BAD_REQUEST, "카테고리는 깊이를 초과했습니다");
 
 
     private final HttpStatus httpStatus;

@@ -1,31 +1,23 @@
 package com.pluxity.category.dto;
 
 import com.pluxity.category.entity.Category;
-import lombok.Builder;
 
 import java.util.List;
 
-@Builder
-public record CategoryResponse<T extends Category<T>>(
-        Long id,
-        String name,
-        String description,
-        Long parentId,
-        Integer level,
-        String path,
-        List<CategoryResponse<T>> children
+public record CategoryResponse(
+    Long id,
+    String name,
+    Long parentId,
+    List<CategoryResponse> children
 ) {
-
-    public static <T extends Category<T>> CategoryResponse<T> from(T category) {
-        return CategoryResponse.<T>builder()
-                .id(category.getId())
-                .name(category.getName())
-                .parentId(category.getParent() != null ? category.getParent().getId() : null)
-                .level(category.getLevel())
-                .path(category.getPath())
-                .children(category.getChildren().stream()
+    public static <T extends Category<T>> CategoryResponse from(T category) {
+        return new CategoryResponse(
+                category.getId(),
+                category.getName(),
+                category.getParent() != null ? category.getParent().getId() : null,
+                category.getChildren().stream()
                         .map(CategoryResponse::from)
-                        .toList())
-                .build();
+                        .toList()
+        );
     }
 }
