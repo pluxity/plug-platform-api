@@ -28,7 +28,7 @@ public class RoleService {
 
     @Transactional
     public RoleResponse save(RoleCreateRequest request) {
-        Role role = Role.builder().roleName(request.roleName()).build();
+        Role role = Role.builder().name(request.name()).build();
 
         Role savedRole = roleRepository.save(role);
         return RoleResponse.from(savedRole);
@@ -38,8 +38,8 @@ public class RoleService {
     public RoleResponse update(Long id, RoleUpdateRequest request) {
         Role role = findRoleById(id);
 
-        if (request.roleName() != null && !request.roleName().isBlank()) {
-            role.changeRoleName(request.roleName());
+        if (request.name() != null && !request.name().isBlank()) {
+            role.changeRoleName(request.name());
         }
         return RoleResponse.from(role);
     }

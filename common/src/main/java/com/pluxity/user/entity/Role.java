@@ -18,21 +18,21 @@ public class Role extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "role_id")
+    @Column(name = "id")
     private Long id;
 
-    @Column(name = "role_name", nullable = false, unique = true)
-    private String roleName;
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
     
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserRole> userRoles = new ArrayList<>();
 
     @Builder
-    public Role(String roleName) {
-        this.roleName = Objects.requireNonNull(roleName, "Role name must not be null");
+    public Role(String name) {
+        this.name = Objects.requireNonNull(name, "Role name must not be null");
     }
 
-    public void changeRoleName(String roleName) {
-        this.roleName = Objects.requireNonNull(roleName, "Role name must not be blank");
+    public void changeRoleName(String name) {
+        this.name = Objects.requireNonNull(name, "Role name must not be blank");
     }
 }
