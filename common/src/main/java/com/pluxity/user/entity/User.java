@@ -60,7 +60,7 @@ public class User extends BaseEntity {
 
         if (!duplicateRoles.isEmpty()) {
             String duplicateNames =
-                    duplicateRoles.stream().map(Role::getRoleName).reduce((a, b) -> a + ", " + b).orElse("");
+                    duplicateRoles.stream().map(Role::getName).reduce((a, b) -> a + ", " + b).orElse("");
 
             throw new IllegalStateException("Some roles already exist for this user: " + duplicateNames);
         }
@@ -72,7 +72,7 @@ public class User extends BaseEntity {
         Objects.requireNonNull(role, "Role must not be null");
 
         if (hasRole(role)) {
-            throw new IllegalStateException("Role already exists for this user: " + role.getRoleName());
+            throw new IllegalStateException("Role already exists for this user: " + role.getName());
         }
 
         UserRole userRole = new UserRole(this, role);
@@ -89,7 +89,7 @@ public class User extends BaseEntity {
                         .orElseThrow(
                                 () ->
                                         new IllegalStateException(
-                                                "Role not found for this user: " + role.getRoleName()));
+                                                "Role not found for this user: " + role.getName()));
 
         this.userRoles.remove(userRoleToRemove);
     }

@@ -105,7 +105,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateUserPassword(Long id, UserPasswordUpdateRequest request) {
+    public void updateUserPassword(Long id, UserPasswordUpdateRequest request) {
 
         User user = findUserById(id);
 
@@ -115,8 +115,6 @@ public class UserService {
 
         user.changePassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
-
-        return UserResponse.from(user);
     }
 
     @Transactional

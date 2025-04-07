@@ -53,19 +53,19 @@ class UserServiceTest {
         // 테스트 사용자 모킹
         lenient().when(testUser.getId()).thenReturn(1L);
         lenient().when(testUser.getUsername()).thenReturn("testuser");
-        lenient().when(testUser.getPassword()).thenReturn("password");
+        lenient().when(testUser.getPassword()).thenReturn("encodedPassword");
         lenient().when(testUser.getName()).thenReturn("테스트유저");
         lenient().when(testUser.getCode()).thenReturn("TEST001");
 
         // 테스트 역할 생성
         testRole = mock(Role.class);
         lenient().when(testRole.getId()).thenReturn(1L);
-        lenient().when(testRole.getRoleName()).thenReturn("ROLE_USER");
+        lenient().when(testRole.getName()).thenReturn("ROLE_USER");
         
         // 관리자 역할 생성
         adminRole = mock(Role.class);
         lenient().when(adminRole.getId()).thenReturn(2L);
-        lenient().when(adminRole.getRoleName()).thenReturn("ROLE_ADMIN");
+        lenient().when(adminRole.getName()).thenReturn("ROLE_ADMIN");
     }
 
     @Test
@@ -252,18 +252,36 @@ class UserServiceTest {
     @DisplayName("사용자 비밀번호 업데이트 - 성공")
     void updateUserPassword_Success() {
         // given
-        UserPasswordUpdateRequest request = new UserPasswordUpdateRequest("newpassword");
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedNewPassword");
+        UserPasswordUpdateRequest request = new UserPasswordUpdateRequest("password", "newPassword");
+
+        // user.getPassword() → encodedPassword 로 반환됨
+        when(testUser.getPassword()).thenReturn("encodedPassword");
+
+        // 패스워드 매칭 성공
+        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
+
+        // 인코딩 후 newPassword → encodedNewPassword
+        when(passwordEncoder.encode("newPassword")).thenReturn("encodedNewPassword");
+
+        // findById → testUser 반환
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        // changePassword 호출 시에는 상태를 바꾸는 게 아니므로, 검증만
+        doNothing().when(testUser).changePassword("encodedNewPassword");
+
+        // UserResponse.from(mock) 내부에서 필요한 getter 응답 설정
+        when(testUser.getId()).thenReturn(1L);
+        when(testUser.getUsername()).thenReturn("testuser");
+        when(testUser.getName()).thenReturn("테스트유저");
+        when(testUser.getCode()).thenReturn("TEST001");
 
         // when
-        UserResponse response = userService.updateUserPassword(1L, request);
+        userService.updateUserPassword(1L, request);
 
-        // then
-        assertThat(response).isNotNull();
         verify(userRepository, times(1)).findById(1L);
-        verify(passwordEncoder, times(1)).encode("newpassword");
-        verify(testUser, times(1)).changePassword("encodedNewPassword");
+        verify(passwordEncoder).matches("password", "encodedPassword");
+        verify(passwordEncoder).encode("newPassword");
+        verify(testUser).changePassword("encodedNewPassword");
     }
 
     @Test
