@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 public class ResponseBody {
 
     private final String timestamp;
-    private final HttpStatus status;
+    private final int status;
     private final String message;
 
     public ResponseBody(HttpStatus status, String message) {
@@ -21,7 +21,7 @@ public class ResponseBody {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         this.timestamp = now.format(formatter);
-        this.status = status;
+        this.status = status.value();
         this.message = message;
     }
 

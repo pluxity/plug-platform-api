@@ -24,15 +24,23 @@ public class Role extends BaseEntity {
     @Column(name = "name", nullable = false, unique = true)
     private String name;
     
+    @Column(name = "description", length = 100)
+    private String description;
+
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserRole> userRoles = new ArrayList<>();
 
     @Builder
-    public Role(String name) {
+    public Role(String name, String description) {
         this.name = Objects.requireNonNull(name, "Role name must not be null");
+        this.description = description;
     }
 
     public void changeRoleName(String name) {
         this.name = Objects.requireNonNull(name, "Role name must not be blank");
+    }
+
+    public void changeDescription(String description) {
+        this.description = description;
     }
 }
