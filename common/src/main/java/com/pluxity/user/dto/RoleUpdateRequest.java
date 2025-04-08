@@ -4,4 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 @Builder
-public record RoleUpdateRequest(@NotBlank(message = "Role name cannot be empty") String name) {}
+public record RoleUpdateRequest(
+    @NotBlank(message = "Role name cannot be empty") String name,
+    String description
+) {}

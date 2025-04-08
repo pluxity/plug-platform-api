@@ -43,7 +43,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "roleName": "BUILDING_MANAGER",
+  "name": "BUILDING_MANAGER",
   "description": "수정된 빌딩 관리자 역할 설명"
 }
 

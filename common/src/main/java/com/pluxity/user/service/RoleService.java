@@ -41,6 +41,9 @@ public class RoleService {
         if (request.name() != null && !request.name().isBlank()) {
             role.changeRoleName(request.name());
         }
+        if (request.description() != null) {
+            role.changeDescription(request.description());
+        }
         return RoleResponse.from(role);
     }
 
