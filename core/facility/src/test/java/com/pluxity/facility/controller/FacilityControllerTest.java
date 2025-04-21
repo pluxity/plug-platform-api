@@ -1,10 +1,10 @@
-package com.pluxity.building.controller;
+package com.pluxity.facility.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pluxity.building.dto.BuildingCreateRequest;
-import com.pluxity.building.dto.BuildingResponse;
-import com.pluxity.building.dto.BuildingUpdateRequest;
-import com.pluxity.building.service.BuildingService;
+import com.pluxity.facility.dto.FacilityCreateRequest;
+import com.pluxity.facility.dto.FacilityResponse;
+import com.pluxity.facility.dto.FacilityUpdateRequest;
+import com.pluxity.facility.service.FacilityService;
 import com.pluxity.file.constant.FileStatus;
 import com.pluxity.file.constant.FileType;
 import com.pluxity.file.dto.FileResponse;
@@ -28,159 +28,159 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = BuildingController.class)
-class BuildingControllerTest {
+@WebMvcTest(controllers = FacilityController.class)
+class FacilityControllerTest {
 
     private MockMvc mockMvc;
-    private BuildingService buildingService;
+    private FacilityService facilityService;
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    BuildingControllerTest() {
-        this.buildingService = mock(BuildingService.class);
-        BuildingController controller = new BuildingController(buildingService);
+    FacilityControllerTest() {
+        this.facilityService = mock(FacilityService.class);
+        FacilityController controller = new FacilityController(facilityService);
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
     @Test
-    @DisplayName("빌딩 생성 성공 테스트")
-    void createBuildingSuccess() throws Exception {
-        BuildingCreateRequest request = BuildingCreateRequest.of("테스트 빌딩", "테스트 빌딩 설명", 1L, 2L);
+    @DisplayName("시설 생성 성공 테스트")
+    void createFacilitySuccess() throws Exception {
+        FacilityCreateRequest request = FacilityCreateRequest.of("테스트 시설", "테스트 시설 설명", 1L, 2L);
         
         FileResponse fileResponse = new FileResponse(
                 1L,
-                "buildings/1/file",
+                "facilities/1/file",
                 "test.obj",
                 "application/octet-stream",
                 FileType.DRAWING,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/1/file",
+                "https://example.com/facilities/1/file",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
         FileResponse thumbnailResponse = new FileResponse(
                 2L,
-                "buildings/1/thumbnail",
+                "facilities/1/thumbnail",
                 "thumbnail.png",
                 "image/png",
                 FileType.THUMBNAIL,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/1/thumbnail",
+                "https://example.com/facilities/1/thumbnail",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
-        BuildingResponse response = new BuildingResponse(
+        FacilityResponse response = new FacilityResponse(
                 1L,
-                "테스트 빌딩",
-                "테스트 빌딩 설명",
+                "테스트 시설",
+                "테스트 시설 설명",
                 fileResponse,
                 thumbnailResponse,
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
 
-        given(buildingService.createBuilding(any(BuildingCreateRequest.class))).willReturn(response);
+        given(facilityService.createFacility(any(FacilityCreateRequest.class))).willReturn(response);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/buildings")
+        mockMvc.perform(MockMvcRequestBuilders.post("/facilities")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("테스트 빌딩"))
-                .andExpect(jsonPath("$.description").value("테스트 빌딩 설명"))
+                .andExpect(jsonPath("$.name").value("테스트 시설"))
+                .andExpect(jsonPath("$.description").value("테스트 시설 설명"))
                 .andExpect(jsonPath("$.file.id").value(1L))
-                .andExpect(jsonPath("$.file.fileUrl").value("https://example.com/buildings/1/file"))
+                .andExpect(jsonPath("$.file.fileUrl").value("https://example.com/facilities/1/file"))
                 .andExpect(jsonPath("$.thumbnail.id").value(2L))
-                .andExpect(jsonPath("$.thumbnail.fileUrl").value("https://example.com/buildings/1/thumbnail"));
+                .andExpect(jsonPath("$.thumbnail.fileUrl").value("https://example.com/facilities/1/thumbnail"));
         
-        verify(buildingService).createBuilding(any(BuildingCreateRequest.class));
+        verify(facilityService).createFacility(any(FacilityCreateRequest.class));
     }
 
     @Test
-    @DisplayName("빌딩 조회 성공 테스트")
-    void getBuildingSuccess() throws Exception {
+    @DisplayName("시설 조회 성공 테스트")
+    void getFacilitySuccess() throws Exception {
         FileResponse fileResponse = new FileResponse(
                 1L,
-                "buildings/1/file",
+                "facilities/1/file",
                 "test.obj",
                 "application/octet-stream",
                 FileType.DRAWING,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/1/file",
+                "https://example.com/facilities/1/file",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
         FileResponse thumbnailResponse = new FileResponse(
                 2L,
-                "buildings/1/thumbnail",
+                "facilities/1/thumbnail",
                 "thumbnail.png",
                 "image/png",
                 FileType.THUMBNAIL,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/1/thumbnail",
+                "https://example.com/facilities/1/thumbnail",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
-        BuildingResponse response = new BuildingResponse(
+        FacilityResponse response = new FacilityResponse(
                 1L,
-                "테스트 빌딩",
-                "테스트 빌딩 설명",
+                "테스트 시설",
+                "테스트 시설 설명",
                 fileResponse,
                 thumbnailResponse,
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
 
-        given(buildingService.getBuilding(1L)).willReturn(response);
+        given(facilityService.getFacility(1L)).willReturn(response);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/buildings/1")
+        mockMvc.perform(MockMvcRequestBuilders.get("/facilities/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("테스트 빌딩"))
-                .andExpect(jsonPath("$.description").value("테스트 빌딩 설명"))
+                .andExpect(jsonPath("$.name").value("테스트 시설"))
+                .andExpect(jsonPath("$.description").value("테스트 시설 설명"))
                 .andExpect(jsonPath("$.file.id").value(1L))
-                .andExpect(jsonPath("$.file.fileUrl").value("https://example.com/buildings/1/file"))
+                .andExpect(jsonPath("$.file.fileUrl").value("https://example.com/facilities/1/file"))
                 .andExpect(jsonPath("$.thumbnail.id").value(2L))
-                .andExpect(jsonPath("$.thumbnail.fileUrl").value("https://example.com/buildings/1/thumbnail"));
+                .andExpect(jsonPath("$.thumbnail.fileUrl").value("https://example.com/facilities/1/thumbnail"));
         
-        verify(buildingService).getBuilding(1L);
+        verify(facilityService).getFacility(1L);
     }
 
     @Test
-    @DisplayName("모든 빌딩 조회 성공 테스트")
-    void getAllBuildingsSuccess() throws Exception {
+    @DisplayName("모든 시설 조회 성공 테스트")
+    void getAllFacilitysSuccess() throws Exception {
         FileResponse fileResponse1 = new FileResponse(
                 1L,
-                "buildings/1/file",
+                "facilities/1/file",
                 "test1.obj",
                 "application/octet-stream",
                 FileType.DRAWING,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/1/file",
+                "https://example.com/facilities/1/file",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
         FileResponse thumbnailResponse1 = new FileResponse(
                 2L,
-                "buildings/1/thumbnail",
+                "facilities/1/thumbnail",
                 "thumbnail1.png",
                 "image/png",
                 FileType.THUMBNAIL,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/1/thumbnail",
+                "https://example.com/facilities/1/thumbnail",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
-        BuildingResponse response1 = new BuildingResponse(
+        FacilityResponse response1 = new FacilityResponse(
                 1L,
-                "테스트 빌딩 1",
-                "테스트 빌딩 설명 1",
+                "테스트 시설 1",
+                "테스트 시설 설명 1",
                 fileResponse1,
                 thumbnailResponse1,
                 LocalDateTime.now(),
@@ -189,87 +189,87 @@ class BuildingControllerTest {
         
         FileResponse fileResponse2 = new FileResponse(
                 3L,
-                "buildings/2/file",
+                "facilities/2/file",
                 "test2.obj",
                 "application/octet-stream",
                 FileType.DRAWING,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/2/file",
+                "https://example.com/facilities/2/file",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
         FileResponse thumbnailResponse2 = new FileResponse(
                 4L,
-                "buildings/2/thumbnail",
+                "facilities/2/thumbnail",
                 "thumbnail2.png",
                 "image/png",
                 FileType.THUMBNAIL,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/2/thumbnail",
+                "https://example.com/facilities/2/thumbnail",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
-        BuildingResponse response2 = new BuildingResponse(
+        FacilityResponse response2 = new FacilityResponse(
                 2L,
-                "테스트 빌딩 2",
-                "테스트 빌딩 설명 2",
+                "테스트 시설 2",
+                "테스트 시설 설명 2",
                 fileResponse2,
                 thumbnailResponse2,
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
 
-        given(buildingService.getAllBuildings()).willReturn(List.of(response1, response2));
+        given(facilityService.getAllFacilitys()).willReturn(List.of(response1, response2));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/buildings")
+        mockMvc.perform(MockMvcRequestBuilders.get("/facilities")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].name").value("테스트 빌딩 1"))
+                .andExpect(jsonPath("$[0].name").value("테스트 시설 1"))
                 .andExpect(jsonPath("$[0].file.id").value(1L))
                 .andExpect(jsonPath("$[0].thumbnail.id").value(2L))
                 .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].name").value("테스트 빌딩 2"))
+                .andExpect(jsonPath("$[1].name").value("테스트 시설 2"))
                 .andExpect(jsonPath("$[1].file.id").value(3L))
                 .andExpect(jsonPath("$[1].thumbnail.id").value(4L));
         
-        verify(buildingService).getAllBuildings();
+        verify(facilityService).getAllFacilitys();
     }
 
     @Test
-    @DisplayName("빌딩 업데이트 성공 테스트")
-    void updateBuildingSuccess() throws Exception {
-        BuildingUpdateRequest request = BuildingUpdateRequest.of("업데이트된 빌딩", "업데이트된 설명", 3L, 4L);
+    @DisplayName("시설 업데이트 성공 테스트")
+    void updateFacilitySuccess() throws Exception {
+        FacilityUpdateRequest request = FacilityUpdateRequest.of("업데이트된 시설", "업데이트된 설명", 3L, 4L);
         
         FileResponse fileResponse = new FileResponse(
                 3L,
-                "buildings/1/file",
+                "facilities/1/file",
                 "updated.obj",
                 "application/octet-stream",
                 FileType.DRAWING,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/1/file/updated",
+                "https://example.com/facilities/1/file/updated",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
         FileResponse thumbnailResponse = new FileResponse(
                 4L,
-                "buildings/1/thumbnail",
+                "facilities/1/thumbnail",
                 "updated_thumbnail.png",
                 "image/png",
                 FileType.THUMBNAIL,
                 FileStatus.COMPLETE,
-                "https://example.com/buildings/1/thumbnail/updated",
+                "https://example.com/facilities/1/thumbnail/updated",
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
         
-        BuildingResponse response = new BuildingResponse(
+        FacilityResponse response = new FacilityResponse(
                 1L,
-                "업데이트된 빌딩",
+                "업데이트된 시설",
                 "업데이트된 설명",
                 fileResponse,
                 thumbnailResponse,
@@ -277,32 +277,32 @@ class BuildingControllerTest {
                 LocalDateTime.now()
         );
 
-        given(buildingService.updateBuilding(anyLong(), any(BuildingUpdateRequest.class))).willReturn(response);
+        given(facilityService.updateFacility(anyLong(), any(FacilityUpdateRequest.class))).willReturn(response);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/buildings/1")
+        mockMvc.perform(MockMvcRequestBuilders.put("/facilities/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("업데이트된 빌딩"))
+                .andExpect(jsonPath("$.name").value("업데이트된 시설"))
                 .andExpect(jsonPath("$.description").value("업데이트된 설명"))
                 .andExpect(jsonPath("$.file.id").value(3L))
-                .andExpect(jsonPath("$.file.fileUrl").value("https://example.com/buildings/1/file/updated"))
+                .andExpect(jsonPath("$.file.fileUrl").value("https://example.com/facilities/1/file/updated"))
                 .andExpect(jsonPath("$.thumbnail.id").value(4L))
-                .andExpect(jsonPath("$.thumbnail.fileUrl").value("https://example.com/buildings/1/thumbnail/updated"));
+                .andExpect(jsonPath("$.thumbnail.fileUrl").value("https://example.com/facilities/1/thumbnail/updated"));
         
-        verify(buildingService).updateBuilding(anyLong(), any(BuildingUpdateRequest.class));
+        verify(facilityService).updateFacility(anyLong(), any(FacilityUpdateRequest.class));
     }
 
     @Test
-    @DisplayName("빌딩 삭제 성공 테스트")
-    void deleteBuildingSuccess() throws Exception {
-        doNothing().when(buildingService).deleteBuilding(1L);
+    @DisplayName("시설 삭제 성공 테스트")
+    void deleteFacilitySuccess() throws Exception {
+        doNothing().when(facilityService).deleteFacility(1L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/buildings/1")
+        mockMvc.perform(MockMvcRequestBuilders.delete("/facilities/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
         
-        verify(buildingService).deleteBuilding(1L);
+        verify(facilityService).deleteFacility(1L);
     }
 } 

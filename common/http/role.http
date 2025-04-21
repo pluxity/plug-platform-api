@@ -34,7 +34,7 @@ Content-Type: application/json
 
 {
   "roleName": "BUILDING_MANAGER",
-  "description": "빌딩 관리자 역할"
+  "description": "시설 관리자 역할"
 }
 
 ### 역할 수정
@@ -44,7 +44,7 @@ Content-Type: application/json
 
 {
   "name": "BUILDING_MANAGER",
-  "description": "수정된 빌딩 관리자 역할 설명"
+  "description": "수정된 시설 관리자 역할 설명"
 }
 
 ### 역할 삭제
@@ -68,13 +68,13 @@ Authorization: Bearer {{token}}
 DELETE {{baseUrl}}/admin/users/2/roles/2
 Authorization: Bearer {{token}}
 
-### 역할에 권한 추가 (빌딩 접근 권한)
-POST {{baseUrl}}/admin/roles/2/permissions/building
+### 역할에 권한 추가 (시설 접근 권한)
+POST {{baseUrl}}/admin/roles/2/permissions/facility
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "buildingId": 1
+  "facilityId": 1
 }
 
 ### 역할에 권한 추가 (관리자 권한)

@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS permission (
     FOREIGN KEY (role_id) REFERENCES roles(role_id)
 );
 
--- 빌딩 관련 테이블
-CREATE TABLE IF NOT EXISTS building (
+-- 시설 관련 테이블
+CREATE TABLE IF NOT EXISTS facility (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,

@@ -1,11 +1,10 @@
-package com.pluxity.building.service;
+package com.pluxity.facility.service;
 
-import com.pluxity.building.dto.BuildingCreateRequest;
-import com.pluxity.building.dto.BuildingResponse;
-import com.pluxity.building.dto.BuildingUpdateRequest;
-import com.pluxity.building.entity.Building;
-import com.pluxity.building.repository.BuildingRepository;
-import com.pluxity.file.constant.FileStatus;
+import com.pluxity.facility.dto.FacilityCreateRequest;
+import com.pluxity.facility.dto.FacilityResponse;
+import com.pluxity.facility.dto.FacilityUpdateRequest;
+import com.pluxity.facility.entity.Facility;
+import com.pluxity.facility.repository.FacilityRepository;
 import com.pluxity.file.constant.FileType;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.entity.FileEntity;
@@ -28,73 +27,71 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class BuildingServiceTest {
+class FacilityServiceTest {
 
     @Mock
-    private BuildingRepository buildingRepository;
+    private FacilityRepository facilityRepository;
 
     @Mock
     private FileService fileService;
 
     @InjectMocks
-    private BuildingService buildingService;
+    private FacilityService facilityService;
 
-    private Building building;
+    private Facility facility;
     private FileEntity fileEntity;
     private FileEntity thumbnailEntity;
-    private BuildingCreateRequest createRequest;
-    private BuildingUpdateRequest updateRequest;
+    private FacilityCreateRequest createRequest;
+    private FacilityUpdateRequest updateRequest;
     private FileResponse fileResponse;
     private FileResponse thumbnailResponse;
 
     @BeforeEach
     void setUp() throws Exception {
-        building = Building.builder()
-                .name("테스트 빌딩")
-                .description("테스트 빌딩 설명")
+        facility = Facility.builder()
+                .name("테스트 시설")
+                .description("테스트 시설 설명")
                 .fileId(1L)
                 .thumbnailId(2L)
                 .build();
         
         try {
-            java.lang.reflect.Field idField = Building.class.getDeclaredField("id");
+            java.lang.reflect.Field idField = Facility.class.getDeclaredField("id");
             idField.setAccessible(true);
-            idField.set(building, 1L);
+            idField.set(facility, 1L);
             
             java.lang.reflect.Field createdAtField = BaseEntity.class.getDeclaredField("createdAt");
             createdAtField.setAccessible(true);
-            createdAtField.set(building, LocalDateTime.now());
+            createdAtField.set(facility, LocalDateTime.now());
             
             java.lang.reflect.Field updatedByField = BaseEntity.class.getDeclaredField("updatedAt");
             updatedByField.setAccessible(true);
-            updatedByField.set(building, LocalDateTime.now());
+            updatedByField.set(facility, LocalDateTime.now());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         fileEntity = FileEntity.builder()
-                .filePath("buildings/1/file")
+                .filePath("facilities/1/file")
                 .originalFileName("test.obj")
                 .contentType("application/octet-stream")
                 .fileType(FileType.DRAWING)
                 .build();
 
-        fileEntity.makeComplete("buildings/1/file");
+        fileEntity.makeComplete("facilities/1/file");
         
         thumbnailEntity = FileEntity.builder()
-                .filePath("buildings/1/thumbnail")
+                .filePath("facilities/1/thumbnail")
                 .originalFileName("thumbnail.png")
                 .contentType("image/png")
                 .fileType(FileType.THUMBNAIL)
                 .build();
 
-        thumbnailEntity.makeComplete("buildings/1/thumbnail");
+        thumbnailEntity.makeComplete("facilities/1/thumbnail");
         
         java.lang.reflect.Field fileIdField = FileEntity.class.getDeclaredField("id");
         fileIdField.setAccessible(true);
@@ -111,136 +108,136 @@ class BuildingServiceTest {
         fileUpdatedAtField.set(fileEntity, LocalDateTime.now());
         fileUpdatedAtField.set(thumbnailEntity, LocalDateTime.now());
 
-        createRequest = BuildingCreateRequest.of("테스트 빌딩", "테스트 빌딩 설명", 1L, 2L);
-        updateRequest = BuildingUpdateRequest.of("업데이트된 빌딩", "업데이트된 설명", 3L, 4L);
+        createRequest = FacilityCreateRequest.of("테스트 시설", "테스트 시설 설명", 1L, 2L);
+        updateRequest = FacilityUpdateRequest.of("업데이트된 시설", "업데이트된 설명", 3L, 4L);
         
         fileResponse = FileResponse.from(fileEntity);
         thumbnailResponse = FileResponse.from(thumbnailEntity);
     }
 
     @Test
-    @DisplayName("빌딩 생성 성공 테스트")
-    void createBuildingSuccess() {
-        given(buildingRepository.save(any(Building.class))).willReturn(building);
-        given(fileService.finalizeUpload(1L, "buildings/1/file")).willReturn(fileEntity);
-        given(fileService.finalizeUpload(2L, "buildings/1/thumbnail")).willReturn(thumbnailEntity);
+    @DisplayName("시설 생성 성공 테스트")
+    void createFacilitySuccess() {
+        given(facilityRepository.save(any(Facility.class))).willReturn(facility);
+        given(fileService.finalizeUpload(1L, "facilities/1/file")).willReturn(fileEntity);
+        given(fileService.finalizeUpload(2L, "facilities/1/thumbnail")).willReturn(thumbnailEntity);
         given(fileService.getFile(1L)).willReturn(fileEntity);
         given(fileService.getFile(2L)).willReturn(thumbnailEntity);
 
-        BuildingResponse response = buildingService.createBuilding(createRequest);
+        FacilityResponse response = facilityService.createFacility(createRequest);
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.name()).isEqualTo("테스트 빌딩");
-        assertThat(response.description()).isEqualTo("테스트 빌딩 설명");
+        assertThat(response.name()).isEqualTo("테스트 시설");
+        assertThat(response.description()).isEqualTo("테스트 시설 설명");
         assertThat(response.file()).isNotNull();
         assertThat(response.file().id()).isEqualTo(1L);
         assertThat(response.thumbnail()).isNotNull();
         assertThat(response.thumbnail().id()).isEqualTo(2L);
         
-        verify(buildingRepository).save(any(Building.class));
-        verify(fileService).finalizeUpload(1L, "buildings/1/file");
-        verify(fileService).finalizeUpload(2L, "buildings/1/thumbnail");
+        verify(facilityRepository).save(any(Facility.class));
+        verify(fileService).finalizeUpload(1L, "facilities/1/file");
+        verify(fileService).finalizeUpload(2L, "facilities/1/thumbnail");
     }
 
     @Test
-    @DisplayName("빌딩 조회 성공 테스트")
-    void getBuildingSuccess() {
-        given(buildingRepository.findById(1L)).willReturn(Optional.of(building));
+    @DisplayName("시설 조회 성공 테스트")
+    void getFacilitySuccess() {
+        given(facilityRepository.findById(1L)).willReturn(Optional.of(facility));
         given(fileService.getFile(1L)).willReturn(fileEntity);
         given(fileService.getFile(2L)).willReturn(thumbnailEntity);
 
-        BuildingResponse response = buildingService.getBuilding(1L);
+        FacilityResponse response = facilityService.getFacility(1L);
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.name()).isEqualTo("테스트 빌딩");
-        assertThat(response.description()).isEqualTo("테스트 빌딩 설명");
+        assertThat(response.name()).isEqualTo("테스트 시설");
+        assertThat(response.description()).isEqualTo("테스트 시설 설명");
         assertThat(response.file()).isNotNull();
         assertThat(response.file().id()).isEqualTo(1L);
         assertThat(response.thumbnail()).isNotNull();
         assertThat(response.thumbnail().id()).isEqualTo(2L);
         
-        verify(buildingRepository).findById(1L);
+        verify(facilityRepository).findById(1L);
         verify(fileService).getFile(1L);
         verify(fileService).getFile(2L);
     }
 
     @Test
-    @DisplayName("존재하지 않는 빌딩 조회 실패 테스트")
-    void getBuildingNotFound() {
-        given(buildingRepository.findById(999L)).willReturn(Optional.empty());
+    @DisplayName("존재하지 않는 시설 조회 실패 테스트")
+    void getFacilityNotFound() {
+        given(facilityRepository.findById(999L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> buildingService.getBuilding(999L))
+        assertThatThrownBy(() -> facilityService.getFacility(999L))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("status", HttpStatus.NOT_FOUND);
         
-        verify(buildingRepository).findById(999L);
+        verify(facilityRepository).findById(999L);
     }
 
     @Test
-    @DisplayName("모든 빌딩 조회 테스트")
-    void getAllBuildingsSuccess() {
-        given(buildingRepository.findAll()).willReturn(List.of(building));
+    @DisplayName("모든 시설 조회 테스트")
+    void getAllFacilitysSuccess() {
+        given(facilityRepository.findAll()).willReturn(List.of(facility));
         given(fileService.getFile(1L)).willReturn(fileEntity);
         given(fileService.getFile(2L)).willReturn(thumbnailEntity);
 
-        List<BuildingResponse> responses = buildingService.getAllBuildings();
+        List<FacilityResponse> responses = facilityService.getAllFacilitys();
 
         assertThat(responses).hasSize(1);
         assertThat(responses.getFirst().id()).isEqualTo(1L);
-        assertThat(responses.getFirst().name()).isEqualTo("테스트 빌딩");
-        assertThat(responses.getFirst().description()).isEqualTo("테스트 빌딩 설명");
+        assertThat(responses.getFirst().name()).isEqualTo("테스트 시설");
+        assertThat(responses.getFirst().description()).isEqualTo("테스트 시설 설명");
         assertThat(responses.getFirst().file()).isNotNull();
         assertThat(responses.getFirst().file().id()).isEqualTo(1L);
         assertThat(responses.getFirst().thumbnail()).isNotNull();
         assertThat(responses.getFirst().thumbnail().id()).isEqualTo(2L);
         
-        verify(buildingRepository).findAll();
+        verify(facilityRepository).findAll();
         verify(fileService).getFile(1L);
         verify(fileService).getFile(2L);
     }
 
     @Test
-    @DisplayName("빌딩 업데이트 성공 테스트")
-    void updateBuildingSuccess() {
-        Building updatedBuilding = Building.builder()
-                .name("업데이트된 빌딩")
+    @DisplayName("시설 업데이트 성공 테스트")
+    void updateFacilitySuccess() {
+        Facility updatedFacility = Facility.builder()
+                .name("업데이트된 시설")
                 .description("업데이트된 설명")
                 .fileId(3L)
                 .thumbnailId(4L)
                 .build();
         
         FileEntity updatedFileEntity = FileEntity.builder()
-                .filePath("buildings/1/file")
+                .filePath("facilities/1/file")
                 .originalFileName("updated.obj")
                 .contentType("application/octet-stream")
                 .fileType(FileType.DRAWING)
                 .build();
 
-        updatedFileEntity.makeComplete("buildings/1/file");
+        updatedFileEntity.makeComplete("facilities/1/file");
                 
         FileEntity updatedThumbnailEntity = FileEntity.builder()
-                .filePath("buildings/1/thumbnail")
+                .filePath("facilities/1/thumbnail")
                 .originalFileName("updated_thumbnail.png")
                 .contentType("image/png")
                 .fileType(FileType.THUMBNAIL)
                 .build();
 
-        updatedThumbnailEntity.makeComplete("buildings/1/thumbnail");
+        updatedThumbnailEntity.makeComplete("facilities/1/thumbnail");
         
         try {
-            java.lang.reflect.Field idField = Building.class.getDeclaredField("id");
+            java.lang.reflect.Field idField = Facility.class.getDeclaredField("id");
             idField.setAccessible(true);
-            idField.set(updatedBuilding, 1L);
+            idField.set(updatedFacility, 1L);
             
             java.lang.reflect.Field createdAtField = BaseEntity.class.getDeclaredField("createdAt");
             createdAtField.setAccessible(true);
-            createdAtField.set(updatedBuilding, LocalDateTime.now());
+            createdAtField.set(updatedFacility, LocalDateTime.now());
             
             java.lang.reflect.Field updatedByField = BaseEntity.class.getDeclaredField("updatedAt");
             updatedByField.setAccessible(true);
-            updatedByField.set(updatedBuilding, LocalDateTime.now());
+            updatedByField.set(updatedFacility, LocalDateTime.now());
             
             idField = FileEntity.class.getDeclaredField("id");
             idField.setAccessible(true);
@@ -260,38 +257,38 @@ class BuildingServiceTest {
             e.printStackTrace();
         }
         
-        given(buildingRepository.findById(1L)).willReturn(Optional.of(building));
-        given(fileService.finalizeUpload(3L, "buildings/1/file")).willReturn(updatedFileEntity);
-        given(fileService.finalizeUpload(4L, "buildings/1/thumbnail")).willReturn(updatedThumbnailEntity);
-        given(buildingRepository.save(any(Building.class))).willReturn(updatedBuilding);
+        given(facilityRepository.findById(1L)).willReturn(Optional.of(facility));
+        given(fileService.finalizeUpload(3L, "facilities/1/file")).willReturn(updatedFileEntity);
+        given(fileService.finalizeUpload(4L, "facilities/1/thumbnail")).willReturn(updatedThumbnailEntity);
+        given(facilityRepository.save(any(Facility.class))).willReturn(updatedFacility);
         given(fileService.getFile(3L)).willReturn(updatedFileEntity);
         given(fileService.getFile(4L)).willReturn(updatedThumbnailEntity);
 
-        BuildingResponse response = buildingService.updateBuilding(1L, updateRequest);
+        FacilityResponse response = facilityService.updateFacility(1L, updateRequest);
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(1L);
-        assertThat(response.name()).isEqualTo("업데이트된 빌딩");
+        assertThat(response.name()).isEqualTo("업데이트된 시설");
         assertThat(response.description()).isEqualTo("업데이트된 설명");
         assertThat(response.file()).isNotNull();
         assertThat(response.file().id()).isEqualTo(3L);
         assertThat(response.thumbnail()).isNotNull();
         assertThat(response.thumbnail().id()).isEqualTo(4L);
         
-        verify(buildingRepository).findById(1L);
-        verify(fileService).finalizeUpload(3L, "buildings/1/file");
-        verify(fileService).finalizeUpload(4L, "buildings/1/thumbnail");
-        verify(buildingRepository).save(any(Building.class));
+        verify(facilityRepository).findById(1L);
+        verify(fileService).finalizeUpload(3L, "facilities/1/file");
+        verify(fileService).finalizeUpload(4L, "facilities/1/thumbnail");
+        verify(facilityRepository).save(any(Facility.class));
     }
 
     @Test
-    @DisplayName("빌딩 삭제 성공 테스트")
-    void deleteBuildingSuccess() {
-        given(buildingRepository.findById(1L)).willReturn(Optional.of(building));
+    @DisplayName("시설 삭제 성공 테스트")
+    void deleteFacilitySuccess() {
+        given(facilityRepository.findById(1L)).willReturn(Optional.of(facility));
 
-        buildingService.deleteBuilding(1L);
+        facilityService.deleteFacility(1L);
 
-        verify(buildingRepository).findById(1L);
-        verify(buildingRepository).delete(building);
+        verify(facilityRepository).findById(1L);
+        verify(facilityRepository).delete(facility);
     }
 } 

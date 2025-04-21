@@ -1,9 +1,9 @@
-package com.pluxity.building.dto;
+package com.pluxity.facility.dto;
 
 import lombok.Builder;
 
 @Builder
-public record BuildingListResponse(
+public record FacilityListResponse(
         Long id,
         String name,
         String address,

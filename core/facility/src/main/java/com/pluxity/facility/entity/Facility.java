@@ -1,4 +1,4 @@
-package com.pluxity.building.entity;
+package com.pluxity.facility.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "building")
+@Table(name = "facility")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public class Building extends BaseEntity {
+public class Facility extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +32,7 @@ public class Building extends BaseEntity {
     private Long thumbnailId;
 
     @Builder
-    public Building(String name, String description, Long fileId, Long thumbnailId) {
+    public Facility(String name, String description, Long fileId, Long thumbnailId) {
         this.name = name;
         this.description = description;
         this.fileId = fileId;
