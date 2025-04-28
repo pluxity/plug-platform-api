@@ -5,6 +5,7 @@ import com.pluxity.global.entity.BaseEntity;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ public abstract class Category<T extends Category<T>> extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
+    @Setter
     protected String name;
 
     @ManyToOne(fetch = FetchType.LAZY)

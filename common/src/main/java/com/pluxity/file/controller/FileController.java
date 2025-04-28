@@ -1,10 +1,14 @@
 package com.pluxity.file.controller;
 
 import com.pluxity.file.constant.FileType;
+import com.pluxity.file.dto.FileUploadResponse;
 import com.pluxity.file.dto.UploadResponse;
+import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.response.CreatedResponseBody;
 import com.pluxity.global.response.DataResponseBody;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +37,17 @@ public class FileController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<DataResponseBody<UploadResponse>> uploadFile(@RequestParam("file") MultipartFile file,
+    @ResponseCreated
+    public ResponseEntity<CreatedResponseBody<Long>> uploadFile(@RequestParam("file") MultipartFile file,
                                                                       @RequestParam(value = "type", required = false, defaultValue = "DEFAULT") FileType type) {
-        return ResponseEntity.ok(DataResponseBody.of(fileService.initiateUpload(file, type)));
+//        fileService.initiateUpload(file, type);
+        return ResponseEntity.ok(CreatedResponseBody.of(fileService.initiateUpload(file, type).id()));
     }
+//
+//    @GetMapping("/{id}")
+//    public ResponseEntity<FileUploadResponse> getFileInfo(@PathVariable Long id) {
+//        FileUploadResponse file = fileService.getFile(id);
+//
+//
+//    }
 }

@@ -11,6 +11,7 @@ public enum WhiteListPath {
     PROMETHEUS("prometheus"),
     APIDOC("api-docs"),
     SWAGGER("swagger-ui"),
+    FACILITY("facilities"),
     FILES("files");
 
     private final String path;

@@ -3,7 +3,7 @@ package com.pluxity.facility.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public record FacilityCreateRequest(
-    @NotBlank(message = "건물 이름은 필수입니다.")
+    @NotBlank(message = "시설 이름은 필수입니다.")
     String name,
     
     String description,

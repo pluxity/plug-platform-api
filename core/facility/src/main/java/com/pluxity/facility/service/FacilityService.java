@@ -66,7 +66,7 @@ public class FacilityService {
     }
 
     @Transactional(readOnly = true)
-    public List<FacilityResponse> getAllFacilitys() {
+    public List<FacilityResponse> getAllFacilities() {
         List<Facility> facilities = facilityRepository.findAll();
         
         return facilities.stream()
@@ -80,39 +80,36 @@ public class FacilityService {
     }
 
     @Transactional
-    public FacilityResponse updateFacility(Long id, FacilityUpdateRequest request) {
+    public void updateFacility(Long id, FacilityUpdateRequest request) {
         Facility facility = facilityRepository.findById(id)
-                .orElseThrow(() -> new CustomException("Facility not found", HttpStatus.NOT_FOUND, "해당 건물을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException("Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
         
         facility.update(request.name(), request.description());
         
-        FileResponse fileResponse = null;
         String filePath = "facilities/" + facility.getId() + "/";
         if (request.fileId() != null) {
             FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
             facility.updateFileId(fileEntity.getId());
-            fileResponse = fileService.getFileResponse(fileEntity);
+            fileService.getFileResponse(fileEntity);
         } else if (facility.getFileId() != null) {
-            fileResponse = fileService.getFileResponse(facility.getFileId());
+            fileService.getFileResponse(facility.getFileId());
         }
         
-        FileResponse thumbnailResponse = null;
         if (request.thumbnailId() != null) {
             FileEntity thumbnailEntity = fileService.finalizeUpload(request.thumbnailId(), filePath);
             facility.updateThumbnailId(thumbnailEntity.getId());
-            thumbnailResponse = fileService.getFileResponse(thumbnailEntity);
+            fileService.getFileResponse(thumbnailEntity);
         } else if (facility.getThumbnailId() != null) {
-            thumbnailResponse = fileService.getFileResponse(facility.getThumbnailId());
+            fileService.getFileResponse(facility.getThumbnailId());
         }
         
-        Facility updatedFacility = facilityRepository.save(facility);
-        return FacilityResponse.from(updatedFacility, fileResponse, thumbnailResponse);
+        facilityRepository.save(facility);
     }
 
     @Transactional
     public void deleteFacility(Long id) {
         Facility facility = facilityRepository.findById(id)
-                .orElseThrow(() -> new CustomException("Facility not found", HttpStatus.NOT_FOUND, "해당 건물을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException("Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
         
         facilityRepository.delete(facility);
     }

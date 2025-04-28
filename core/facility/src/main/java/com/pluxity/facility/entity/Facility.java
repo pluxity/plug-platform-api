@@ -31,24 +31,37 @@ public class Facility extends BaseEntity {
     @Column(name = "thumbnail_id")
     private Long thumbnailId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private FacilityCategory category;
+
     @Builder
-    public Facility(String name, String description, Long fileId, Long thumbnailId) {
+    public Facility(String name,
+                    String description,
+                    Long fileId,
+                    Long thumbnailId,
+                    FacilityCategory category) {
         this.name = name;
         this.description = description;
         this.fileId = fileId;
         this.thumbnailId = thumbnailId;
+        this.category = category;
     }
 
     public void update(String name, String description) {
         this.name = name;
         this.description = description;
     }
-    
+
     public void updateFileId(Long fileId) {
         this.fileId = fileId;
     }
-    
+
     public void updateThumbnailId(Long thumbnailId) {
         this.thumbnailId = thumbnailId;
+    }
+
+    public void assignCategory(FacilityCategory category) {
+        this.category = category;
     }
 }

@@ -24,10 +24,10 @@ public class UserController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<ResponseBody> updateUser(
+    public ResponseEntity<Void> updateUser(
             Authentication authentication, @RequestBody UserUpdateRequest dto) {
         Long id = service.findByUsername(authentication.getName()).id();
         service.update(id, dto);
-        return ResponseEntity.ok(ResponseBody.of());
+        return ResponseEntity.noContent().build();
     }
 }

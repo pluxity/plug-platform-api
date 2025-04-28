@@ -44,25 +44,25 @@ public class AdminUserController {
         return ResponseEntity.ok(CreatedResponseBody.of(service.assignRolesToUser(userId, request).id()));
     }
 
-    @PutMapping(value = "/{id}")
-    public ResponseEntity<ResponseBody> updateUser(
+    @PatchMapping(value = "/{id}")
+    public ResponseEntity<Void> updateUser(
             @PathVariable("id") Long id, @RequestBody UserUpdateRequest dto) {
         service.update(id, dto);
-        return ResponseEntity.ok(ResponseBody.of());
+        return ResponseEntity.noContent().build();
     }
 
-    @PutMapping(value = "/{id}/password")
-    public ResponseEntity<ResponseBody> updatePassword(
+    @PatchMapping(value = "/{id}/password")
+    public ResponseEntity<Void> updatePassword(
             @PathVariable("id") Long id, @Valid @RequestBody UserPasswordUpdateRequest dto) {
         service.updateUserPassword(id, dto);
-        return ResponseEntity.ok(ResponseBody.of());
+        return ResponseEntity.noContent().build();
     }
 
-    @PutMapping(value = "/{id}/roles")
-    public ResponseEntity<ResponseBody> updateRoles(
+    @PatchMapping(value = "/{id}/roles")
+    public ResponseEntity<Void> updateRoles(
             @PathVariable("id") Long id, @Valid @RequestBody UserRoleUpdateRequest dto) {
         service.updateUserRoles(id, dto);
-        return ResponseEntity.ok(ResponseBody.of());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping(value = "/{id}")

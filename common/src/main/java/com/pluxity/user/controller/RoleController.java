@@ -36,10 +36,10 @@ public class RoleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseBody> updateRole(
+    public ResponseEntity<Void> updateRole(
             @PathVariable(name = "id") Long id, @Valid @RequestBody RoleUpdateRequest request) {
         roleService.update(id, request);
-        return ResponseEntity.ok(ResponseBody.of());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
