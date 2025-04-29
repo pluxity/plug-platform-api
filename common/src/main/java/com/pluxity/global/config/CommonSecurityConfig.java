@@ -33,7 +33,7 @@ import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class SecurityConfig {
+public class CommonSecurityConfig {
 
     private final UserRepository repository;
     private final JwtProvider jwtProvider;
@@ -63,8 +63,7 @@ public class SecurityConfig {
                                     .permitAll())
             .authorizeHttpRequests(auth -> auth.requestMatchers("/admin/**").hasRole("ADMIN"))
             .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll())
-            .authorizeHttpRequests(auth -> auth.requestMatchers("/facilities/**").permitAll())
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
             .sessionManagement(

@@ -13,7 +13,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 @EnableRedisRepositories(basePackages = "com.pluxity")
-public class RedisConfig {
+public class CommonRedisConfig {
 
     @Value("${spring.data.redis.host}")
     private String host;

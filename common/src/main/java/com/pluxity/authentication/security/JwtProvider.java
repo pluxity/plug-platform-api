@@ -100,7 +100,7 @@ public class JwtProvider {
                 .claims(extraClaims)
                 .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + expiration * 1000))
                 .signWith(getSecretKey(isRefreshToken), Jwts.SIG.HS256)
                 .compact();
     }

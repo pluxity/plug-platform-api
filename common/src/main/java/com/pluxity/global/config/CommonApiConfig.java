@@ -4,14 +4,16 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class OpenApiConfig {
+public class CommonApiConfig {
 
     @Bean
-    public OpenAPI customOpenAPI() {
+    @ConditionalOnMissingBean(OpenAPI.class)
+    public OpenAPI CommonOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
                         .title("Plug Platform API")
