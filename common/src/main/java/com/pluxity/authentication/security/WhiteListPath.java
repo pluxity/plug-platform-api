@@ -20,7 +20,4 @@ public enum WhiteListPath {
         this.path = path;
     }
 
-    public String getPath() {
-        return path;
-    }
 }
