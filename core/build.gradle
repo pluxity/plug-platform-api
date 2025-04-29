@@ -1,21 +1,9 @@
-bootJar {
-    enabled = true
-}
+bootJar { enabled = true }
+jar { enabled = true }
 
 dependencies {
     implementation project(':common')
-    implementation project(':core:facility')
-}
 
-
-subprojects {
-    bootJar { enabled = false }
-    jar { enabled = true }
-
-    dependencies {
-        implementation project(':common')
-
-        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
-        implementation 'org.springdoc:springdoc-openapi-starter-common:2.3.0'
-    }
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-common:2.3.0'
 }

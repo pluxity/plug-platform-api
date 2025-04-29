@@ -1,6 +1,8 @@
 package com.pluxity.facility.service;
 
-import com.pluxity.facility.dto.*;
+import com.pluxity.facility.dto.FacilityCategoryCreateRequest;
+import com.pluxity.facility.dto.FacilityCategoryResponse;
+import com.pluxity.facility.dto.FacilityCategoryUpdateRequest;
 import com.pluxity.facility.entity.FacilityCategory;
 import com.pluxity.facility.repository.FacilityCategoryRepository;
 import com.pluxity.global.constant.ErrorCode;
