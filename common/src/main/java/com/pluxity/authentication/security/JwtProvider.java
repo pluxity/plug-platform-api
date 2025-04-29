@@ -10,12 +10,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.web.util.WebUtils;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
@@ -30,7 +30,8 @@ import static com.pluxity.global.constant.ErrorCode.*;
 @Slf4j
 public class JwtProvider {
 
-    private static final String BEARER_TYPE = "Bearer ";
+    @Value("${jwt.access-token.name}")
+    private String ACCESS_TOKEN;
 
     @Value("${jwt.access-token.secret}")
     private String accessSecretKey;
@@ -143,11 +144,16 @@ public class JwtProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String getJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_TYPE)) {
-            return bearerToken.substring(7);
+    public String getAccessTokenFromRequest(HttpServletRequest request) {
+        return getJwtFromRequest(ACCESS_TOKEN, request);
+    }
+
+    public String getJwtFromRequest(String name, HttpServletRequest request) {
+        Cookie cookie = WebUtils.getCookie(request, name);
+        if(cookie == null) {
+            throw new CustomException(INVALID_TOKEN_FORMAT);
         }
-        throw new CustomException(INVALID_TOKEN_FORMAT);
+
+        return cookie.getValue();
     }
 }

@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             Optional.of(request)
                     .filter(this::authenticationRequired)
-                    .map(jwtProvider::getJwtFromRequest)
+                    .map(jwtProvider::getAccessTokenFromRequest)
                     .filter(jwtProvider::isAccessTokenValid)
                     .map(jwtProvider::extractUsername)
                     .map(userDetailsService::loadUserByUsername)

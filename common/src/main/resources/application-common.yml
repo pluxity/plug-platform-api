@@ -1,5 +1,6 @@
 server:
   port: ${SERVER_PORT:8080}
+  address: ${SERVER_ADDRESS:localhost}
 
 management:
   endpoints:
@@ -18,11 +19,13 @@ spring:
         format_sql: true
 jwt:
   access-token:
+    name: AccessToken
     secret: +iBcUJRWGvl+94+ow4nXV1fzWIq4rph8x7MyRmrtWio=
-    expiration: 3600000
+    expiration: 3600
   refresh-token:
+    name: RefreshToken
     secret: gtzRlqF6bIkmOi5i15A9G5xbLdwiAMmZi6JPOeemC1E=
-    expiration: 86400000
+    expiration: 86400
 
 springdoc:
   api-docs:

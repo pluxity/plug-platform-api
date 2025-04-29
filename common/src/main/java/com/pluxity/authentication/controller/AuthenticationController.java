@@ -1,12 +1,9 @@
 package com.pluxity.authentication.controller;
 
 import com.pluxity.authentication.dto.SignInRequest;
-import com.pluxity.authentication.dto.SignInResponse;
 import com.pluxity.authentication.dto.SignUpRequest;
-import com.pluxity.authentication.dto.TokenResponse;
 import com.pluxity.authentication.service.AuthenticationService;
 import com.pluxity.global.annotation.ResponseCreated;
-import com.pluxity.global.response.DataResponseBody;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
@@ -25,19 +22,20 @@ public class AuthenticationController {
         this.authenticationService = authenticationService;
     }
 
-    @PostMapping("/sign-up")
     @ResponseCreated(path = "/users/me")
+    @PostMapping("/sign-up")
     public ResponseEntity<Long> signUp(@RequestBody SignUpRequest dto) {
         return ResponseEntity.ok(authenticationService.signUp(dto));
     }
 
     @PostMapping(value = "/sign-in", produces = "application/json")
-    public ResponseEntity<DataResponseBody<SignInResponse>> signIn(
+    public ResponseEntity<Void> signIn(
             @RequestBody SignInRequest signInRequestDto,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
-        return ResponseEntity.ok(DataResponseBody.of(authenticationService.signIn(signInRequestDto, request, response)));
+        authenticationService.signIn(signInRequestDto, request, response);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/sign-out", produces = "application/json")
@@ -51,8 +49,9 @@ public class AuthenticationController {
     }
 
     @PostMapping(value = "/refresh-token")
-    public ResponseEntity<DataResponseBody<TokenResponse>> refreshToken(HttpServletRequest request,
+    public ResponseEntity<Void> refreshToken(HttpServletRequest request,
                                                         HttpServletResponse response) {
-        return ResponseEntity.ok(DataResponseBody.of(authenticationService.refreshToken(request, response)));
+        authenticationService.refreshToken(request, response);
+        return ResponseEntity.noContent().build();
     }
 }
