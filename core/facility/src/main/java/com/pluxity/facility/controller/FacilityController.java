@@ -5,10 +5,8 @@ import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.facility.dto.FacilityUpdateRequest;
 import com.pluxity.facility.service.FacilityService;
 import com.pluxity.global.annotation.ResponseCreated;
-import com.pluxity.global.response.CreatedResponseBody;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
-import com.pluxity.global.response.ResponseBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,7 +32,7 @@ public class FacilityController {
     @Operation(summary = "시설 생성", description = "새로운 시설을 생성합니다")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "시설 생성 성공",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreatedResponseBody.class))),
+                    content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "400", description = "잘못된 요청",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류",
@@ -42,10 +40,10 @@ public class FacilityController {
     })
     @PostMapping
     @ResponseCreated
-    public ResponseEntity<CreatedResponseBody<Long>> createFacility(
+    public ResponseEntity<Long> createFacility(
             @Parameter(description = "시설 생성 정보", required = true)
             @RequestBody @Valid FacilityCreateRequest request) {
-        return ResponseEntity.ok(CreatedResponseBody.of(facilityService.createFacility(request)));
+        return ResponseEntity.ok(facilityService.createFacility(request));
     }
 
     @Operation(summary = "시설 조회", description = "ID로 시설을 조회합니다")

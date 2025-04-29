@@ -1,9 +1,7 @@
 package com.pluxity.user.controller;
 
 import com.pluxity.global.annotation.ResponseCreated;
-import com.pluxity.global.response.CreatedResponseBody;
 import com.pluxity.global.response.DataResponseBody;
-import com.pluxity.global.response.ResponseBody;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.service.UserService;
 import jakarta.validation.Valid;
@@ -32,16 +30,16 @@ public class AdminUserController {
 
     @PostMapping
     @ResponseCreated
-    public ResponseEntity<CreatedResponseBody<Long>> saveUser(@Valid @RequestBody UserCreateRequest request) {
-        return ResponseEntity.ok(CreatedResponseBody.of(service.save(request).id()));
+    public ResponseEntity<Long> saveUser(@Valid @RequestBody UserCreateRequest request) {
+        return ResponseEntity.ok(service.save(request).id());
     }
 
     @PostMapping("/{userId}/roles")
     @ResponseCreated
-    public ResponseEntity<CreatedResponseBody<Long>> assignRolesToUser(
+    public ResponseEntity<Long> assignRolesToUser(
             @PathVariable("userId") Long userId,
             @RequestBody UserRoleAssignRequest request) {
-        return ResponseEntity.ok(CreatedResponseBody.of(service.assignRolesToUser(userId, request).id()));
+        return ResponseEntity.ok(service.assignRolesToUser(userId, request).id());
     }
 
     @PatchMapping(value = "/{id}")

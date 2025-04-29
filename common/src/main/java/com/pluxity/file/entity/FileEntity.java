@@ -1,7 +1,6 @@
 package com.pluxity.file.entity;
 
 import com.pluxity.file.constant.FileStatus;
-import com.pluxity.file.constant.FileType;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -27,9 +26,6 @@ public class FileEntity extends BaseEntity {
     @Column(name = "original_file_name",nullable = false)
     private String originalFileName;
 
-    @Column(name = "file_type",nullable = false)
-    private String fileType;
-
     @Column(name = "content_type",nullable = false)
     private String contentType;
 
@@ -38,11 +34,10 @@ public class FileEntity extends BaseEntity {
     private FileStatus fileStatus;
 
     @Builder
-    public FileEntity(String filePath, String originalFileName, String contentType, FileType fileType) {
+    public FileEntity(String filePath, String originalFileName, String contentType) {
         this.filePath = filePath;
         this.originalFileName = originalFileName;
         this.contentType = contentType;
-        this.fileType = fileType.name();
         this.fileStatus = FileStatus.TEMP;
     }
 

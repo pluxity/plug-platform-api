@@ -25,11 +25,11 @@ public class Facility extends BaseEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "file_id")
-    private Long fileId;
+    @Column(name = "drawing_file_id")
+    private Long drawingFileId;
     
-    @Column(name = "thumbnail_id")
-    private Long thumbnailId;
+    @Column(name = "thumbnail_file_id")
+    private Long thumbnailFileId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -38,13 +38,13 @@ public class Facility extends BaseEntity {
     @Builder
     public Facility(String name,
                     String description,
-                    Long fileId,
-                    Long thumbnailId,
+                    Long drawingFileId,
+                    Long thumbnailFileId,
                     FacilityCategory category) {
         this.name = name;
         this.description = description;
-        this.fileId = fileId;
-        this.thumbnailId = thumbnailId;
+        this.drawingFileId = drawingFileId;
+        this.thumbnailFileId = thumbnailFileId;
         this.category = category;
     }
 
@@ -53,12 +53,12 @@ public class Facility extends BaseEntity {
         this.description = description;
     }
 
-    public void updateFileId(Long fileId) {
-        this.fileId = fileId;
+    public void updateFileId(Long drawingFileId) {
+        this.drawingFileId = drawingFileId;
     }
 
-    public void updateThumbnailId(Long thumbnailId) {
-        this.thumbnailId = thumbnailId;
+    public void updateThumbnailId(Long thumbnailFileId) {
+        this.thumbnailFileId = thumbnailFileId;
     }
 
     public void assignCategory(FacilityCategory category) {

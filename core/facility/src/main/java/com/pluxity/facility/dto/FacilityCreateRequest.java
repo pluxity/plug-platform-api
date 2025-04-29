@@ -8,11 +8,11 @@ public record FacilityCreateRequest(
     
     String description,
     
-    Long fileId,
+    Long drawingFileId,
     
-    Long thumbnailId
+    Long thumbnailFileId
 ) {
-    public static FacilityCreateRequest of(String name, String description, Long fileId, Long thumbnailId) {
-        return new FacilityCreateRequest(name, description, fileId, thumbnailId);
+    public static FacilityCreateRequest of(String name, String description, Long drawingFileId, Long thumbnailFileId) {
+        return new FacilityCreateRequest(name, description, drawingFileId, thumbnailFileId);
     }
 }

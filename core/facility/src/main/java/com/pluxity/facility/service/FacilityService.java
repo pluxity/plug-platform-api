@@ -32,19 +32,19 @@ public class FacilityService {
             Facility facility = Facility.builder()
                     .name(request.name())
                     .description(request.description())
-                    .fileId(request.fileId())
-                    .thumbnailId(request.thumbnailId())
+                    .drawingFileId(request.drawingFileId())
+                    .thumbnailFileId(request.thumbnailFileId())
                     .build();
             
             Facility savedFacility = facilityRepository.save(facility);
             
             String filePath = "facilities/" + savedFacility.getId() + "/";
-            if (request.fileId() != null) {
-                fileService.finalizeUpload(request.fileId(), filePath);
+            if (request.drawingFileId() != null) {
+                fileService.finalizeUpload(request.drawingFileId(), filePath);
             }
             
-            if (request.thumbnailId() != null) {
-                fileService.finalizeUpload(request.thumbnailId(), filePath);
+            if (request.thumbnailFileId() != null) {
+                fileService.finalizeUpload(request.thumbnailFileId(), filePath);
             }
 
             return savedFacility.getId();
@@ -59,8 +59,8 @@ public class FacilityService {
         Facility facility = facilityRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Facility not found", HttpStatus.NOT_FOUND, "해당 건물을 찾을 수 없습니다."));
         
-        FileResponse fileResponse = fileService.getFileResponse(facility.getFileId());
-        FileResponse thumbnailResponse = fileService.getFileResponse(facility.getThumbnailId());
+        FileResponse fileResponse = fileService.getFileResponse(facility.getDrawingFileId());
+        FileResponse thumbnailResponse = fileService.getFileResponse(facility.getThumbnailFileId());
         
         return FacilityResponse.from(facility, fileResponse, thumbnailResponse);
     }
@@ -71,8 +71,8 @@ public class FacilityService {
         
         return facilities.stream()
                 .map(facility -> {
-                    FileResponse fileResponse = fileService.getFileResponse(facility.getFileId());
-                    FileResponse thumbnailResponse = fileService.getFileResponse(facility.getThumbnailId());
+                    FileResponse fileResponse = fileService.getFileResponse(facility.getDrawingFileId());
+                    FileResponse thumbnailResponse = fileService.getFileResponse(facility.getThumbnailFileId());
                     
                     return FacilityResponse.from(facility, fileResponse, thumbnailResponse);
                 })
@@ -87,20 +87,20 @@ public class FacilityService {
         facility.update(request.name(), request.description());
         
         String filePath = "facilities/" + facility.getId() + "/";
-        if (request.fileId() != null) {
-            FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
+        if (request.drawingFileId() != null) {
+            FileEntity fileEntity = fileService.finalizeUpload(request.drawingFileId(), filePath);
             facility.updateFileId(fileEntity.getId());
             fileService.getFileResponse(fileEntity);
-        } else if (facility.getFileId() != null) {
-            fileService.getFileResponse(facility.getFileId());
+        } else if (facility.getDrawingFileId() != null) {
+            fileService.getFileResponse(facility.getDrawingFileId());
         }
         
-        if (request.thumbnailId() != null) {
-            FileEntity thumbnailEntity = fileService.finalizeUpload(request.thumbnailId(), filePath);
+        if (request.thumbnailFileId() != null) {
+            FileEntity thumbnailEntity = fileService.finalizeUpload(request.thumbnailFileId(), filePath);
             facility.updateThumbnailId(thumbnailEntity.getId());
             fileService.getFileResponse(thumbnailEntity);
-        } else if (facility.getThumbnailId() != null) {
-            fileService.getFileResponse(facility.getThumbnailId());
+        } else if (facility.getThumbnailFileId() != null) {
+            fileService.getFileResponse(facility.getThumbnailFileId());
         }
         
         facilityRepository.save(facility);

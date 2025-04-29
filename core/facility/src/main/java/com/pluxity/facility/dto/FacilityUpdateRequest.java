@@ -6,10 +6,10 @@ public record FacilityUpdateRequest(
     @NotBlank(message = "건물 이름은 필수입니다.")
     String name,
     String description,
-    Long fileId,
-    Long thumbnailId
+    Long drawingFileId,
+    Long thumbnailFileId
 ) {
-    public static FacilityUpdateRequest of(String name, String description, Long fileId, Long thumbnailId) {
-        return new FacilityUpdateRequest(name, description, fileId, thumbnailId);
+    public static FacilityUpdateRequest of(String name, String description, Long drawingFileId, Long thumbnailFileId) {
+        return new FacilityUpdateRequest(name, description, drawingFileId, thumbnailFileId);
     }
 } 

@@ -1,7 +1,6 @@
 package com.pluxity.file.service;
 
 import com.pluxity.file.constant.FileStatus;
-import com.pluxity.file.constant.FileType;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.dto.FileUploadResponse;
 import com.pluxity.file.dto.UploadResponse;
@@ -19,19 +18,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 
 import static com.pluxity.global.constant.ErrorCode.*;
@@ -67,7 +61,7 @@ public class FileService {
     }
 
     @Transactional
-    public UploadResponse initiateUpload(MultipartFile file, FileType type) {
+    public Long initiateUpload(MultipartFile file) {
         try {
             // 임시 파일로 저장
             Path tempPath = FileUtils.createTempFile(file.getOriginalFilename());
@@ -88,7 +82,6 @@ public class FileService {
                     .filePath(filePath)
                     .originalFileName(file.getOriginalFilename())
                     .contentType(FileUtils.getContentType(file))
-                    .fileType(type)
                     .build();
 
             FileEntity savedFile = repository.save(fileEntity);
@@ -96,11 +89,8 @@ public class FileService {
             // 임시 파일 삭제
             Files.deleteIfExists(tempPath);
 
-            if (type == FileType.SBM) {
-                return sbmFileService.processSbmFile(savedFile);
-            }
-
-            return FileUploadResponse.from(savedFile);
+//            return FileUploadResponse.from(savedFile);
+            return savedFile.getId();
         } catch (Exception e) {
             log.error("File Upload Exception : {}", e.getMessage(), e);
             throw new CustomException(FAILED_TO_UPLOAD_FILE, e.getMessage());
@@ -162,7 +152,6 @@ public class FileService {
                 .id(fileEntity.getId())
                 .url(url)
                 .originalFileName(fileEntity.getOriginalFileName())
-                .fileType(fileEntity.getFileType())
                 .contentType(fileEntity.getContentType())
                 .fileStatus(fileEntity.getFileStatus().name())
                 .createdAt(fileEntity.getCreatedAt())

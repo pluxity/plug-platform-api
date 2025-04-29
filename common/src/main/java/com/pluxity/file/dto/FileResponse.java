@@ -10,7 +10,6 @@ public record FileResponse(
     Long id,
     String url,
     String originalFileName,
-    String fileType,
     String contentType,
     String fileStatus,
     LocalDateTime createdAt,
@@ -19,7 +18,7 @@ public record FileResponse(
     
     public static FileResponse empty() {
         return new FileResponse(
-            null, null, null, null, null, null, null, null
+            null, null, null, null, null, null, null
         );
     }
 } 
