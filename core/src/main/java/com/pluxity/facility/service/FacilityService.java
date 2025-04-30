@@ -89,7 +89,7 @@ public class FacilityService {
         String filePath = "facilities/" + facility.getId() + "/";
         if (request.drawingFileId() != null) {
             FileEntity fileEntity = fileService.finalizeUpload(request.drawingFileId(), filePath);
-            facility.updateFileId(fileEntity.getId());
+            facility.updateDrawingFile(fileEntity.getId());
             fileService.getFileResponse(fileEntity);
         } else if (facility.getDrawingFileId() != null) {
             fileService.getFileResponse(facility.getDrawingFileId());
@@ -97,7 +97,7 @@ public class FacilityService {
         
         if (request.thumbnailFileId() != null) {
             FileEntity thumbnailEntity = fileService.finalizeUpload(request.thumbnailFileId(), filePath);
-            facility.updateThumbnailId(thumbnailEntity.getId());
+            facility.updateThumbnailFile(thumbnailEntity.getId());
             fileService.getFileResponse(thumbnailEntity);
         } else if (facility.getThumbnailFileId() != null) {
             fileService.getFileResponse(facility.getThumbnailFileId());
