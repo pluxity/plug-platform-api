@@ -1,14 +1,17 @@
 package com.pluxity.asset.dto;
 
+import com.pluxity.asset.constant.AssetType;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.file.dto.FileResponse;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
+@Builder
 public record AssetResponse(
         Long id,
         String name,
-        String type,
+        AssetType type,
         FileResponse file,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
