@@ -1,4 +1,12 @@
 package com.pluxity.feature.dto;
 
-public record FeatureCreateRequest() {
+import com.pluxity.feature.entity.Spatial;
+import lombok.Builder;
+
+@Builder
+public record FeatureCreateRequest(
+    Spatial position,
+    Spatial rotation,
+    Spatial scale
+) {
 }
