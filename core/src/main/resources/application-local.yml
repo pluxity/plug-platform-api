@@ -15,6 +15,10 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        default_batch_fetch_size: 5
+  #      ddl-auto: update
   flyway:
     enabled: false
 

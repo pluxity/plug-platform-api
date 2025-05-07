@@ -1,5 +1,6 @@
 package com.pluxity.facility.entity;
 
+import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -26,27 +27,37 @@ public abstract class Facility extends BaseEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "drawing_file_id")
-    private Long drawingFileId;
-    
-    @Column(name = "thumbnail_file_id")
-    private Long thumbnailFileId;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private FacilityCategory category;
 
-    public void update(String name, String description) {
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "drawing_file_id")
+    private FileEntity drawingFile;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "thumbnail_file_id")
+    private FileEntity thumbnailFile;
+
+    public Facility(String name, String description) {
         this.name = name;
         this.description = description;
     }
 
-    public void updateDrawingFile(Long drawingFileId) {
-        this.drawingFileId = drawingFileId;
+    public void updateName(String name) {
+        this.name = name;
     }
 
-    public void updateThumbnailFile(Long thumbnailFileId) {
-        this.thumbnailFileId = thumbnailFileId;
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateDrawingFile(FileEntity drawingFile) {
+        this.drawingFile = drawingFile;
+    }
+
+    public void updateThumbnailFile(FileEntity thumbnailFile) {
+        this.thumbnailFile = thumbnailFile;
     }
 
     public void assignCategory(FacilityCategory category) {

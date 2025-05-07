@@ -1,0 +1,42 @@
+package com.pluxity.facility.strategy;
+
+import com.pluxity.facility.dto.LocationRequest;
+import com.pluxity.facility.dto.LocationResponse;
+import com.pluxity.facility.entity.Facility;
+import com.pluxity.facility.repository.LocationRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class LocationStrategy implements FacilityStrategy<LocationRequest, LocationResponse> {
+
+    private final LocationRepository repository;
+
+    @Override
+    public <T extends Facility> void save(T facility, LocationRequest data) {
+
+    }
+
+    @Override
+    public <T extends Facility> LocationResponse findByFacility(T facility) {
+        return null;
+    }
+
+    @Override
+    public <T extends Facility> List<LocationResponse> findAllByFacility(T facility) {
+        return List.of();
+    }
+
+    @Override
+    public <T extends Facility> void update(T facility, LocationRequest data) {
+
+    }
+
+    @Override
+    public <T extends Facility> void delete(T facility) {
+
+    }
+}
