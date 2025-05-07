@@ -4,6 +4,7 @@ public record FacilityCreateRequest(
         String name,
         String description,
         Long drawingFileId,
-        Long thumbnailFileId
+        Long thumbnailFileId,
+        Long categoryId
 ) {
 }

@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,34 +17,30 @@ public class FloorStrategy implements FacilityStrategy<FloorRequest, FloorRespon
     private final FloorRepository repository;
 
     @Override
-    public <T extends Facility> void save(T facility, FloorRequest data) {
+    public void save(Facility facility, FloorRequest data) {
         repository.save(toEntity(facility, data));
     }
 
     @Override
-    public <T extends Facility> FloorResponse findByFacility(T facility) {
-        return null;
-    }
-
-    @Override
-    public <T extends Facility> List<FloorResponse> findAllByFacility(T facility) {
+    public List<FloorResponse> findAllByFacility(Facility facility) {
         return repository.findAllByFacility(facility)
                 .stream()
                 .map(FloorResponse::from)
                 .toList();
     }
 
-    public <T extends Facility> Map<Facility, List<Floor>> findAllByFacilities(List<T> facilities) {
-        return repository.findAllByFacilities(facilities)
-                .stream()
-                .collect(Collectors.groupingBy(Floor::getFacility));
+    @Override
+    public void update(Facility facility, FloorRequest data) {
     }
 
     @Override
-    public <T extends Facility> void update(T facility, FloorRequest data) {}
-
-    @Override
-    public <T extends Facility> void delete(T facility) {}
+    public void delete(Facility facility) {
+        // 시설에 연결된 모든 층 삭제
+        List<Floor> floors = repository.findAllByFacility(facility);
+        if (!floors.isEmpty()) {
+            repository.deleteAll(floors);
+        }
+    }
 
     private Floor toEntity(Facility facility, FloorRequest request) {
         return Floor.builder()

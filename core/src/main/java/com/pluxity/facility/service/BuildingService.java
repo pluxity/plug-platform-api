@@ -1,8 +1,8 @@
 package com.pluxity.facility.service;
 
+import com.pluxity.facility.domain.FacilityType;
 import com.pluxity.facility.dto.*;
 import com.pluxity.facility.entity.Building;
-import com.pluxity.facility.entity.Facility;
 import com.pluxity.facility.repository.BuildingRepository;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -18,27 +19,26 @@ public class BuildingService {
 
     private final FileService fileService;
     private final FacilityService facilityService;
-
     private final FloorStrategy floorStrategy;
-
     private final BuildingRepository repository;
-
 
     @Transactional
     public Long save(BuildingCreateRequest request) {
-
         Building building = Building.builder()
                 .name(request.facility().name())
                 .description(request.facility().description())
                 .address(request.address())
                 .latitude(request.latitude())
                 .longitude(request.longitude())
+                .facilityType(FacilityType.BUILDING)
                 .build();
 
-        Facility saved = facilityService.save(building, request.facility());
+        Building saved = repository.save(building);
+        
+        facilityService.save(building.getFacility(), request.facility());
 
         for(FloorRequest floorRequest : request.floors()) {
-            floorStrategy.save(saved, floorRequest);
+            floorStrategy.save(building.getFacility(), floorRequest);
         }
 
         return saved.getId();
@@ -49,23 +49,29 @@ public class BuildingService {
         List<Building> buildings = repository.findAll();
 
         return buildings.stream()
-                .map(building ->  BuildingResponse.builder()
-                            .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFile()), fileService.getFileResponse(building.getThumbnailFile())))
-                            .address(building.getAddress())
-                            .latitude(building.getLatitude())
-                            .longitude(building.getLongitude())
-                            .floors(building.getFloors().stream().map(FloorResponse::from).toList())
-                            .build())
+                .map(building -> BuildingResponse.builder()
+                        .facility(FacilityResponse.from(building.getFacility(), 
+                                fileService.getFileResponse(building.getDrawingFile()), 
+                                fileService.getFileResponse(building.getThumbnailFile())))
+                        .address(building.getAddress())
+                        .latitude(building.getLatitude())
+                        .longitude(building.getLongitude())
+                        .floors(floorStrategy.findAllByFacility(building.getFacility()))
+                        .build())
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public BuildingResponse findById(Long id) {
-        Building building = (Building) facilityService.findById(id);
-        List<FloorResponse> floorResponses = floorStrategy.findAllByFacility(building);
+        Building building = repository.findById(id)
+                .orElseThrow(NotFoundBuildingException(id));
+                
+        List<FloorResponse> floorResponses = floorStrategy.findAllByFacility(building.getFacility());
 
         return BuildingResponse.builder()
-                .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFile()), fileService.getFileResponse(building.getThumbnailFile())))
+                .facility(FacilityResponse.from(building.getFacility(), 
+                        fileService.getFileResponse(building.getDrawingFile()), 
+                        fileService.getFileResponse(building.getThumbnailFile())))
                 .address(building.getAddress())
                 .latitude(building.getLatitude())
                 .longitude(building.getLongitude())
@@ -75,21 +81,31 @@ public class BuildingService {
 
     @Transactional
     public void update(Long id, BuildingUpdateRequest request) {
-
-        var building = Building.builder()
-                .name(request.name())
-                .description(request.description())
-                .build();
-
-        facilityService.update(id, building);
+        Building building = repository.findById(id)
+                .orElseThrow(NotFoundBuildingException(id));
+        
+        if (request.name() != null) {
+            building.updateName(request.name());
+        }
+        
+        if (request.description() != null) {
+            building.updateDescription(request.description());
+        }
+        
+        repository.save(building);
     }
-
 
     @Transactional
     public void delete(Long id) {
-        var building = facilityService.findById(id);
-        floorStrategy.delete(building);
-        facilityService.deleteFacility(id);
+        Building building = repository.findById(id)
+                .orElseThrow(NotFoundBuildingException(id));
+                
+        floorStrategy.delete(building.getFacility());
+        
+        repository.deleteById(id);
     }
 
+    private static Supplier<IllegalArgumentException> NotFoundBuildingException(Long id) {
+        return () -> new IllegalArgumentException("존재하지 않는 빌딩입니다. ID: " + id);
+    }
 }

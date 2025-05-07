@@ -16,27 +16,22 @@ public class LocationStrategy implements FacilityStrategy<LocationRequest, Locat
     private final LocationRepository repository;
 
     @Override
-    public <T extends Facility> void save(T facility, LocationRequest data) {
+    public void save(Facility facility, LocationRequest data) {
 
     }
 
     @Override
-    public <T extends Facility> LocationResponse findByFacility(T facility) {
-        return null;
-    }
-
-    @Override
-    public <T extends Facility> List<LocationResponse> findAllByFacility(T facility) {
+    public List<LocationResponse> findAllByFacility(Facility facility) {
         return List.of();
     }
 
     @Override
-    public <T extends Facility> void update(T facility, LocationRequest data) {
+    public void update(Facility facility, LocationRequest data) {
 
     }
 
     @Override
-    public <T extends Facility> void delete(T facility) {
+    public void delete(Facility facility) {
 
     }
 }
