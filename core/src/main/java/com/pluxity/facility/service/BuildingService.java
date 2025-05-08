@@ -34,8 +34,10 @@ public class BuildingService {
 
         Facility saved = facilityService.save(building, request.facility());
 
-        for(FloorRequest floorRequest : request.floors()) {
-            floorStrategy.save(saved, floorRequest);
+        if(request.floors() != null) {
+            for (FloorRequest floorRequest : request.floors()) {
+                floorStrategy.save(saved, floorRequest);
+            }
         }
 
         return saved.getId();
