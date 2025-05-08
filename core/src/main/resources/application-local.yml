@@ -23,15 +23,16 @@ spring:
     enabled: false
 
 file:
-  storage-strategy: local
+  storage-strategy: s3
   local:
     path: C:/Dev/Upload/
   s3:
-    endpoint-url: http://192.168.4.56:9000
+#    endpoint-url: http://127.0.0.1:9000
+    endpoint-url: http://192.168.4.34:9000
     bucket: plug-platform
     region: ap-northeast-2
     access-key: pluxity
-    secret-key: pluxity123!@#
+    secret-key: pluxity0304
     pre-signed-url-expiration: 600
 
 logging:
