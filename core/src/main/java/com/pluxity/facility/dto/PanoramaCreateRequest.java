@@ -2,9 +2,8 @@ package com.pluxity.facility.dto;
 
 public record PanoramaCreateRequest(
         FacilityCreateRequest facility,
+        LocationRequest locationRequest,
         String address,
-        Double latitude,
-        Double longitude,
         Long drawingFileId,
         Long thumbnailFileId
 ) {

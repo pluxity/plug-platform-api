@@ -1,9 +1,6 @@
 package com.pluxity.facility.service;
 
-import com.pluxity.facility.dto.FacilityResponse;
-import com.pluxity.facility.dto.PanoramaCreateRequest;
-import com.pluxity.facility.dto.PanoramaResponse;
-import com.pluxity.facility.dto.PanoramaUpdateRequest;
+import com.pluxity.facility.dto.*;
 import com.pluxity.facility.entity.Facility;
 import com.pluxity.facility.entity.Panorama;
 import com.pluxity.facility.repository.PanoramaRepository;
@@ -33,14 +30,15 @@ public class PanoramaService {
         Panorama panorama = Panorama.builder()
                 .name(request.facility().name())
                 .description(request.facility().description())
-                .address(request.address())
-                .latitude(request.latitude())
-                .longitude(request.longitude())
                 .build();
 
-        Facility saved = facilityService.save(panorama, request.facility());
+        Facility facility = facilityService.save(panorama, request.facility());
 
-        return saved.getId();
+        if(request.locationRequest() != null) {
+            locationStrategy.save(facility, request.locationRequest());
+        }
+
+        return facility.getId();
     }
 
     @Transactional(readOnly = true)
@@ -50,9 +48,7 @@ public class PanoramaService {
         return panoramas.stream()
                 .map(panorama ->  PanoramaResponse.builder()
                         .facility(FacilityResponse.from(panorama, fileService.getFileResponse(panorama.getDrawingFileId()), fileService.getFileResponse(panorama.getThumbnailFileId())))
-                        .address(panorama.getAddress())
-                        .latitude(panorama.getLatitude())
-                        .longitude(panorama.getLongitude())
+                        .location(LocationResponse.from(panorama))
                         .build())
                 .toList();
     }
@@ -63,9 +59,7 @@ public class PanoramaService {
 
         return PanoramaResponse.builder()
                 .facility(FacilityResponse.from(panorama, fileService.getFileResponse(panorama.getDrawingFileId()), fileService.getFileResponse(panorama.getThumbnailFileId())))
-                .address(panorama.getAddress())
-                .latitude(panorama.getLatitude())
-                .longitude(panorama.getLongitude())
+                .location(LocationResponse.from(panorama))
                 .build();
     }
 
@@ -78,6 +72,10 @@ public class PanoramaService {
                 .build();
 
         facilityService.update(id, panorama);
+
+        if(request.locationRequest() != null) {
+            locationStrategy.update(panorama, request.locationRequest());
+        }
     }
 
 

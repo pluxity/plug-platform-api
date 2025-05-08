@@ -1,7 +1,9 @@
 package com.pluxity.facility.entity;
 
+import com.pluxity.facility.dto.LocationRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,10 +15,39 @@ import lombok.NoArgsConstructor;
 public class Location {
 
     @Id
-    @Column(name = "latitude")
-    private Long latitude;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Id
+    @Column(name = "latitude")
+    private Double latitude;
+
     @Column(name = "longitude")
-    private Long longitude;
+    private Double longitude;
+
+    @Column(name = "altitude")
+    private Double altitude;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facility_id")
+    private Facility facility;
+
+    @Builder
+    public Location(Facility facility, Double latitude, Double longitude, Double altitude) {
+        this.facility = facility;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.altitude = altitude;
+    }
+
+    public void update(LocationRequest data) {
+        if(data.latitude() != null) {
+            this.latitude = data.latitude();
+        }
+        if(data.longitude() != null) {
+            this.longitude = data.longitude();
+        }
+        if(data.altitude() != null) {
+            this.altitude = data.altitude();
+        }
+    }
 }
