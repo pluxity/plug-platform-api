@@ -29,6 +29,7 @@ public class AuthenticationController {
     }
 
     @PostMapping(value = "/sign-in", produces = "application/json")
+    @ResponseCreated(path = "/users/me")
     public ResponseEntity<Void> signIn(
             @RequestBody SignInRequest signInRequestDto,
             HttpServletRequest request,

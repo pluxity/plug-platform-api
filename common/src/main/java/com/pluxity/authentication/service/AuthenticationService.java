@@ -140,8 +140,8 @@ public class AuthenticationService {
             Cookie cookie = new Cookie(REFRESH_TOKEN, null);
             cookie.setMaxAge(0);
             cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setDomain(serverAddress);
+            cookie.setSecure(false);
+//            cookie.setDomain(serverAddress);
             cookie.setPath("/auth/refresh-token");
             response.addCookie(cookie);
 
@@ -202,16 +202,16 @@ public class AuthenticationService {
             Cookie cookie = new Cookie(name, value);
             cookie.setMaxAge(expiry);
             cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setDomain(serverAddress);
+            cookie.setSecure(false);
+//            cookie.setDomain(serverAddress);
             cookie.setPath(path);
             response.addCookie(cookie);
         } else {
             existCookie.setValue(value);
             existCookie.setMaxAge(expiry);
             existCookie.setHttpOnly(true);
-            existCookie.setSecure(true);
-            existCookie.setDomain(serverAddress);
+            existCookie.setSecure(false);
+//            existCookie.setDomain(serverAddress);
             existCookie.setPath(path);
             response.addCookie(existCookie);
         }
