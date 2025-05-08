@@ -1,13 +1,13 @@
 package com.pluxity.facility.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.hibernate.envers.Audited;
 
 
 @Entity
@@ -15,27 +15,11 @@ import java.util.List;
 @DiscriminatorValue("BUILDING")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Audited
 public class Building extends Facility {
 
-    @Column(name = "address")
-    private String address;
-
-    @Column(name = "latitude")
-    private Double latitude;
-
-    @Column(name = "longitude")
-    private Double longitude;
-
-    @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<Floor> floors = new ArrayList<>();
-
     @Builder
-    public Building(String name, String description,
-                    String address, Double latitude, Double longitude) {
+    public Building(String name, String description) {
         super(name, description);
-        this.address = address;
-        this.latitude = latitude;
-        this.longitude = longitude;
     }
-
 }

@@ -46,7 +46,9 @@ public class FloorStrategy implements FacilityStrategy<FloorRequest, FloorRespon
     public <T extends Facility> void update(T facility, FloorRequest data) {}
 
     @Override
-    public <T extends Facility> void delete(T facility) {}
+    public <T extends Facility> void delete(T facility) {
+        repository.deleteByFacility(facility);
+    }
 
     private Floor toEntity(Facility facility, FloorRequest request) {
         return Floor.builder()

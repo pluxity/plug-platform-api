@@ -30,9 +30,6 @@ public class BuildingService {
         Building building = Building.builder()
                 .name(request.facility().name())
                 .description(request.facility().description())
-                .address(request.address())
-                .latitude(request.latitude())
-                .longitude(request.longitude())
                 .build();
 
         Facility saved = facilityService.save(building, request.facility());
@@ -51,10 +48,6 @@ public class BuildingService {
         return buildings.stream()
                 .map(building ->  BuildingResponse.builder()
                             .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFileId()), fileService.getFileResponse(building.getThumbnailFileId())))
-                            .address(building.getAddress())
-                            .latitude(building.getLatitude())
-                            .longitude(building.getLongitude())
-                            .floors(building.getFloors().stream().map(FloorResponse::from).toList())
                             .build())
                 .toList();
     }
@@ -66,16 +59,17 @@ public class BuildingService {
 
         return BuildingResponse.builder()
                 .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFileId()), fileService.getFileResponse(building.getThumbnailFileId())))
-                .address(building.getAddress())
-                .latitude(building.getLatitude())
-                .longitude(building.getLongitude())
                 .floors(floorResponses)
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public List<FacilityHistoryResponse> findFacilityHistories(Long id) {
+        return facilityService.findFacilityHistories(id);
+    }
+
     @Transactional
     public void update(Long id, BuildingUpdateRequest request) {
-
         var building = Building.builder()
                 .name(request.name())
                 .description(request.description())
