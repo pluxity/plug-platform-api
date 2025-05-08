@@ -31,11 +31,11 @@ public class FacilityService {
             
             String filePath = PREFIX + savedFacility.getId() + "/";
             if (request.drawingFileId() != null) {
-                facility.updateDrawingFile(fileService.finalizeUpload(request.drawingFileId(), filePath));
+                facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
             }
             
             if (request.thumbnailFileId() != null) {
-                facility.updateThumbnailFile(fileService.finalizeUpload(request.thumbnailFileId(), filePath));
+                facility.updateThumbnailFileId(fileService.finalizeUpload(request.thumbnailFileId(), filePath));
             }
 
             return savedFacility;
@@ -63,6 +63,11 @@ public class FacilityService {
 
     @Transactional
     protected void update(Long id, Facility newFacility) {
+        Facility facility = facilityRepository.findById(id)
+                .orElseThrow(() -> new CustomException("Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
+        facility.update(newFacility);
+
+        facilityRepository.save(facility);
     }
 
     @Transactional

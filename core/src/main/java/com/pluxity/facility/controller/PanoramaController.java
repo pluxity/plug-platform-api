@@ -1,7 +1,9 @@
 package com.pluxity.facility.controller;
 
-import com.pluxity.facility.dto.*;
-import com.pluxity.facility.service.BuildingService;
+import com.pluxity.facility.dto.PanoramaCreateRequest;
+import com.pluxity.facility.dto.PanoramaResponse;
+import com.pluxity.facility.dto.PanoramaUpdateRequest;
+import com.pluxity.facility.service.PanoramaService;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -20,16 +22,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/buildings")
+@RequestMapping("/panoramas")
 @RequiredArgsConstructor
-@Tag(name = "Building Controller", description = "건물 관리 API")
-public class BuildingController {
+@Tag(name = "Panorama Controller", description = "파노라마 관리 API")
+public class PanoramaController {
 
-    private final BuildingService service;
+    private final PanoramaService service;
 
-    @Operation(summary = "건물 생성", description = "새로운 건물을 생성합니다")
+    @Operation(summary = "파노라마 생성", description = "새로운 파노라마를 생성합니다")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "건물 생성 성공"),
+            @ApiResponse(responseCode = "201", description = "파노라마 생성 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류",
@@ -38,75 +40,71 @@ public class BuildingController {
     @PostMapping
     @ResponseCreated
     public ResponseEntity<Long> create(
-            @Parameter(description = "건물 생성 정보", required = true)
-            @Valid @RequestBody BuildingCreateRequest request) {
-
+            @Parameter(description = "파노라마 생성 정보", required = true)
+            @Valid @RequestBody PanoramaCreateRequest request) {
         Long id = service.save(request);
-
         return ResponseEntity.ok(id);
     }
 
-    @Operation(summary = "건물 목록 조회", description = "모든 건물 목록을 조회합니다")
+    @Operation(summary = "파노라마 목록 조회", description = "모든 파노라마 목록을 조회합니다")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
             @ApiResponse(responseCode = "500", description = "서버 오류",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class)))
     })
     @GetMapping
-    public ResponseEntity<DataResponseBody<List<BuildingResponse>>> getAll() {
+    public ResponseEntity<DataResponseBody<List<PanoramaResponse>>> getPanoramas() {
         return ResponseEntity.ok(DataResponseBody.of(service.findAll()));
     }
 
-    @Operation(summary = "건물 상세 조회", description = "ID로 특정 건물의 상세 정보를 조회합니다")
+    @Operation(summary = "파노라마 상세 조회", description = "ID로 특정 파노라마의 상세 정보를 조회합니다")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "건물 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "건물을 찾을 수 없음",
+            @ApiResponse(responseCode = "200", description = "파노라마 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "파노라마를 찾을 수 없음",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class)))
     })
     @GetMapping("/{id}")
-    public ResponseEntity<DataResponseBody<BuildingResponse>> get(
-            @Parameter(description = "건물 ID", required = true)
+    public ResponseEntity<DataResponseBody<PanoramaResponse>> getPanorama(
+            @Parameter(description = "파노라마 ID", required = true)
             @PathVariable Long id) {
         return ResponseEntity.ok(DataResponseBody.of(service.findById(id)));
     }
 
-    @Operation(summary = "건물 수정", description = "기존 건물의 정보를 수정합니다")
+    @Operation(summary = "파노라마 수정", description = "기존 파노라마의 정보를 수정합니다")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "건물 수정 성공"),
+            @ApiResponse(responseCode = "204", description = "파노라마 수정 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class))),
-            @ApiResponse(responseCode = "404", description = "건물을 찾을 수 없음",
+            @ApiResponse(responseCode = "404", description = "파노라마를 찾을 수 없음",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class)))
     })
     @PatchMapping("/{id}")
     public ResponseEntity<Void> patch(
-            @Parameter(description = "건물 ID", required = true)
+            @Parameter(description = "파노라마 ID", required = true)
             @PathVariable Long id, 
-            @Parameter(description = "건물 수정 정보", required = true)
-            @Valid @RequestBody BuildingUpdateRequest request) {
+            @Parameter(description = "파노라마 수정 정보", required = true)
+            @Valid @RequestBody PanoramaUpdateRequest request) {
         service.update(id, request);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "건물 삭제", description = "ID로 건물을 삭제합니다")
+    @Operation(summary = "파노라마 삭제", description = "ID로 파노라마를 삭제합니다")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "건물 삭제 성공"),
-            @ApiResponse(responseCode = "404", description = "건물을 찾을 수 없음",
+            @ApiResponse(responseCode = "204", description = "파노라마 삭제 성공"),
+            @ApiResponse(responseCode = "404", description = "파노라마를 찾을 수 없음",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class))),
             @ApiResponse(responseCode = "500", description = "서버 오류",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseBody.class)))
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
-            @Parameter(description = "건물 ID", required = true)
+            @Parameter(description = "파노라마 ID", required = true)
             @PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-
 }

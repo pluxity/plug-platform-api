@@ -31,13 +31,11 @@ public abstract class Facility extends BaseEntity {
     @JoinColumn(name = "category_id")
     private FacilityCategory category;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "drawing_file_id")
-    private FileEntity drawingFile;
+    @Column(name = "drawing_file_id")
+    private Long drawingFileId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "thumbnail_file_id")
-    private FileEntity thumbnailFile;
+    @Column(name = "thumbnail_file_id")
+    private Long thumbnailFileId;
 
     public Facility(String name, String description) {
         this.name = name;
@@ -52,15 +50,24 @@ public abstract class Facility extends BaseEntity {
         this.description = description;
     }
 
-    public void updateDrawingFile(FileEntity drawingFile) {
-        this.drawingFile = drawingFile;
+    public void updateDrawingFileId(FileEntity drawingFile) {
+        this.drawingFileId = drawingFile.getId();
     }
 
-    public void updateThumbnailFile(FileEntity thumbnailFile) {
-        this.thumbnailFile = thumbnailFile;
+    public void updateThumbnailFileId(FileEntity thumbnailFile) {
+        this.thumbnailFileId = thumbnailFile.getId();
     }
 
     public void assignCategory(FacilityCategory category) {
         this.category = category;
+    }
+
+    public void update(Facility facility) {
+        if (facility.name != null) {
+            this.name = facility.name;
+        }
+        if (facility.description != null) {
+            this.description = facility.description;
+        }
     }
 }

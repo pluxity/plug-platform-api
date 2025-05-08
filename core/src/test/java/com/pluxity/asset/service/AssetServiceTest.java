@@ -45,7 +45,7 @@ class AssetServiceTest {
     @BeforeEach
     void setup() throws IOException {
         // 테스트 이미지 파일 준비
-        ClassPathResource resource = new ClassPathResource("image/temp/temp.png");
+        ClassPathResource resource = new ClassPathResource("temp/temp.png");
         byte[] fileContent = Files.readAllBytes(Path.of(resource.getURI()));
         
         // MockMultipartFile 생성

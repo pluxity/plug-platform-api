@@ -50,7 +50,7 @@ public class BuildingService {
 
         return buildings.stream()
                 .map(building ->  BuildingResponse.builder()
-                            .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFile()), fileService.getFileResponse(building.getThumbnailFile())))
+                            .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFileId()), fileService.getFileResponse(building.getThumbnailFileId())))
                             .address(building.getAddress())
                             .latitude(building.getLatitude())
                             .longitude(building.getLongitude())
@@ -65,7 +65,7 @@ public class BuildingService {
         List<FloorResponse> floorResponses = floorStrategy.findAllByFacility(building);
 
         return BuildingResponse.builder()
-                .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFile()), fileService.getFileResponse(building.getThumbnailFile())))
+                .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFileId()), fileService.getFileResponse(building.getThumbnailFileId())))
                 .address(building.getAddress())
                 .latitude(building.getLatitude())
                 .longitude(building.getLongitude())
