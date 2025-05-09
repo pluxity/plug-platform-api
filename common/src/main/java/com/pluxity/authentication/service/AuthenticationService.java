@@ -24,6 +24,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.WebUtils;
 
 import static com.pluxity.global.constant.ErrorCode.*;
 
@@ -114,7 +115,7 @@ public class AuthenticationService {
                 REFRESH_TOKEN,
                 refreshToken,
                 refreshExpiration,
-                "/auth/refresh-token",
+                "/auth",
                 response
         );
 
@@ -132,18 +133,15 @@ public class AuthenticationService {
 
     @Transactional
     public void signOut(HttpServletRequest request, HttpServletResponse response) {
+
         String refreshToken = jwtProvider.getJwtFromRequest(REFRESH_TOKEN, request);
 
         if (refreshToken != null && !refreshToken.isEmpty()) {
-            refreshTokenRepository.deleteByToken(refreshToken);
+            refreshTokenRepository.deleteById(refreshToken);
 
-            Cookie cookie = new Cookie(REFRESH_TOKEN, null);
-            cookie.setMaxAge(0);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(false);
-            cookie.setDomain(domainName);
-            cookie.setPath("/auth/refresh-token");
-            response.addCookie(cookie);
+            deleteAuthCookie(ACCESS_TOKEN, "/", request, response);
+            deleteAuthCookie(REFRESH_TOKEN, "/auth", request, response);
+            deleteExpiryCookie(request, response);
 
         } else {
             log.warn("No refresh token found for sign out");
@@ -183,7 +181,7 @@ public class AuthenticationService {
                 REFRESH_TOKEN,
                 newRefreshToken,
                 refreshExpiration,
-                "/auth/refresh-token",
+                "/auth",
                 response
         );
 
@@ -206,15 +204,48 @@ public class AuthenticationService {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie);
     }
 
+    private void deleteAuthCookie(String name, String path,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) {
+
+        Cookie cookie = WebUtils.getCookie(request, name);
+        if(cookie != null) {
+
+            cookie.setValue(null);
+            cookie.setMaxAge(0);
+            cookie.setDomain(domainName);
+            cookie.setPath(path);
+
+            response.addCookie(cookie);
+        }
+    }
+
     private void createExpiryCookie(HttpServletResponse response) {
 
-        String cookie = ResponseCookie.from("expiry", String.valueOf(refreshExpiration))
+        long currentTimeMillis = System.currentTimeMillis();
+        long tokenExpiryInMillis = refreshExpiration * 1000L;
+        long expiryTimeMillis = currentTimeMillis + tokenExpiryInMillis;
+
+        String cookie = ResponseCookie.from("expiry", String.valueOf(expiryTimeMillis))
                 .domain(domainName)
                 .secure(false)
                 .path("/")
                 .build().toString();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie);
+    }
+
+    private void deleteExpiryCookie(HttpServletRequest request, HttpServletResponse response) {
+
+        Cookie cookie = WebUtils.getCookie(request, "expiry");
+        if(cookie != null) {
+
+            cookie.setMaxAge(0);
+            cookie.setDomain(domainName);
+            cookie.setPath("/");
+
+            response.addCookie(cookie);
+        }
     }
 
 }
