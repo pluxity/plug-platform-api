@@ -1,5 +1,6 @@
 package com.pluxity.facility.service;
 
+import com.pluxity.CoreApplicationTest;
 import com.pluxity.facility.dto.*;
 import com.pluxity.facility.entity.Building;
 import com.pluxity.facility.repository.BuildingRepository;
@@ -27,20 +28,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @Transactional
 //@Commit
-class BuildingServiceTest {
+class BuildingServiceTest extends CoreApplicationTest {
 
     @Autowired
-    BuildingService buildingService;
+    private BuildingService buildingService;
 
     @Autowired
-    BuildingRepository buildingRepository;
+    private BuildingRepository buildingRepository;
 
     @Autowired
-    FileService fileService;
+    private FileService fileService;
 
     @Autowired
-    FacilityService facilityService;
-
+    private FacilityService facilityService;
 
     private Long drawingFileId;
     private Long thumbnailFileId;
@@ -86,8 +86,11 @@ class BuildingServiceTest {
     @Test
     @DisplayName("유효한 요청으로 건물 생성 시 건물과 층이 저장된다")
     void save_WithValidRequest_SavesBuildingAndFloors() {
+        // given
+        BuildingCreateRequest request = createBuildingRequest();
+        
         // when
-        Long id = buildingService.save(createRequest);
+        Long id = buildingService.save(request);
 
         // then
         assertThat(id).isNotNull();
@@ -104,7 +107,8 @@ class BuildingServiceTest {
     @DisplayName("모든 건물 조회 시 건물 목록이 반환된다")
     void findAll_ReturnsListOfBuildingResponses() {
         // given
-        Long id = buildingService.save(createRequest);
+        BuildingCreateRequest request = createBuildingRequest();
+        Long id = buildingService.save(request);
         
         // when
         List<BuildingResponse> responses = buildingService.findAll();
@@ -119,7 +123,8 @@ class BuildingServiceTest {
     @DisplayName("ID로 건물 조회 시 건물 정보가 반환된다")
     void findById_WithExistingId_ReturnsBuildingResponse() {
         // given
-        Long id = buildingService.save(createRequest);
+        BuildingCreateRequest request = createBuildingRequest();
+        Long id = buildingService.save(request);
 
         // when
         BuildingResponse response = buildingService.findById(id);
@@ -135,7 +140,7 @@ class BuildingServiceTest {
     @DisplayName("존재하지 않는 ID로 건물 조회 시 예외가 발생한다")
     void findById_WithNonExistingId_ThrowsCustomException() {
         // given
-        Long nonExistingId = 9999L;
+        Long nonExistingId = DEFAULT_NON_EXISTING_ID;
 
         // when & then
         assertThrows(CustomException.class, () -> buildingService.findById(nonExistingId));
@@ -145,13 +150,9 @@ class BuildingServiceTest {
     @DisplayName("유효한 요청으로 건물 정보 수정 시 건물 정보가 업데이트된다")
     void update_WithValidRequest_UpdatesBuilding() {
         // given
+        BuildingCreateRequest createRequest = createBuildingRequest();
         Long id = buildingService.save(createRequest);
-        BuildingUpdateRequest updateRequest = new BuildingUpdateRequest(
-                "수정된 건물",
-                "수정된 건물 설명",
-                drawingFileId,
-                thumbnailFileId
-        );
+        BuildingUpdateRequest updateRequest = createBuildingUpdateRequest();
 
         // when
         buildingService.update(id, updateRequest);
@@ -166,7 +167,8 @@ class BuildingServiceTest {
     @DisplayName("건물 삭제 시 모든 이력이 삭제된다")
     void delete() {
         // given
-        Long id = buildingService.save(createRequest);
+        BuildingCreateRequest request = createBuildingRequest();
+        Long id = buildingService.save(request);
         
         // when
         BuildingResponse response = buildingService.findById(id);
@@ -178,5 +180,4 @@ class BuildingServiceTest {
         // 삭제 후에는 해당 ID로 건물을 찾을 수 없어야 함
         assertThrows(CustomException.class, () -> buildingService.findById(id));
     }
-
 }
