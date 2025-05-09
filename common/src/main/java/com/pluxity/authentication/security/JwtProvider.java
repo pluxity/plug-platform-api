@@ -120,6 +120,8 @@ public class JwtProvider {
     public boolean isRefreshTokenValid(String token) {
         try {
 
+            log.info("Refresh Token : {}", token);
+
             RefreshToken refreshToken =
                     refreshTokenRepository
                             .findByToken(token)

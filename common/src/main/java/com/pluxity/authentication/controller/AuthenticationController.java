@@ -32,10 +32,9 @@ public class AuthenticationController {
     @ResponseCreated(path = "/users/me")
     public ResponseEntity<Void> signIn(
             @RequestBody SignInRequest signInRequestDto,
-            HttpServletRequest request,
             HttpServletResponse response
     ) {
-        authenticationService.signIn(signInRequestDto, request, response);
+        authenticationService.signIn(signInRequestDto, response);
         return ResponseEntity.noContent().build();
     }
 

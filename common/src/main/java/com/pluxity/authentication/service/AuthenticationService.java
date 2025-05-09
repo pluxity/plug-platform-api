@@ -48,10 +48,10 @@ public class AuthenticationService {
     private int accessExpiration;
 
     @Value("${jwt.access-token.name}")
-    private String ACCESS_TOKEN;
+    private String ACCESS_TOKEN_NAME;
 
     @Value("${jwt.refresh-token.name}")
-    private String REFRESH_TOKEN;
+    private String REFRESH_TOKEN_NAME;
 
 
 
@@ -88,7 +88,7 @@ public class AuthenticationService {
 
 
     @Transactional
-    public SignInResponse signIn(final SignInRequest signInRequestDto, HttpServletRequest request, HttpServletResponse response) {
+    public void signIn(final SignInRequest signInRequestDto, HttpServletResponse response) {
 
         try {
             authenticationManager.authenticate(
@@ -108,7 +108,7 @@ public class AuthenticationService {
         String refreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
         createAuthCookie(
-                ACCESS_TOKEN,
+                ACCESS_TOKEN_NAME,
                 accessToken,
                 accessExpiration,
                 "/",
@@ -116,7 +116,7 @@ public class AuthenticationService {
         );
 
         createAuthCookie(
-                REFRESH_TOKEN,
+                REFRESH_TOKEN_NAME,
                 refreshToken,
                 refreshExpiration,
                 "/auth",
@@ -125,26 +125,25 @@ public class AuthenticationService {
 
         createExpiryCookie(response);
 
-        refreshTokenRepository.save(RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
+        log.info("TTL {}", refreshExpiration);
 
-        return SignInResponse.builder()
-                .accessToken(accessToken)
-                .name(user.getName())
-                .code(user.getCode())
-                .build();
+        refreshTokenRepository.findById(user.getUsername())
+                        .ifPresent(refreshTokenRepository::delete);
+
+        refreshTokenRepository.save(RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
     }
 
     @Transactional
     public void signOut(HttpServletRequest request, HttpServletResponse response) {
 
-        String refreshToken = jwtProvider.getJwtFromRequest(REFRESH_TOKEN, request);
+        String refreshToken = jwtProvider.getJwtFromRequest(REFRESH_TOKEN_NAME, request);
 
         if (refreshToken != null && !refreshToken.isEmpty()) {
             refreshTokenRepository.findByToken(refreshToken)
                     .ifPresent(refreshTokenRepository::delete);
 
-            deleteAuthCookie(ACCESS_TOKEN, "/", request, response);
-            deleteAuthCookie(REFRESH_TOKEN, "/auth", request, response);
+            deleteAuthCookie(ACCESS_TOKEN_NAME, "/", request, response);
+            deleteAuthCookie(REFRESH_TOKEN_NAME, "/auth", request, response);
             deleteExpiryCookie(request, response);
 
         } else {
@@ -154,7 +153,7 @@ public class AuthenticationService {
 
     @Transactional
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = jwtProvider.getJwtFromRequest(REFRESH_TOKEN, request);
+        String refreshToken = jwtProvider.getJwtFromRequest(REFRESH_TOKEN_NAME, request);
 
         if (!jwtProvider.isRefreshTokenValid(refreshToken)) {
             log.error("Refresh Token Error :{}", refreshToken);
@@ -175,14 +174,14 @@ public class AuthenticationService {
         String newRefreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
         createAuthCookie(
-                ACCESS_TOKEN,
+                ACCESS_TOKEN_NAME,
                 newAccessToken,
                 accessExpiration,
                 "/",
                 response
         );
         createAuthCookie(
-                REFRESH_TOKEN,
+                REFRESH_TOKEN_NAME,
                 newRefreshToken,
                 refreshExpiration,
                 "/auth",
@@ -192,6 +191,8 @@ public class AuthenticationService {
         createExpiryCookie(response);
 
         log.info("Refresh Token {}", newRefreshToken);
+        log.info("TTL {}", refreshExpiration);
+
 
         refreshTokenRepository.save(RefreshToken.of(username, newRefreshToken, refreshExpiration));
     }

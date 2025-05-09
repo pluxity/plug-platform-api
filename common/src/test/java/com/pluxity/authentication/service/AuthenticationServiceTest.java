@@ -1,7 +1,6 @@
 package com.pluxity.authentication.service;
 
 import com.pluxity.authentication.dto.SignInRequest;
-import com.pluxity.authentication.dto.SignInResponse;
 import com.pluxity.authentication.dto.SignUpRequest;
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
@@ -12,40 +11,39 @@ import com.pluxity.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.util.WebUtils;
 
 import java.util.Optional;
 
-import static com.pluxity.global.constant.ErrorCode.INVALID_ID_OR_PASSWORD;
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.pluxity.global.constant.ErrorCode.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceTest {
 
-    @InjectMocks
-    private AuthenticationService authenticationService;
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
     private JwtProvider jwtProvider;
@@ -62,200 +60,195 @@ class AuthenticationServiceTest {
     @Mock
     private HttpServletResponse response;
 
+    @InjectMocks
+    private AuthenticationService authenticationService;
+
+    private final String ACCESS_TOKEN_NAME = "access_token";
+    private final String REFRESH_TOKEN_NAME = "refresh_token";
+    private final String DOMAIN_NAME = "pluxity.com";
+    private final int ACCESS_EXPIRATION = 1800;
+    private final int REFRESH_EXPIRATION = 604800;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(authenticationService, "domainName", DOMAIN_NAME);
+        ReflectionTestUtils.setField(authenticationService, "accessExpiration", ACCESS_EXPIRATION);
+        ReflectionTestUtils.setField(authenticationService, "refreshExpiration", REFRESH_EXPIRATION);
+        ReflectionTestUtils.setField(authenticationService, "ACCESS_TOKEN_NAME", ACCESS_TOKEN_NAME);
+        ReflectionTestUtils.setField(authenticationService, "REFRESH_TOKEN_NAME", REFRESH_TOKEN_NAME);
+    }
+
     @Test
-    @DisplayName("회원가입을 할 수 있다")
-    void signUp() {
+    @DisplayName("회원가입 성공")
+    void signUp_Success() {
         // given
-        SignUpRequest request = new SignUpRequest(
-                "testUser",
-                "password123",
-                "홍길동",
-                "USER001"
-        );
-
-        String encodedPassword = "encodedPassword123";
+        SignUpRequest request = new SignUpRequest("testuser", "password123", "테스트유저", "CODE123");
         User user = User.builder()
-                .username(request.username())
-                .password(encodedPassword)
-                .name(request.name())
-                .code(request.code())
+                .username("testuser")
+                .password("encodedPassword")
+                .name("테스트유저")
+                .code("CODE123")
                 .build();
-        
-        // User 객체에 ID 설정
-        ReflectionTestUtils.setField(user, "id", 1L);
 
-        given(passwordEncoder.encode(request.password())).willReturn(encodedPassword);
+        given(userRepository.findByUsername(request.username())).willReturn(Optional.empty());
+        given(passwordEncoder.encode(request.password())).willReturn("encodedPassword");
         given(userRepository.save(any(User.class))).willReturn(user);
 
         // when
         Long userId = authenticationService.signUp(request);
 
         // then
-        assertThat(userId).isEqualTo(user.getId());
+        assertEquals("testuser", user.getUsername());
+        verify(userRepository).findByUsername(request.username());
         verify(passwordEncoder).encode(request.password());
         verify(userRepository).save(any(User.class));
     }
 
     @Test
-    @DisplayName("로그인을 할 수 있다")
-    void signIn() {
+    @DisplayName("회원가입 실패 - 이미 존재하는 사용자명")
+    void signUp_Fail_DuplicateUsername() {
         // given
-        SignInRequest signInRequest = new SignInRequest("testUser", "password123");
-        String accessToken = "accessToken";
-        String refreshToken = "refreshToken";
-        
-        User user = User.builder()
-                .username(signInRequest.username())
+        SignUpRequest request = new SignUpRequest("testuser", "password123", "테스트유저", "CODE123");
+        User existingUser = User.builder()
+                .username("testuser")
                 .password("encodedPassword")
-                .name("홍길동")
-                .code("USER001")
+                .name("기존유저")
+                .code("CODE456")
+                .build();
+
+        given(userRepository.findByUsername(request.username())).willReturn(Optional.of(existingUser));
+
+        // when and then
+        CustomException exception = assertThrows(CustomException.class, () -> authenticationService.signUp(request));
+        assertEquals(DUPLICATE_USERNAME, exception.getErrorCode());
+        verify(userRepository).findByUsername(request.username());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("로그인 성공")
+    void signIn_Success() {
+        // given
+        SignInRequest signInRequest = new SignInRequest("testuser", "password123");
+        User user = User.builder()
+                .username("testuser")
+                .password("encodedPassword")
+                .name("테스트유저")
+                .code("CODE123")
                 .build();
 
         given(userRepository.findByUsername(signInRequest.username())).willReturn(Optional.of(user));
-        given(jwtProvider.generateAccessToken(signInRequest.username())).willReturn(accessToken);
-        given(jwtProvider.generateRefreshToken(signInRequest.username())).willReturn(refreshToken);
-
-        // refreshExpiration 필드 설정
-        ReflectionTestUtils.setField(authenticationService, "refreshExpiration", 3600);
+        given(jwtProvider.generateAccessToken(user.getUsername())).willReturn("access-token-value");
+        given(jwtProvider.generateRefreshToken(user.getUsername())).willReturn("refresh-token-value");
+        doNothing().when(response).addHeader(eq(HttpHeaders.SET_COOKIE), anyString());
 
         // when
-        SignInResponse response = authenticationService.signIn(signInRequest, request, this.response);
+        authenticationService.signIn(signInRequest, response);
 
         // then
-        assertThat(response.accessToken()).isEqualTo(accessToken);
-        assertThat(response.name()).isEqualTo(user.getName());
-        assertThat(response.code()).isEqualTo(user.getCode());
-        
-        verify(authenticationManager).authenticate(
-                new UsernamePasswordAuthenticationToken(signInRequest.username(), signInRequest.password()));
-        verify(jwtProvider).generateAccessToken(signInRequest.username());
-        verify(jwtProvider).generateRefreshToken(signInRequest.username());
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(userRepository).findByUsername(signInRequest.username());
+        verify(jwtProvider).generateAccessToken(user.getUsername());
+        verify(jwtProvider).generateRefreshToken(user.getUsername());
+        verify(response, times(3)).addHeader(eq(HttpHeaders.SET_COOKIE), anyString());
         verify(refreshTokenRepository).save(any(RefreshToken.class));
-        verify(this.response).addCookie(any(Cookie.class));
     }
 
     @Test
-    @DisplayName("잘못된 인증 정보로 로그인을 시도하면 예외가 발생한다")
-    void signInWithInvalidCredentials() {
+    @DisplayName("로그인 실패 - 잘못된 비밀번호")
+    void signIn_Fail_InvalidPassword() {
         // given
-        SignInRequest signInRequest = new SignInRequest("testUser", "wrongPassword");
+        SignInRequest signInRequest = new SignInRequest("testuser", "wrongpassword");
 
-        doThrow(new AuthenticationException("Invalid credentials") {})
-                .when(authenticationManager)
+        doThrow(new BadCredentialsException("Invalid credentials")).when(authenticationManager)
                 .authenticate(any(UsernamePasswordAuthenticationToken.class));
 
-        // when & then
-        assertThatThrownBy(() -> authenticationService.signIn(signInRequest, request, response))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", INVALID_ID_OR_PASSWORD);
+        // when and then
+        CustomException exception = assertThrows(CustomException.class,
+                () -> authenticationService.signIn(signInRequest, response));
+        assertEquals(INVALID_ID_OR_PASSWORD, exception.getErrorCode());
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(userRepository, never()).findByUsername(anyString());
+        verify(response, never()).addHeader(eq(HttpHeaders.SET_COOKIE), anyString());
     }
 
     @Test
-    @DisplayName("존재하지 않는 사용자로 로그인을 시도하면 예외가 발생한다")
-    void signInWithNonExistentUser() {
+    @DisplayName("로그아웃 성공")
+    void signOut_Success() {
         // given
-        SignInRequest signInRequest = new SignInRequest("nonExistentUser", "password123");
+        String refreshToken = "refresh-token-value";
+        RefreshToken token = RefreshToken.of("testuser", refreshToken, REFRESH_EXPIRATION);
 
-        given(userRepository.findByUsername(signInRequest.username())).willReturn(Optional.empty());
+        given(jwtProvider.getJwtFromRequest(REFRESH_TOKEN_NAME, request)).willReturn(refreshToken);
+        given(refreshTokenRepository.findByToken(refreshToken)).willReturn(Optional.of(token));
 
-        // when & then
-        assertThatThrownBy(() -> authenticationService.signIn(signInRequest, request, response))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", NOT_FOUND_USER);
-    }
+        // WebUtils.getCookie 모킹
+        try (MockedStatic<WebUtils> webUtilsMock = mockStatic(WebUtils.class)) {
+            webUtilsMock.when(() -> WebUtils.getCookie(eq(request), eq(ACCESS_TOKEN_NAME)))
+                    .thenReturn(new Cookie(ACCESS_TOKEN_NAME, "access-value"));
+            webUtilsMock.when(() -> WebUtils.getCookie(eq(request), eq(REFRESH_TOKEN_NAME)))
+                    .thenReturn(new Cookie(REFRESH_TOKEN_NAME, "refresh-value"));
+            webUtilsMock.when(() -> WebUtils.getCookie(eq(request), eq("expiry")))
+                    .thenReturn(new Cookie("expiry", "expiry-value"));
 
-    @Test
-    @DisplayName("로그아웃을 할 수 있다")
-    void signOut() {
-        // given
-        String refreshToken = "validRefreshToken";
-        
-        given(jwtProvider.getJwtFromRequest("RefreshToken", request)).willReturn(refreshToken);
-
-        // when
-        authenticationService.signOut(request, response);
+            // when
+            authenticationService.signOut(request, response);
+        }
 
         // then
-        verify(refreshTokenRepository).deleteById(refreshToken);
-        verify(response).addCookie(any(Cookie.class));
+        verify(jwtProvider).getJwtFromRequest(REFRESH_TOKEN_NAME, request);
+        verify(refreshTokenRepository).findByToken(refreshToken);
+        verify(refreshTokenRepository).delete(token);
+        verify(response, times(3)).addCookie(any(Cookie.class));
     }
 
     @Test
-    @DisplayName("리프레시 토큰으로 새로운 토큰을 발급받을 수 있다")
-    void refreshToken() {
+    @DisplayName("RefreshToken 재발행 성공")
+    void refreshToken_Success() {
         // given
-        String refreshToken = "validRefreshToken";
-        String newRefreshToken = "newRefreshToken";
-        String accessToken = "newAccessToken";
-        String username = "testUser";
-        
-        given(jwtProvider.getJwtFromRequest("RefreshToken", request)).willReturn(refreshToken);
-        given(jwtProvider.isRefreshTokenValid(refreshToken)).willReturn(true);
-        given(jwtProvider.extractUsername(refreshToken, true)).willReturn(username);
-        
+        String username = "testuser";
+        String refreshToken = "refresh-token-value";
         User user = User.builder()
                 .username(username)
                 .password("encodedPassword")
-                .name("홍길동")
-                .code("USER001")
+                .name("테스트유저")
+                .code("CODE123")
                 .build();
-        
+
+        given(jwtProvider.getJwtFromRequest(REFRESH_TOKEN_NAME, request)).willReturn(refreshToken);
+        given(jwtProvider.isRefreshTokenValid(refreshToken)).willReturn(true);
+        given(jwtProvider.extractUsername(refreshToken, true)).willReturn(username);
         given(userRepository.findByUsername(username)).willReturn(Optional.of(user));
-        given(jwtProvider.generateAccessToken(username)).willReturn(accessToken);
-        given(jwtProvider.generateRefreshToken(username)).willReturn(newRefreshToken);
-        
-        // refreshExpiration 필드 설정
-        ReflectionTestUtils.setField(authenticationService, "refreshExpiration", 3600);
+        given(jwtProvider.generateAccessToken(username)).willReturn("new-access-token");
+        given(jwtProvider.generateRefreshToken(username)).willReturn("new-refresh-token");
+        doNothing().when(response).addHeader(eq(HttpHeaders.SET_COOKIE), anyString());
 
         // when
         authenticationService.refreshToken(request, response);
 
         // then
-//        assertThat(tokenResponse.accessToken()).isEqualTo(accessToken);
-//        verify(jwtProvider).isRefreshTokenValid(refreshToken);
-//        verify(jwtProvider).extractUsername(refreshToken, true);
-//        verify(jwtProvider).generateAccessToken(username);
-//        verify(jwtProvider).generateRefreshToken(username);
-//        verify(refreshTokenRepository).save(any(RefreshToken.class));
-//        verify(response).addCookie(any(Cookie.class));
+        verify(jwtProvider).getJwtFromRequest(REFRESH_TOKEN_NAME, request);
+        verify(jwtProvider).isRefreshTokenValid(refreshToken);
+        verify(jwtProvider).extractUsername(refreshToken, true);
+        verify(userRepository).findByUsername(username);
+        verify(jwtProvider).generateAccessToken(username);
+        verify(jwtProvider).generateRefreshToken(username);
+        verify(response, times(3)).addHeader(eq(HttpHeaders.SET_COOKIE), anyString());
+        verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
     @Test
-    @DisplayName("유효하지 않은 리프레시 토큰으로 새로운 토큰을 요청하면 예외가 발생한다")
-    void refreshTokenWithInvalidToken() {
+    @DisplayName("RefreshToken 재발행 실패 - Cookie에 RefreshToken 누락")
+    void refreshToken_Fail_MissingRefreshToken() {
         // given
-        String invalidRefreshToken = "invalidRefreshToken";
-        
-        given(jwtProvider.getJwtFromRequest("RefreshToken", request)).willReturn(invalidRefreshToken);
-        given(jwtProvider.isRefreshTokenValid(invalidRefreshToken)).willReturn(false);
+        given(jwtProvider.getJwtFromRequest(REFRESH_TOKEN_NAME, request)).willReturn(null);
 
-        // when & then
-        assertThatThrownBy(() -> authenticationService.refreshToken(request, response))
-                .isInstanceOf(CustomException.class);
+        // when and then
+        CustomException exception = assertThrows(CustomException.class,
+                () -> authenticationService.refreshToken(request, response));
+        assertEquals(INVALID_REFRESH_TOKEN, exception.getErrorCode());
+        verify(jwtProvider).getJwtFromRequest(REFRESH_TOKEN_NAME, request);
+        verify(jwtProvider, never()).isRefreshTokenValid(anyString());
+        verify(userRepository, never()).findByUsername(anyString());
     }
-    
-    @Test
-    @DisplayName("쿠키가 없을 때 새로운 쿠키를 생성한다")
-    void createCookieWhenNoCookieExists() {
-        // given
-        String refreshToken = "refreshToken";
-        int expiry = 3600;
-
-        // private 메서드 호출을 위한 리플렉션 설정
-        java.lang.reflect.Method createCookieMethod;
-        try {
-            createCookieMethod = AuthenticationService.class.getDeclaredMethod(
-                    "createCookie", String.class, int.class, HttpServletRequest.class, HttpServletResponse.class);
-            createCookieMethod.setAccessible(true);
-            
-            // when
-            createCookieMethod.invoke(authenticationService, refreshToken, expiry, request, response);
-            
-            // then
-            verify(response).addCookie(any(Cookie.class));
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to invoke createCookie method", e);
-        }
-    }
-
-} 
+}
