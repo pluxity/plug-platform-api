@@ -23,12 +23,14 @@ public class ResponseCreatedAspect {
         URI location;
 
         if ("/{id}".equals(responseCreated.path())) {
-            location = ServletUriComponentsBuilder.fromCurrentRequest()
+            location = ServletUriComponentsBuilder
+                    .fromCurrentContextPath()
                     .path(responseCreated.path())
                     .buildAndExpand(id)
                     .toUri();
         } else {
-            location = ServletUriComponentsBuilder.fromCurrentContextPath()
+            location = ServletUriComponentsBuilder
+                    .fromCurrentContextPath()
                     .path(responseCreated.path())
                     .buildAndExpand(id)
                     .toUri();

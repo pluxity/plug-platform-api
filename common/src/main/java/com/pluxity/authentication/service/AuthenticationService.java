@@ -16,6 +16,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -24,6 +26,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.WebUtils;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 import static com.pluxity.global.constant.ErrorCode.*;
 
 @Service
@@ -31,8 +37,9 @@ import static com.pluxity.global.constant.ErrorCode.*;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    @Value("${server.address}")
-    private String serverAddress;
+//    @Value("${server.address}")
+    @Value("${domain.name}")
+    private String domainName;
 
     @Value("${jwt.refresh-token.expiration}")
     private int refreshExpiration;
@@ -74,8 +81,6 @@ public class AuthenticationService {
                         .code(signUpRequest.code())
                         .build();
 
-
-
         User savedUser = userRepository.save(user);
 
         return savedUser.getId();
@@ -102,26 +107,25 @@ public class AuthenticationService {
         String accessToken = jwtProvider.generateAccessToken(user.getUsername());
         String refreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
-        createCookie(
+        createAuthCookie(
                 ACCESS_TOKEN,
                 accessToken,
                 accessExpiration,
                 "/",
-                request,
                 response
         );
 
-        createCookie(
+        createAuthCookie(
                 REFRESH_TOKEN,
                 refreshToken,
                 refreshExpiration,
-                "/auth/refresh-token",
-                request,
+                "/auth",
                 response
         );
 
-        refreshTokenRepository.save(
-                RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
+        createExpiryCookie(response);
+
+        refreshTokenRepository.save(RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
 
         return SignInResponse.builder()
                 .accessToken(accessToken)
@@ -132,18 +136,16 @@ public class AuthenticationService {
 
     @Transactional
     public void signOut(HttpServletRequest request, HttpServletResponse response) {
+
         String refreshToken = jwtProvider.getJwtFromRequest(REFRESH_TOKEN, request);
 
         if (refreshToken != null && !refreshToken.isEmpty()) {
-            refreshTokenRepository.deleteByToken(refreshToken);
+            refreshTokenRepository.findByToken(refreshToken)
+                    .ifPresent(refreshTokenRepository::delete);
 
-            Cookie cookie = new Cookie(REFRESH_TOKEN, null);
-            cookie.setMaxAge(0);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(false);
-//            cookie.setDomain(serverAddress);
-            cookie.setPath("/auth/refresh-token");
-            response.addCookie(cookie);
+            deleteAuthCookie(ACCESS_TOKEN, "/", request, response);
+            deleteAuthCookie(REFRESH_TOKEN, "/auth", request, response);
+            deleteExpiryCookie(request, response);
 
         } else {
             log.warn("No refresh token found for sign out");
@@ -172,48 +174,92 @@ public class AuthenticationService {
         String newAccessToken = jwtProvider.generateAccessToken(user.getUsername());
         String newRefreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
-        createCookie(
+        createAuthCookie(
                 ACCESS_TOKEN,
                 newAccessToken,
                 accessExpiration,
                 "/",
-                request,
                 response
         );
-        createCookie(
+        createAuthCookie(
                 REFRESH_TOKEN,
                 newRefreshToken,
                 refreshExpiration,
-                "/auth/refresh-token",
-                request,
+                "/auth",
                 response
         );
 
+        createExpiryCookie(response);
+
         log.info("Refresh Token {}", newRefreshToken);
+
         refreshTokenRepository.save(RefreshToken.of(username, newRefreshToken, refreshExpiration));
     }
 
-    private void createCookie(String name, String value, int expiry, String path,
-                              HttpServletRequest request,
+    private void createAuthCookie(String name, String value, int expiry, String path,
                               HttpServletResponse response) {
 
-        Cookie existCookie = WebUtils.getCookie(request, name);
-        if (existCookie == null) {
-            Cookie cookie = new Cookie(name, value);
-            cookie.setMaxAge(expiry);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(false);
-//            cookie.setDomain(serverAddress);
+        String cookie = ResponseCookie.from(name, value)
+                .domain(domainName)
+                .secure(false)
+                .httpOnly(true)
+                .sameSite("Lax")
+                .maxAge(expiry)
+                .path(path)
+                .build().toString();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie);
+    }
+
+    private void deleteAuthCookie(String name, String path,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) {
+
+        Cookie cookie = WebUtils.getCookie(request, name);
+        if(cookie != null) {
+
+            cookie.setValue(null);
+            cookie.setMaxAge(0);
+            cookie.setDomain(domainName);
             cookie.setPath(path);
+
             response.addCookie(cookie);
-        } else {
-            existCookie.setValue(value);
-            existCookie.setMaxAge(expiry);
-            existCookie.setHttpOnly(true);
-            existCookie.setSecure(false);
-//            existCookie.setDomain(serverAddress);
-            existCookie.setPath(path);
-            response.addCookie(existCookie);
+        }
+    }
+
+    private void createExpiryCookie(HttpServletResponse response) {
+
+        long currentTimeMillis = System.currentTimeMillis();
+        long tokenExpiryInMillis = refreshExpiration * 1000L;
+        long expiryTimeMillis = currentTimeMillis + tokenExpiryInMillis;
+
+        // 사람이 읽을 수 있는 형식으로 변환
+        Instant expiryInstant = Instant.ofEpochMilli(expiryTimeMillis);
+        String formattedTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.of("Asia/Seoul"))
+                .format(expiryInstant);
+
+        log.info("만료 시간: {}", formattedTime);
+
+        String cookie = ResponseCookie.from("expiry", String.valueOf(expiryTimeMillis))
+                .domain(domainName)
+                .secure(false)
+                .path("/")
+                .build().toString();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie);
+    }
+
+    private void deleteExpiryCookie(HttpServletRequest request, HttpServletResponse response) {
+
+        Cookie cookie = WebUtils.getCookie(request, "expiry");
+        if(cookie != null) {
+
+            cookie.setMaxAge(0);
+            cookie.setDomain(domainName);
+            cookie.setPath("/");
+
+            response.addCookie(cookie);
         }
     }
 
