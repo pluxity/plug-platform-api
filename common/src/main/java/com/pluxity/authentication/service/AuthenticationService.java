@@ -26,6 +26,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.WebUtils;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 import static com.pluxity.global.constant.ErrorCode.*;
 
 @Service
@@ -121,8 +125,7 @@ public class AuthenticationService {
 
         createExpiryCookie(response);
 
-        refreshTokenRepository.save(
-                RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
+        refreshTokenRepository.save(RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
 
         return SignInResponse.builder()
                 .accessToken(accessToken)
@@ -137,7 +140,8 @@ public class AuthenticationService {
         String refreshToken = jwtProvider.getJwtFromRequest(REFRESH_TOKEN, request);
 
         if (refreshToken != null && !refreshToken.isEmpty()) {
-            refreshTokenRepository.deleteById(refreshToken);
+            refreshTokenRepository.findByToken(refreshToken)
+                    .ifPresent(refreshTokenRepository::delete);
 
             deleteAuthCookie(ACCESS_TOKEN, "/", request, response);
             deleteAuthCookie(REFRESH_TOKEN, "/auth", request, response);
@@ -185,7 +189,10 @@ public class AuthenticationService {
                 response
         );
 
+        createExpiryCookie(response);
+
         log.info("Refresh Token {}", newRefreshToken);
+
         refreshTokenRepository.save(RefreshToken.of(username, newRefreshToken, refreshExpiration));
     }
 
@@ -225,6 +232,14 @@ public class AuthenticationService {
         long currentTimeMillis = System.currentTimeMillis();
         long tokenExpiryInMillis = refreshExpiration * 1000L;
         long expiryTimeMillis = currentTimeMillis + tokenExpiryInMillis;
+
+        // 사람이 읽을 수 있는 형식으로 변환
+        Instant expiryInstant = Instant.ofEpochMilli(expiryTimeMillis);
+        String formattedTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.of("Asia/Seoul"))
+                .format(expiryInstant);
+
+        log.info("만료 시간: {}", formattedTime);
 
         String cookie = ResponseCookie.from("expiry", String.valueOf(expiryTimeMillis))
                 .domain(domainName)

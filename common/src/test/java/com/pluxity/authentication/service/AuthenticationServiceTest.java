@@ -177,7 +177,7 @@ class AuthenticationServiceTest {
         authenticationService.signOut(request, response);
 
         // then
-        verify(refreshTokenRepository).deleteByToken(refreshToken);
+        verify(refreshTokenRepository).deleteById(refreshToken);
         verify(response).addCookie(any(Cookie.class));
     }
 
