@@ -7,7 +7,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.envers.Audited;
 
 
 @Entity
@@ -15,7 +14,6 @@ import org.hibernate.envers.Audited;
 @DiscriminatorValue("BUILDING")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Audited
 public class Building extends Facility {
 
     @Builder

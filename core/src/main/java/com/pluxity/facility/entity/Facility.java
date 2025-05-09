@@ -4,10 +4,10 @@ import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.envers.Audited;
-import org.hibernate.envers.NotAudited;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -17,12 +17,22 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-@Audited
 public abstract class Facility extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private FacilityCategory category;
+
+    @Audited
+    @Column(name = "drawing_file_id")
+    private Long drawingFileId;
+
+    @Column(name = "thumbnail_file_id")
+    private Long thumbnailFileId;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -30,20 +40,27 @@ public abstract class Facility extends BaseEntity {
     @Column(name = "description")
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    @NotAudited
-    private FacilityCategory category;
+    @Column(name = "history_comment")
+    private String historyComment;
 
-    @Column(name = "drawing_file_id")
-    private Long drawingFileId;
-
-    @Column(name = "thumbnail_file_id")
-    private Long thumbnailFileId;
-
-    public Facility(String name, String description) {
+    @Builder
+    public Facility(String name, String description, String historyComment) {
         this.name = name;
         this.description = description;
+        this.historyComment = historyComment;
+    }
+
+    protected Facility(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
+    public void updateDrawingFileId(FileEntity drawingFile) {
+        this.drawingFileId = drawingFile.getId();
+    }
+
+    public void updateThumbnailFileId(FileEntity thumbnailFile) {
+        this.thumbnailFileId = thumbnailFile.getId();
     }
 
     public void updateName(String name) {
@@ -54,12 +71,8 @@ public abstract class Facility extends BaseEntity {
         this.description = description;
     }
 
-    public void updateDrawingFileId(FileEntity drawingFile) {
-        this.drawingFileId = drawingFile.getId();
-    }
-
-    public void updateThumbnailFileId(FileEntity thumbnailFile) {
-        this.thumbnailFileId = thumbnailFile.getId();
+    public void updateHistoryComment(String historyComment) {
+        this.historyComment = historyComment;
     }
 
     public void assignCategory(FacilityCategory category) {
@@ -72,6 +85,9 @@ public abstract class Facility extends BaseEntity {
         }
         if (facility.description != null) {
             this.description = facility.description;
+        }
+        if (facility.historyComment != null) {
+            this.historyComment = facility.historyComment;
         }
     }
 }
