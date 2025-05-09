@@ -30,6 +30,9 @@ file:
     secret-key: pluxity123!@#
     pre-signed-url-expiration: 600
 
+domain:
+  name: plug-platform.com
+
 logging:
   level:
     org: INFO

@@ -6,6 +6,7 @@ import java.net.URI;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -23,12 +24,14 @@ public class ResponseCreatedAspect {
         URI location;
 
         if ("/{id}".equals(responseCreated.path())) {
-            location = ServletUriComponentsBuilder.fromCurrentRequest()
+            location = ServletUriComponentsBuilder
+                    .fromCurrentContextPath()
                     .path(responseCreated.path())
                     .buildAndExpand(id)
                     .toUri();
         } else {
-            location = ServletUriComponentsBuilder.fromCurrentContextPath()
+            location = ServletUriComponentsBuilder
+                    .fromCurrentContextPath()
                     .path(responseCreated.path())
                     .buildAndExpand(id)
                     .toUri();

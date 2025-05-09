@@ -28,6 +28,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.signUp(dto));
     }
 
+    @ResponseCreated(path = "/users/me")
     @PostMapping(value = "/sign-in", produces = "application/json")
     public ResponseEntity<Void> signIn(
             @RequestBody SignInRequest signInRequestDto,

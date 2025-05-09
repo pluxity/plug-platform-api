@@ -3,6 +3,7 @@ package com.pluxity.facility.entity;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -14,7 +15,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public abstract class Facility extends BaseEntity {
+public class Facility extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +36,14 @@ public abstract class Facility extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private FacilityCategory category;
+
+    @Builder
+    public Facility(String name, String description, Long drawingFileId, Long thumbnailFileId) {
+        this.name = name;
+        this.description = description;
+        this.drawingFileId = drawingFileId;
+        this.thumbnailFileId = thumbnailFileId;
+    }
 
     public void update(String name, String description) {
         this.name = name;
