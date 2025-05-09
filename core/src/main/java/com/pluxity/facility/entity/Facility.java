@@ -4,7 +4,6 @@ import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.envers.Audited;
@@ -43,7 +42,6 @@ public abstract class Facility extends BaseEntity {
     @Column(name = "history_comment")
     private String historyComment;
 
-    @Builder
     public Facility(String name, String description, String historyComment) {
         this.name = name;
         this.description = description;

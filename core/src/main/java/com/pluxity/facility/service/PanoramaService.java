@@ -74,7 +74,8 @@ public class PanoramaService {
         facilityService.update(id, panorama);
 
         if(request.locationRequest() != null) {
-            locationStrategy.update(panorama, request.locationRequest());
+            Panorama savedPanorama = repository.findById(id).orElseThrow();
+            locationStrategy.update(savedPanorama, request.locationRequest());
         }
     }
 

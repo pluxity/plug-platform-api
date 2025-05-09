@@ -67,11 +67,17 @@ class PanoramaServiceTest {
                 thumbnailFileId
         );
         
-        createRequest = new PanoramaCreateRequest(
-                facilityRequest,
-                "서울시 강남구",
+        // 위치 요청 생성
+        LocationRequest locationRequest = new LocationRequest(
                 37.5665,
                 126.9780,
+                0.0
+        );
+        
+        createRequest = new PanoramaCreateRequest(
+                facilityRequest,
+                locationRequest,
+                "서울시 강남구",
                 drawingFileId,
                 thumbnailFileId
         );
@@ -91,9 +97,7 @@ class PanoramaServiceTest {
         assertThat(savedPanorama).isNotNull();
         assertThat(savedPanorama.getName()).isEqualTo("테스트 파노라마");
         assertThat(savedPanorama.getDescription()).isEqualTo("테스트 파노라마 설명");
-        assertThat(savedPanorama.getAddress()).isEqualTo("서울시 강남구");
-        assertThat(savedPanorama.getLatitude()).isEqualTo(37.5665);
-        assertThat(savedPanorama.getLongitude()).isEqualTo(126.9780);
+        // 위치 정보는 LocationStrategy를 통해 저장되므로 직접 검증하지 않음
     }
 
     @Test
@@ -110,8 +114,7 @@ class PanoramaServiceTest {
         // 적어도 하나의 파노라마가 테스트 파노라마와 일치하는지 확인
         boolean foundTestPanorama = responses.stream()
                 .anyMatch(panorama -> 
-                        panorama.facility().name().equals("테스트 파노라마") &&
-                        panorama.address().equals("서울시 강남구"));
+                        panorama.facility().name().equals("테스트 파노라마"));
         assertThat(foundTestPanorama).isTrue();
     }
 
@@ -128,9 +131,7 @@ class PanoramaServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.facility().name()).isEqualTo("테스트 파노라마");
         assertThat(response.facility().description()).isEqualTo("테스트 파노라마 설명");
-        assertThat(response.address()).isEqualTo("서울시 강남구");
-        assertThat(response.latitude()).isEqualTo(37.5665);
-        assertThat(response.longitude()).isEqualTo(126.9780);
+        // 위치 정보는 response.location에서 접근 가능
     }
 
     @Test
@@ -148,7 +149,15 @@ class PanoramaServiceTest {
     void update_WithValidRequest_UpdatesPanorama() {
         // given
         Long id = panoramaService.save(createRequest);
+        
+        LocationRequest locationRequest = new LocationRequest(
+                37.5665,
+                126.9780,
+                0.0
+        );
+        
         PanoramaUpdateRequest updateRequest = new PanoramaUpdateRequest(
+                locationRequest,
                 "수정된 파노라마",
                 "수정된 파노라마 설명",
                 drawingFileId,

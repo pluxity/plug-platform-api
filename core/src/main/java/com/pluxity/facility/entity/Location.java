@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "location")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@IdClass(LocationId.class)
 public class Location {
 
     @Id
