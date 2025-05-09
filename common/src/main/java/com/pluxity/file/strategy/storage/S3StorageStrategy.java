@@ -39,7 +39,7 @@ public class S3StorageStrategy implements StorageStrategy {
     @Override
     public String save(FileProcessingContext context) throws Exception {
 
-        String s3Key = "temp/" + UUID.randomUUID() + "/" + context.originalFileName();
+        String s3Key = "temp/" + UUID.randomUUID() + "/" + UUIDUtils.generateShortUUID() + FileUtils.getFileExtension(context.originalFileName());
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(s3Config.getBucketName())

@@ -12,6 +12,7 @@ import com.pluxity.file.strategy.storage.StorageStrategy;
 import com.pluxity.global.config.S3Config;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.FileUtils;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -133,7 +134,7 @@ public class FileService {
     }
 
     @Transactional(readOnly = true)
-    public FileResponse getFileResponse(Long fileId) {
+    public FileResponse getFileResponse(@NotNull Long fileId) {
 
         if (fileId == null) {
             return null;
@@ -143,6 +144,10 @@ public class FileService {
     }
 
     public FileResponse getFileResponse(FileEntity fileEntity) {
+
+        if(fileEntity == null) {
+            return null;
+        }
 
         String url = "local".equals(storageStrategyType) ?
                 "/files/" + fileEntity.getFilePath() :

@@ -13,8 +13,9 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     properties:
       hibernate:
+        envers:
+          store_data_at_delete: true
         format_sql: true
-        default_batch_fetch_size: 100
 
 logging:
   level:
