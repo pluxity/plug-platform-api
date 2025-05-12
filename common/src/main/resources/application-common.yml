@@ -32,9 +32,7 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
-    operations-sorter: method
   show-actuator: true
   packages-to-scan: com.pluxity
-  paths-to-match: /**
   default-consumes-media-type: application/json
   default-produces-media-type: application/json

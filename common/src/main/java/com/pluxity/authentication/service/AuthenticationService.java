@@ -125,11 +125,6 @@ public class AuthenticationService {
 
         createExpiryCookie(response);
 
-        log.info("TTL {}", refreshExpiration);
-
-        refreshTokenRepository.findById(user.getUsername())
-                        .ifPresent(refreshTokenRepository::delete);
-
         refreshTokenRepository.save(RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
     }
 
@@ -189,10 +184,6 @@ public class AuthenticationService {
         );
 
         createExpiryCookie(response);
-
-        log.info("Refresh Token {}", newRefreshToken);
-        log.info("TTL {}", refreshExpiration);
-
 
         refreshTokenRepository.save(RefreshToken.of(username, newRefreshToken, refreshExpiration));
     }
