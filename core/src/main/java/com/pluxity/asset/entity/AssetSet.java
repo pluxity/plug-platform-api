@@ -18,6 +18,24 @@ public class AssetSet {
     private Long id;
 
     @OneToMany(mappedBy = "assetSet", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "asset_set_id")
     private final List<Asset> assets = new ArrayList<>();
+
+    public void addAsset(Asset asset) {
+        if (!this.assets.contains(asset)) {
+            this.assets.add(asset);
+        }
+
+        if (asset.getAssetSet() != this) {
+            asset.changeAssetSet(this);
+        }
+    }
+
+    public void removeAsset(Asset asset) {
+        if (this.assets.contains(asset)) {
+            this.assets.remove(asset);
+            if (asset.getAssetSet() == this) {
+                asset.changeAssetSet(null);
+            }
+        }
+    }
 }

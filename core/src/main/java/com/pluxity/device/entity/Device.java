@@ -1,5 +1,6 @@
 package com.pluxity.device.entity;
 
+import com.pluxity.asset.entity.Asset;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -22,11 +23,23 @@ public abstract class Device extends BaseEntity {
     @JoinColumn(name = "feature_id")
     private Feature feature;
 
-    protected Device(Feature feature) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "asset3d_id")
+    private Asset asset3d;
+
+    @Column(name = "name")
+    private String name;
+
+    protected Device(Feature feature, Asset asset3d) {
+        this.asset3d = asset3d;
         this.feature = feature;
         if (this.feature != null) {
             this.feature.changeDevice(this);
         }
+    }
+
+    public void changeAsset(Asset asset) {
+        this.asset3d = asset;
     }
 
     public void changeFeature(Feature newFeature) {

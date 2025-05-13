@@ -14,7 +14,8 @@ public record DeviceResponse(
         String categoryName,
         Long stationId,
         String stationName,
-        Long assetId,
+        Long asset2dId,
+        Long asset3dId,
         String assetName,
         String name,
         String code,
@@ -30,8 +31,9 @@ public record DeviceResponse(
                 .categoryName(device.getCategory() != null ? device.getCategory().getName() : null)
                 .stationId(device.getStation() != null ? device.getStation().getId() : null)
                 .stationName(device.getStation() != null ? device.getStation().getName() : null)
-                .assetId(device.getAsset() != null ? device.getAsset().getId() : null)
-                .assetName(device.getAsset() != null ? device.getAsset().getName() : null)
+                .asset2dId(device.getAsset2d() != null ? device.getAsset2d().getId() : null)
+                .asset3dId(device.getAsset3d() != null ? device.getAsset3d().getId() : null)
+                .assetName(device.getAsset2d() != null ? device.getAsset2d().getName() : null)
                 .name(device.getName())
                 .code(device.getCode())
                 .description(device.getDescription())

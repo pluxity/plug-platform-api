@@ -51,7 +51,8 @@ class DeviceServiceTest {
 
     private DeviceCategory category;
     private Station station;
-    private Asset asset;
+    private Asset asset2d;
+    private Asset asset3d;
     private DeviceCreateRequest createRequest;
 
     @BeforeEach
@@ -66,8 +67,12 @@ class DeviceServiceTest {
                 .description("테스트용 스테이션입니다.")
                 .build());
 
-        asset = assetRepository.save(Asset.builder()
-                .name("테스트 에셋")
+        asset2d = assetRepository.save(Asset.builder()
+                .name("테스트 2D 에셋")
+                .build());
+                
+        asset3d = assetRepository.save(Asset.builder()
+                .name("테스트 3D 에셋")
                 .build());
 
         // Feature 생성
@@ -85,7 +90,8 @@ class DeviceServiceTest {
                 featureRequest,
                 category.getId(),
                 station.getId(),
-                asset.getId(),
+                asset2d.getId(),
+                asset3d.getId(),
                 "테스트 디바이스",
                 "TEST-001",
                 "테스트용 디바이스입니다."
@@ -108,7 +114,7 @@ class DeviceServiceTest {
         assertThat(savedDevice.code()).isEqualTo("TEST-001");
         assertThat(savedDevice.categoryId()).isEqualTo(category.getId());
         assertThat(savedDevice.stationId()).isEqualTo(station.getId());
-        assertThat(savedDevice.assetId()).isEqualTo(asset.getId());
+        assertThat(savedDevice.asset3dId()).isEqualTo(asset3d.getId());
     }
 
     @Test
@@ -166,9 +172,10 @@ class DeviceServiceTest {
                 
         DeviceUpdateRequest updateRequest = new DeviceUpdateRequest(
                 featureUpdateRequest,
-                null, // 카테고리 변경 없음
-                null, // 스테이션 변경 없음
-                null, // 에셋 변경 없음
+                null,
+                null,
+                null,
+                null,
                 "수정된 디바이스",
                 "TEST-002",
                 "수정된 디바이스 설명입니다."

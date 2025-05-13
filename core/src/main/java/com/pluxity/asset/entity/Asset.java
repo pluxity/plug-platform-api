@@ -32,6 +32,10 @@ public class Asset extends BaseEntity {
 
     private Long fileId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "asset_set_id")
+    private AssetSet assetSet;
+
 
     @Builder
     public Asset(Long id, AssetType type, String name, Long fileId) {
@@ -41,6 +45,17 @@ public class Asset extends BaseEntity {
         this.fileId = fileId;
     }
 
+    public void changeAssetSet(AssetSet assetSet) {
+        if (this.assetSet != null) {
+            this.assetSet.getAssets().remove(this);
+        }
+
+        this.assetSet = assetSet;
+
+        if (assetSet != null && !assetSet.getAssets().contains(this)) {
+            assetSet.addAsset(this);
+        }
+    }
 
     public static Asset create(AssetCreateRequest request) {
         return Asset.builder()

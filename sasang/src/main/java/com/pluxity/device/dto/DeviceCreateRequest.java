@@ -6,7 +6,8 @@ public record DeviceCreateRequest(
         FeatureCreateRequest feature,
         Long deviceCategoryId,
         Long stationId,
-        Long assetId,
+        Long asset2dId,
+        Long asset3dId,
         String name,
         String code,
         String description

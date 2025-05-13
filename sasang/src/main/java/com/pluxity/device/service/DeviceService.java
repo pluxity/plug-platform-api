@@ -59,8 +59,12 @@ public class DeviceService {
                 ? findStationById(request.stationId())
                 : null;
 
-        Asset asset = request.assetId() != null
-                ? findAssetById(request.assetId())
+        Asset asset2d = request.asset2dId() != null
+                ? findAssetById(request.asset3dId())
+                : null;
+
+        Asset asset3d = request.asset3dId() != null
+                ? findAssetById(request.asset3dId())
                 : null;
 
         Feature feature = Feature.create(request.feature());
@@ -69,7 +73,8 @@ public class DeviceService {
                 feature,
                 category,
                 station,
-                asset,
+                asset2d,
+                asset3d,
                 request.name(),
                 request.code(),
                 request.description()
@@ -90,15 +95,24 @@ public class DeviceService {
             stationToUpdate = findStationById(request.stationId());
         }
 
-        Asset assetToUpdate = null;
-        if (request.assetId() != null) {
-            assetToUpdate = findAssetById(request.assetId());
+        Asset asset2dToUpdate = null;
+        if (request.asset2dId() != null) {
+            asset2dToUpdate = findAssetById(request.asset2dId());
+        }
+
+        Asset asset3dToUpdate = null;
+        if (request.asset3dId() != null) {
+            asset3dToUpdate = findAssetById(request.asset3dId());
+        }
+        if (request.feature() != null) {
+            device.getFeature().update(request.feature());
         }
 
         device.update(
                 categoryToUpdate,
                 stationToUpdate,
-                assetToUpdate,
+                asset2dToUpdate,
+                asset3dToUpdate,
                 request.name(),
                 request.code(),
                 request.description(),
