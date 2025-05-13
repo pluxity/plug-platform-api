@@ -7,6 +7,7 @@ public record DeviceCreateRequest(
         Long deviceCategoryId,
         Long stationId,
         Long asset,
+        Long iconId,
         String name,
         String code,
         String description) {}

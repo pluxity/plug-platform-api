@@ -16,6 +16,8 @@ public record DeviceResponse(
         String stationName,
         Long asset,
         String assetName,
+        Long iconId,
+        String iconName,
         String name,
         String code,
         String description,
@@ -31,6 +33,8 @@ public record DeviceResponse(
                 .stationName(device.getStation() != null ? device.getStation().getName() : null)
                 .asset(device.getAsset() != null ? device.getAsset().getId() : null)
                 .assetName(device.getAsset() != null ? device.getAsset().getName() : null)
+                .iconId(device.getIcon() != null ? device.getIcon().getId() : null)
+                .iconName(device.getIcon() != null ? device.getIcon().getName() : null)
                 .name(device.getName())
                 .code(device.getCode())
                 .description(device.getDescription())

@@ -13,6 +13,8 @@ import com.pluxity.facility.entity.Station;
 import com.pluxity.facility.repository.StationRepository;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.icon.entity.Icon;
+import com.pluxity.icon.repository.IconRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ public class DeviceService {
     private final DeviceCategoryRepository categoryRepository;
     private final StationRepository stationRepository;
     private final AssetRepository assetRepository;
+    private final IconRepository iconRepository;
 
     @Transactional(readOnly = true)
     public DeviceResponse findById(Long id) {
@@ -55,6 +58,8 @@ public class DeviceService {
         Station station = request.stationId() != null ? findStationById(request.stationId()) : null;
 
         Asset asset = request.asset() != null ? findAssetById(request.asset()) : null;
+        
+        Icon icon = request.iconId() != null ? findIconById(request.iconId()) : null;
 
         Feature feature = Feature.create(request.feature());
 
@@ -62,6 +67,7 @@ public class DeviceService {
                 feature,
                 category,
                 station,
+                icon,
                 asset,
                 request.name(),
                 request.code(),
@@ -82,6 +88,11 @@ public class DeviceService {
             stationToUpdate = findStationById(request.stationId());
         }
 
+        Icon icon = null;
+        if (request.iconId() != null) {
+            icon = findIconById(request.iconId());
+        }
+
         Asset asset = null;
         if (request.asset() != null) {
             asset = findAssetById(request.asset());
@@ -94,6 +105,7 @@ public class DeviceService {
         device.update(
                 categoryToUpdate,
                 stationToUpdate,
+                icon,
                 asset,
                 request.name(),
                 request.code(),
@@ -132,7 +144,9 @@ public class DeviceService {
                 .orElseThrow(
                         () ->
                                 new CustomException(
-                                        "Station not found", HttpStatus.NOT_FOUND, "해당 스테이션을 찾을 수 없습니다 : " + id));
+                                        "Station not found",
+                                        HttpStatus.NOT_FOUND,
+                                        "해당 스테이션을 찾을 수 없습니다 : " + id));
     }
 
     private Asset findAssetById(Long id) {
@@ -141,6 +155,19 @@ public class DeviceService {
                 .orElseThrow(
                         () ->
                                 new CustomException(
-                                        "Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다 : " + id));
+                                        "Asset not found",
+                                        HttpStatus.NOT_FOUND,
+                                        "해당 에셋을 찾을 수 없습니다 : " + id));
+    }
+    
+    private Icon findIconById(Long id) {
+        return iconRepository
+                .findById(id)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "Icon not found",
+                                        HttpStatus.NOT_FOUND,
+                                        "해당 아이콘을 찾을 수 없습니다 : " + id));
     }
 }

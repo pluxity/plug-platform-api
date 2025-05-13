@@ -100,7 +100,7 @@ class AssetServiceTest {
         AssetResponse savedAsset = assetService.getAsset(savedId);
         assertThat(savedAsset).isNotNull();
         assertThat(savedAsset.name()).isEqualTo("테스트 에셋");
-        assertThat(savedAsset.file()).isNull();
+        assertThat(savedAsset.file().id()).isNull();
     }
 
     @Test

@@ -15,6 +15,8 @@ import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Spatial;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.icon.entity.Icon;
+import com.pluxity.icon.repository.IconRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,10 +50,14 @@ class DeviceServiceTest {
 
     @Autowired
     AssetRepository assetRepository;
+    
+    @Autowired
+    IconRepository iconRepository;
 
     private DeviceCategory category;
     private Station station;
     private Asset asset;
+    private Icon icon;
     private DeviceCreateRequest createRequest;
 
     @BeforeEach
@@ -70,6 +76,9 @@ class DeviceServiceTest {
                 .name("테스트 2D 에셋")
                 .build());
                 
+        icon = iconRepository.save(Icon.builder()
+                .name("테스트 아이콘")
+                .build());
 
         // Feature 생성
         Spatial position = Spatial.builder().x(0.0).y(0.0).z(0.0).build();
@@ -87,6 +96,7 @@ class DeviceServiceTest {
                 category.getId(),
                 station.getId(),
                 asset.getId(),
+                icon.getId(),
                 "테스트 디바이스",
                 "TEST-001",
                 "테스트용 디바이스입니다."
@@ -109,6 +119,7 @@ class DeviceServiceTest {
         assertThat(savedDevice.code()).isEqualTo("TEST-001");
         assertThat(savedDevice.categoryId()).isEqualTo(category.getId());
         assertThat(savedDevice.stationId()).isEqualTo(station.getId());
+        assertThat(savedDevice.iconId()).isEqualTo(icon.getId());
     }
 
     @Test
@@ -140,6 +151,8 @@ class DeviceServiceTest {
         assertThat(response.name()).isEqualTo("테스트 디바이스");
         assertThat(response.code()).isEqualTo("TEST-001");
         assertThat(response.description()).isEqualTo("테스트용 디바이스입니다.");
+        assertThat(response.iconId()).isEqualTo(icon.getId());
+        assertThat(response.iconName()).isEqualTo(icon.getName());
     }
 
     @Test
@@ -158,6 +171,11 @@ class DeviceServiceTest {
         // given
         Long id = deviceService.save(createRequest);
         
+        // 새로운 아이콘 생성
+        Icon newIcon = iconRepository.save(Icon.builder()
+                .name("새 테스트 아이콘")
+                .build());
+        
         // Feature 업데이트 요청 생성
         Spatial newPosition = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
         FeatureUpdateRequest featureUpdateRequest = FeatureUpdateRequest.builder()
@@ -169,6 +187,7 @@ class DeviceServiceTest {
                 null,
                 null,
                 null,
+                newIcon.getId(),
                 "수정된 디바이스",
                 "TEST-002",
                 "수정된 디바이스 설명입니다."
@@ -183,6 +202,8 @@ class DeviceServiceTest {
         assertThat(updatedDevice.code()).isEqualTo("TEST-002");
         assertThat(updatedDevice.description()).isEqualTo("수정된 디바이스 설명입니다.");
         assertThat(updatedDevice.feature().position().getX()).isEqualTo(1.0);
+        assertThat(updatedDevice.iconId()).isEqualTo(newIcon.getId());
+        assertThat(updatedDevice.iconName()).isEqualTo(newIcon.getName());
     }
 
     @Test

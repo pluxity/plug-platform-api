@@ -4,6 +4,7 @@ import com.pluxity.asset.entity.Asset;
 import com.pluxity.facility.entity.Station;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.icon.entity.Icon;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -25,6 +26,10 @@ public class DefaultDevice extends Device {
     @JoinColumn(name = "station_id")
     private Station station;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_id")
+    private Icon icon;
+
     @Column(name = "name")
     private String name;
 
@@ -41,12 +46,14 @@ public class DefaultDevice extends Device {
             Asset asset,
             DeviceCategory category,
             Station station,
+            Icon icon,
             String name,
             String code,
             String description) {
         super(feature, asset);
         this.category = category;
         this.station = station;
+        this.icon = icon;
         changeAsset(asset);
         this.name = name;
         this.code = code;
@@ -57,6 +64,7 @@ public class DefaultDevice extends Device {
             Feature feature,
             DeviceCategory category,
             Station station,
+            Icon icon,
             Asset asset,
             String name,
             String code,
@@ -65,6 +73,7 @@ public class DefaultDevice extends Device {
                 .feature(feature)
                 .category(category)
                 .station(station)
+                .icon(icon)
                 .asset(asset)
                 .name(name)
                 .code(code)
@@ -75,6 +84,7 @@ public class DefaultDevice extends Device {
     public void update(
             DeviceCategory newCategory,
             Station newStation,
+            Icon newIcon,
             Asset newAsset,
             String newName,
             String newCode,
@@ -94,6 +104,10 @@ public class DefaultDevice extends Device {
 
         if (newStation != null) {
             this.station = newStation;
+        }
+
+        if (newIcon != null) {
+            this.icon = newIcon;
         }
 
         if (newAsset != null) {
@@ -135,5 +149,9 @@ public class DefaultDevice extends Device {
 
     public void updateDescription(String description) {
         this.description = description;
+    }
+
+    public void updateIcon(Icon icon) {
+        this.icon = icon;
     }
 }
