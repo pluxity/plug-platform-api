@@ -91,10 +91,10 @@ public class AssetController {
             })
     @PostMapping
     @ResponseCreated
-    public void createAsset(
+    public ResponseEntity<Long> createAsset(
             @Parameter(description = "에셋 생성 정보", required = true) @RequestBody
                     AssetCreateRequest request) {
-        service.createAsset(request);
+        return ResponseEntity.ok(service.createAsset(request));
     }
 
     @Operation(summary = "에셋 수정", description = "기존 에셋의 정보를 수정합니다")

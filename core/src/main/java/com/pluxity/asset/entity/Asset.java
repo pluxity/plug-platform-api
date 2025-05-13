@@ -1,6 +1,5 @@
 package com.pluxity.asset.entity;
 
-import com.pluxity.asset.constant.AssetType;
 import com.pluxity.asset.dto.AssetCreateRequest;
 import com.pluxity.asset.dto.AssetUpdateRequest;
 import com.pluxity.file.entity.FileEntity;
@@ -25,54 +24,30 @@ public class Asset extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private AssetType type;
-
     private String name;
 
     private Long fileId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "asset_set_id")
-    private AssetSet assetSet;
-
     @Builder
-    public Asset(Long id, AssetType type, String name, Long fileId) {
+    public Asset(Long id, String name, Long fileId) {
         this.id = id;
-        this.type = type;
         this.name = name;
         this.fileId = fileId;
     }
 
-    public void changeAssetSet(AssetSet assetSet) {
-        if (this.assetSet != null) {
-            this.assetSet.getAssets().remove(this);
-        }
-
-        this.assetSet = assetSet;
-
-        if (assetSet != null && !assetSet.getAssets().contains(this)) {
-            assetSet.addAsset(this);
-        }
-    }
-
     public static Asset create(AssetCreateRequest request) {
-        return Asset.builder().type(AssetType.valueOf(request.type())).name(request.name()).build();
+        return Asset.builder()
+                .name(request.name())
+                .build();
     }
 
     public void update(AssetUpdateRequest request) {
-        if (request.type() != null) {
-            this.type = AssetType.valueOf(request.type());
-        }
         if (request.name() != null) {
             this.name = request.name();
         }
     }
 
     public void update(String name, String type) {
-        if (type != null) {
-            this.type = AssetType.valueOf(type);
-        }
         if (name != null) {
             this.name = name;
         }
@@ -96,11 +71,4 @@ public class Asset extends BaseEntity {
         return this.fileId != null;
     }
 
-    public boolean isTwoDimensional() {
-        return this.type == AssetType.TWO_DIMENSION;
-    }
-
-    public boolean isThreeDimensional() {
-        return this.type == AssetType.THREE_DIMENSION;
-    }
 }

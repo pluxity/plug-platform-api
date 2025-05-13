@@ -32,7 +32,7 @@ public class ResponseCreatedAspect {
             location =
                     ServletUriComponentsBuilder.fromCurrentContextPath()
                             .path(responseCreated.path())
-                            .buildAndExpand(id)
+                            .buildAndExpand()
                             .toUri();
         }
         return ResponseEntity.created(location).build();

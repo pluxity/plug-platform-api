@@ -1,6 +1,5 @@
 package com.pluxity.asset.dto;
 
-import com.pluxity.asset.constant.AssetType;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.file.dto.FileResponse;
 import java.time.LocalDateTime;
@@ -10,7 +9,6 @@ import lombok.Builder;
 public record AssetResponse(
         Long id,
         String name,
-        AssetType type,
         FileResponse file,
         LocalDateTime createdAt,
         LocalDateTime updatedAt) {
@@ -19,7 +17,6 @@ public record AssetResponse(
         return new AssetResponse(
                 asset.getId(),
                 asset.getName(),
-                asset.getType(),
                 file != null ? file : FileResponse.empty(),
                 asset.getCreatedAt(),
                 asset.getUpdatedAt());

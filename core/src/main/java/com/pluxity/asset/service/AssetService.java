@@ -39,7 +39,7 @@ public class AssetService {
     }
 
     @Transactional
-    public void createAsset(AssetCreateRequest request) {
+    public Long createAsset(AssetCreateRequest request) {
         Asset asset = Asset.create(request);
         Asset savedAsset = assetRepository.save(asset);
 
@@ -48,6 +48,8 @@ public class AssetService {
             FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
             savedAsset.updateFileEntity(fileEntity);
         }
+
+        return savedAsset.getId();
     }
 
     @Transactional
