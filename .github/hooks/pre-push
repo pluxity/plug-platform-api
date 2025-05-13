@@ -1,0 +1,49 @@
+#!/bin/sh
+
+# 프로젝트 루트 디렉토리로 이동
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+echo "테스트 실행 중..."
+
+# OS 감지 및 그에 맞는 gradlew 명령어 실행
+case "$(uname -s 2>/dev/null || echo 'Windows')" in
+    CYGWIN*|MINGW*|MSYS*|Windows*)
+        # Windows 환경
+        echo "Windows 환경 감지됨, gradlew.bat 사용"
+        # 윈도우 환경에서는 상대 경로보다 명확한 방법 사용
+        if [ -f "./gradlew.bat" ]; then
+            CMD="./gradlew.bat test"
+        else
+            CMD="gradlew.bat test"
+        fi
+        ;;
+    *)
+        # Unix/Linux/macOS 환경
+        echo "Unix/Linux/macOS 환경 감지됨, ./gradlew 사용"
+        # 실행 권한 확인
+        if [ -x "./gradlew" ]; then
+            CMD="./gradlew test"
+        else
+            # 실행 권한 부여 시도
+            chmod +x ./gradlew 2>/dev/null || true
+            CMD="./gradlew test"
+        fi
+        ;;
+esac
+
+# 테스트 실행
+echo "실행 명령어: $CMD"
+eval "$CMD"
+
+# 테스트 결과 확인
+TEST_RESULT=$?
+if [ $TEST_RESULT -ne 0 ]; then
+    echo "ERROR: 테스트가 실패했습니다. 푸시가 거부되었습니다."
+    echo "테스트 오류를 해결한 후 다시 시도하세요."
+    exit 1
+fi
+
+./gradlew spotlessApply
+echo "테스트 성공! 푸시를 진행합니다."
+
+exit 0
