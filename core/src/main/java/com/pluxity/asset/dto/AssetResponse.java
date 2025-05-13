@@ -1,11 +1,11 @@
 package com.pluxity.asset.dto;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.asset.constant.AssetType;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.file.dto.FileResponse;
+import com.pluxity.global.response.BaseResponse;
 import lombok.Builder;
-
-import java.time.LocalDateTime;
 
 @Builder
 public record AssetResponse(
@@ -13,8 +13,8 @@ public record AssetResponse(
         String name,
         AssetType type,
         FileResponse file,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        @JsonUnwrapped
+        BaseResponse baseResponse
 ) {
 
     public static AssetResponse from(Asset asset, FileResponse file) {
@@ -23,8 +23,7 @@ public record AssetResponse(
                 asset.getName(),
                 asset.getType(),
                 file != null ? file : FileResponse.empty(),
-                asset.getCreatedAt(),
-                asset.getUpdatedAt()
+                BaseResponse.of(asset)
         );
     }
 }

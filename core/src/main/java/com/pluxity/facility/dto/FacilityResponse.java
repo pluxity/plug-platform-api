@@ -1,10 +1,10 @@
 package com.pluxity.facility.dto;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.entity.Facility;
 import com.pluxity.file.dto.FileResponse;
+import com.pluxity.global.response.BaseResponse;
 import lombok.Builder;
-
-import java.time.LocalDateTime;
 
 @Builder
 public record FacilityResponse(
@@ -13,8 +13,8 @@ public record FacilityResponse(
         String description,
         FileResponse drawing,
         FileResponse thumbnail,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        @JsonUnwrapped
+        BaseResponse baseResponse
 ) {
     public static FacilityResponse from(Facility facility, FileResponse drawing, FileResponse thumbnail) {
         return new FacilityResponse(
@@ -23,8 +23,7 @@ public record FacilityResponse(
                 facility.getDescription(),
                 drawing != null ? drawing : FileResponse.empty(),
                 thumbnail != null ? thumbnail : FileResponse.empty(),
-                facility.getCreatedAt(),
-                facility.getUpdatedAt()
+                BaseResponse.of(facility)
         );
     }
 }

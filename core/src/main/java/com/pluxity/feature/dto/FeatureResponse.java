@@ -1,10 +1,10 @@
 package com.pluxity.feature.dto;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.Spatial;
+import com.pluxity.global.response.BaseResponse;
 import lombok.Builder;
-
-import java.time.LocalDateTime;
 
 @Builder
 public record FeatureResponse(
@@ -12,8 +12,8 @@ public record FeatureResponse(
         Spatial position,
         Spatial rotation,
         Spatial scale,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        @JsonUnwrapped
+        BaseResponse baseResponse
 ) {
 
     public static FeatureResponse from(Feature feature) {
@@ -22,8 +22,7 @@ public record FeatureResponse(
                 .position(feature.getPosition())
                 .rotation(feature.getRotation())
                 .scale(feature.getScale())
-                .createdAt(feature.getCreatedAt())
-                .updatedAt(feature.getUpdatedAt())
+                .baseResponse(BaseResponse.of(feature))
                 .build();
     }
 }
