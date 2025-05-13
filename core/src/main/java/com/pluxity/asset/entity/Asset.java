@@ -3,7 +3,6 @@ package com.pluxity.asset.entity;
 import com.pluxity.asset.constant.AssetType;
 import com.pluxity.asset.dto.AssetCreateRequest;
 import com.pluxity.asset.dto.AssetUpdateRequest;
-import com.pluxity.device.entity.Device;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -12,10 +11,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @Entity
 @Table(name = "asset")
@@ -37,8 +32,6 @@ public class Asset extends BaseEntity {
 
     private Long fileId;
 
-    @OneToMany(mappedBy = "asset", cascade = CascadeType.PERSIST)
-    private final List<Device> devices = new ArrayList<>();
 
     @Builder
     public Asset(Long id, AssetType type, String name, Long fileId) {
@@ -46,28 +39,6 @@ public class Asset extends BaseEntity {
         this.type = type;
         this.name = name;
         this.fileId = fileId;
-    }
-
-    public void addDevice(Device device) {
-        if (device != null && !this.devices.contains(device)) {
-            this.devices.add(device);
-            if (device.getAsset() != this) {
-                device.changeAsset(this);
-            }
-        }
-    }
-
-    public void removeDevice(Device device) {
-        if (device != null && this.devices.contains(device)) {
-            this.devices.remove(device);
-            if (device.getAsset() == this) {
-                device.changeAsset(null);
-            }
-        }
-    }
-
-    public List<Device> getDevices() {
-        return Collections.unmodifiableList(devices);
     }
 
 

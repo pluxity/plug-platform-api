@@ -9,16 +9,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-
 @Entity
-@Table(name = "building")
-@DiscriminatorValue("BUILDING")
+@Table(name = "station")
+@DiscriminatorValue("STATION")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ConditionalOnProperty(name = "facility.building.enabled", havingValue = "true")
-public class Building extends Facility {
+@ConditionalOnProperty(name = "facility.station.enabled", havingValue = "true")
+public class Station extends Facility {
     @Builder
-    public Building(String name, String description) {
+    public Station(String name, String description) {
         super(name, description);
     }
 }

@@ -18,9 +18,7 @@ public class BuildingService {
 
     private final FileService fileService;
     private final FacilityService facilityService;
-
     private final FloorStrategy floorStrategy;
-
     private final BuildingRepository repository;
 
 

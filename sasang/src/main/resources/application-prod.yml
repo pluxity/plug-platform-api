@@ -1,0 +1,35 @@
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      timeout: 1000
+  application:
+    name: plug-platform-api
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:mysql://mariadb:3306/plug_db}
+    username: ${DATASOURCE_USERNAME:pluxity}
+    password: ${DATASOURCE_PASSWORD:pluxity123!@#}
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+
+file:
+  storage-strategy: local
+  local:
+    path: /app/upload/
+  s3:
+    endpoint-url: ${S3_ENDPOINT_URL:http://192.168.4.56:9000}
+    bucket: ${S3_BUCKET:plug-platform}
+    region: ${S3_REGION:ap-northeast-2}
+    access-key: ${S3_ACCESS_KEY:pluxity}
+    secret-key: ${S3_SECRET_KEY:pluxity123!@#}
+    pre-signed-url-expiration: 600
+
+logging:
+  level:
+    org: INFO
+    com: INFO
+    root: INFO 

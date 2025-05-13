@@ -11,10 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 @Entity
 @Table(name = "feature")
 @Getter
@@ -44,8 +40,8 @@ public class Feature extends BaseEntity {
     @AttributeOverride(name = "z", column = @Column(name = "scale_z"))
     private Spatial scale;
 
-    @OneToMany(mappedBy = "feature", cascade = CascadeType.PERSIST)
-    private final List<Device> devices = new ArrayList<>();
+    @OneToOne(mappedBy = "feature", cascade = CascadeType.PERSIST)
+    private Device device;
 
     @Builder
     public Feature(Long id, Spatial position, Spatial rotation, Spatial scale) {
@@ -54,30 +50,6 @@ public class Feature extends BaseEntity {
         this.rotation = rotation;
         this.scale = scale;
     }
-
-    public void addDevice(Device device) {
-        if (device != null && !this.devices.contains(device)) {
-            this.devices.add(device);
-            if (device.getFeature() != this) {
-                device.changeFeature(this);
-            }
-        }
-    }
-
-    public void removeDevice(Device device) {
-        if (device != null && this.devices.contains(device)) {
-            this.devices.remove(device);
-            if (device.getFeature() == this) {
-                device.changeFeature(null);
-            }
-        }
-    }
-
-
-    public List<Device> getDevices() {
-        return Collections.unmodifiableList(devices);
-    }
-
 
     public static Feature create(FeatureCreateRequest request) {
         return Feature.builder()
@@ -136,5 +108,9 @@ public class Feature extends BaseEntity {
                 rotation.getX() == 0.0 &&
                 rotation.getY() == 0.0 &&
                 rotation.getZ() == 0.0;
+    }
+
+    public void changeDevice(Device device) {
+        this.device = device;
     }
 }
