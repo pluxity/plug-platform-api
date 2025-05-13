@@ -17,8 +17,8 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        default_batch_fetch_size: 5
-  #      ddl-auto: update
+        default_batch_fetch_size: 100
+
   flyway:
     enabled: false
 
