@@ -9,14 +9,13 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import java.util.List;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -36,9 +35,7 @@ public class AssetService {
     @Transactional(readOnly = true)
     public List<AssetResponse> getAssets() {
         List<Asset> assets = assetRepository.findAll();
-        return assets.stream()
-                .map(asset -> AssetResponse.from(asset, getFileResponse(asset)))
-                .toList();
+        return assets.stream().map(asset -> AssetResponse.from(asset, getFileResponse(asset))).toList();
     }
 
     @Transactional
@@ -56,14 +53,12 @@ public class AssetService {
     @Transactional
     public void updateAsset(Long id, AssetUpdateRequest request) {
         Asset asset = findAssetById(id);
-        
+
         asset.update(request);
-        
+
         if (request.fileId() != null) {
-            FileEntity fileEntity = fileService.finalizeUpload(
-                    request.fileId(), 
-                    asset.getAssetFilePath()
-            );
+            FileEntity fileEntity =
+                    fileService.finalizeUpload(request.fileId(), asset.getAssetFilePath());
             asset.updateFileEntity(fileEntity);
         }
     }
@@ -75,8 +70,7 @@ public class AssetService {
     }
 
     private Asset findAssetById(Long id) {
-        return assetRepository.findById(id)
-                .orElseThrow(notFoundAsset());
+        return assetRepository.findById(id).orElseThrow(notFoundAsset());
     }
 
     private FileResponse getFileResponse(Asset asset) {

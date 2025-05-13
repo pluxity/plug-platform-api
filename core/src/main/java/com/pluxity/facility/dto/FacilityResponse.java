@@ -2,9 +2,8 @@ package com.pluxity.facility.dto;
 
 import com.pluxity.facility.entity.Facility;
 import com.pluxity.file.dto.FileResponse;
-import lombok.Builder;
-
 import java.time.LocalDateTime;
+import lombok.Builder;
 
 @Builder
 public record FacilityResponse(
@@ -14,9 +13,9 @@ public record FacilityResponse(
         FileResponse drawing,
         FileResponse thumbnail,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
-) {
-    public static FacilityResponse from(Facility facility, FileResponse drawing, FileResponse thumbnail) {
+        LocalDateTime updatedAt) {
+    public static FacilityResponse from(
+            Facility facility, FileResponse drawing, FileResponse thumbnail) {
         return new FacilityResponse(
                 facility.getId(),
                 facility.getName(),
@@ -24,7 +23,6 @@ public record FacilityResponse(
                 drawing != null ? drawing : FileResponse.empty(),
                 thumbnail != null ? thumbnail : FileResponse.empty(),
                 facility.getCreatedAt(),
-                facility.getUpdatedAt()
-        );
+                facility.getUpdatedAt());
     }
 }

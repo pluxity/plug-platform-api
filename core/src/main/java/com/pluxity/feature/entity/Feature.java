@@ -90,24 +90,21 @@ public class Feature extends BaseEntity {
     }
 
     public boolean isDefaultPosition() {
-        return position != null &&
-                position.getX() == 0.0 &&
-                position.getY() == 0.0 &&
-                position.getZ() == 0.0;
+        return position != null
+                && position.getX() == 0.0
+                && position.getY() == 0.0
+                && position.getZ() == 0.0;
     }
 
     public boolean isDefaultScale() {
-        return scale != null &&
-                scale.getX() == 1.0 &&
-                scale.getY() == 1.0 &&
-                scale.getZ() == 1.0;
+        return scale != null && scale.getX() == 1.0 && scale.getY() == 1.0 && scale.getZ() == 1.0;
     }
 
     public boolean isDefaultRotation() {
-        return rotation != null &&
-                rotation.getX() == 0.0 &&
-                rotation.getY() == 0.0 &&
-                rotation.getZ() == 0.0;
+        return rotation != null
+                && rotation.getX() == 0.0
+                && rotation.getY() == 0.0
+                && rotation.getZ() == 0.0;
     }
 
     public void changeDevice(Device device) {

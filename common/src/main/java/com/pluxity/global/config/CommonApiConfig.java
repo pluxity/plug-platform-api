@@ -15,15 +15,15 @@ public class CommonApiConfig {
     @ConditionalOnMissingBean(OpenAPI.class)
     public OpenAPI CommonOpenAPI() {
         return new OpenAPI()
-                .info(new Info()
-                        .title("Plug Platform API")
-                        .description("Plug Platform API Documentation")
-                        .version("1.0.0")
-                        .contact(new Contact()
-                                .name("Pluxity")
-                                .email("support@pluxity.com"))
-                        .license(new License()
-                                .name("Apache 2.0")
-                                .url("http://www.apache.org/licenses/LICENSE-2.0.html")));
+                .info(
+                        new Info()
+                                .title("Plug Platform API")
+                                .description("Plug Platform API Documentation")
+                                .version("1.0.0")
+                                .contact(new Contact().name("Pluxity").email("support@pluxity.com"))
+                                .license(
+                                        new License()
+                                                .name("Apache 2.0")
+                                                .url("http://www.apache.org/licenses/LICENSE-2.0.html")));
     }
-} 
+}

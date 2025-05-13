@@ -6,11 +6,10 @@ import com.pluxity.facility.entity.Station;
 import com.pluxity.facility.repository.StationRepository;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,14 +23,15 @@ public class StationService {
     @Transactional
     public Long save(StationCreateRequest request) {
 
-        Station station = Station.builder()
-                .name(request.facility().name())
-                .description(request.facility().description())
-                .build();
+        Station station =
+                Station.builder()
+                        .name(request.facility().name())
+                        .description(request.facility().description())
+                        .build();
 
         Facility saved = facilityService.save(station, request.facility());
 
-        if(request.floors() != null) {
+        if (request.floors() != null) {
             for (FloorRequest floorRequest : request.floors()) {
                 floorStrategy.save(saved, floorRequest);
             }
@@ -43,11 +43,16 @@ public class StationService {
     @Transactional(readOnly = true)
     public List<StationResponse> findAll() {
         return stationRepository.findAll().stream()
-                .map(station -> StationResponse.builder()
-                        .facility(FacilityResponse.from(station, fileService.getFileResponse(station.getDrawingFileId()), fileService.getFileResponse(station.getThumbnailFileId())))
-                        .build())
+                .map(
+                        station ->
+                                StationResponse.builder()
+                                        .facility(
+                                                FacilityResponse.from(
+                                                        station,
+                                                        fileService.getFileResponse(station.getDrawingFileId()),
+                                                        fileService.getFileResponse(station.getThumbnailFileId())))
+                                        .build())
                 .toList();
-
     }
 
     @Transactional(readOnly = true)
@@ -56,7 +61,11 @@ public class StationService {
         List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
 
         return StationResponse.builder()
-                .facility(FacilityResponse.from(station, fileService.getFileResponse(station.getDrawingFileId()), fileService.getFileResponse(station.getThumbnailFileId())))
+                .facility(
+                        FacilityResponse.from(
+                                station,
+                                fileService.getFileResponse(station.getDrawingFileId()),
+                                fileService.getFileResponse(station.getThumbnailFileId())))
                 .floors(floorResponse)
                 .build();
     }
@@ -68,10 +77,8 @@ public class StationService {
 
     @Transactional
     public void update(Long id, StationUpdateRequest request) {
-        facilityService.update(id, Station.builder()
-                .name(request.name())
-                .description(request.description())
-                .build());
+        facilityService.update(
+                id, Station.builder().name(request.name()).description(request.description()).build());
     }
 
     @Transactional
@@ -80,5 +87,4 @@ public class StationService {
         floorStrategy.delete(station);
         facilityService.deleteFacility(id);
     }
-
 }

@@ -1,12 +1,7 @@
 package com.pluxity.facility.dto;
 
+import java.util.List;
 import lombok.Builder;
 
-import java.util.List;
-
 @Builder
-public record StationResponse(
-        FacilityResponse facility,
-        List<FloorResponse> floors
-) {
-}
+public record StationResponse(FacilityResponse facility, List<FloorResponse> floors) {}

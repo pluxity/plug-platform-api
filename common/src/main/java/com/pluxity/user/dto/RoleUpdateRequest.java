@@ -5,6 +5,4 @@ import lombok.Builder;
 
 @Builder
 public record RoleUpdateRequest(
-    @NotBlank(message = "Role name cannot be empty") String name,
-    String description
-) {}
+        @NotBlank(message = "Role name cannot be empty") String name, String description) {}

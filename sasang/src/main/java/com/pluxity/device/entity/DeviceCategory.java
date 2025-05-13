@@ -2,13 +2,12 @@ package com.pluxity.device.entity;
 
 import com.pluxity.category.entity.Category;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "device_category")
@@ -16,7 +15,11 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DeviceCategory extends Category<DeviceCategory> {
 
-    @OneToMany(mappedBy = "category", targetEntity = DefaultDevice.class, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "category",
+            targetEntity = DefaultDevice.class,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private final List<DefaultDevice> devices = new ArrayList<>();
 
     @Builder

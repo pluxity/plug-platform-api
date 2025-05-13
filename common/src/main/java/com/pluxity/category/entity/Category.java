@@ -4,11 +4,10 @@ import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.entity.BaseEntity;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 @MappedSuperclass
 @Getter
@@ -29,7 +28,6 @@ public abstract class Category<T extends Category<T>> extends BaseEntity {
     protected List<T> children = new ArrayList<>();
 
     public abstract int getMaxDepth();
-
 
     public boolean isRoot() {
         return parent == null;

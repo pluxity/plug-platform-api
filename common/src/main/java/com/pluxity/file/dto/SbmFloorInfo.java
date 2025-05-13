@@ -9,5 +9,4 @@ public record SbmFloorInfo(
         String fileName,
         String floorBase,
         String floorGroup,
-        String isMain
-) {}
+        String isMain) {}

@@ -10,6 +10,4 @@ public record DeviceCreateRequest(
         Long asset3dId,
         String name,
         String code,
-        String description
-) {
-}
+        String description) {}

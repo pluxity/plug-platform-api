@@ -32,8 +32,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponseBody> handleCustomException(CustomException e) {
         LOGGER.error("CustomException", e);
-        var errorResponseBody =
-                ErrorResponseBody.of(e.getErrorCode().getHttpStatus(), e.getMessage());
+        var errorResponseBody = ErrorResponseBody.of(e.getErrorCode().getHttpStatus(), e.getMessage());
 
         return new ResponseEntity<>(errorResponseBody, e.getErrorCode().getHttpStatus());
     }

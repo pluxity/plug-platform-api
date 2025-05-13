@@ -13,12 +13,11 @@ import com.pluxity.facility.entity.Station;
 import com.pluxity.facility.repository.StationRepository;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.exception.CustomException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -37,9 +36,7 @@ public class DeviceService {
 
     @Transactional(readOnly = true)
     public List<DeviceResponse> findAll() {
-        return repository.findAll().stream()
-                .map(DeviceResponse::from)
-                .toList();
+        return repository.findAll().stream().map(DeviceResponse::from).toList();
     }
 
     @Transactional
@@ -51,21 +48,14 @@ public class DeviceService {
     }
 
     private DefaultDevice createDefaultDevice(DeviceCreateRequest request) {
-        DeviceCategory category = request.deviceCategoryId() != null
-                ? findCategoryById(request.deviceCategoryId())
-                : null;
+        DeviceCategory category =
+                request.deviceCategoryId() != null ? findCategoryById(request.deviceCategoryId()) : null;
 
-        Station station = request.stationId() != null
-                ? findStationById(request.stationId())
-                : null;
+        Station station = request.stationId() != null ? findStationById(request.stationId()) : null;
 
-        Asset asset2d = request.asset2dId() != null
-                ? findAssetById(request.asset3dId())
-                : null;
+        Asset asset2d = request.asset2dId() != null ? findAssetById(request.asset3dId()) : null;
 
-        Asset asset3d = request.asset3dId() != null
-                ? findAssetById(request.asset3dId())
-                : null;
+        Asset asset3d = request.asset3dId() != null ? findAssetById(request.asset3dId()) : null;
 
         Feature feature = Feature.create(request.feature());
 
@@ -77,8 +67,7 @@ public class DeviceService {
                 asset3d,
                 request.name(),
                 request.code(),
-                request.description()
-        );
+                request.description());
     }
 
     @Transactional
@@ -116,8 +105,7 @@ public class DeviceService {
                 request.name(),
                 request.code(),
                 request.description(),
-                request.feature()
-        );
+                request.feature());
     }
 
     @Transactional
@@ -126,22 +114,40 @@ public class DeviceService {
     }
 
     private DefaultDevice findDeviceById(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new CustomException("Device not found", HttpStatus.NOT_FOUND, "해당 디바이스를 찾을 수 없습니다 : " + id));
+        return repository
+                .findById(id)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "Device not found", HttpStatus.NOT_FOUND, "해당 디바이스를 찾을 수 없습니다 : " + id));
     }
 
     private DeviceCategory findCategoryById(Long id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new CustomException("DeviceCategory not found", HttpStatus.NOT_FOUND, "해당 디바이스 카테고리를 찾을 수 없습니다 : " + id));
+        return categoryRepository
+                .findById(id)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "DeviceCategory not found",
+                                        HttpStatus.NOT_FOUND,
+                                        "해당 디바이스 카테고리를 찾을 수 없습니다 : " + id));
     }
 
     private Station findStationById(Long id) {
-        return stationRepository.findById(id)
-                .orElseThrow(() -> new CustomException("Station not found", HttpStatus.NOT_FOUND, "해당 스테이션을 찾을 수 없습니다 : " + id));
+        return stationRepository
+                .findById(id)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "Station not found", HttpStatus.NOT_FOUND, "해당 스테이션을 찾을 수 없습니다 : " + id));
     }
 
     private Asset findAssetById(Long id) {
-        return assetRepository.findById(id)
-                .orElseThrow(() -> new CustomException("Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다 : " + id));
+        return assetRepository
+                .findById(id)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다 : " + id));
     }
 }

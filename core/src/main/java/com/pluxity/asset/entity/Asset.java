@@ -36,7 +36,6 @@ public class Asset extends BaseEntity {
     @JoinColumn(name = "asset_set_id")
     private AssetSet assetSet;
 
-
     @Builder
     public Asset(Long id, AssetType type, String name, Long fileId) {
         this.id = id;
@@ -58,26 +57,23 @@ public class Asset extends BaseEntity {
     }
 
     public static Asset create(AssetCreateRequest request) {
-        return Asset.builder()
-                .type(AssetType.valueOf(request.type()))
-                .name(request.name())
-                .build();
+        return Asset.builder().type(AssetType.valueOf(request.type())).name(request.name()).build();
     }
 
     public void update(AssetUpdateRequest request) {
-        if(request.type() != null) {
+        if (request.type() != null) {
             this.type = AssetType.valueOf(request.type());
         }
-        if(request.name() != null) {
+        if (request.name() != null) {
             this.name = request.name();
         }
     }
 
     public void update(String name, String type) {
-        if(type != null) {
+        if (type != null) {
             this.type = AssetType.valueOf(type);
         }
-        if(name != null) {
+        if (name != null) {
             this.name = name;
         }
     }

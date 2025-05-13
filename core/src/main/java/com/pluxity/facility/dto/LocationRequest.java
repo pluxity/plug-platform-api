@@ -1,8 +1,3 @@
 package com.pluxity.facility.dto;
 
-public record LocationRequest(
-        Double latitude,
-        Double longitude,
-        Double altitude
-        ) {
-}
+public record LocationRequest(Double latitude, Double longitude, Double altitude) {}

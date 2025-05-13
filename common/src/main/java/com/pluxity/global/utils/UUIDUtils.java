@@ -1,10 +1,7 @@
 package com.pluxity.global.utils;
 
-import lombok.extern.slf4j.Slf4j;
-
-import java.nio.ByteBuffer;
-import java.util.Base64;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class UUIDUtils {

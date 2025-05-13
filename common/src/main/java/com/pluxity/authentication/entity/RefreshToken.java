@@ -20,10 +20,6 @@ public class RefreshToken {
     @TimeToLive private int timeToLive;
 
     public static RefreshToken of(String username, String token, int timeToLive) {
-        return RefreshToken.builder()
-                .username(username)
-                .token(token)
-                .timeToLive(timeToLive)
-                .build();
+        return RefreshToken.builder().username(username).token(token).timeToLive(timeToLive).build();
     }
 }

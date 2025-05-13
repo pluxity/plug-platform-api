@@ -1,7 +1,6 @@
 package com.pluxity.user.controller;
 
 import com.pluxity.global.response.DataResponseBody;
-import com.pluxity.global.response.ResponseBody;
 import com.pluxity.user.dto.UserResponse;
 import com.pluxity.user.dto.UserUpdateRequest;
 import com.pluxity.user.service.UserService;

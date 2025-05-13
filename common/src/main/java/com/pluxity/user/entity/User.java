@@ -2,12 +2,11 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -87,9 +86,7 @@ public class User extends BaseEntity {
                         .filter(ur -> ur.getRole().equals(role))
                         .findFirst()
                         .orElseThrow(
-                                () ->
-                                        new IllegalStateException(
-                                                "Role not found for this user: " + role.getName()));
+                                () -> new IllegalStateException("Role not found for this user: " + role.getName()));
 
         this.userRoles.remove(userRoleToRemove);
     }
@@ -113,7 +110,6 @@ public class User extends BaseEntity {
         return userRoles.stream().map(UserRole::getRole).toList();
     }
 
-
     public boolean hasRole(Role role) {
         return userRoles.stream().map(UserRole::getRole).anyMatch(r -> r.equals(role));
     }
@@ -125,5 +121,4 @@ public class User extends BaseEntity {
     public void changeCode(String code) {
         this.code = code;
     }
-
 }

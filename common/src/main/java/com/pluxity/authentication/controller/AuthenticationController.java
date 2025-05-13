@@ -31,26 +31,21 @@ public class AuthenticationController {
     @PostMapping(value = "/sign-in", produces = "application/json")
     @ResponseCreated(path = "/users/me")
     public ResponseEntity<Void> signIn(
-            @RequestBody SignInRequest signInRequestDto,
-            HttpServletResponse response
-    ) {
+            @RequestBody SignInRequest signInRequestDto, HttpServletResponse response) {
         authenticationService.signIn(signInRequestDto, response);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/sign-out", produces = "application/json")
-    public ResponseEntity<Void> signOut(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) {
+    public ResponseEntity<Void> signOut(HttpServletRequest request, HttpServletResponse response) {
         authenticationService.signOut(request, response);
 
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/refresh-token")
-    public ResponseEntity<Void> refreshToken(HttpServletRequest request,
-                                                        HttpServletResponse response) {
+    public ResponseEntity<Void> refreshToken(
+            HttpServletRequest request, HttpServletResponse response) {
         authenticationService.refreshToken(request, response);
         return ResponseEntity.noContent().build();
     }

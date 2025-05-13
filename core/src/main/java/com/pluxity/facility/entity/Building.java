@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-
 @Entity
 @Table(name = "building")
 @DiscriminatorValue("BUILDING")

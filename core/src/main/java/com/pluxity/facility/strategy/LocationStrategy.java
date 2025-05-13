@@ -5,10 +5,9 @@ import com.pluxity.facility.dto.LocationResponse;
 import com.pluxity.facility.entity.Facility;
 import com.pluxity.facility.entity.Location;
 import com.pluxity.facility.repository.LocationRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,25 +27,23 @@ public class LocationStrategy implements FacilityStrategy<LocationRequest, Locat
 
     @Override
     public <T extends Facility> List<LocationResponse> findAllByFacility(T facility) {
-        return repository.findAllByFacility(facility)
-                .stream()
-                .map(LocationResponse::from)
-                .toList();
+        return repository.findAllByFacility(facility).stream().map(LocationResponse::from).toList();
     }
 
     @Override
     public <T extends Facility> void update(T facility, LocationRequest data) {
-        repository.findById(facility.getId())
-                .ifPresent(location -> {
-                    location.update(data);
-                    repository.save(location);
-                });
+        repository
+                .findById(facility.getId())
+                .ifPresent(
+                        location -> {
+                            location.update(data);
+                            repository.save(location);
+                        });
     }
 
     @Override
     public <T extends Facility> void delete(T facility) {
         repository.deleteByFacility(facility);
-
     }
 
     private Location toEntity(Facility facility, LocationRequest request) {

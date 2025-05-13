@@ -1,33 +1,29 @@
 package com.pluxity.file.strategy.storage;
 
+import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
+import static com.pluxity.global.constant.ErrorCode.FAILED_TO_ZIP_FILE;
+
 import com.pluxity.global.config.S3Config;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.FileUtils;
 import com.pluxity.global.utils.UUIDUtils;
 import com.pluxity.global.utils.ZipUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.UUID;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
-import static com.pluxity.global.constant.ErrorCode.FAILED_TO_ZIP_FILE;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -39,13 +35,19 @@ public class S3StorageStrategy implements StorageStrategy {
     @Override
     public String save(FileProcessingContext context) throws Exception {
 
-        String s3Key = "temp/" + UUID.randomUUID() + "/" + UUIDUtils.generateShortUUID() + FileUtils.getFileExtension(context.originalFileName());
+        String s3Key =
+                "temp/"
+                        + UUID.randomUUID()
+                        + "/"
+                        + UUIDUtils.generateShortUUID()
+                        + FileUtils.getFileExtension(context.originalFileName());
 
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(s3Key)
-                .contentType(context.contentType())
-                .build();
+        PutObjectRequest putObjectRequest =
+                PutObjectRequest.builder()
+                        .bucket(s3Config.getBucketName())
+                        .key(s3Key)
+                        .contentType(context.contentType())
+                        .build();
 
         s3Client.putObject(putObjectRequest, RequestBody.fromFile(context.tempPath().toFile()));
 
@@ -58,29 +60,26 @@ public class S3StorageStrategy implements StorageStrategy {
         String oldKey = context.filePath();
         String persistKey = oldKey.replace("temp/", context.newPath());
 
-        CopyObjectRequest copyRequest = CopyObjectRequest.builder()
-                .sourceBucket(s3Config.getBucketName())
-                .sourceKey(oldKey)
-                .destinationBucket(s3Config.getBucketName())
-                .destinationKey(persistKey)
-                .build();
+        CopyObjectRequest copyRequest =
+                CopyObjectRequest.builder()
+                        .sourceBucket(s3Config.getBucketName())
+                        .sourceKey(oldKey)
+                        .destinationBucket(s3Config.getBucketName())
+                        .destinationKey(persistKey)
+                        .build();
         s3Client.copyObject(copyRequest);
 
         if (context.contentType().equalsIgnoreCase("application/zip") || persistKey.endsWith(".zip")) {
             decompressAndUpload(persistKey);
         }
 
-        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(oldKey)
-                .build();
+        DeleteObjectRequest deleteRequest =
+                DeleteObjectRequest.builder().bucket(s3Config.getBucketName()).key(oldKey).build();
 
         s3Client.deleteObject(deleteRequest);
 
         return persistKey;
     }
-
-
 
     private void decompressAndUpload(String persistKey) {
         Path tempZipFilePath = null;
@@ -88,14 +87,15 @@ public class S3StorageStrategy implements StorageStrategy {
         try {
             tempZipFilePath = FileUtils.createTempFile(".zip");
 
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(s3Config.getBucketName())
-                    .key(persistKey)
-                    .build();
+            GetObjectRequest getObjectRequest =
+                    GetObjectRequest.builder().bucket(s3Config.getBucketName()).key(persistKey).build();
 
             try (InputStream s3ObjectContent = s3Client.getObject(getObjectRequest);
-                 OutputStream outputStream = Files.newOutputStream(tempZipFilePath,
-                         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+                    OutputStream outputStream =
+                            Files.newOutputStream(
+                                    tempZipFilePath,
+                                    StandardOpenOption.CREATE,
+                                    StandardOpenOption.TRUNCATE_EXISTING)) {
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 while ((bytesRead = s3ObjectContent.read(buffer)) != -1) {
@@ -109,7 +109,8 @@ public class S3StorageStrategy implements StorageStrategy {
             }
 
             int lastSlashIndex = persistKey.lastIndexOf('/');
-            String baseFolder = (lastSlashIndex != -1) ? persistKey.substring(0, lastSlashIndex) : persistKey;
+            String baseFolder =
+                    (lastSlashIndex != -1) ? persistKey.substring(0, lastSlashIndex) : persistKey;
             uploadDirectoryToS3(tempDir, baseFolder);
 
         } catch (Exception e) {
@@ -134,23 +135,22 @@ public class S3StorageStrategy implements StorageStrategy {
         }
     }
 
-
     private void uploadDirectoryToS3(Path dir, String s3BaseKey) {
         try (Stream<Path> paths = Files.walk(dir)) { // try-with-resources 사용
-            paths.filter(Files::isRegularFile)
-                    .forEach(path -> {
-                        try {
-                            String relativePath = dir.relativize(path).toString().replace("\\", "/");
-                            String key = s3BaseKey + "/" + relativePath;
-                            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                                    .bucket(s3Config.getBucketName())
-                                    .key(key)
-                                    .build();
-                            s3Client.putObject(putObjectRequest, RequestBody.fromFile(path.toFile()));
-                        } catch (Exception e) {
-                            log.error("Failed to upload file {}: {}", path, e.getMessage());
-                        }
-                    });
+            paths
+                    .filter(Files::isRegularFile)
+                    .forEach(
+                            path -> {
+                                try {
+                                    String relativePath = dir.relativize(path).toString().replace("\\", "/");
+                                    String key = s3BaseKey + "/" + relativePath;
+                                    PutObjectRequest putObjectRequest =
+                                            PutObjectRequest.builder().bucket(s3Config.getBucketName()).key(key).build();
+                                    s3Client.putObject(putObjectRequest, RequestBody.fromFile(path.toFile()));
+                                } catch (Exception e) {
+                                    log.error("Failed to upload file {}: {}", path, e.getMessage());
+                                }
+                            });
         } catch (IOException e) {
             log.error("압축 해제 된 파일 업로드 실패 {}: {}", dir, e.getMessage());
             throw new CustomException(FAILED_TO_UPLOAD_FILE);

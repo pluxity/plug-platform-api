@@ -1,10 +1,13 @@
 package com.pluxity.global.config;
 
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
+
 import com.pluxity.authentication.security.CustomUserDetails;
 import com.pluxity.authentication.security.JwtAuthenticationFilter;
 import com.pluxity.authentication.security.JwtProvider;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,10 +29,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -46,29 +45,29 @@ public class CommonSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-            .cors(Customizer.withDefaults())
-            .authorizeHttpRequests(
-                    auth ->
-                            auth.requestMatchers(
-                                            "/actuator/**",
-                                            "/health",
-                                            "/info",
-                                            "/prometheus",
-                                            "/error",
-                                            "/swagger-ui/**",
-                                            "/swagger-ui.html",
-                                            "/api-docs/**",
-                                            "/swagger-config/**",
-                                            "/docs/**")
-                                    .permitAll())
-            .authorizeHttpRequests(auth -> auth.requestMatchers("/admin/**").hasRole("ADMIN"))
-            .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll())
-            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-            .sessionManagement(
-                    sessionManagement ->
-                            sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(
+                                                "/actuator/**",
+                                                "/health",
+                                                "/info",
+                                                "/prometheus",
+                                                "/error",
+                                                "/swagger-ui/**",
+                                                "/swagger-ui.html",
+                                                "/api-docs/**",
+                                                "/swagger-config/**",
+                                                "/docs/**")
+                                        .permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/admin/**").hasRole("ADMIN"))
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll())
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(
+                        sessionManagement ->
+                                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
@@ -104,7 +103,8 @@ public class CommonSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://app.plug-platform:*"));
+        configuration.setAllowedOriginPatterns(
+                List.of("http://localhost:*", "http://app.plug-platform:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type", "Authorization"));
         configuration.setAllowCredentials(true);

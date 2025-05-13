@@ -5,11 +5,10 @@ import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.service.UserService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/admin/users")
@@ -37,8 +36,7 @@ public class AdminUserController {
     @PostMapping("/{userId}/roles")
     @ResponseCreated
     public ResponseEntity<Long> assignRolesToUser(
-            @PathVariable("userId") Long userId,
-            @RequestBody UserRoleAssignRequest request) {
+            @PathVariable("userId") Long userId, @RequestBody UserRoleAssignRequest request) {
         return ResponseEntity.ok(service.assignRolesToUser(userId, request).id());
     }
 
@@ -71,8 +69,7 @@ public class AdminUserController {
 
     @DeleteMapping("/{userId}/roles/{roleId}")
     public ResponseEntity<Void> removeRoleFromUser(
-            @PathVariable("userId") Long userId,
-            @PathVariable("roleId") Long roleId) {
+            @PathVariable("userId") Long userId, @PathVariable("roleId") Long roleId) {
         service.removeRoleFromUser(userId, roleId);
         return ResponseEntity.noContent().build();
     }

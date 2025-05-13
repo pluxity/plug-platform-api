@@ -4,9 +4,4 @@ import lombok.Builder;
 
 @Builder
 public record FilePersistenceContext(
-        String filePath,
-        String newPath,
-        String contentType,
-        String originalFileName
-) {
-}
+        String filePath, String newPath, String contentType, String originalFileName) {}

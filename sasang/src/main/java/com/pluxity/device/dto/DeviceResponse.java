@@ -2,9 +2,8 @@ package com.pluxity.device.dto;
 
 import com.pluxity.device.entity.DefaultDevice;
 import com.pluxity.feature.dto.FeatureResponse;
-import lombok.Builder;
-
 import java.time.LocalDateTime;
+import lombok.Builder;
 
 @Builder
 public record DeviceResponse(
@@ -21,8 +20,7 @@ public record DeviceResponse(
         String code,
         String description,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
-) {
+        LocalDateTime updatedAt) {
     public static DeviceResponse from(DefaultDevice device) {
         return DeviceResponse.builder()
                 .id(device.getId())
@@ -41,4 +39,4 @@ public record DeviceResponse(
                 .updatedAt(device.getUpdatedAt())
                 .build();
     }
-} 
+}

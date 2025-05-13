@@ -6,11 +6,10 @@ import com.pluxity.facility.entity.Panorama;
 import com.pluxity.facility.repository.PanoramaRepository;
 import com.pluxity.facility.strategy.LocationStrategy;
 import com.pluxity.file.service.FileService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,14 +26,15 @@ public class PanoramaService {
     @Transactional
     public Long save(PanoramaCreateRequest request) {
 
-        Panorama panorama = Panorama.builder()
-                .name(request.facility().name())
-                .description(request.facility().description())
-                .build();
+        Panorama panorama =
+                Panorama.builder()
+                        .name(request.facility().name())
+                        .description(request.facility().description())
+                        .build();
 
         Facility facility = facilityService.save(panorama, request.facility());
 
-        if(request.locationRequest() != null) {
+        if (request.locationRequest() != null) {
             locationStrategy.save(facility, request.locationRequest());
         }
 
@@ -46,10 +46,16 @@ public class PanoramaService {
         List<Panorama> panoramas = repository.findAll();
 
         return panoramas.stream()
-                .map(panorama ->  PanoramaResponse.builder()
-                        .facility(FacilityResponse.from(panorama, fileService.getFileResponse(panorama.getDrawingFileId()), fileService.getFileResponse(panorama.getThumbnailFileId())))
-                        .location(LocationResponse.from(panorama))
-                        .build())
+                .map(
+                        panorama ->
+                                PanoramaResponse.builder()
+                                        .facility(
+                                                FacilityResponse.from(
+                                                        panorama,
+                                                        fileService.getFileResponse(panorama.getDrawingFileId()),
+                                                        fileService.getFileResponse(panorama.getThumbnailFileId())))
+                                        .location(LocationResponse.from(panorama))
+                                        .build())
                 .toList();
     }
 
@@ -58,7 +64,11 @@ public class PanoramaService {
         Panorama panorama = (Panorama) facilityService.findById(id);
 
         return PanoramaResponse.builder()
-                .facility(FacilityResponse.from(panorama, fileService.getFileResponse(panorama.getDrawingFileId()), fileService.getFileResponse(panorama.getThumbnailFileId())))
+                .facility(
+                        FacilityResponse.from(
+                                panorama,
+                                fileService.getFileResponse(panorama.getDrawingFileId()),
+                                fileService.getFileResponse(panorama.getThumbnailFileId())))
                 .location(LocationResponse.from(panorama))
                 .build();
     }
@@ -66,23 +76,19 @@ public class PanoramaService {
     @Transactional
     public void update(Long id, PanoramaUpdateRequest request) {
 
-        var panorama = Panorama.builder()
-                .name(request.name())
-                .description(request.description())
-                .build();
+        var panorama =
+                Panorama.builder().name(request.name()).description(request.description()).build();
 
         facilityService.update(id, panorama);
 
-        if(request.locationRequest() != null) {
+        if (request.locationRequest() != null) {
             Panorama savedPanorama = repository.findById(id).orElseThrow();
             locationStrategy.update(savedPanorama, request.locationRequest());
         }
     }
 
-
     @Transactional
     public void delete(Long id) {
         facilityService.deleteFacility(id);
     }
-
 }

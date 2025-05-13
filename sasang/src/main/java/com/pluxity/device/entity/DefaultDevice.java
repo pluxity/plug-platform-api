@@ -39,7 +39,15 @@ public class DefaultDevice extends Device {
     private String description;
 
     @Builder
-    public DefaultDevice(Feature feature, Asset asset, DeviceCategory category, Station station, Asset asset2d, String name, String code, String description) {
+    public DefaultDevice(
+            Feature feature,
+            Asset asset,
+            DeviceCategory category,
+            Station station,
+            Asset asset2d,
+            String name,
+            String code,
+            String description) {
         super(feature, asset);
         this.category = category;
         this.station = station;
@@ -58,8 +66,7 @@ public class DefaultDevice extends Device {
             Asset asset3d,
             String name,
             String code,
-            String description
-    ) {
+            String description) {
         return DefaultDevice.builder()
                 .feature(feature)
                 .category(category)
@@ -80,8 +87,7 @@ public class DefaultDevice extends Device {
             String newName,
             String newCode,
             String newDescription,
-            FeatureUpdateRequest featureUpdateRequest
-    ) {
+            FeatureUpdateRequest featureUpdateRequest) {
         if (featureUpdateRequest != null) {
             this.getFeature().update(featureUpdateRequest);
         }
@@ -105,7 +111,7 @@ public class DefaultDevice extends Device {
         if (newAsset3d != null) {
             changeAsset(newAsset3d);
         }
-        
+
         if (newName != null) {
             this.name = newName;
         }
@@ -116,7 +122,6 @@ public class DefaultDevice extends Device {
             this.description = newDescription;
         }
     }
-
 
     public void updateCategory(DeviceCategory category) {
         if (this.category != null) {
@@ -147,5 +152,4 @@ public class DefaultDevice extends Device {
     public void updateDescription(String description) {
         this.description = description;
     }
-
 }

@@ -2,9 +2,8 @@ package com.pluxity.feature.dto;
 
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.Spatial;
-import lombok.Builder;
-
 import java.time.LocalDateTime;
+import lombok.Builder;
 
 @Builder
 public record FeatureResponse(
@@ -13,8 +12,7 @@ public record FeatureResponse(
         Spatial rotation,
         Spatial scale,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
-) {
+        LocalDateTime updatedAt) {
 
     public static FeatureResponse from(Feature feature) {
         return FeatureResponse.builder()

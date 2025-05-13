@@ -1,29 +1,28 @@
 package com.pluxity.global.utils;
 
-import com.pluxity.global.exception.CustomException;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.multipart.MultipartFile;
+import static com.pluxity.global.constant.ErrorCode.*;
 
+import com.pluxity.global.exception.CustomException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
-import static com.pluxity.global.constant.ErrorCode.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 public class ZipUtils {
 
     public static void zip(MultipartFile file, Path bp) {
         try (FileOutputStream fos = new FileOutputStream(bp.toFile());
-             ZipOutputStream zos = new ZipOutputStream(fos)) {
+                ZipOutputStream zos = new ZipOutputStream(fos)) {
 
             String originalFilename = Objects.requireNonNull(file.getOriginalFilename());
             ZipEntry zipEntry = new ZipEntry(originalFilename);

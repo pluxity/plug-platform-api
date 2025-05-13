@@ -1,9 +1,6 @@
 package com.pluxity.global.utils;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,14 +8,16 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Optional;
 import java.util.UUID;
-
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 public class FileUtils {
 
     private static final String PREFIX = "pluxity-";
 
-    public static Path saveFileToDirectory(MultipartFile multipartFile, Path targetDirectory) throws Exception {
+    public static Path saveFileToDirectory(MultipartFile multipartFile, Path targetDirectory)
+            throws Exception {
         String uniqueFileName = UUID.randomUUID() + "_" + multipartFile.getOriginalFilename();
         Path targetPath = Paths.get(targetDirectory.toString(), uniqueFileName);
         Files.createDirectories(targetPath.getParent());
@@ -31,19 +30,23 @@ public class FileUtils {
     }
 
     public static void deleteDirectoryRecursively(Path dir) throws IOException {
-        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
+        Files.walkFileTree(
+                dir,
+                new SimpleFileVisitor<>() {
+                    @Override
+                    public FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs)
+                            throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
 
-            @Override
-            public FileVisitResult postVisitDirectory(@NotNull Path directory, IOException exc) throws IOException {
-                Files.delete(directory);
-                return FileVisitResult.CONTINUE;
-            }
-        });
+                    @Override
+                    public FileVisitResult postVisitDirectory(@NotNull Path directory, IOException exc)
+                            throws IOException {
+                        Files.delete(directory);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
     }
 
     public static Path createTempFile(String originalFileName) throws IOException {
@@ -69,5 +72,4 @@ public class FileUtils {
         int lastDotIndex = fileName.lastIndexOf('.');
         return lastDotIndex > 0 ? fileName.substring(lastDotIndex) : "";
     }
-
 }

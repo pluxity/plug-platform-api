@@ -35,14 +35,14 @@ public class CommonRedisConfig {
         // 문자열 키/값에 대한 직렬화 방식 설정
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-        
+
         // Hash를 사용할 경우 직렬화 방식 설정
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
-        
+
         // 모든 타입의 기본 직렬화 방식 설정
         redisTemplate.setDefaultSerializer(new GenericJackson2JsonRedisSerializer());
-        
+
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
     }
