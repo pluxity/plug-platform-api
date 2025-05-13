@@ -1,8 +1,5 @@
 package com.pluxity.facility.dto;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.pluxity.global.response.BaseResponse;
-
 import java.util.Date;
 
 public record FacilityHistoryResponse(
@@ -13,8 +10,6 @@ public record FacilityHistoryResponse(
     Long drawingFileId,
     Long thumbnailFileId,
     Date changedAt,
-    String revisionType,
-    @JsonUnwrapped
-    BaseResponse baseResponse
+    String revisionType
 ) {
 } 
