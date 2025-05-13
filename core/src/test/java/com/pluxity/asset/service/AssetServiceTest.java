@@ -1,6 +1,5 @@
 package com.pluxity.asset.service;
 
-import com.pluxity.asset.constant.AssetType;
 import com.pluxity.asset.dto.AssetCreateRequest;
 import com.pluxity.asset.dto.AssetResponse;
 import com.pluxity.asset.dto.AssetUpdateRequest;
@@ -39,15 +38,15 @@ class AssetServiceTest {
 
     @Autowired
     private AssetService assetService;
-    
+
     private Long fileId;
-    
+
     @BeforeEach
     void setup() throws IOException {
         // 테스트 이미지 파일 준비
         ClassPathResource resource = new ClassPathResource("temp/temp.png");
         byte[] fileContent = Files.readAllBytes(Path.of(resource.getURI()));
-        
+
         // MockMultipartFile 생성
         MultipartFile multipartFile = new MockMultipartFile(
                 "temp.png",  // 파일명
@@ -55,7 +54,7 @@ class AssetServiceTest {
                 "image/png", // 컨텐츠 타입
                 fileContent  // 파일 내용
         );
-        
+
         // FileService를 통해 파일 업로드 초기화
         fileId = fileService.initiateUpload(multipartFile);
     }
@@ -65,18 +64,21 @@ class AssetServiceTest {
     void createAsset_WithValidRequest_SavesAssetAndFinalizeFile() {
         // given
         AssetCreateRequest request = new AssetCreateRequest(
-                AssetType.TWO_DIMENSION.name(),
                 "테스트 에셋",
                 fileId
         );
 
         // when
-        assetService.createAsset(request);
+        Long savedId = assetService.createAsset(request);
 
         // then
-        assertThat(request.fileId()).isEqualTo(fileId);
-        assertThat(request.name()).isEqualTo("테스트 에셋");
-        assertThat(request.type()).isEqualTo(AssetType.TWO_DIMENSION.name());
+        assertThat(savedId).isNotNull();
+        
+        // 저장된 에셋 확인
+        AssetResponse savedAsset = assetService.getAsset(savedId);
+        assertThat(savedAsset).isNotNull();
+        assertThat(savedAsset.name()).isEqualTo("테스트 에셋");
+        assertThat(savedAsset.file()).isNotNull();
     }
 
     @Test
@@ -84,30 +86,21 @@ class AssetServiceTest {
     void createAsset_WithoutFileId_SavesOnlyAsset() {
         // given
         AssetCreateRequest request = new AssetCreateRequest(
-                AssetType.TWO_DIMENSION.name(),
                 "테스트 에셋",
                 null
         );
 
         // when
-        assetService.createAsset(request);
+        Long savedId = assetService.createAsset(request);
 
         // then
-        assertThat(request.fileId()).isNull();
-        assertThat(request.name()).isEqualTo("테스트 에셋");
-        assertThat(request.type()).isEqualTo(AssetType.TWO_DIMENSION.name());
+        assertThat(savedId).isNotNull();
         
         // 저장된 에셋 확인
-        List<Asset> assets = assetRepository.findAll();
-        assertThat(assets).isNotEmpty();
-        
-        Asset savedAsset = assets.stream()
-                .filter(a -> a.getName().equals("테스트 에셋"))
-                .findFirst()
-                .orElse(null);
-        
+        AssetResponse savedAsset = assetService.getAsset(savedId);
         assertThat(savedAsset).isNotNull();
-        assertThat(savedAsset.getType()).isEqualTo(AssetType.TWO_DIMENSION);
+        assertThat(savedAsset.name()).isEqualTo("테스트 에셋");
+        assertThat(savedAsset.file()).isNull();
     }
 
     @Test
@@ -115,7 +108,6 @@ class AssetServiceTest {
     void getAsset_WithExistingId_ReturnsAssetResponse() {
         // given
         Asset asset = Asset.builder()
-                .type(AssetType.TWO_DIMENSION)
                 .name("테스트 에셋")
                 .build();
         Asset savedAsset = assetRepository.save(asset);
@@ -127,7 +119,6 @@ class AssetServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(savedAsset.getId());
         assertThat(response.name()).isEqualTo("테스트 에셋");
-        assertThat(response.type().name()).isEqualTo(AssetType.TWO_DIMENSION.name());
     }
 
     @Test
@@ -141,7 +132,6 @@ class AssetServiceTest {
                 () -> assetService.getAsset(nonExistingId));
 
         assertThat(exception.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(exception.getCodeName()).isEqualTo("Asset not found");
     }
 
     @Test
@@ -149,15 +139,13 @@ class AssetServiceTest {
     void getAssets_ReturnsListOfAssetResponses() {
         // given
         Asset asset1 = Asset.builder()
-                .type(AssetType.TWO_DIMENSION)
                 .name("에셋 1")
                 .build();
-        
+
         Asset asset2 = Asset.builder()
-                .type(AssetType.THREE_DIMENSION)
                 .name("에셋 2")
                 .build();
-        
+
         assetRepository.save(asset1);
         assetRepository.save(asset2);
 
@@ -175,13 +163,11 @@ class AssetServiceTest {
     void updateAsset_WithValidRequest_UpdatesAsset() {
         // given
         Asset asset = Asset.builder()
-                .type(AssetType.TWO_DIMENSION)
                 .name("원본 에셋")
                 .build();
         Asset savedAsset = assetRepository.save(asset);
-        
+
         AssetUpdateRequest request = new AssetUpdateRequest(
-                AssetType.THREE_DIMENSION.name(),
                 "수정된 에셋",
                 null
         );
@@ -190,10 +176,9 @@ class AssetServiceTest {
         assetService.updateAsset(savedAsset.getId(), request);
 
         // then
-        Asset updatedAsset = assetRepository.findById(savedAsset.getId()).orElse(null);
+        AssetResponse updatedAsset = assetService.getAsset(savedAsset.getId());
         assertThat(updatedAsset).isNotNull();
-        assertThat(updatedAsset.getName()).isEqualTo("수정된 에셋");
-        assertThat(updatedAsset.getType()).isEqualTo(AssetType.THREE_DIMENSION);
+        assertThat(updatedAsset.name()).isEqualTo("수정된 에셋");
     }
 
     @Test
@@ -201,13 +186,11 @@ class AssetServiceTest {
     void updateAsset_WithFileId_UpdatesAssetAndFileId() {
         // given
         Asset asset = Asset.builder()
-                .type(AssetType.TWO_DIMENSION)
                 .name("원본 에셋")
                 .build();
         Asset savedAsset = assetRepository.save(asset);
-        
+
         AssetUpdateRequest request = new AssetUpdateRequest(
-                AssetType.THREE_DIMENSION.name(),
                 "수정된 에셋",
                 fileId
         );
@@ -216,9 +199,10 @@ class AssetServiceTest {
         assetService.updateAsset(savedAsset.getId(), request);
 
         // then
-        assertThat(request.fileId()).isEqualTo(fileId);
-        assertThat(request.name()).isEqualTo("수정된 에셋");
-        assertThat(request.type()).isEqualTo(AssetType.THREE_DIMENSION.name());
+        AssetResponse updatedAsset = assetService.getAsset(savedAsset.getId());
+        assertThat(updatedAsset).isNotNull();
+        assertThat(updatedAsset.name()).isEqualTo("수정된 에셋");
+        assertThat(updatedAsset.file()).isNotNull();
     }
 
     @Test
@@ -227,7 +211,6 @@ class AssetServiceTest {
         // given
         Long nonExistingId = 999L;
         AssetUpdateRequest request = new AssetUpdateRequest(
-                AssetType.THREE_DIMENSION.name(),
                 "수정된 에셋",
                 null
         );
@@ -237,7 +220,6 @@ class AssetServiceTest {
                 () -> assetService.updateAsset(nonExistingId, request));
 
         assertThat(exception.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(exception.getCodeName()).isEqualTo("Asset not found");
     }
 
     @Test
@@ -245,7 +227,6 @@ class AssetServiceTest {
     void deleteAsset_DeletesAsset() {
         // given
         Asset asset = Asset.builder()
-                .type(AssetType.TWO_DIMENSION)
                 .name("테스트 에셋")
                 .build();
         Asset savedAsset = assetRepository.save(asset);
@@ -268,6 +249,5 @@ class AssetServiceTest {
                 () -> assetService.deleteAsset(nonExistingId));
 
         assertThat(exception.getHttpStatus()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(exception.getCodeName()).isEqualTo("Asset not found");
     }
 }

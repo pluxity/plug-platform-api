@@ -9,13 +9,14 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
-import java.util.List;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ public class AssetService {
     }
 
     @Transactional
-    public void createAsset(AssetCreateRequest request) {
+    public Long createAsset(AssetCreateRequest request) {
         Asset asset = Asset.create(request);
         Asset savedAsset = assetRepository.save(asset);
 
@@ -48,6 +49,8 @@ public class AssetService {
             FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
             savedAsset.updateFileEntity(fileEntity);
         }
+
+        return savedAsset.getId();
     }
 
     @Transactional

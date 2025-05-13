@@ -13,11 +13,12 @@ import com.pluxity.facility.entity.Station;
 import com.pluxity.facility.repository.StationRepository;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.exception.CustomException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -53,9 +54,7 @@ public class DeviceService {
 
         Station station = request.stationId() != null ? findStationById(request.stationId()) : null;
 
-        Asset asset2d = request.asset2dId() != null ? findAssetById(request.asset3dId()) : null;
-
-        Asset asset3d = request.asset3dId() != null ? findAssetById(request.asset3dId()) : null;
+        Asset asset = request.asset() != null ? findAssetById(request.asset()) : null;
 
         Feature feature = Feature.create(request.feature());
 
@@ -63,8 +62,7 @@ public class DeviceService {
                 feature,
                 category,
                 station,
-                asset2d,
-                asset3d,
+                asset,
                 request.name(),
                 request.code(),
                 request.description());
@@ -84,15 +82,11 @@ public class DeviceService {
             stationToUpdate = findStationById(request.stationId());
         }
 
-        Asset asset2dToUpdate = null;
-        if (request.asset2dId() != null) {
-            asset2dToUpdate = findAssetById(request.asset2dId());
+        Asset asset = null;
+        if (request.asset() != null) {
+            asset = findAssetById(request.asset());
         }
 
-        Asset asset3dToUpdate = null;
-        if (request.asset3dId() != null) {
-            asset3dToUpdate = findAssetById(request.asset3dId());
-        }
         if (request.feature() != null) {
             device.getFeature().update(request.feature());
         }
@@ -100,8 +94,7 @@ public class DeviceService {
         device.update(
                 categoryToUpdate,
                 stationToUpdate,
-                asset2dToUpdate,
-                asset3dToUpdate,
+                asset,
                 request.name(),
                 request.code(),
                 request.description(),

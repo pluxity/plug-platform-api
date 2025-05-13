@@ -25,10 +25,6 @@ public class DefaultDevice extends Device {
     @JoinColumn(name = "station_id")
     private Station station;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "asset2d_id")
-    private Asset asset2d;
-
     @Column(name = "name")
     private String name;
 
@@ -38,21 +34,20 @@ public class DefaultDevice extends Device {
     @Column(name = "description")
     private String description;
 
+
     @Builder
     public DefaultDevice(
             Feature feature,
             Asset asset,
             DeviceCategory category,
             Station station,
-            Asset asset2d,
             String name,
             String code,
             String description) {
         super(feature, asset);
         this.category = category;
         this.station = station;
-        this.asset2d = asset2d;
-        updateAsset(asset2d);
+        changeAsset(asset);
         this.name = name;
         this.code = code;
         this.description = description;
@@ -62,8 +57,7 @@ public class DefaultDevice extends Device {
             Feature feature,
             DeviceCategory category,
             Station station,
-            Asset asset2d,
-            Asset asset3d,
+            Asset asset,
             String name,
             String code,
             String description) {
@@ -71,8 +65,7 @@ public class DefaultDevice extends Device {
                 .feature(feature)
                 .category(category)
                 .station(station)
-                .asset(asset2d)
-                .asset(asset3d)
+                .asset(asset)
                 .name(name)
                 .code(code)
                 .description(description)
@@ -82,8 +75,7 @@ public class DefaultDevice extends Device {
     public void update(
             DeviceCategory newCategory,
             Station newStation,
-            Asset newAsset2d,
-            Asset newAsset3d,
+            Asset newAsset,
             String newName,
             String newCode,
             String newDescription,
@@ -104,12 +96,8 @@ public class DefaultDevice extends Device {
             this.station = newStation;
         }
 
-        if (newAsset2d != null) {
-            updateAsset(asset2d);
-        }
-
-        if (newAsset3d != null) {
-            changeAsset(newAsset3d);
+        if (newAsset != null) {
+            changeAsset(newAsset);
         }
 
         if (newName != null) {
@@ -135,10 +123,6 @@ public class DefaultDevice extends Device {
 
     public void updateStation(Station station) {
         this.station = station;
-    }
-
-    public void updateAsset(Asset asset) {
-        this.asset2d = asset;
     }
 
     public void updateName(String name) {

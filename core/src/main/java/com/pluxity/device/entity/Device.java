@@ -24,14 +24,14 @@ public abstract class Device extends BaseEntity {
     private Feature feature;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "asset3d_id")
-    private Asset asset3d;
+    @JoinColumn(name = "asset_id")
+    private Asset asset;
 
     @Column(name = "name")
     private String name;
 
-    protected Device(Feature feature, Asset asset3d) {
-        this.asset3d = asset3d;
+    protected Device(Feature feature, Asset asset) {
+        this.asset = asset;
         this.feature = feature;
         if (this.feature != null) {
             this.feature.changeDevice(this);
@@ -39,7 +39,7 @@ public abstract class Device extends BaseEntity {
     }
 
     public void changeAsset(Asset asset) {
-        this.asset3d = asset;
+        this.asset = asset;
     }
 
     public void changeFeature(Feature newFeature) {

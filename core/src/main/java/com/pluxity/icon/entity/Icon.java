@@ -1,57 +1,53 @@
-package com.pluxity.asset.entity;
+package com.pluxity.icon.entity;
 
-import com.pluxity.asset.dto.AssetCreateRequest;
-import com.pluxity.asset.dto.AssetUpdateRequest;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
+import com.pluxity.icon.dto.IconCreateRequest;
+import com.pluxity.icon.dto.IconUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import static java.io.File.separator;
 
 @Entity
-@Table(name = "asset")
+@Table(name = "icon")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
-public class Asset extends BaseEntity {
+public class Icon extends BaseEntity {
 
-    public static final String ASSETS_PATH = "assets";
+    public static final String ICONS_PATH = "icons";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "name")
     private String name;
 
+    @Column(name = "description")
+    private String description;
+
     @Column(name = "file_id")
     private Long fileId;
 
-
     @Builder
-    public Asset(String name, Long fileId) {
+    public Icon(String name, Long fileId) {
         this.name = name;
         this.fileId = fileId;
     }
 
-    public static Asset create(AssetCreateRequest request) {
-        return Asset.builder().name(request.name()).build();
+    public static Icon create(IconCreateRequest request) {
+        return Icon.builder()
+                .name(request.name())
+                .build();
     }
 
-    public void update(AssetUpdateRequest request) {
+    public void update(IconUpdateRequest request) {
         if (request.name() != null) {
             this.name = request.name();
-        }
-    }
-
-    public void update(String name) {
-        if (name != null) {
-            this.name = name;
         }
     }
 
@@ -65,8 +61,8 @@ public class Asset extends BaseEntity {
         }
     }
 
-    public String getAssetFilePath() {
-        return ASSETS_PATH + separator + this.id + separator;
+    public String getIconFilePath() {
+        return ICONS_PATH + separator + fileId + separator + name;
     }
 
     public boolean hasFile() {

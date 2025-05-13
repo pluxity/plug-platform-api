@@ -13,11 +13,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequestMapping("/assets")
 @RestController
@@ -91,10 +92,10 @@ public class AssetController {
             })
     @PostMapping
     @ResponseCreated
-    public void createAsset(
+    public ResponseEntity<Long> createAsset(
             @Parameter(description = "에셋 생성 정보", required = true) @RequestBody
                     AssetCreateRequest request) {
-        service.createAsset(request);
+        return ResponseEntity.ok(service.createAsset(request));
     }
 
     @Operation(summary = "에셋 수정", description = "기존 에셋의 정보를 수정합니다")

@@ -1,3 +1,3 @@
 package com.pluxity.asset.dto;
 
-public record AssetCreateRequest(String type, String name, Long fileId) {}
+public record AssetCreateRequest(String name, Long fileId) {}
