@@ -6,8 +6,7 @@ public record DeviceUpdateRequest(
         FeatureUpdateRequest feature,
         Long deviceCategoryId,
         Long stationId,
-        Long asset2dId,
-        Long asset3dId,
+        Long asset,
         String name,
         String code,
         String description) {}

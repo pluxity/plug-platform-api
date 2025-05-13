@@ -51,8 +51,7 @@ class DeviceServiceTest {
 
     private DeviceCategory category;
     private Station station;
-    private Asset asset2d;
-    private Asset asset3d;
+    private Asset asset;
     private DeviceCreateRequest createRequest;
 
     @BeforeEach
@@ -67,13 +66,10 @@ class DeviceServiceTest {
                 .description("테스트용 스테이션입니다.")
                 .build());
 
-        asset2d = assetRepository.save(Asset.builder()
+        asset = assetRepository.save(Asset.builder()
                 .name("테스트 2D 에셋")
                 .build());
                 
-        asset3d = assetRepository.save(Asset.builder()
-                .name("테스트 3D 에셋")
-                .build());
 
         // Feature 생성
         Spatial position = Spatial.builder().x(0.0).y(0.0).z(0.0).build();
@@ -90,8 +86,7 @@ class DeviceServiceTest {
                 featureRequest,
                 category.getId(),
                 station.getId(),
-                asset2d.getId(),
-                asset3d.getId(),
+                asset.getId(),
                 "테스트 디바이스",
                 "TEST-001",
                 "테스트용 디바이스입니다."
@@ -114,7 +109,6 @@ class DeviceServiceTest {
         assertThat(savedDevice.code()).isEqualTo("TEST-001");
         assertThat(savedDevice.categoryId()).isEqualTo(category.getId());
         assertThat(savedDevice.stationId()).isEqualTo(station.getId());
-        assertThat(savedDevice.asset3dId()).isEqualTo(asset3d.getId());
     }
 
     @Test
@@ -172,7 +166,6 @@ class DeviceServiceTest {
                 
         DeviceUpdateRequest updateRequest = new DeviceUpdateRequest(
                 featureUpdateRequest,
-                null,
                 null,
                 null,
                 null,
