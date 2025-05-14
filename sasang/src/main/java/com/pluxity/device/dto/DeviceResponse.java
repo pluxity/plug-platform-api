@@ -2,9 +2,8 @@ package com.pluxity.device.dto;
 
 import com.pluxity.device.entity.DefaultDevice;
 import com.pluxity.feature.dto.FeatureResponse;
-import lombok.Builder;
-
 import java.time.LocalDateTime;
+import lombok.Builder;
 
 @Builder
 public record DeviceResponse(

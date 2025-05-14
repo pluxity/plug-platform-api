@@ -15,12 +15,11 @@ import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.icon.entity.Icon;
 import com.pluxity.icon.repository.IconRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +57,7 @@ public class DeviceService {
         Station station = request.stationId() != null ? findStationById(request.stationId()) : null;
 
         Asset asset = request.asset() != null ? findAssetById(request.asset()) : null;
-        
+
         Icon icon = request.iconId() != null ? findIconById(request.iconId()) : null;
 
         Feature feature = Feature.create(request.feature());
@@ -144,9 +143,7 @@ public class DeviceService {
                 .orElseThrow(
                         () ->
                                 new CustomException(
-                                        "Station not found",
-                                        HttpStatus.NOT_FOUND,
-                                        "해당 스테이션을 찾을 수 없습니다 : " + id));
+                                        "Station not found", HttpStatus.NOT_FOUND, "해당 스테이션을 찾을 수 없습니다 : " + id));
     }
 
     private Asset findAssetById(Long id) {
@@ -155,19 +152,15 @@ public class DeviceService {
                 .orElseThrow(
                         () ->
                                 new CustomException(
-                                        "Asset not found",
-                                        HttpStatus.NOT_FOUND,
-                                        "해당 에셋을 찾을 수 없습니다 : " + id));
+                                        "Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다 : " + id));
     }
-    
+
     private Icon findIconById(Long id) {
         return iconRepository
                 .findById(id)
                 .orElseThrow(
                         () ->
                                 new CustomException(
-                                        "Icon not found",
-                                        HttpStatus.NOT_FOUND,
-                                        "해당 아이콘을 찾을 수 없습니다 : " + id));
+                                        "Icon not found", HttpStatus.NOT_FOUND, "해당 아이콘을 찾을 수 없습니다 : " + id));
     }
 }

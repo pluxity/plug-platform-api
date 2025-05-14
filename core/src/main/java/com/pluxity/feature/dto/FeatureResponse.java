@@ -12,9 +12,7 @@ public record FeatureResponse(
         Spatial position,
         Spatial rotation,
         Spatial scale,
-        @JsonUnwrapped
-        BaseResponse baseResponse
-) {
+        @JsonUnwrapped BaseResponse baseResponse) {
 
     public static FeatureResponse from(Feature feature) {
         return FeatureResponse.builder()

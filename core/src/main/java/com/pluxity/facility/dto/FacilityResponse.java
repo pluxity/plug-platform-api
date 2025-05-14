@@ -13,17 +13,15 @@ public record FacilityResponse(
         String description,
         FileResponse drawing,
         FileResponse thumbnail,
-        @JsonUnwrapped
-        BaseResponse baseResponse
-) {
-    public static FacilityResponse from(Facility facility, FileResponse drawing, FileResponse thumbnail) {
+        @JsonUnwrapped BaseResponse baseResponse) {
+    public static FacilityResponse from(
+            Facility facility, FileResponse drawing, FileResponse thumbnail) {
         return new FacilityResponse(
                 facility.getId(),
                 facility.getName(),
                 facility.getDescription(),
                 drawing != null ? drawing : FileResponse.empty(),
                 thumbnail != null ? thumbnail : FileResponse.empty(),
-                BaseResponse.of(facility)
-        );
+                BaseResponse.of(facility));
     }
 }

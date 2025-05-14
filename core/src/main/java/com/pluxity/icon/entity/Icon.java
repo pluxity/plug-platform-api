@@ -1,5 +1,7 @@
 package com.pluxity.icon.entity;
 
+import static java.io.File.separator;
+
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
 import com.pluxity.icon.dto.IconCreateRequest;
@@ -9,8 +11,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import static java.io.File.separator;
 
 @Entity
 @Table(name = "icon")
@@ -37,9 +37,7 @@ public class Icon extends BaseEntity {
     }
 
     public static Icon create(IconCreateRequest request) {
-        return Icon.builder()
-                .name(request.name())
-                .build();
+        return Icon.builder().name(request.name()).build();
     }
 
     public void update(IconUpdateRequest request) {

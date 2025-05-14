@@ -3,13 +3,12 @@ package com.pluxity.device.entity;
 import com.pluxity.category.entity.Category;
 import com.pluxity.icon.entity.Icon;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "device_category")
@@ -21,10 +20,7 @@ public class DeviceCategory extends Category<DeviceCategory> {
     @JoinColumn(name = "icon_id")
     private Icon icon;
 
-    @OneToMany(
-            mappedBy = "category",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<Device> devices = new ArrayList<>();
 
     @Builder
@@ -58,4 +54,4 @@ public class DeviceCategory extends Category<DeviceCategory> {
             this.devices.remove(device);
         }
     }
-} 
+}

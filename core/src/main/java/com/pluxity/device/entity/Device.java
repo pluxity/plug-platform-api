@@ -1,9 +1,9 @@
 package com.pluxity.device.entity;
 
 import com.pluxity.asset.entity.Asset;
+import com.pluxity.facility.entity.Facility;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.entity.BaseEntity;
-import com.pluxity.facility.entity.Facility;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -38,7 +38,6 @@ public abstract class Device extends BaseEntity {
 
     @Column(name = "name")
     protected String name;
-
 
     protected Device(Feature feature, Asset asset, DeviceCategory category, Facility facility) {
         this.asset = asset;

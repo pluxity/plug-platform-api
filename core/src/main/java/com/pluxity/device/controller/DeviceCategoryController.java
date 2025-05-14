@@ -15,11 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/device-categories")
@@ -51,8 +50,8 @@ public class DeviceCategoryController {
     @PostMapping
     @ResponseCreated
     public ResponseEntity<Long> create(
-            @Parameter(description = "카테고리 생성 정보", required = true) 
-            @Valid @RequestBody DeviceCategoryRequest request) {
+            @Parameter(description = "카테고리 생성 정보", required = true) @Valid @RequestBody
+                    DeviceCategoryRequest request) {
         Long id = deviceCategoryService.create(request);
         return ResponseEntity.ok(id);
     }
@@ -114,8 +113,7 @@ public class DeviceCategoryController {
             })
     @GetMapping("/{id}")
     public ResponseEntity<DataResponseBody<DeviceCategoryResponse>> getCategory(
-            @Parameter(description = "카테고리 ID", required = true) 
-            @PathVariable Long id) {
+            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
         DeviceCategoryResponse response = deviceCategoryService.getDeviceCategoryResponse(id);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
@@ -141,8 +139,7 @@ public class DeviceCategoryController {
             })
     @GetMapping("/{id}/children")
     public ResponseEntity<DataResponseBody<List<DeviceCategoryResponse>>> getChildren(
-            @Parameter(description = "카테고리 ID", required = true) 
-            @PathVariable Long id) {
+            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
         List<DeviceCategoryResponse> responses = deviceCategoryService.getChildrenResponses(id);
         return ResponseEntity.ok(DataResponseBody.of(responses));
     }
@@ -175,10 +172,9 @@ public class DeviceCategoryController {
             })
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(
-            @Parameter(description = "카테고리 ID", required = true) 
-            @PathVariable Long id, 
-            @Parameter(description = "카테고리 수정 정보", required = true) 
-            @Valid @RequestBody DeviceCategoryRequest request) {
+            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id,
+            @Parameter(description = "카테고리 수정 정보", required = true) @Valid @RequestBody
+                    DeviceCategoryRequest request) {
         deviceCategoryService.update(id, request);
         return ResponseEntity.noContent().build();
     }
@@ -211,9 +207,8 @@ public class DeviceCategoryController {
             })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
-            @Parameter(description = "카테고리 ID", required = true) 
-            @PathVariable Long id) {
+            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
         deviceCategoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
-} 
+}

@@ -10,13 +10,12 @@ import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.icon.entity.Icon;
 import com.pluxity.icon.repository.IconRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,18 +39,18 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
 
         Icon icon = null;
         if (request.getIconId() != null) {
-            icon = iconRepository.findById(request.getIconId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+            icon =
+                    iconRepository
+                            .findById(request.getIconId())
+                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         }
 
-        DeviceCategory deviceCategory = DeviceCategory.builder()
-                .name(request.getName())
-                .build();
-        
+        DeviceCategory deviceCategory = DeviceCategory.builder().name(request.getName()).build();
+
         if (parent != null) {
             deviceCategory.assignToParent(parent);
         }
-        
+
         if (icon != null) {
             deviceCategory.updateIcon(icon);
         }
@@ -62,17 +61,19 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     @Transactional
     public void update(Long id, DeviceCategoryRequest request) {
         DeviceCategory deviceCategory = findById(id);
-        
+
         if (request.getName() != null) {
             deviceCategory.setName(request.getName());
         }
-        
+
         if (request.getIconId() != null) {
-            Icon icon = iconRepository.findById(request.getIconId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+            Icon icon =
+                    iconRepository
+                            .findById(request.getIconId())
+                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
             deviceCategory.updateIcon(icon);
         }
-        
+
         if (request.getParentId() != null) {
             DeviceCategory parent = findById(request.getParentId());
             deviceCategory.assignToParent(parent);
@@ -82,27 +83,31 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     @Transactional
     public void delete(Long id) {
         DeviceCategory deviceCategory = findById(id);
-        
+
         if (!deviceCategory.getDevices().isEmpty()) {
             throw new CustomException(ErrorCode.CATEGORY_HAS_DEVICES);
         }
-        
+
         deviceCategoryRepository.delete(deviceCategory);
     }
 
     public List<DeviceCategoryResponse> getRootDeviceCategoryResponses() {
-        return getRootCategories().stream().map(DeviceCategoryResponse::from).collect(Collectors.toList());
+        return getRootCategories().stream()
+                .map(DeviceCategoryResponse::from)
+                .collect(Collectors.toList());
     }
-    
+
     public List<DeviceCategoryResponse> getChildrenResponses(Long id) {
         return getChildren(id).stream().map(DeviceCategoryResponse::from).collect(Collectors.toList());
     }
 
     public List<DeviceCategoryTreeResponse> getDeviceCategoryTree() {
-        return getRootCategories().stream().map(DeviceCategoryTreeResponse::from).collect(Collectors.toList());
+        return getRootCategories().stream()
+                .map(DeviceCategoryTreeResponse::from)
+                .collect(Collectors.toList());
     }
 
     public DeviceCategoryResponse getDeviceCategoryResponse(Long id) {
         return DeviceCategoryResponse.from(findById(id));
     }
-} 
+}

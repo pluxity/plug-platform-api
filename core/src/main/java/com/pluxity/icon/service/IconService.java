@@ -9,12 +9,11 @@ import com.pluxity.icon.dto.IconResponse;
 import com.pluxity.icon.dto.IconUpdateRequest;
 import com.pluxity.icon.entity.Icon;
 import com.pluxity.icon.repository.IconRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +37,12 @@ public class IconService {
                 .toList();
     }
 
-
     @Transactional
     public Long createIcon(IconCreateRequest request) {
         Icon icon = Icon.create(request);
         Icon savedIcon = iconRepository.save(icon);
 
-        if(request.fileId() != null) {
+        if (request.fileId() != null) {
             String filePath = savedIcon.getIconFilePath();
             FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
             savedIcon.updateFileEntity(fileEntity);
@@ -78,10 +76,11 @@ public class IconService {
     }
 
     private Icon findIconById(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new CustomException(
-                        "Icon not found",
-                        HttpStatus.NOT_FOUND,
-                        "해당 아이콘을 찾을 수 없습니다: " + id));
+        return repository
+                .findById(id)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "Icon not found", HttpStatus.NOT_FOUND, "해당 아이콘을 찾을 수 없습니다: " + id));
     }
 }

@@ -10,8 +10,4 @@ import java.util.List;
 public record BuildingResponse(
         FacilityResponse facility,
         List<FloorResponse> floors,
-        @JsonUnwrapped
-        BaseResponse baseResponse
-) {
-
-}
+        @JsonUnwrapped BaseResponse baseResponse) {}

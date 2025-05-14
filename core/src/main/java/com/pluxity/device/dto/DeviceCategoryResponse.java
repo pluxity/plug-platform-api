@@ -4,13 +4,8 @@ import com.pluxity.device.entity.DeviceCategory;
 import lombok.Builder;
 
 @Builder
-public record DeviceCategoryResponse (
-        Long id,
-        String name,
-        Long parentId,
-        Long iconId,
-        String iconName
-) {
+public record DeviceCategoryResponse(
+        Long id, String name, Long parentId, Long iconId, String iconName) {
     public static DeviceCategoryResponse from(DeviceCategory deviceCategory) {
         return DeviceCategoryResponse.builder()
                 .id(deviceCategory.getId())
@@ -20,4 +15,4 @@ public record DeviceCategoryResponse (
                 .iconName(deviceCategory.getIcon() != null ? deviceCategory.getIcon().getName() : null)
                 .build();
     }
-} 
+}

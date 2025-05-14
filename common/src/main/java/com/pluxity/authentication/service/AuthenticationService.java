@@ -1,7 +1,8 @@
 package com.pluxity.authentication.service;
 
+import static com.pluxity.global.constant.ErrorCode.*;
+
 import com.pluxity.authentication.dto.SignInRequest;
-import com.pluxity.authentication.dto.SignInResponse;
 import com.pluxity.authentication.dto.SignUpRequest;
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
@@ -13,6 +14,9 @@ import com.pluxity.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,18 +30,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.WebUtils;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
-import static com.pluxity.global.constant.ErrorCode.*;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-//    @Value("${server.address}")
+    //    @Value("${server.address}")
     @Value("${domain.name}")
     private String domainName;
 
@@ -53,8 +51,6 @@ public class AuthenticationService {
     @Value("${jwt.refresh-token.name}")
     private String REFRESH_TOKEN_NAME;
 
-
-
     private final RefreshTokenRepository refreshTokenRepository;
 
     private final UserRepository userRepository;
@@ -67,11 +63,13 @@ public class AuthenticationService {
     @Transactional
     public Long signUp(final SignUpRequest signUpRequest) {
 
-        userRepository.findByUsername(signUpRequest.username())
-                .ifPresent(user -> {
-                    throw new CustomException(DUPLICATE_USERNAME, "사용자가 이미 존재합니다 : " + user.getUsername());
-                });
-
+        userRepository
+                .findByUsername(signUpRequest.username())
+                .ifPresent(
+                        user -> {
+                            throw new CustomException(
+                                    DUPLICATE_USERNAME, "사용자가 이미 존재합니다 : " + user.getUsername());
+                        });
 
         User user =
                 User.builder()
@@ -85,7 +83,6 @@ public class AuthenticationService {
 
         return savedUser.getId();
     }
-
 
     @Transactional
     public void signIn(final SignInRequest signInRequestDto, HttpServletResponse response) {
@@ -107,25 +104,14 @@ public class AuthenticationService {
         String accessToken = jwtProvider.generateAccessToken(user.getUsername());
         String refreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
-        createAuthCookie(
-                ACCESS_TOKEN_NAME,
-                accessToken,
-                accessExpiration,
-                "/",
-                response
-        );
+        createAuthCookie(ACCESS_TOKEN_NAME, accessToken, accessExpiration, "/", response);
 
-        createAuthCookie(
-                REFRESH_TOKEN_NAME,
-                refreshToken,
-                refreshExpiration,
-                "/auth",
-                response
-        );
+        createAuthCookie(REFRESH_TOKEN_NAME, refreshToken, refreshExpiration, "/auth", response);
 
         createExpiryCookie(response);
 
-        refreshTokenRepository.save(RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
+        refreshTokenRepository.save(
+                RefreshToken.of(user.getUsername(), refreshToken, refreshExpiration));
     }
 
     @Transactional
@@ -134,8 +120,7 @@ public class AuthenticationService {
         String refreshToken = jwtProvider.getJwtFromRequest(REFRESH_TOKEN_NAME, request);
 
         if (refreshToken != null && !refreshToken.isEmpty()) {
-            refreshTokenRepository.findByToken(refreshToken)
-                    .ifPresent(refreshTokenRepository::delete);
+            refreshTokenRepository.findByToken(refreshToken).ifPresent(refreshTokenRepository::delete);
 
             deleteAuthCookie(ACCESS_TOKEN_NAME, "/", request, response);
             deleteAuthCookie(REFRESH_TOKEN_NAME, "/auth", request, response);
@@ -168,47 +153,36 @@ public class AuthenticationService {
         String newAccessToken = jwtProvider.generateAccessToken(user.getUsername());
         String newRefreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
-        createAuthCookie(
-                ACCESS_TOKEN_NAME,
-                newAccessToken,
-                accessExpiration,
-                "/",
-                response
-        );
-        createAuthCookie(
-                REFRESH_TOKEN_NAME,
-                newRefreshToken,
-                refreshExpiration,
-                "/auth",
-                response
-        );
+        createAuthCookie(ACCESS_TOKEN_NAME, newAccessToken, accessExpiration, "/", response);
+        createAuthCookie(REFRESH_TOKEN_NAME, newRefreshToken, refreshExpiration, "/auth", response);
 
         createExpiryCookie(response);
 
         refreshTokenRepository.save(RefreshToken.of(username, newRefreshToken, refreshExpiration));
     }
 
-    private void createAuthCookie(String name, String value, int expiry, String path,
-                              HttpServletResponse response) {
+    private void createAuthCookie(
+            String name, String value, int expiry, String path, HttpServletResponse response) {
 
-        String cookie = ResponseCookie.from(name, value)
-                .domain(domainName)
-                .secure(false)
-                .httpOnly(true)
-                .sameSite("Lax")
-                .maxAge(expiry)
-                .path(path)
-                .build().toString();
+        String cookie =
+                ResponseCookie.from(name, value)
+                        .domain(domainName)
+                        .secure(false)
+                        .httpOnly(true)
+                        .sameSite("Lax")
+                        .maxAge(expiry)
+                        .path(path)
+                        .build()
+                        .toString();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie);
     }
 
-    private void deleteAuthCookie(String name, String path,
-                                  HttpServletRequest request,
-                                  HttpServletResponse response) {
+    private void deleteAuthCookie(
+            String name, String path, HttpServletRequest request, HttpServletResponse response) {
 
         Cookie cookie = WebUtils.getCookie(request, name);
-        if(cookie != null) {
+        if (cookie != null) {
 
             cookie.setValue(null);
             cookie.setMaxAge(0);
@@ -227,17 +201,20 @@ public class AuthenticationService {
 
         // 사람이 읽을 수 있는 형식으로 변환
         Instant expiryInstant = Instant.ofEpochMilli(expiryTimeMillis);
-        String formattedTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                .withZone(ZoneId.of("Asia/Seoul"))
-                .format(expiryInstant);
+        String formattedTime =
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(ZoneId.of("Asia/Seoul"))
+                        .format(expiryInstant);
 
         log.info("만료 시간: {}", formattedTime);
 
-        String cookie = ResponseCookie.from("expiry", String.valueOf(expiryTimeMillis))
-                .domain(domainName)
-                .secure(false)
-                .path("/")
-                .build().toString();
+        String cookie =
+                ResponseCookie.from("expiry", String.valueOf(expiryTimeMillis))
+                        .domain(domainName)
+                        .secure(false)
+                        .path("/")
+                        .build()
+                        .toString();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie);
     }
@@ -245,7 +222,7 @@ public class AuthenticationService {
     private void deleteExpiryCookie(HttpServletRequest request, HttpServletResponse response) {
 
         Cookie cookie = WebUtils.getCookie(request, "expiry");
-        if(cookie != null) {
+        if (cookie != null) {
 
             cookie.setMaxAge(0);
             cookie.setDomain(domainName);
@@ -254,5 +231,4 @@ public class AuthenticationService {
             response.addCookie(cookie);
         }
     }
-
 }

@@ -8,7 +8,4 @@ import lombok.Builder;
 public record PanoramaResponse(
         FacilityResponse facility,
         LocationResponse location,
-        @JsonUnwrapped
-        BaseResponse baseResponse
-) {
-}
+        @JsonUnwrapped BaseResponse baseResponse) {}

@@ -1,5 +1,7 @@
 package com.pluxity.asset.entity;
 
+import static java.io.File.separator;
+
 import com.pluxity.asset.dto.AssetCreateRequest;
 import com.pluxity.asset.dto.AssetUpdateRequest;
 import com.pluxity.file.entity.FileEntity;
@@ -10,8 +12,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import static java.io.File.separator;
 
 @Entity
 @Table(name = "asset")
@@ -31,7 +31,6 @@ public class Asset extends BaseEntity {
 
     @Column(name = "file_id")
     private Long fileId;
-
 
     @Builder
     public Asset(String name, Long fileId) {

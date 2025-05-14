@@ -16,26 +16,22 @@ public class CommonApiConfig {
     @ConditionalOnMissingBean(OpenAPI.class)
     public OpenAPI CommonOpenAPI() {
         return new OpenAPI()
-                .info(new Info()
-                        .title("Plug Platform API")
-                        .description("Plug Platform API Documentation")
-                        .version("1.0.0")
-                        .contact(new Contact()
-                                .name("Pluxity")
-                                .email("support@pluxity.com"))
-                        .license(new License()
-                                .name("Apache 2.0")
-                                .url("http://www.apache.org/licenses/LICENSE-2.0.html")));
+                .info(
+                        new Info()
+                                .title("Plug Platform API")
+                                .description("Plug Platform API Documentation")
+                                .version("1.0.0")
+                                .contact(new Contact().name("Pluxity").email("support@pluxity.com"))
+                                .license(
+                                        new License()
+                                                .name("Apache 2.0")
+                                                .url("http://www.apache.org/licenses/LICENSE-2.0.html")));
     }
 
     @Bean
     public GroupedOpenApi commonApi() {
-        return GroupedOpenApi.builder()
-                .group("1. 전체")
-                .pathsToMatch("/**")
-                .build();
+        return GroupedOpenApi.builder().group("1. 전체").pathsToMatch("/**").build();
     }
-
 
     @Bean
     public GroupedOpenApi authApi() {
@@ -48,10 +44,7 @@ public class CommonApiConfig {
 
     @Bean
     public GroupedOpenApi fileApiByPath() {
-        return GroupedOpenApi.builder()
-                .group("3. 파일관리 API")
-                .pathsToMatch("/files/**")
-                .build();
+        return GroupedOpenApi.builder().group("3. 파일관리 API").pathsToMatch("/files/**").build();
     }
 
     @Bean
@@ -62,17 +55,11 @@ public class CommonApiConfig {
                 .build();
     }
 
-
     @Bean
     public GroupedOpenApi facilityApiByPath() {
         return GroupedOpenApi.builder()
                 .group("5. 시설관리 API")
-                .pathsToMatch(
-                        "/facilities/**",
-                        "/buildings/**",
-                        "/stations/**",
-                        "/panoramas/**"
-                )
+                .pathsToMatch("/facilities/**", "/buildings/**", "/stations/**", "/panoramas/**")
                 .build();
     }
 
@@ -83,4 +70,4 @@ public class CommonApiConfig {
                 .pathsToMatch("/assets/**", "/asset-sets/**")
                 .build();
     }
-} 
+}

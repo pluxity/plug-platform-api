@@ -16,6 +16,6 @@ public class DeviceCategoryRequest {
     private String name;
 
     private Long parentId;
-    
+
     private Long iconId;
-} 
+}
