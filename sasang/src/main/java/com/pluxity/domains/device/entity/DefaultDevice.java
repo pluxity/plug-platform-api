@@ -1,6 +1,8 @@
-package com.pluxity.device.entity;
+package com.pluxity.domains.device.entity;
 
 import com.pluxity.asset.entity.Asset;
+import com.pluxity.device.entity.Device;
+import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.facility.entity.Facility;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;

@@ -3,6 +3,8 @@
 # 프로젝트 루트 디렉토리로 이동
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
+./gradlew spotlessApply
+
 echo "테스트 실행 중..."
 
 # OS 감지 및 그에 맞는 gradlew 명령어 실행
@@ -43,7 +45,7 @@ if [ $TEST_RESULT -ne 0 ]; then
     exit 1
 fi
 
-./gradlew spotlessApply
+
 echo "테스트 성공! 푸시를 진행합니다."
 
 exit 0

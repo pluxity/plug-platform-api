@@ -1,9 +1,9 @@
-package com.pluxity.device.controller;
+package com.pluxity.domains.device.controller;
 
-import com.pluxity.device.dto.DeviceCreateRequest;
-import com.pluxity.device.dto.DeviceResponse;
-import com.pluxity.device.dto.DeviceUpdateRequest;
-import com.pluxity.device.service.DeviceService;
+import com.pluxity.domains.device.dto.DeviceCreateRequest;
+import com.pluxity.domains.device.dto.DeviceResponse;
+import com.pluxity.domains.device.dto.DeviceUpdateRequest;
+import com.pluxity.domains.device.service.DeviceService;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;

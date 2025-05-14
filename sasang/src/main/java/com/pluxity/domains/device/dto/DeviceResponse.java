@@ -1,6 +1,6 @@
-package com.pluxity.device.dto;
+package com.pluxity.domains.device.dto;
 
-import com.pluxity.device.entity.DefaultDevice;
+import com.pluxity.domains.device.entity.DefaultDevice;
 import com.pluxity.feature.dto.FeatureResponse;
 import java.time.LocalDateTime;
 import lombok.Builder;

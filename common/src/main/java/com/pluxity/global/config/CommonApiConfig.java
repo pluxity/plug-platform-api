@@ -67,7 +67,7 @@ public class CommonApiConfig {
     public GroupedOpenApi assetApiByPath() {
         return GroupedOpenApi.builder()
                 .group("6. Asset 관리 API")
-                .pathsToMatch("/assets/**", "/asset-sets/**")
+                .pathsToMatch("/assets/**")
                 .build();
     }
 }

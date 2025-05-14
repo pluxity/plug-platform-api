@@ -1,4 +1,4 @@
-package com.pluxity.device.dto;
+package com.pluxity.domains.device.dto;
 
 import com.pluxity.feature.dto.FeatureCreateRequest;
 

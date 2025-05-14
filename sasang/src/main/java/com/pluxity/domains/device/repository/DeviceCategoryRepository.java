@@ -1,4 +1,4 @@
-package com.pluxity.device.repository;
+package com.pluxity.domains.device.repository;
 
 import com.pluxity.device.entity.DeviceCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
