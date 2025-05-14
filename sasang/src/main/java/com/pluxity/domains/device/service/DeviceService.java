@@ -15,12 +15,11 @@ import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.icon.entity.Icon;
 import com.pluxity.icon.repository.IconRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

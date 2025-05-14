@@ -65,9 +65,6 @@ public class CommonApiConfig {
 
     @Bean
     public GroupedOpenApi assetApiByPath() {
-        return GroupedOpenApi.builder()
-                .group("6. Asset 관리 API")
-                .pathsToMatch("/assets/**")
-                .build();
+        return GroupedOpenApi.builder().group("6. Asset 관리 API").pathsToMatch("/assets/**").build();
     }
 }

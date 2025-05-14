@@ -1,0 +1,94 @@
+#!/bin/sh
+
+# 프로젝트 루트 디렉토리로 이동
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+echo "spotlessApply 실행 중..."
+
+# OS 감지 및 그에 맞는 gradlew 명령어 실행 (spotlessApply용)
+SPOTLESS_CMD=""
+case "$(uname -s 2>/dev/null || echo 'Windows')" in
+    CYGWIN*|MINGW*|MSYS*|Windows*)
+        if [ -f "./gradlew.bat" ]; then
+            SPOTLESS_CMD="./gradlew.bat spotlessApply"
+        else
+            SPOTLESS_CMD="gradlew.bat spotlessApply"
+        fi
+        ;;
+    *)
+        if [ -x "./gradlew" ]; then
+            SPOTLESS_CMD="./gradlew spotlessApply"
+        else
+            # 실행 권한이 없을 경우 부여 시도
+            chmod +x ./gradlew 2>/dev/null || true
+            SPOTLESS_CMD="./gradlew spotlessApply"
+        fi
+        ;;
+esac
+
+# spotlessApply 실행
+eval "$SPOTLESS_CMD"
+SPOTLESS_RESULT=$?
+
+# spotlessApply 실행 결과 확인
+if [ $SPOTLESS_RESULT -ne 0 ]; then
+    echo "ERROR: spotlessApply 실행 중 오류가 발생했습니다. 커밋이 거부되었습니다."
+    exit 1
+fi
+
+# spotlessApply로 인해 변경된 파일이 있는지 확인하고, 있다면 스테이징합니다.
+# `git diff --quiet`는 작업 디렉토리와 스테이징 영역 간의 변경 사항이 없으면 0을 반환합니다.
+# 즉, `spotlessApply`에 의해 파일이 수정되었으면 (unstaged changes 발생) 0이 아닌 값을 반환합니다.
+if ! git diff --quiet; then
+    echo "spotlessApply에 의해 코드가 수정되었습니다. 변경 사항을 스테이징합니다."
+    # 모든 변경된 파일을 스테이징합니다.
+    # 참고: 이 명령어는 spotlessApply에 의해 수정된 파일 외에
+    # 사용자가 수동으로 수정했지만 아직 스테이징하지 않은 다른 파일들도 함께 스테이징할 수 있습니다.
+    # 만약 spotlessApply가 수정한 파일만 정확히 스테이징하고 싶다면 추가적인 로직이 필요하지만,
+    # 일반적으로 pre-commit 훅에서는 `git add .` 또는 `git add -u`를 많이 사용합니다.
+    git add .
+    echo "수정된 파일들이 스테이징되었습니다. 커밋을 계속합니다."
+    # 이제 변경 사항이 스테이징되었으므로, 커밋은 이 변경 사항을 포함하여 진행됩니다.
+fi
+
+# --- 테스트 실행 부분 ---
+# pre-commit hook에서 테스트를 실행하는 것은 커밋 시간을 길게 만들 수 있습니다.
+# 일반적으로 테스트는 pre-push hook이나 CI 서버에서 실행하는 것이 더 권장됩니다.
+# 하지만 필요하다면 이 로직을 유지할 수 있습니다.
+
+echo "테스트 실행 중..."
+
+# OS 감지 및 그에 맞는 gradlew 명령어 실행 (test용)
+TEST_CMD=""
+case "$(uname -s 2>/dev/null || echo 'Windows')" in
+    CYGWIN*|MINGW*|MSYS*|Windows*)
+        if [ -f "./gradlew.bat" ]; then
+            TEST_CMD="./gradlew.bat test"
+        else
+            TEST_CMD="gradlew.bat test"
+        fi
+        ;;
+    *)
+        if [ -x "./gradlew" ]; then
+            TEST_CMD="./gradlew test"
+        else
+            chmod +x ./gradlew 2>/dev/null || true # 실행 권한이 없을 경우 부여 시도
+            TEST_CMD="./gradlew test"
+        fi
+        ;;
+esac
+
+# 테스트 실행
+echo "실행 명령어: $TEST_CMD"
+eval "$TEST_CMD"
+
+# 테스트 결과 확인
+TEST_RESULT=$?
+if [ $TEST_RESULT -ne 0 ]; then
+    echo "ERROR: 테스트가 실패했습니다. 커밋이 거부되었습니다."
+    echo "테스트 오류를 해결한 후 다시 시도하세요."
+    exit 1 # 테스트 실패 시 커밋 중단
+fi
+
+echo "spotless 적용 및 테스트 성공! 커밋을 진행합니다."
+exit 0 # 모든 과정이 성공하면 커밋 진행
