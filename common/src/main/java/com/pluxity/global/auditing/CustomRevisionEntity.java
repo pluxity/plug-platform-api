@@ -1,12 +1,11 @@
 package com.pluxity.global.auditing;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 import lombok.*;
 import org.hibernate.envers.RevisionEntity;
 import org.hibernate.envers.RevisionNumber;
 import org.hibernate.envers.RevisionTimestamp;
-
-import java.io.Serializable;
 
 @Getter
 @ToString
@@ -29,5 +28,4 @@ public class CustomRevisionEntity implements Serializable {
     @RevisionTimestamp
     @Column(name = "revtstmp")
     private long timestamp;
-
 }

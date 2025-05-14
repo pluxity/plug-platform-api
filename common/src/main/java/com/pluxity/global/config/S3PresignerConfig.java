@@ -1,13 +1,12 @@
 package com.pluxity.global.config;
 
+import java.net.URI;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-
-import java.net.URI;
 
 @Configuration
 public class S3PresignerConfig {
@@ -23,9 +22,9 @@ public class S3PresignerConfig {
         return S3Presigner.builder()
                 .region(Region.of(s3Config.getRegion()))
                 .endpointOverride(URI.create(s3Config.getEndpointUrl()))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(s3Config.getAccessKey(), s3Config.getSecretKey())
-                ))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(s3Config.getAccessKey(), s3Config.getSecretKey())))
                 .build();
     }
 }

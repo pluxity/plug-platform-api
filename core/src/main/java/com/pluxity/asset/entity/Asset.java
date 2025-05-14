@@ -1,9 +1,7 @@
 package com.pluxity.asset.entity;
 
-import com.pluxity.asset.constant.AssetType;
 import com.pluxity.asset.dto.AssetCreateRequest;
 import com.pluxity.asset.dto.AssetUpdateRequest;
-import com.pluxity.device.entity.Device;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -13,9 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import static java.io.File.separator;
 
 @Entity
 @Table(name = "asset")
@@ -30,68 +26,31 @@ public class Asset extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private AssetType type;
-
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "file_id")
     private Long fileId;
 
-    @OneToMany(mappedBy = "asset", cascade = CascadeType.PERSIST)
-    private final List<Device> devices = new ArrayList<>();
 
     @Builder
-    public Asset(Long id, AssetType type, String name, Long fileId) {
-        this.id = id;
-        this.type = type;
+    public Asset(String name, Long fileId) {
         this.name = name;
         this.fileId = fileId;
     }
 
-    public void addDevice(Device device) {
-        if (device != null && !this.devices.contains(device)) {
-            this.devices.add(device);
-            if (device.getAsset() != this) {
-                device.changeAsset(this);
-            }
-        }
-    }
-
-    public void removeDevice(Device device) {
-        if (device != null && this.devices.contains(device)) {
-            this.devices.remove(device);
-            if (device.getAsset() == this) {
-                device.changeAsset(null);
-            }
-        }
-    }
-
-    public List<Device> getDevices() {
-        return Collections.unmodifiableList(devices);
-    }
-
-
     public static Asset create(AssetCreateRequest request) {
-        return Asset.builder()
-                .type(AssetType.valueOf(request.type()))
-                .name(request.name())
-                .build();
+        return Asset.builder().name(request.name()).build();
     }
 
     public void update(AssetUpdateRequest request) {
-        if(request.type() != null) {
-            this.type = AssetType.valueOf(request.type());
-        }
-        if(request.name() != null) {
+        if (request.name() != null) {
             this.name = request.name();
         }
     }
 
-    public void update(String name, String type) {
-        if(type != null) {
-            this.type = AssetType.valueOf(type);
-        }
-        if(name != null) {
+    public void update(String name) {
+        if (name != null) {
             this.name = name;
         }
     }
@@ -107,18 +66,10 @@ public class Asset extends BaseEntity {
     }
 
     public String getAssetFilePath() {
-        return ASSETS_PATH + "/" + this.id + "/";
+        return ASSETS_PATH + separator + this.id + separator;
     }
 
     public boolean hasFile() {
         return this.fileId != null;
-    }
-
-    public boolean isTwoDimensional() {
-        return this.type == AssetType.TWO_DIMENSION;
-    }
-
-    public boolean isThreeDimensional() {
-        return this.type == AssetType.THREE_DIMENSION;
     }
 }

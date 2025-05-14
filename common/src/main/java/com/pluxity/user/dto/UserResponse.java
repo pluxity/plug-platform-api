@@ -5,11 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public record UserResponse(
-        Long id,
-        String username,
-        String name,
-        String code,
-        List<RoleResponse> roles) {
+        Long id, String username, String name, String code, List<RoleResponse> roles) {
     public static UserResponse from(User user) {
         return new UserResponse(
                 user.getId(),

@@ -5,12 +5,11 @@ import com.pluxity.facility.dto.FloorResponse;
 import com.pluxity.facility.entity.Facility;
 import com.pluxity.facility.entity.Floor;
 import com.pluxity.facility.repository.FloorRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -30,15 +29,11 @@ public class FloorStrategy implements FacilityStrategy<FloorRequest, FloorRespon
 
     @Override
     public <T extends Facility> List<FloorResponse> findAllByFacility(T facility) {
-        return repository.findAllByFacility(facility)
-                .stream()
-                .map(FloorResponse::from)
-                .toList();
+        return repository.findAllByFacility(facility).stream().map(FloorResponse::from).toList();
     }
 
     public <T extends Facility> Map<Facility, List<Floor>> findAllByFacilities(List<T> facilities) {
-        return repository.findAllByFacilities(facilities)
-                .stream()
+        return repository.findAllByFacilities(facilities).stream()
                 .collect(Collectors.groupingBy(Floor::getFacility));
     }
 

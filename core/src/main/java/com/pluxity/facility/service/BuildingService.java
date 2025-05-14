@@ -6,11 +6,10 @@ import com.pluxity.facility.entity.Facility;
 import com.pluxity.facility.repository.BuildingRepository;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,23 +17,21 @@ public class BuildingService {
 
     private final FileService fileService;
     private final FacilityService facilityService;
-
     private final FloorStrategy floorStrategy;
-
     private final BuildingRepository repository;
-
 
     @Transactional
     public Long save(BuildingCreateRequest request) {
 
-        Building building = Building.builder()
-                .name(request.facility().name())
-                .description(request.facility().description())
-                .build();
+        Building building =
+                Building.builder()
+                        .name(request.facility().name())
+                        .description(request.facility().description())
+                        .build();
 
         Facility saved = facilityService.save(building, request.facility());
 
-        if(request.floors() != null) {
+        if (request.floors() != null) {
             for (FloorRequest floorRequest : request.floors()) {
                 floorStrategy.save(saved, floorRequest);
             }
@@ -48,9 +45,15 @@ public class BuildingService {
         List<Building> buildings = repository.findAll();
 
         return buildings.stream()
-                .map(building ->  BuildingResponse.builder()
-                            .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFileId()), fileService.getFileResponse(building.getThumbnailFileId())))
-                            .build())
+                .map(
+                        building ->
+                                BuildingResponse.builder()
+                                        .facility(
+                                                FacilityResponse.from(
+                                                        building,
+                                                        fileService.getFileResponse(building.getDrawingFileId()),
+                                                        fileService.getFileResponse(building.getThumbnailFileId())))
+                                        .build())
                 .toList();
     }
 
@@ -60,7 +63,11 @@ public class BuildingService {
         List<FloorResponse> floorResponses = floorStrategy.findAllByFacility(building);
 
         return BuildingResponse.builder()
-                .facility(FacilityResponse.from(building, fileService.getFileResponse(building.getDrawingFileId()), fileService.getFileResponse(building.getThumbnailFileId())))
+                .facility(
+                        FacilityResponse.from(
+                                building,
+                                fileService.getFileResponse(building.getDrawingFileId()),
+                                fileService.getFileResponse(building.getThumbnailFileId())))
                 .floors(floorResponses)
                 .build();
     }
@@ -72,14 +79,11 @@ public class BuildingService {
 
     @Transactional
     public void update(Long id, BuildingUpdateRequest request) {
-        var building = Building.builder()
-                .name(request.name())
-                .description(request.description())
-                .build();
+        var building =
+                Building.builder().name(request.name()).description(request.description()).build();
 
         facilityService.update(id, building);
     }
-
 
     @Transactional
     public void delete(Long id) {
@@ -87,5 +91,4 @@ public class BuildingService {
         floorStrategy.delete(building);
         facilityService.deleteFacility(id);
     }
-
 }

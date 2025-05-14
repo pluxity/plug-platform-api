@@ -36,13 +36,11 @@ public class AssetService {
     @Transactional(readOnly = true)
     public List<AssetResponse> getAssets() {
         List<Asset> assets = assetRepository.findAll();
-        return assets.stream()
-                .map(asset -> AssetResponse.from(asset, getFileResponse(asset)))
-                .toList();
+        return assets.stream().map(asset -> AssetResponse.from(asset, getFileResponse(asset))).toList();
     }
 
     @Transactional
-    public void createAsset(AssetCreateRequest request) {
+    public Long createAsset(AssetCreateRequest request) {
         Asset asset = Asset.create(request);
         Asset savedAsset = assetRepository.save(asset);
 
@@ -51,19 +49,19 @@ public class AssetService {
             FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
             savedAsset.updateFileEntity(fileEntity);
         }
+
+        return savedAsset.getId();
     }
 
     @Transactional
     public void updateAsset(Long id, AssetUpdateRequest request) {
         Asset asset = findAssetById(id);
-        
+
         asset.update(request);
-        
+
         if (request.fileId() != null) {
-            FileEntity fileEntity = fileService.finalizeUpload(
-                    request.fileId(), 
-                    asset.getAssetFilePath()
-            );
+            FileEntity fileEntity =
+                    fileService.finalizeUpload(request.fileId(), asset.getAssetFilePath());
             asset.updateFileEntity(fileEntity);
         }
     }
@@ -75,8 +73,7 @@ public class AssetService {
     }
 
     private Asset findAssetById(Long id) {
-        return assetRepository.findById(id)
-                .orElseThrow(notFoundAsset());
+        return assetRepository.findById(id).orElseThrow(notFoundAsset());
     }
 
     private FileResponse getFileResponse(Asset asset) {

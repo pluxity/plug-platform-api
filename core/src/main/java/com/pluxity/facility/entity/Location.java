@@ -40,13 +40,13 @@ public class Location extends BaseEntity {
     }
 
     public void update(LocationRequest data) {
-        if(data.latitude() != null) {
+        if (data.latitude() != null) {
             this.latitude = data.latitude();
         }
-        if(data.longitude() != null) {
+        if (data.longitude() != null) {
             this.longitude = data.longitude();
         }
-        if(data.altitude() != null) {
+        if (data.altitude() != null) {
             this.altitude = data.altitude();
         }
     }

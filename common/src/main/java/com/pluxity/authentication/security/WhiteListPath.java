@@ -11,7 +11,6 @@ public enum WhiteListPath {
     INFO("info"),
     PROMETHEUS("prometheus"),
     SWAGGER("swagger-ui"),
-
     ;
 
     private final String path;
@@ -19,5 +18,4 @@ public enum WhiteListPath {
     WhiteListPath(String path) {
         this.path = path;
     }
-
 }

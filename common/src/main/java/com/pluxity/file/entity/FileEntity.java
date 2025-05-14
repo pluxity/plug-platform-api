@@ -20,13 +20,13 @@ public class FileEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "file_path",nullable = false, unique = true)
+    @Column(name = "file_path", nullable = false, unique = true)
     private String filePath;
 
-    @Column(name = "original_file_name",nullable = false)
+    @Column(name = "original_file_name", nullable = false)
     private String originalFileName;
 
-    @Column(name = "content_type",nullable = false)
+    @Column(name = "content_type", nullable = false)
     private String contentType;
 
     @Column(name = "file_status", nullable = false)

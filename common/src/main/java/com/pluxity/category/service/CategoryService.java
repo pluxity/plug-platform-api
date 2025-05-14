@@ -1,14 +1,13 @@
 package com.pluxity.category.service;
 
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND;
+
 import com.pluxity.category.dto.CategoryResponse;
 import com.pluxity.category.dto.CategoryTreeResponse;
 import com.pluxity.category.entity.Category;
 import com.pluxity.global.exception.CustomException;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
-
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public abstract class CategoryService<T extends Category<T>> {
 
@@ -20,14 +19,11 @@ public abstract class CategoryService<T extends Category<T>> {
     }
 
     public T findById(Long id) {
-        return getRepository().findById(id)
-                .orElseThrow(() -> new CustomException(NOT_FOUND));
+        return getRepository().findById(id).orElseThrow(() -> new CustomException(NOT_FOUND));
     }
 
     public List<T> getRootCategories() {
-        return getRepository().findAll().stream()
-                .filter(Category::isRoot)
-                .toList();
+        return getRepository().findAll().stream().filter(Category::isRoot).toList();
     }
 
     public List<T> getChildren(Long parentId) {
@@ -36,15 +32,11 @@ public abstract class CategoryService<T extends Category<T>> {
     }
 
     public List<CategoryResponse> getRootCategoryResponses() {
-        return getRootCategories().stream()
-                .map(CategoryResponse::from)
-                .toList();
+        return getRootCategories().stream().map(CategoryResponse::from).toList();
     }
 
     public List<CategoryResponse> getChildResponses(Long parentId) {
-        return getChildren(parentId).stream()
-                .map(CategoryResponse::from)
-                .toList();
+        return getChildren(parentId).stream().map(CategoryResponse::from).toList();
     }
 
     public CategoryResponse getResponse(Long id) {
@@ -52,8 +44,6 @@ public abstract class CategoryService<T extends Category<T>> {
     }
 
     public List<CategoryTreeResponse> getCategoryTree() {
-        return getRootCategories().stream()
-                .map(CategoryTreeResponse::from)
-                .toList();
+        return getRootCategories().stream().map(CategoryTreeResponse::from).toList();
     }
 }

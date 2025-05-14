@@ -2,10 +2,9 @@ package com.pluxity.file.strategy;
 
 import com.pluxity.file.strategy.process.FileProcessingStrategy;
 import com.pluxity.global.utils.FileUtils;
+import java.nio.file.Path;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.file.Path;
 
 @Component("SIMPLE_STRATEGY")
 public class SimpleFileStrategy implements FileProcessingStrategy {

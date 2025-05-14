@@ -33,5 +33,4 @@ public class Floor {
     public void assignParent(Facility facility) {
         this.facility = facility;
     }
-
 }

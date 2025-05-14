@@ -2,13 +2,12 @@ package com.pluxity.facility.repository;
 
 import com.pluxity.facility.entity.Facility;
 import com.pluxity.facility.entity.Floor;
+import java.util.List;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 @Repository
 public interface FloorRepository extends JpaRepository<Floor, Long> {

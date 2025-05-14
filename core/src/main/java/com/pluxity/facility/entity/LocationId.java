@@ -1,8 +1,7 @@
 package com.pluxity.facility.entity;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 @Data
 public class LocationId implements Serializable {

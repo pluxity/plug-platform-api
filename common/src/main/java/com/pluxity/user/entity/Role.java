@@ -2,13 +2,12 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.*;
+import java.util.ArrayList;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.*;
-import java.util.ArrayList;
 
 @Entity
 @Table(name = "roles")
@@ -23,7 +22,7 @@ public class Role extends BaseEntity {
 
     @Column(name = "name", nullable = false, unique = true)
     private String name;
-    
+
     @Column(name = "description", length = 100)
     private String description;
 

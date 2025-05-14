@@ -5,6 +5,4 @@ public record PanoramaCreateRequest(
         LocationRequest locationRequest,
         String address,
         Long drawingFileId,
-        Long thumbnailFileId
-) {
-}
+        Long thumbnailFileId) {}

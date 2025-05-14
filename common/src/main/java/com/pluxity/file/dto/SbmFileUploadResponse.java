@@ -1,7 +1,6 @@
 package com.pluxity.file.dto;
 
 import com.pluxity.file.entity.FileEntity;
-
 import java.util.List;
 
 public record SbmFileUploadResponse(
@@ -9,8 +8,9 @@ public record SbmFileUploadResponse(
         String originalFileName,
         String contentType,
         String createdAt,
-        String string, List<SbmFloorGroup> floorList
-) implements UploadResponse {
+        String string,
+        List<SbmFloorGroup> floorList)
+        implements UploadResponse {
 
     public static SbmFileUploadResponse from(FileEntity entity, List<SbmFloorGroup> floorList) {
         return new SbmFileUploadResponse(
@@ -18,8 +18,7 @@ public record SbmFileUploadResponse(
                 entity.getOriginalFileName(),
                 entity.getContentType(),
                 entity.getCreatedAt().toString(),
-                entity.getCreatedAt().toString(), floorList
-        );
+                entity.getCreatedAt().toString(),
+                floorList);
     }
-
 }

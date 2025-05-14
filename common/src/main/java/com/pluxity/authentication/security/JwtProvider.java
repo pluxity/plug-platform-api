@@ -1,5 +1,7 @@
 package com.pluxity.authentication.security;
 
+import static com.pluxity.global.constant.ErrorCode.*;
+
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.global.exception.CustomException;
@@ -12,19 +14,16 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.util.WebUtils;
-
-import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
-import static com.pluxity.global.constant.ErrorCode.*;
+import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.util.WebUtils;
 
 @Service
 @Slf4j
@@ -149,7 +148,7 @@ public class JwtProvider {
 
     public String getJwtFromRequest(String name, HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, name);
-        if(cookie == null) {
+        if (cookie == null) {
             throw new CustomException(INVALID_TOKEN_FORMAT);
         }
 

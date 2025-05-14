@@ -26,7 +26,8 @@ public class Panorama extends Facility {
     private Double altitude;
 
     @Builder
-    public Panorama(String name, String description, Double latitude, Double longitude, Double altitude) {
+    public Panorama(
+            String name, String description, Double latitude, Double longitude, Double altitude) {
         super(name, description);
         this.latitude = latitude;
         this.longitude = longitude;

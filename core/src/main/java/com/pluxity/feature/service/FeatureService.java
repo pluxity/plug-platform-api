@@ -6,14 +6,13 @@ import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.global.exception.CustomException;
+import java.util.List;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +37,7 @@ public class FeatureService {
     @Transactional(readOnly = true)
     public List<FeatureResponse> getFeatures() {
         List<Feature> features = featureRepository.findAll();
-        return features.stream()
-                .map(FeatureResponse::from)
-                .toList();
+        return features.stream().map(FeatureResponse::from).toList();
     }
 
     @Transactional
@@ -57,8 +54,7 @@ public class FeatureService {
     }
 
     private Feature findFeatureById(Long id) {
-        return featureRepository.findById(id)
-                .orElseThrow(featureNotFound());
+        return featureRepository.findById(id).orElseThrow(featureNotFound());
     }
 
     private static Supplier<CustomException> featureNotFound() {

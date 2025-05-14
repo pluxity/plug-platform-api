@@ -30,7 +30,6 @@ public abstract class Category<T extends Category<T>> extends BaseEntity {
 
     public abstract int getMaxDepth();
 
-
     public boolean isRoot() {
         return parent == null;
     }
@@ -39,8 +38,17 @@ public abstract class Category<T extends Category<T>> extends BaseEntity {
         return isRoot() ? 1 : parent.getDepth() + 1;
     }
 
-    public void assignToParent(T Parent) {
-        this.parent = parent;
+    public void assignToParent(T newParent) {
+        if (this.parent != null) {
+            this.parent.getChildren().remove(this);
+        }
+        
+        this.parent = newParent;
+        
+        if (newParent != null) {
+            newParent.getChildren().add((T) this);
+        }
+        
         this.validateDepth();
     }
 
