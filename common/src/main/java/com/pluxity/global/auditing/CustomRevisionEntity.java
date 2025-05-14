@@ -26,6 +26,6 @@ public class CustomRevisionEntity implements Serializable {
 
     @EqualsAndHashCode.Include
     @RevisionTimestamp
-    @Column(name = "revtstmp")
+    @Column(name = "revision_timestamp")
     private long timestamp;
 }
