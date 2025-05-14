@@ -1,7 +1,7 @@
 package com.pluxity.device.entity;
 
 import com.pluxity.asset.entity.Asset;
-import com.pluxity.facility.entity.Station;
+import com.pluxity.facility.entity.Facility;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.icon.entity.Icon;
@@ -19,19 +19,8 @@ import lombok.NoArgsConstructor;
 public class DefaultDevice extends Device {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private DeviceCategory category;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "station_id")
-    private Station station;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_id")
     private Icon icon;
-
-    @Column(name = "name")
-    private String name;
 
     @Column(name = "code")
     private String code;
@@ -39,23 +28,19 @@ public class DefaultDevice extends Device {
     @Column(name = "description")
     private String description;
 
-
     @Builder
     public DefaultDevice(
             Feature feature,
             Asset asset,
             DeviceCategory category,
-            Station station,
+            Facility facility,
             Icon icon,
             String name,
             String code,
             String description) {
-        super(feature, asset);
-        this.category = category;
-        this.station = station;
+        super(feature, asset, category, facility);
         this.icon = icon;
-        changeAsset(asset);
-        this.name = name;
+        updateName(name);
         this.code = code;
         this.description = description;
     }
@@ -63,7 +48,7 @@ public class DefaultDevice extends Device {
     public static DefaultDevice create(
             Feature feature,
             DeviceCategory category,
-            Station station,
+            Facility facility,
             Icon icon,
             Asset asset,
             String name,
@@ -72,7 +57,7 @@ public class DefaultDevice extends Device {
         return DefaultDevice.builder()
                 .feature(feature)
                 .category(category)
-                .station(station)
+                .facility(facility)
                 .icon(icon)
                 .asset(asset)
                 .name(name)
@@ -83,7 +68,7 @@ public class DefaultDevice extends Device {
 
     public void update(
             DeviceCategory newCategory,
-            Station newStation,
+            Facility newFacility,
             Icon newIcon,
             Asset newAsset,
             String newName,
@@ -95,15 +80,11 @@ public class DefaultDevice extends Device {
         }
 
         if (newCategory != null) {
-            if (this.category != null) {
-                this.category.removeDevice(this);
-            }
-            this.category = newCategory;
-            this.category.addDevice(this);
+            updateCategory(newCategory);
         }
 
-        if (newStation != null) {
-            this.station = newStation;
+        if (newFacility != null) {
+            updateFacility(newFacility);
         }
 
         if (newIcon != null) {
@@ -115,7 +96,7 @@ public class DefaultDevice extends Device {
         }
 
         if (newName != null) {
-            this.name = newName;
+            updateName(newName);
         }
         if (newCode != null) {
             this.code = newCode;
@@ -123,24 +104,6 @@ public class DefaultDevice extends Device {
         if (newDescription != null) {
             this.description = newDescription;
         }
-    }
-
-    public void updateCategory(DeviceCategory category) {
-        if (this.category != null) {
-            this.category.removeDevice(this);
-        }
-        this.category = category;
-        if (category != null) {
-            category.addDevice(this);
-        }
-    }
-
-    public void updateStation(Station station) {
-        this.station = station;
-    }
-
-    public void updateName(String name) {
-        this.name = name;
     }
 
     public void updateCode(String code) {

@@ -118,7 +118,7 @@ class DeviceServiceTest {
         assertThat(savedDevice.name()).isEqualTo("테스트 디바이스");
         assertThat(savedDevice.code()).isEqualTo("TEST-001");
         assertThat(savedDevice.categoryId()).isEqualTo(category.getId());
-        assertThat(savedDevice.stationId()).isEqualTo(station.getId());
+        assertThat(savedDevice.facilityId()).isEqualTo(station.getId());
         assertThat(savedDevice.iconId()).isEqualTo(icon.getId());
     }
 

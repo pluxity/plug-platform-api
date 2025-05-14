@@ -12,8 +12,8 @@ public record DeviceResponse(
         FeatureResponse feature,
         Long categoryId,
         String categoryName,
-        Long stationId,
-        String stationName,
+        Long facilityId,
+        String facilityName,
         Long asset,
         String assetName,
         Long iconId,
@@ -29,8 +29,8 @@ public record DeviceResponse(
                 .feature(device.getFeature() != null ? FeatureResponse.from(device.getFeature()) : null)
                 .categoryId(device.getCategory() != null ? device.getCategory().getId() : null)
                 .categoryName(device.getCategory() != null ? device.getCategory().getName() : null)
-                .stationId(device.getStation() != null ? device.getStation().getId() : null)
-                .stationName(device.getStation() != null ? device.getStation().getName() : null)
+                .facilityId(device.getFacility() != null ? device.getFacility().getId() : null)
+                .facilityName(device.getFacility() != null ? device.getFacility().getName() : null)
                 .asset(device.getAsset() != null ? device.getAsset().getId() : null)
                 .assetName(device.getAsset() != null ? device.getAsset().getName() : null)
                 .iconId(device.getIcon() != null ? device.getIcon().getId() : null)

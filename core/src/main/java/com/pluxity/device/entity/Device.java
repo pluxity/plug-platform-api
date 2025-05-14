@@ -3,6 +3,7 @@ package com.pluxity.device.entity;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.entity.BaseEntity;
+import com.pluxity.facility.entity.Facility;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,15 +28,33 @@ public abstract class Device extends BaseEntity {
     @JoinColumn(name = "asset_id")
     private Asset asset;
 
-    @Column(name = "name")
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private DeviceCategory category;
 
-    protected Device(Feature feature, Asset asset) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facility_id")
+    private Facility facility;
+
+    @Column(name = "name")
+    protected String name;
+
+
+    protected Device(Feature feature, Asset asset, DeviceCategory category, Facility facility) {
         this.asset = asset;
         this.feature = feature;
         if (this.feature != null) {
             this.feature.changeDevice(this);
         }
+        this.category = category;
+        this.facility = facility;
+        if (this.category != null) {
+            this.category.addDevice(this);
+        }
+    }
+
+    public void updateName(String name) {
+        this.name = name;
     }
 
     public void changeAsset(Asset asset) {
@@ -50,5 +69,19 @@ public abstract class Device extends BaseEntity {
         if (newFeature != null && newFeature.getDevice() != this) {
             newFeature.changeDevice(this);
         }
+    }
+
+    public void updateCategory(DeviceCategory category) {
+        if (this.category != null) {
+            this.category.removeDevice(this);
+        }
+        this.category = category;
+        if (category != null) {
+            category.addDevice(this);
+        }
+    }
+
+    public void updateFacility(Facility facility) {
+        this.facility = facility;
     }
 }

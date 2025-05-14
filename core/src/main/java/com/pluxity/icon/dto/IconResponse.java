@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 public record IconResponse(
         Long id,
         String name,
-        String description,
         FileResponse file,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -19,7 +18,6 @@ public record IconResponse(
         return IconResponse.builder()
                 .id(icon.getId())
                 .name(icon.getName())
-                .description(icon.getDescription())
                 .file(fileResponse)
                 .createdAt(icon.getCreatedAt())
                 .updatedAt(icon.getUpdatedAt())
