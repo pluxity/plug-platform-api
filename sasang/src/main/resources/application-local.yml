@@ -7,11 +7,11 @@ spring:
   application:
     name: core
   datasource:
-    url: jdbc:h2:tcp://localhost/~/pluxity
-    username: pluxity
-    password:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/plug_db
+    username: ${DB_USERNAME:pluxity}
+    password: ${DB_PASSWORD:pluxity0304}
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
     hibernate:
       ddl-auto: update
@@ -36,7 +36,7 @@ file:
     pre-signed-url-expiration: 600
 
 domain:
-  name: plug-platform.com
+  name: localhost
 
 logging:
   level:

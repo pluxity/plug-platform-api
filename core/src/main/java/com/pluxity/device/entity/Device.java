@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "device")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "device_type")
 @Getter

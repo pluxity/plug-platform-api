@@ -1,3 +1,6 @@
+bootJar { enabled = true }
+jar { enabled = true }
+
 dependencies {
 	implementation project(':common')
 	implementation project(':core')

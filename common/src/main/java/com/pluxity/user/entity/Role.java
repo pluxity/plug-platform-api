@@ -35,6 +35,10 @@ public class Role extends BaseEntity {
         this.description = description;
     }
 
+    public String getAuthority() {
+        return "ROLE_" + name;
+    }
+
     public void changeRoleName(String name) {
         this.name = Objects.requireNonNull(name, "Role name must not be blank");
     }

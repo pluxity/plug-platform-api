@@ -1,21 +1,30 @@
-FROM gradle:8.6.0-jdk21 AS build
+# Stage 1: Build the project
+FROM eclipse-temurin:21-jdk-alpine as builder
+
+# Set the working directory inside the container
 WORKDIR /app
 
-COPY . .
+# Copy the entire project to the container
+COPY ../ .
 
-RUN gradle :core:bootJar --no-daemon
+# Grant execution permission to the Gradle wrapper
+RUN chmod +x ./gradlew
 
-FROM openjdk:21-slim
+# Build the core module (and its dependencies, including common)
+RUN ./gradlew spotlessApply
+RUN ./gradlew clean build -x test --no-daemon
+
+# Stage 2: Runtime image
+FROM eclipse-temurin:21-jdk-alpine
+
+# Set the working directory inside the container
 WORKDIR /app
 
-COPY --from=build /app/core/build/libs/*.jar plug-platform.jar
+# Copy the built JAR file from the builder stage
+COPY --from=builder /app/sasang/build/libs/*.jar app.jar
 
-RUN mkdir -p /app/upload
-
-RUN useradd -m -u 1000 pluxity && \
-    chown -R pluxity:pluxity /app
-USER pluxity
-
+# Expose port 8080 (or adjust to your app's port)
 EXPOSE 8080
 
-CMD ["java", "-jar", "plug-platform.jar"]
+# Set the command to run the application
+CMD ["java", "-jar", "app.jar"]

@@ -14,7 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "device")
+@Table(name = "default_device")
 @DiscriminatorValue("DEFAULT_DEVICE")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
