@@ -21,7 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/panoramas")
+@RequestMapping("/api/panoramas")
 @RequiredArgsConstructor
 @Tag(name = "Panorama Controller", description = "파노라마 관리 API")
 public class PanoramaController {

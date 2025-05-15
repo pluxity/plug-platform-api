@@ -19,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/roles")
+@RequestMapping("/api/roles")
 @RequiredArgsConstructor
 @Tag(name = "Role Controller", description = "역할 관리 API")
 public class RoleController {
