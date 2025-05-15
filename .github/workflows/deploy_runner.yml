@@ -45,10 +45,8 @@ jobs:
           # (가장 마지막의 deploy.sh 실행 부분)
 
           if [ -f "./deploy.sh" ]; then
-            # 스크립트에 실행 권한이 있고 shebang(#!/bin/bash)이 있다면:
-            sudo ./deploy.sh
-            # 또는 명시적으로 bash로 실행:
-            # sudo bash ./deploy.sh
+            echo "Found deploy.sh. Executing with 'sudo bash ./deploy.sh'..."
+            sudo bash ./deploy.sh
           else
             echo "Error: deploy.sh not found in $(pwd)"
             exit 1
