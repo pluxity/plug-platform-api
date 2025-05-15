@@ -1,13 +1,14 @@
 package com.pluxity.global.aop;
 
 import com.pluxity.global.annotation.ResponseCreated;
-import java.net.URI;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @Aspect
 @Component
@@ -22,19 +23,11 @@ public class ResponseCreatedAspect {
 
         URI location;
 
-        if ("/{id}".equals(responseCreated.path())) {
-            location =
-                    ServletUriComponentsBuilder.fromCurrentContextPath()
-                            .path(responseCreated.path())
-                            .buildAndExpand(id)
-                            .toUri();
-        } else {
-            location =
-                    ServletUriComponentsBuilder.fromCurrentContextPath()
-                            .path(responseCreated.path())
-                            .buildAndExpand()
-                            .toUri();
-        }
+        location =
+                ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path(responseCreated.path())
+                        .buildAndExpand(id)
+                        .toUri();
         return ResponseEntity.created(location).build();
     }
 }
