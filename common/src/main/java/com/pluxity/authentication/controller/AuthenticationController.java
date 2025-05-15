@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @Tag(name = "Authentication Controller", description = "사용자 인증 API")
 public class AuthenticationController {
 
@@ -57,7 +57,7 @@ public class AuthenticationController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @ResponseCreated(path = "/users/me")
+    @ResponseCreated(path = "/api/users/me")
     @PostMapping("/sign-up")
     public ResponseEntity<Long> signUp(
             @Parameter(description = "회원가입 정보", required = true) @RequestBody SignUpRequest dto) {
@@ -91,7 +91,7 @@ public class AuthenticationController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping(value = "/sign-in", produces = "application/json")
-    @ResponseCreated(path = "/users/me")
+    @ResponseCreated(path = "/api/users/me")
     public ResponseEntity<Void> signIn(
             @Parameter(description = "로그인 정보", required = true) @RequestBody
                     SignInRequest signInRequestDto,

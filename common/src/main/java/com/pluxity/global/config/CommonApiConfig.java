@@ -37,21 +37,21 @@ public class CommonApiConfig {
     public GroupedOpenApi authApi() {
         return GroupedOpenApi.builder()
                 .group("2. 인증")
-                .pathsToMatch("/auth/**")
-                .pathsToExclude("/users/**", "/admin/**", "/other/**") // 제외 경로 추가
+                .pathsToMatch("/api/auth/**")
+                .pathsToExclude("/api/users/**", "/api/admin/**", "/api/other/**") // 제외 경로 추가
                 .build();
     }
 
     @Bean
     public GroupedOpenApi fileApiByPath() {
-        return GroupedOpenApi.builder().group("3. 파일관리 API").pathsToMatch("/files/**").build();
+        return GroupedOpenApi.builder().group("3. 파일관리 API").pathsToMatch("/api/files/**").build();
     }
 
     @Bean
     public GroupedOpenApi userApiByPath() {
         return GroupedOpenApi.builder()
                 .group("4. 사용자 API")
-                .pathsToMatch("/users/**", "/admin/users/**", "/roles/**")
+                .pathsToMatch("/api/users/**", "/api/admin/users/**", "/api/roles/**")
                 .build();
     }
 
@@ -59,12 +59,13 @@ public class CommonApiConfig {
     public GroupedOpenApi facilityApiByPath() {
         return GroupedOpenApi.builder()
                 .group("5. 시설관리 API")
-                .pathsToMatch("/facilities/**", "/buildings/**", "/stations/**", "/panoramas/**")
+                .pathsToMatch(
+                        "/api/facilities/**", "/api/buildings/**", "/api/stations/**", "/api`/panoramas/**")
                 .build();
     }
 
     @Bean
     public GroupedOpenApi assetApiByPath() {
-        return GroupedOpenApi.builder().group("6. Asset 관리 API").pathsToMatch("/assets/**").build();
+        return GroupedOpenApi.builder().group("6. Asset 관리 API").pathsToMatch("/api/assets/**").build();
     }
 }

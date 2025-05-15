@@ -1,10 +1,13 @@
 package com.pluxity.global.config;
 
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
+
 import com.pluxity.authentication.security.CustomUserDetails;
 import com.pluxity.authentication.security.JwtAuthenticationFilter;
 import com.pluxity.authentication.security.JwtProvider;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,10 +28,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
-
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
 
 @Configuration
 @EnableWebSecurity
@@ -63,7 +62,7 @@ public class CommonSecurityConfig {
                                         .permitAll())
                 //                .authorizeHttpRequests(auth ->
                 // auth.requestMatchers("/admin/**").hasRole("ADMIN")) TODO: 구현 완료 시 적용
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll())
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)

@@ -19,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/stations")
+@RequestMapping("/api/stations")
 @RequiredArgsConstructor
 @Tag(name = "Station Controller", description = "스테이션 관리 API")
 public class StationController {

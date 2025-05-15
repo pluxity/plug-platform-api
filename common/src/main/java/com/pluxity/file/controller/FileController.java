@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/files")
+@RequestMapping("/api/files")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "File Controller", description = "파일 관리 API")
@@ -77,7 +77,7 @@ public class FileController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseCreated(path = "/files/{id}")
+    @ResponseCreated(path = "/api/files/{id}")
     public ResponseEntity<Long> uploadFile(
             @Parameter(description = "업로드할 파일", required = true) @RequestParam("file")
                     MultipartFile file) {
