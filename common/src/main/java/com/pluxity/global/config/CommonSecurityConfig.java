@@ -46,24 +46,22 @@ public class CommonSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers(
-                                                "/actuator/**",
-                                                "/health",
-                                                "/info",
-                                                "/prometheus",
-                                                "/error",
-                                                "/swagger-ui/**",
-                                                "/swagger-ui.html",
-                                                "/api-docs/**",
-                                                "/swagger-config/**",
-                                                "/docs/**")
-                                        .permitAll())
-                //                .authorizeHttpRequests(auth ->
-                // auth.requestMatchers("/admin/**").hasRole("ADMIN")) TODO: 구현 완료 시 적용
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll())
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authorizeHttpRequests(auth ->auth
+                        .requestMatchers(
+                                "/actuator/**",
+                                "/health",
+                                "/info",
+                                "/prometheus",
+                                "/error",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/api-docs/**",
+                                "/swagger-config/**",
+                                "/docs/**").permitAll()
+                        // .requestMatchers("/admin/**").hasRole("ADMIN") TODO: 구현 완료 시 적용
+                        .requestMatchers("/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(

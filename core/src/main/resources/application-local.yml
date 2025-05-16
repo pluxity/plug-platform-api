@@ -36,7 +36,7 @@ file:
     pre-signed-url-expiration: 600
 
 domain:
-  name: plug-platform.com
+  name: localhost
 
 logging:
   level:
