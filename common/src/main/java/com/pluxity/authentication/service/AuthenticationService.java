@@ -18,7 +18,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +27,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,7 +87,10 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void signIn(final SignInRequest signInRequestDto, HttpServletRequest request, HttpServletResponse response) {
+    public void signIn(
+            final SignInRequest signInRequestDto,
+            HttpServletRequest request,
+            HttpServletResponse response) {
 
         try {
             authenticationManager.authenticate(
@@ -149,13 +150,19 @@ public class AuthenticationService {
         String newAccessToken = jwtProvider.generateAccessToken(user.getUsername());
         String newRefreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
-        createAuthCookie(ACCESS_TOKEN_NAME, newAccessToken, accessExpiration, request.getContextPath(), response);
-        createAuthCookie(REFRESH_TOKEN_NAME, newRefreshToken, refreshExpiration, request.getContextPath() + "/auth", response);
+        createAuthCookie(
+                ACCESS_TOKEN_NAME, newAccessToken, accessExpiration, request.getContextPath(), response);
+        createAuthCookie(
+                REFRESH_TOKEN_NAME,
+                newRefreshToken,
+                refreshExpiration,
+                request.getContextPath() + "/auth",
+                response);
 
         createExpiryCookie(request, response);
 
-        refreshTokenRepository.save(RefreshToken.of(user.getUsername(), newRefreshToken, refreshExpiration));
-
+        refreshTokenRepository.save(
+                RefreshToken.of(user.getUsername(), newRefreshToken, refreshExpiration));
     }
 
     private void createAuthCookie(

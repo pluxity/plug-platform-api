@@ -2,39 +2,3 @@ server:
   port: ${SERVER_PORT:8080}
   servlet:
     context-path: /api
-#  address: ${SERVER_ADDRESS:0.0.0.0}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,info,prometheus"
-
-spring:
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
-  jpa:
-    properties:
-      hibernate:
-        format_sql: true
-jwt:
-  access-token:
-    name: AccessToken
-    secret: +iBcUJRWGvl+94+ow4nXV1fzWIq4rph8x7MyRmrtWio=
-    expiration: 3600
-  refresh-token:
-    name: RefreshToken
-    secret: gtzRlqF6bIkmOi5i15A9G5xbLdwiAMmZi6JPOeemC1E=
-    expiration: 86400
-
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-  show-actuator: true
-  packages-to-scan: com.pluxity
-  default-consumes-media-type: application/json
-  default-produces-media-type: application/json

@@ -93,7 +93,8 @@ public class AuthenticationController {
     @PostMapping(value = "/sign-in", produces = "application/json")
     @ResponseCreated(path = "/api/users/me")
     public ResponseEntity<Void> signIn(
-            @Parameter(description = "로그인 정보", required = true) @RequestBody SignInRequest signInRequestDto,
+            @Parameter(description = "로그인 정보", required = true) @RequestBody
+                    SignInRequest signInRequestDto,
             HttpServletRequest request,
             HttpServletResponse response) {
         authenticationService.signIn(signInRequestDto, request, response);
