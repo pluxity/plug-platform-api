@@ -1,6 +1,6 @@
 package com.pluxity.domains.acl.service;
 
-import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
+import com.pluxity.domains.acl.device_category.dto.PermissionRequestDto;
 import java.io.Serializable;
 import java.util.List;
 import java.util.function.Function;

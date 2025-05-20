@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.IntStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -17,6 +18,7 @@ import org.springframework.util.Assert;
 @Transactional
 public class AclManagerServiceImpl implements AclManagerService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AclManagerServiceImpl.class);
     private final MutableAclService mutableAclService;
 
     public AclManagerServiceImpl(MutableAclService mutableAclService) {
@@ -30,7 +32,13 @@ public class AclManagerServiceImpl implements AclManagerService {
 
     private <T> MutableAcl getOrCreateAcl(Class<T> domainType, Serializable identifier) {
         ObjectIdentity oi = createObjectIdentity(domainType, identifier);
-        return Optional.ofNullable(getExistingAcl(oi)).orElseGet(() -> mutableAclService.createAcl(oi));
+        return Optional.ofNullable(getExistingAcl(oi))
+                .orElseGet(
+                        () -> {
+                            logger.debug(
+                                    "ACL not found for {}:{}, creating new ACL", domainType.getName(), identifier);
+                            return mutableAclService.createAcl(oi);
+                        });
     }
 
     private MutableAcl getExistingAcl(ObjectIdentity oi) {
@@ -47,15 +55,75 @@ public class AclManagerServiceImpl implements AclManagerService {
         validateSidAndPermission(sid, permission);
 
         MutableAcl acl = getOrCreateAcl(domainType, identifier);
-        acl.insertAce(acl.getEntries().size(), permission, sid, true);
-        mutableAclService.updateAcl(acl);
+
+        // 중복 ACE 체크 로직 추가
+        boolean alreadyExists =
+                acl.getEntries().stream()
+                        .anyMatch(
+                                entry ->
+                                        entry.getSid().equals(sid)
+                                                && entry.getPermission().equals(permission)
+                                                && entry.isGranting());
+
+        if (!alreadyExists) {
+            acl.insertAce(acl.getEntries().size(), permission, sid, true);
+            mutableAclService.updateAcl(acl);
+            logger.debug(
+                    "Added permission {} for {} on {}:{}", permission, sid, domainType.getName(), identifier);
+        } else {
+            logger.debug(
+                    "Permission {} for {} on {}:{} already exists, skipping",
+                    permission,
+                    sid,
+                    domainType.getName(),
+                    identifier);
+        }
     }
 
     @Override
     public <T> void addPermissions(
             Class<T> domainType, Serializable identifier, Sid sid, List<Permission> permissions) {
         validatePermissions(permissions);
-        permissions.forEach(permission -> addPermission(domainType, identifier, sid, permission));
+
+        if (permissions.isEmpty()) {
+            return;
+        }
+
+        MutableAcl acl = getOrCreateAcl(domainType, identifier);
+        boolean aclChanged = false;
+
+        for (Permission permission : permissions) {
+            // 중복 ACE 체크 로직
+            boolean alreadyExists =
+                    acl.getEntries().stream()
+                            .anyMatch(
+                                    entry ->
+                                            entry.getSid().equals(sid)
+                                                    && entry.getPermission().equals(permission)
+                                                    && entry.isGranting());
+
+            if (!alreadyExists) {
+                acl.insertAce(acl.getEntries().size(), permission, sid, true);
+                aclChanged = true;
+                logger.debug(
+                        "Added permission {} for {} on {}:{}",
+                        permission,
+                        sid,
+                        domainType.getName(),
+                        identifier);
+            } else {
+                logger.debug(
+                        "Permission {} for {} on {}:{} already exists, skipping",
+                        permission,
+                        sid,
+                        domainType.getName(),
+                        identifier);
+            }
+        }
+
+        if (aclChanged) {
+            mutableAclService.updateAcl(acl);
+        }
     }
 
     @Override
@@ -72,7 +140,7 @@ public class AclManagerServiceImpl implements AclManagerService {
         validatePermissions(permissions);
 
         PrincipalSid userSid = new PrincipalSid(username);
-        permissions.forEach(permission -> addPermission(domainType, identifier, userSid, permission));
+        addPermissions(domainType, identifier, userSid, permissions);
     }
 
     @Override
@@ -89,7 +157,7 @@ public class AclManagerServiceImpl implements AclManagerService {
         validatePermissions(permissions);
 
         GrantedAuthoritySid roleSid = new GrantedAuthoritySid(role);
-        permissions.forEach(permission -> addPermission(domainType, identifier, roleSid, permission));
+        addPermissions(domainType, identifier, roleSid, permissions);
     }
 
     @Override
@@ -98,32 +166,77 @@ public class AclManagerServiceImpl implements AclManagerService {
         validateSidAndPermission(sid, permission);
 
         getAclOptional(domainType, identifier)
+                .map(acl -> (MutableAcl) acl)
                 .ifPresent(
-                        acl -> {
-                            findAndRemoveAce((MutableAcl) acl, sid, permission);
-                            mutableAclService.updateAcl((MutableAcl) acl);
+                        mutableAcl -> {
+                            boolean removed = findAndRemoveAce(mutableAcl, sid, permission);
+                            if (removed) {
+                                mutableAclService.updateAcl(mutableAcl);
+                                logger.debug(
+                                        "Removed permission {} for {} on {}:{}",
+                                        permission,
+                                        sid,
+                                        domainType.getName(),
+                                        identifier);
+                            } else {
+                                logger.debug(
+                                        "No matching permission {} for {} on {}:{} found to remove",
+                                        permission,
+                                        sid,
+                                        domainType.getName(),
+                                        identifier);
+                            }
                         });
     }
 
-    private void findAndRemoveAce(MutableAcl acl, Sid sid, Permission permission) {
+    private boolean findAndRemoveAce(MutableAcl acl, Sid sid, Permission permission) {
         List<AccessControlEntry> entries = acl.getEntries();
-        // 뒤에서부터 엔트리를 확인하면서 일치하는 첫 번째 항목을 찾아 삭제
-        IntStream.range(0, entries.size())
-                .map(i -> entries.size() - i - 1) // 역순으로 인덱스 생성
-                .filter(
-                        i -> {
-                            AccessControlEntry entry = entries.get(i);
-                            return entry.getSid().equals(sid) && entry.getPermission().equals(permission);
-                        })
-                .findFirst()
-                .ifPresent(acl::deleteAce);
+        boolean removed = false;
+
+        // 뒤에서부터 모든 일치하는 ACE를 삭제 (역순으로 처리해야 인덱스 문제 방지)
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            AccessControlEntry entry = entries.get(i);
+            if (entry.getSid().equals(sid) && entry.getPermission().equals(permission)) {
+                acl.deleteAce(i);
+                removed = true;
+            }
+        }
+
+        return removed;
     }
 
     @Override
     public <T> void removePermissions(
             Class<T> domainType, Serializable identifier, Sid sid, List<Permission> permissions) {
         validatePermissions(permissions);
-        permissions.forEach(permission -> removePermission(domainType, identifier, sid, permission));
+
+        if (permissions.isEmpty()) {
+            return;
+        }
+
+        getAclOptional(domainType, identifier)
+                .map(acl -> (MutableAcl) acl)
+                .ifPresent(
+                        mutableAcl -> {
+                            boolean aclChanged = false;
+
+                            for (Permission permission : permissions) {
+                                boolean removed = findAndRemoveAce(mutableAcl, sid, permission);
+                                if (removed) {
+                                    aclChanged = true;
+                                    logger.debug(
+                                            "Removed permission {} for {} on {}:{}",
+                                            permission,
+                                            sid,
+                                            domainType.getClass().getName(),
+                                            identifier);
+                                }
+                            }
+
+                            if (aclChanged) {
+                                mutableAclService.updateAcl(mutableAcl);
+                            }
+                        });
     }
 
     @Override
@@ -140,8 +253,7 @@ public class AclManagerServiceImpl implements AclManagerService {
         validatePermissions(permissions);
 
         PrincipalSid userSid = new PrincipalSid(username);
-        permissions.forEach(
-                permission -> removePermission(domainType, identifier, userSid, permission));
+        removePermissions(domainType, identifier, userSid, permissions);
     }
 
     @Override
@@ -158,8 +270,7 @@ public class AclManagerServiceImpl implements AclManagerService {
         validatePermissions(permissions);
 
         GrantedAuthoritySid roleSid = new GrantedAuthoritySid(role);
-        permissions.forEach(
-                permission -> removePermission(domainType, identifier, roleSid, permission));
+        removePermissions(domainType, identifier, roleSid, permissions);
     }
 
     @Override
@@ -169,7 +280,9 @@ public class AclManagerServiceImpl implements AclManagerService {
         ObjectIdentity oi = createObjectIdentity(domainType, identifier);
         try {
             mutableAclService.deleteAcl(oi, false); // false: do not delete children
+            logger.debug("Removed all permissions for {}:{}", domainType.getName(), identifier);
         } catch (NotFoundException e) {
+            logger.debug("ACL not found for {}:{}, nothing to remove", domainType.getName(), identifier);
             // ACL이 존재하지 않는 경우 무시
         }
     }
@@ -226,8 +339,21 @@ public class AclManagerServiceImpl implements AclManagerService {
                 identifier,
                 mutableAcl -> {
                     PrincipalSid userSid = new PrincipalSid(username);
-                    removeAllAcesForSid(mutableAcl, userSid);
-                    mutableAclService.updateAcl(mutableAcl);
+                    boolean removed = removeAllAcesForSid(mutableAcl, userSid);
+                    if (removed) {
+                        mutableAclService.updateAcl(mutableAcl);
+                        logger.debug(
+                                "Removed all permissions for user {} on {}:{}",
+                                username,
+                                domainType.getName(),
+                                identifier);
+                    } else {
+                        logger.debug(
+                                "No permissions found for user {} on {}:{}",
+                                username,
+                                domainType.getName(),
+                                identifier);
+                    }
                 });
     }
 
@@ -242,24 +368,51 @@ public class AclManagerServiceImpl implements AclManagerService {
                 identifier,
                 mutableAcl -> {
                     GrantedAuthoritySid roleSid = new GrantedAuthoritySid(role);
-                    removeAllAcesForSid(mutableAcl, roleSid);
-                    mutableAclService.updateAcl(mutableAcl);
+                    boolean removed = removeAllAcesForSid(mutableAcl, roleSid);
+                    if (removed) {
+                        mutableAclService.updateAcl(mutableAcl);
+                        logger.debug(
+                                "Removed all permissions for role {} on {}:{}",
+                                role,
+                                domainType.getName(),
+                                identifier);
+                    } else {
+                        logger.debug(
+                                "No permissions found for role {} on {}:{}",
+                                role,
+                                domainType.getName(),
+                                identifier);
+                    }
                 });
     }
 
     private <T> void withMutableAcl(
             Class<T> domainType, Serializable identifier, Consumer<MutableAcl> action) {
-        getAclOptional(domainType, identifier).map(acl -> (MutableAcl) acl).ifPresent(action);
+        getAclOptional(domainType, identifier)
+                .map(
+                        acl -> {
+                            if (!(acl instanceof MutableAcl)) {
+                                logger.warn("Expected MutableAcl but got {}", acl.getClass().getName());
+                                return null;
+                            }
+                            return (MutableAcl) acl;
+                        })
+                .ifPresent(action);
     }
 
-    private void removeAllAcesForSid(MutableAcl acl, Sid sid) {
+    private boolean removeAllAcesForSid(MutableAcl acl, Sid sid) {
         List<AccessControlEntry> entries = acl.getEntries();
+        boolean removed = false;
 
         // 뒤에서부터 삭제해야 인덱스에 영향을 주지 않음
-        IntStream.range(0, entries.size())
-                .map(i -> entries.size() - i - 1) // 역순으로 인덱스 생성
-                .filter(i -> entries.get(i).getSid().equals(sid))
-                .forEach(acl::deleteAce);
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            if (entries.get(i).getSid().equals(sid)) {
+                acl.deleteAce(i);
+                removed = true;
+            }
+        }
+
+        return removed;
     }
 
     private <T> void validateParams(Class<T> domainType, Serializable identifier) {

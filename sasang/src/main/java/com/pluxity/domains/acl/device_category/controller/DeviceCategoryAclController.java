@@ -1,8 +1,8 @@
-package com.pluxity.domains.device_category_acl.device.controller;
+package com.pluxity.domains.acl.device_category.controller;
 
-import com.pluxity.domains.device_category_acl.device.dto.DeviceCategoryResponseDto;
-import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
-import com.pluxity.domains.device_category_acl.device.service.DeviceCategoryAclService;
+import com.pluxity.domains.acl.device_category.dto.DeviceCategoryResponseDto;
+import com.pluxity.domains.acl.device_category.dto.PermissionRequestDto;
+import com.pluxity.domains.acl.device_category.service.DeviceCategoryAclService;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
 import io.swagger.v3.oas.annotations.Operation;

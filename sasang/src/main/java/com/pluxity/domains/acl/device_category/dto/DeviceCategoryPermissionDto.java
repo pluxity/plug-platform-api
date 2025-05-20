@@ -1,4 +1,4 @@
-package com.pluxity.domains.device_category_acl.device.dto;
+package com.pluxity.domains.acl.device_category.dto;
 
 import java.util.List;
 

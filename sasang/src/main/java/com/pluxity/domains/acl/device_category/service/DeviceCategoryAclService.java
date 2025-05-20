@@ -1,10 +1,10 @@
-package com.pluxity.domains.device_category_acl.device.service;
+package com.pluxity.domains.acl.device_category.service;
 
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
+import com.pluxity.domains.acl.device_category.dto.DeviceCategoryResponseDto;
+import com.pluxity.domains.acl.device_category.dto.PermissionRequestDto;
 import com.pluxity.domains.acl.service.EntityAclOperations;
-import com.pluxity.domains.device_category_acl.device.dto.DeviceCategoryResponseDto;
-import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
 import java.util.List;
 import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;

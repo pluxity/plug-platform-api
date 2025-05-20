@@ -1,12 +1,12 @@
 package com.pluxity.sasang.device.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pluxity.domains.device_category_acl.device.controller.DeviceCategoryAclController;
-import com.pluxity.domains.device_category_acl.device.dto.DeviceCategoryResponseDto;
-import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
-import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionOperation;
-import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionTarget;
-import com.pluxity.domains.device_category_acl.device.service.DeviceCategoryAclService;
+import com.pluxity.domains.acl.device_category.controller.DeviceCategoryAclController;
+import com.pluxity.domains.acl.device_category.dto.DeviceCategoryResponseDto;
+import com.pluxity.domains.acl.device_category.dto.PermissionRequestDto;
+import com.pluxity.domains.acl.device_category.dto.PermissionRequestDto.PermissionOperation;
+import com.pluxity.domains.acl.device_category.dto.PermissionRequestDto.PermissionTarget;
+import com.pluxity.domains.acl.device_category.service.DeviceCategoryAclService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
