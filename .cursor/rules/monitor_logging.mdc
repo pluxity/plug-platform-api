@@ -1,0 +1,864 @@
+---
+description: Comprehensive monitoring and logging conventions covering structured logging principles, log level usage, formatting standards, exception handling, centralized log management, performance metrics collection, alerting strategies, security considerations, developer guidelines, and code review criteria for effective application observability.
+globs: 
+alwaysApply: false
+---
+# 모니터링 및 로깅 코딩 컨벤션
+
+## 1. 로깅 기본 원칙
+
+- **목적 명확화**: 로그는 문제 해결, 성능 분석, 보안 모니터링, 사용자 행동 추적 등 명확한 목적을 가져야 합니다.
+
+- **일관성 유지**: 전체 애플리케이션에서 일관된 로깅 스타일과 패턴을 유지합니다.
+
+- **구조화된 로깅**: JSON 등 구조화된 형식으로 로그를 기록하여 분석과 검색을 용이하게 합니다.
+  ```java
+  // 잘못된 예:
+  logger.info("사용자 " + userId + "가 로그인 시도했으나 실패. 원인: " + reason);
+  
+  // 올바른 예:
+  logger.info("로그인 실패", Map.of(
+      "userId", userId,
+      "reason", reason,
+      "ipAddress", ipAddress,
+      "timestamp", Instant.now()
+  ));
+  ```
+
+- **표준 로깅 라이브러리 사용**: 직접 System.out.println() 대신 로깅 프레임워크를 사용합니다.
+  - Java: SLF4J + Logback, Log4j2
+  - JavaScript: winston, pino
+  - Python: logging, structlog
+
+## 2. 로그 레벨 사용 규칙
+
+- **TRACE**: 매우 상세한 디버깅 정보 (개발 환경에서만 사용)
+  - 반복문 내부 변수 값, 메서드 진입/종료 추적
+  - 예: `logger.trace("변수 값: {}", value);`
+
+- **DEBUG**: 일반적인 디버깅 정보 (개발, 테스트 환경에서 사용)
+  - 조건문 결과, 내부 상태, 중간 계산 값
+  - 예: `logger.debug("상품 조회 결과: {}", product);`
+
+- **INFO**: 정상적인 애플리케이션 이벤트, 중요 비즈니스 프로세스
+  - 애플리케이션 시작/종료, 주요 기능 실행, 사용자 액션
+  - 예: `logger.info("주문 #{} 생성됨", orderId);`
+
+- **WARN**: 잠재적 문제, 성능 저하, 비정상 동작 (즉각 대응 불필요)
+  - 제한 시간에 가까운 응답, 비권장 API 사용, 재시도 성공
+  - 예: `logger.warn("캐시 접근 지연: {}ms", accessTime);`
+
+- **ERROR**: 오류 상황, 예외 발생 (대응 필요)
+  - 예외 발생, 중요 기능 실패, 외부 서비스 연결 실패
+  - 예: `logger.error("결제 처리 실패", exception);`
+
+- **FATAL**: 애플리케이션 중단 또는 심각한 장애 (즉각 대응 필요)
+  - 데이터베이스 연결 불가, 필수 구성 누락, 복구 불가능한 상태
+  - 예: `logger.fatal("데이터베이스 연결 실패로 서버 종료");`
+
+- **로그 레벨 설정 가이드**:
+  - 개발 환경: DEBUG 이상
+  - 테스트 환경: INFO 이상
+  - 운영 환경: 기본 INFO 이상, 필요시 특정 패키지만 DEBUG
+
+## 3. 로그 포맷 및 구조화
+
+- **표준 로그 형식**: 모든 로그에 다음 정보를 포함합니다.
+  - 타임스탬프 (ISO 8601 형식)
+  - 로그 레벨
+  - 프로세스/스레드 ID
+  - 클래스/컨텍스트 이름
+  - 메시지
+  - 추가 정보 (구조화된 형태)
+
+- **로그 포맷 예시**:
+  ```
+  2023-06-15T14:32:10.456Z [INFO] [main] [com.example.OrderService] - 주문 생성 완료 {"orderId":"ORD-123","userId":"USR-456","amount":15000}
+  ```
+
+- **컨텍스트 정보 포함**: 요청 ID, 세션 ID, 사용자 ID 등 컨텍스트 정보를 포함합니다.
+  ```java
+  // MDC(Mapped Diagnostic Context) 활용 예시
+  MDC.put("requestId", requestId);
+  MDC.put("userId", userId);
+  try {
+      // 비즈니스 로직 실행
+      logger.info("API 요청 처리 완료");
+  } finally {
+      MDC.clear();
+  }
+  ```
+
+- **다국어 지원**: 로그 메시지는 가능한 코드나 상수로 관리하여 다국어 지원을 고려합니다.
+
+## 4. 예외 처리 및 추적 표준
+
+- **예외 로깅 원칙**:
+  - 예외는 발생 지점에서 바로 로깅하지 않고, 적절히 처리 가능한 상위 레벨로 전파
+  - 최종적으로 처리되는 지점에서 로깅
+  - 동일 예외의 중복 로깅 방지
+
+- **예외 정보 포함**: 예외 로깅 시 다음 정보를 포함합니다.
+  - 예외 타입 및 메시지
+  - 스택 트레이스
+  - 컨텍스트 정보 (입력값, 시스템 상태 등)
+  ```java
+  try {
+      // 비즈니스 로직
+  } catch (Exception e) {
+      logger.error("결제 처리 중 오류 발생. 주문ID: {}, 금액: {}", orderId, amount, e);
+      throw new PaymentException("결제 처리 실패", e);
+  }
+  ```
+
+- **커스텀 예외 정의**: 비즈니스 도메인에 맞는 명확한 예외 계층 구조를 정의합니다.
+  ```java
+  public class PaymentException extends BusinessException {
+      private final String orderId;
+      
+      public PaymentException(String message, String orderId, Throwable cause) {
+          super(message, cause);
+          this.orderId = orderId;
+      }
+      
+      public String getOrderId() {
+          return orderId;
+      }
+  }
+  ```
+
+- **예외 분류**:
+  - 복구 가능한 예외 vs 복구 불가능한 예외
+  - 비즈니스 예외 vs 시스템 예외
+  - 내부 예외 vs 외부 서비스 예외
+
+- **트랜잭션 경계에서의 예외 처리**: 트랜잭션 롤백과 관련된 예외 처리 규칙을 정의합니다.
+
+## 5. 로그 관리 및 모니터링
+
+- **중앙 집중식 로그 시스템**: 모든 로그를 중앙 저장소에 수집합니다.
+  - ELK 스택 (Elasticsearch, Logstash, Kibana)
+  - Graylog
+  - Datadog, New Relic, Splunk 등
+
+- **로그 보존 정책**: 로그 유형별 보존 기간을 정의합니다.
+  - 일반 로그: 30일
+  - 오류 로그: 90일
+  - 보안 감사 로그: 1년 이상 (규제 요구사항에 따라 조정)
+
+- **로그 순환 정책**: 로그 파일 크기 및 순환 주기를 설정합니다.
+  ```xml
+  <!-- Logback 설정 예시 -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/application.log</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+          <fileNamePattern>logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+          <maxHistory>30</maxHistory>
+          <totalSizeCap>3GB</totalSizeCap>
+      </rollingPolicy>
+  </appender>
+  ```
+
+- **로그 검색 및 분석**: 로그 검색을 위한 인덱싱 및 쿼리 방법을 표준화합니다.
+
+## 6. 성능 모니터링
+
+- **주요 지표 정의**: 다음 핵심 지표를 모니터링합니다.
+  - 응답 시간 (백분위수: p50, p90, p99)
+  - 처리량 (TPS, RPS)
+  - 오류율
+  - 리소스 사용량 (CPU, 메모리, 디스크, 네트워크)
+  - JVM 지표 (힙 메모리, GC 동작)
+
+- **분산 추적**: 마이크로서비스 환경에서 요청 흐름을 추적합니다.
+  - OpenTelemetry, Jaeger, Zipkin 등 활용
+  ```java
+  // OpenTelemetry 예시
+  Span span = tracer.spanBuilder("orderService.createOrder").startSpan();
+  try (Scope scope = span.makeCurrent()) {
+      // 비즈니스 로직
+      span.setAttribute("orderId", orderId);
+  } catch (Exception e) {
+      span.recordException(e);
+      span.setStatus(StatusCode.ERROR, e.getMessage());
+      throw e;
+  } finally {
+      span.end();
+  }
+  ```
+
+- **커스텀 메트릭**: 비즈니스 관련 중요 지표를 정의하고 수집합니다.
+  ```java
+  // Micrometer 예시
+  Counter orderCounter = Counter.builder("orders.created")
+      .tag("type", orderType)
+      .tag("region", region)
+      .register(registry);
+  orderCounter.increment();
+  ```
+
+- **헬스 체크 엔드포인트**: 애플리케이션 상태 확인을 위한 API를 제공합니다.
+  - `/health`: 기본 상태 확인
+  - `/health/liveness`: 생존 확인
+  - `/health/readiness`: 준비 상태 확인
+
+## 7. 알림 설정
+
+- **알림 수준 정의**:
+  - INFO: 정보성 알림, 이메일 또는 대시보드
+  - WARNING: 주의 필요, 채팅 채널 알림
+  - CRITICAL: 긴급 대응 필요, SMS/전화 알림
+
+- **알림 내용 표준화**: 알림에 다음 정보를 포함합니다.
+  - 이벤트 설명
+  - 영향받는 시스템/서비스
+  - 심각도
+  - 발생 시간
+  - 조치 가능한 링크 (대시보드, 로그 등)
+
+- **알림 그룹화**: 유사 알림을 그룹화하여 알림 피로를 줄입니다.
+
+- **온콜 일정**: 알림 대응을 위한 온콜 담당자 일정을 관리합니다.
+
+## 8. 로깅 보안 고려사항
+
+- **민감 정보 제외**: 다음 정보는 로그에 포함하지 않습니다.
+  - 비밀번호, 토큰, API 키
+  - 개인식별정보(PII)
+  - 금융 정보
+  ```java
+  // 잘못된 예:
+  logger.info("로그인 요청: username={}, password={}", username, password);
+  
+  // 올바른 예:
+  logger.info("로그인 요청: username={}", username);
+  ```
+
+- **로그 접근 제어**: 로그 시스템에 대한 접근 권한을 제한합니다.
+
+- **로그 변조 방지**: 로그의 무결성을 보장하기 위한 조치를 취합니다.
+
+## 9. 개발자 가이드
+
+- **로깅 체크리스트**:
+  - 모든 중요 비즈니스 이벤트에 대한 INFO 로그
+  - 모든 예외에 대한 적절한 로깅
+  - 성능에 영향을 주는 작업에 대한 타이밍 로그
+  - 민감 정보 제외 확인
+  
+- **개발자 로컬 설정**: 개발 환경에서의 로깅 설정 가이드를 제공합니다.
+
+- **로그 분석 가이드**: 일반적인 문제 해결을 위한 로그 분석 방법을 문서화합니다.
+
+## 10. 로깅 코드 리뷰 기준
+
+- **로그 레벨 적절성**: 각 로그 메시지의 레벨이 적절한지 확인
+- **로그 메시지 품질**: 명확하고 구체적인 메시지인지 검토
+- **성능 영향**: 과도한 로깅으로 인한 성능 저하 여부 확인
+- **예외 처리 일관성**: 예외 처리 및 로깅이 표준을 따르는지 검토
+
+
+# 백엔드 로깅 및 모니터링 컨벤션
+
+## 개요
+
+이 문서는 백엔드 시스템의 로깅 및 모니터링에 관한 코딩 컨벤션을 정의합니다. 일관된 로깅 방식, 로그 레벨 사용 규칙, 모니터링 도구 및 설정 등을 통해 안정적인 운영 환경을 구축하고 문제 상황에 신속하게 대응할 수 있는 체계를 확립하는 것을 목표로 합니다.
+
+## 로깅 표준
+
+### SLF4J + Logback 활용
+
+Spring Boot 애플리케이션에서는 SLF4J를 인터페이스로, Logback을 구현체로 사용하는 것을 표준으로 합니다.
+
+#### 의존성 설정
+
+```groovy
+// Gradle 예시
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web' // 이미 SLF4J + Logback 포함
+    // 추가 로깅 기능이 필요한 경우
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.3'
+}
+```
+
+#### 로거 선언 방식
+
+```java
+// 권장: Lombok 활용
+@Slf4j
+public class UserService {
+    public User createUser(UserDto userDto) {
+        log.debug("Creating user: {}", userDto.getEmail());
+        // 비즈니스 로직
+    }
+}
+
+// 대안: 직접 로거 선언
+public class ProductService {
+    private static final Logger log = LoggerFactory.getLogger(ProductService.class);
+    
+    public Product findById(Long id) {
+        log.debug("Finding product with id: {}", id);
+        // 비즈니스 로직
+    }
+}
+```
+
+### Logback 설정
+
+`src/main/resources/logback-spring.xml` 파일을 통해 Logback 설정을 구성합니다.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Spring Boot 기본 설정 포함 -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    
+    <!-- 변수 정의 -->
+    <property name="LOG_PATH" value="${LOG_PATH:-./logs}"/>
+    <property name="LOG_FILE" value="${LOG_FILE:-application}"/>
+    
+    <!-- 콘솔 appender 설정 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- 파일 appender 설정 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${LOG_FILE}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- JSON 형식 로그 appender (ELK 스택 연동용) -->
+    <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${LOG_FILE}-json.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${LOG_FILE}-json.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+    
+    <!-- 프로파일별 설정 -->
+    <springProfile name="local,dev">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+        <logger name="com.example.myapp" level="DEBUG"/>
+    </springProfile>
+    
+    <springProfile name="prod">
+        <root level="WARN">
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="JSON_FILE"/>
+        </root>
+        <logger name="com.example.myapp" level="INFO"/>
+    </springProfile>
+</configuration>
+```
+
+## 로그 레벨 사용 규칙
+
+로그 레벨은 다음 기준에 따라 일관되게 사용합니다.
+
+### 로그 레벨 정의
+
+- **ERROR**: 애플리케이션이 중단되거나 즉각적인 조치가 필요한 심각한 문제
+- **WARN**: 잠재적인 문제이지만 즉시 애플리케이션 실패로 이어지지 않는 상황
+- **INFO**: 애플리케이션의 정상적인 동작 상태를 나타내는 중요 이벤트
+- **DEBUG**: 문제 해결에 도움이 되는 개발자 중심의 상세 정보
+- **TRACE**: 가장 상세한 수준의 정보로, 매우 세부적인 디버깅에 사용
+
+### 레벨별 사용 지침
+
+```java
+@Service
+@Slf4j
+public class OrderService {
+    
+    public Order processOrder(OrderRequest request) {
+        // TRACE: 매우 상세한 디버깅 정보
+        log.trace("Order request details: {}", request);
+        
+        // DEBUG: 개발 시 디버깅에 유용한 정보
+        log.debug("Processing order for user: {}", request.getUserId());
+        
+        try {
+            // 주문 처리 로직
+            validateOrder(request);
+            Order order = createOrder(request);
+            
+            // INFO: 중요한 비즈니스 이벤트
+            log.info("Order created successfully: {}", order.getOrderNumber());
+            
+            return order;
+        } catch (OutOfStockException e) {
+            // WARN: 즉각적인 오류는 아니지만 주의가 필요한 상황
+            log.warn("Item out of stock during order processing: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            // ERROR: 애플리케이션 오류
+            log.error("Failed to process order: {}", request.getOrderNumber(), e);
+            throw new OrderProcessingException("Order processing failed", e);
+        }
+    }
+}
+```
+
+### 로그 레벨 환경별 설정
+
+| 환경 | 애플리케이션 패키지 | 라이브러리 | 기본(root) |
+|-----|--------------------|-----------|-----------|
+| 로컬(local) | DEBUG | INFO | INFO |
+| 개발(dev) | DEBUG | INFO | INFO |
+| 테스트(test) | INFO | WARN | WARN |
+| 스테이징(staging) | INFO | WARN | WARN |
+| 운영(prod) | INFO | WARN | WARN |
+
+## 구조화된 로깅
+
+### MDC(Mapped Diagnostic Context) 활용
+
+요청 추적 및 분석을 위해 MDC를 활용합니다.
+
+```java
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class RequestIdFilter extends OncePerRequestFilter {
+    
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
+                                    FilterChain filterChain) throws ServletException, IOException {
+        try {
+            // 요청 ID 생성 또는 헤더에서 가져오기
+            String requestId = Optional.ofNullable(request.getHeader("X-Request-ID"))
+                    .orElse(UUID.randomUUID().toString());
+            
+            // MDC에 요청 정보 추가
+            MDC.put("requestId", requestId);
+            MDC.put("userId", getUserId(request));
+            MDC.put("clientIp", getClientIp(request));
+            
+            // 응답 헤더에 요청 ID 추가
+            response.setHeader("X-Request-ID", requestId);
+            
+            filterChain.doFilter(request, response);
+        } finally {
+            // MDC 정리
+            MDC.clear();
+        }
+    }
+    
+    private String getUserId(HttpServletRequest request) {
+        // 사용자 식별 로직
+        return "anonymous"; // 기본값
+    }
+    
+    private String getClientIp(HttpServletRequest request) {
+        // 클라이언트 IP 추출 로직
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty()) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
+    }
+}
+```
+
+### 로그 포맷 표준화
+
+JSON 형식으로 로그를 구조화하여 분석 도구와의 통합을 용이하게 합니다.
+
+```xml
+<!-- logback-spring.xml 설정 -->
+<encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+    <providers>
+        <timestamp>
+            <timeZone>UTC</timeZone>
+        </timestamp>
+        <pattern>
+            <pattern>
+                {
+                    "level": "%level",
+                    "thread": "%thread",
+                    "logger": "%logger",
+                    "message": "%message",
+                    "requestId": "%mdc{requestId}",
+                    "userId": "%mdc{userId}",
+                    "clientIp": "%mdc{clientIp}",
+                    "service": "${SERVICE_NAME:-unknown}"
+                }
+            </pattern>
+        </pattern>
+        <stackTrace>
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                <rootCauseFirst>true</rootCauseFirst>
+            </throwableConverter>
+        </stackTrace>
+    </providers>
+</encoder>
+```
+
+## AOP를 활용한 모니터링
+
+### 메소드 실행 시간 모니터링
+
+```java
+@Aspect
+@Component
+@Slf4j
+public class PerformanceAspect {
+    
+    @Around("@annotation(com.example.annotation.LogExecutionTime)")
+    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+        long startTime = System.currentTimeMillis();
+        String methodName = joinPoint.getSignature().getName();
+        String className = joinPoint.getSignature().getDeclaringTypeName();
+        
+        try {
+            Object result = joinPoint.proceed();
+            long executionTime = System.currentTimeMillis() - startTime;
+            
+            log.info("{}#{} executed in {} ms", className, methodName, executionTime);
+            
+            if (executionTime > 1000) {
+                log.warn("Slow method execution detected: {}#{} took {} ms", 
+                         className, methodName, executionTime);
+            }
+            
+            return result;
+        } catch (Throwable e) {
+            log.error("Exception in {}#{}: {}", className, methodName, e.getMessage(), e);
+            throw e;
+        }
+    }
+}
+
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface LogExecutionTime {
+}
+```
+
+### 사용 예시
+
+```java
+@Service
+public class ProductService {
+    
+    @LogExecutionTime
+    public List<Product> findByCategory(String category) {
+        // 시간이 오래 걸릴 수 있는 메소드
+        return productRepository.findByCategory(category);
+    }
+}
+```
+
+### 비즈니스 메트릭 수집
+
+```java
+@Aspect
+@Component
+@RequiredArgsConstructor
+public class BusinessMetricsAspect {
+    private final MeterRegistry meterRegistry;
+    
+    @AfterReturning("execution(* com.example.service.OrderService.createOrder(..))")
+    public void trackOrderCreation(JoinPoint joinPoint) {
+        meterRegistry.counter("orders.created").increment();
+    }
+    
+    @AfterReturning(
+        pointcut = "execution(* com.example.service.PaymentService.processPayment(..))",
+        returning = "result"
+    )
+    public void trackPayment(JoinPoint joinPoint, PaymentResult result) {
+        meterRegistry.counter("payments.processed").increment();
+        
+        if (result.isSuccessful()) {
+            meterRegistry.counter("payments.successful").increment();
+            meterRegistry.summary("payment.amount").record(result.getAmount().doubleValue());
+        } else {
+            meterRegistry.counter("payments.failed").increment();
+        }
+    }
+}
+```
+
+## Spring Actuator 활용
+
+### 기본 설정
+
+```yaml
+# application.yml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers,env
+  endpoint:
+    health:
+      show-details: when_authorized
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  info:
+    git:
+      mode: full
+```
+
+### 커스텀 헬스 인디케이터
+
+```java
+@Component
+public class DatabaseHealthIndicator implements HealthIndicator {
+    private final DataSource dataSource;
+    
+    public DatabaseHealthIndicator(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+    
+    @Override
+    public Health health() {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT 1")) {
+            
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return Health.up()
+                    .withDetail("database", "Available")
+                    .build();
+            } else {
+                return Health.down()
+                    .withDetail("database", "No data returned")
+                    .build();
+            }
+        } catch (SQLException e) {
+            return Health.down()
+                .withDetail("database", "Unavailable")
+                .withDetail("error", e.getMessage())
+                .build();
+        }
+    }
+}
+```
+
+### 애플리케이션 정보 커스터마이징
+
+```java
+@Component
+public class ApplicationInfoContributor implements InfoContributor {
+    
+    @Override
+    public void contribute(Info.Builder builder) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("name", "My Application");
+        details.put("version", "1.0.0");
+        details.put("buildDate", "2023-04-01");
+        details.put("environment", System.getenv("SPRING_PROFILES_ACTIVE"));
+        
+        builder.withDetail("application", details);
+    }
+}
+```
+
+### 커스텀 메트릭 등록
+
+```java
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    private final MeterRegistry meterRegistry;
+    private final UserRepository userRepository;
+    
+    public User register(UserDto userDto) {
+        // 비즈니스 로직
+        User user = userRepository.save(new User(userDto));
+        
+        // 사용자 등록 카운터 증가
+        meterRegistry.counter("users.registered").increment();
+        
+        // 사용자 유형별 카운터
+        meterRegistry.counter("users.registered", 
+                Tags.of("userType", user.getUserType().toString())).increment();
+        
+        return user;
+    }
+}
+```
+
+## 로그 및 메트릭 모니터링 도구
+
+### Prometheus + Grafana 설정
+
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: 'spring-boot-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:8080']
+```
+
+### ELK 스택 연동
+
+```xml
+<!-- logback-spring.xml -->
+<appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+    <destination>logstash-host:5000</destination>
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        <customFields>{"application":"my-app","environment":"${SPRING_PROFILES_ACTIVE:-default}"}</customFields>
+    </encoder>
+</appender>
+
+<root level="INFO">
+    <appender-ref ref="LOGSTASH" />
+</root>
+```
+
+### 분산 추적 (Sleuth + Zipkin)
+
+```groovy
+// build.gradle
+dependencies {
+    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    implementation 'org.springframework.cloud:spring-cloud-sleuth-zipkin'
+}
+```
+
+```yaml
+# application.yml
+spring:
+  sleuth:
+    sampler:
+      probability: 1.0  # 100% 샘플링 (개발 환경)
+  zipkin:
+    base-url: http://zipkin-host:9411
+```
+
+```java
+@RestController
+@Slf4j
+public class UserController {
+    
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUser(@PathVariable Long id) {
+        // Sleuth가 자동으로 trace ID와 span ID를 MDC에 추가
+        log.info("Retrieving user with id: {}", id);
+        // 비즈니스 로직
+        return ResponseEntity.ok(user);
+    }
+}
+```
+
+## 알림 설정
+
+### Actuator와 Spring Boot Admin 연동
+
+```yaml
+# application.yml (클라이언트)
+spring:
+  boot:
+    admin:
+      client:
+        url: http://admin-server:8080
+        instance:
+          service-base-url: http://my-app:8080
+        
+management:
+  endpoint:
+    health:
+      show-details: always
+```
+
+```java
+// Spring Boot Admin 서버 구성
+@EnableAdminServer
+@SpringBootApplication
+public class AdminServerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(AdminServerApplication.class, args);
+    }
+}
+```
+
+### 알림 메커니즘
+
+```java
+@Configuration
+public class AlertingConfig {
+    
+    @Bean
+    public Notifier emailNotifier(MailSender mailSender) {
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost("smtp-host");
+        sender.setPort(587);
+        sender.setUsername("username");
+        sender.setPassword("password");
+        
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        sender.setJavaMailProperties(props);
+        
+        return new MailNotifier(sender);
+    }
+    
+    @Bean
+    public Notifier slackNotifier() {
+        return new SlackNotifier("https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK");
+    }
+}
+```
+
+## 로깅 및 모니터링 체크리스트
+
+### 로깅 구성
+- [ ] SLF4J + Logback 설정 완료
+- [ ] 환경별(local, dev, prod) 로그 레벨 설정
+- [ ] MDC를 통한 요청 추적 구현
+- [ ] JSON 포맷 로그 설정 (ELK 스택 연동용)
+- [ ] 적절한 파일 로테이션 정책 설정
+
+### 모니터링 구성
+- [ ] Spring Actuator 활성화 및 보안 설정
+- [ ] 핵심 메소드에 실행 시간 모니터링 AOP 적용
+- [ ] 주요 비즈니스 지표 메트릭 설정
+- [ ] 헬스 체크 엔드포인트 커스터마이징
+- [ ] Prometheus 연동 구성
+
+### 알림 설정
+- [ ] 오류 발생 시 알림 메커니즘 구현
+- [ ] 임계치 기반 알림 설정(예: 응답 시간, 에러율)
+- [ ] 온콜 담당자 알림 체계 구성
+
+### 운영 고려사항
+- [ ] 로그 보관 정책 수립 (보관 기간, 백업)
+- [ ] 대시보드 구성 (Grafana 등)
+- [ ] 정기적인 모니터링 검토 프로세스 수립
+
+## 참고 문헌
+
+- [SLF4J 공식 문서](mdc:http:/www.slf4j.org/manual.html)
+- [Logback 공식 문서](mdc:http:/logback.qos.ch/documentation.html)
+- [Spring Boot 로깅 가이드](mdc:https:/docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.logging)
+- [Spring Boot Actuator 문서](mdc:https:/docs.spring.io/spring-boot/docs/current/reference/html/actuator.html)
+- [Micrometer 문서](mdc:https:/micrometer.io/docs)
+- [ELK 스택 가이드](mdc:https:/www.elastic.co/guide/index.html)
+- [Prometheus 문서](mdc:https:/prometheus.io/docs/introduction/overview)
+- [Grafana 문서](mdc:https:/grafana.com/docs)
+
