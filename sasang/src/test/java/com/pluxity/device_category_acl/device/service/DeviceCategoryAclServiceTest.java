@@ -4,8 +4,9 @@ import com.pluxity.SasangApplication;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.domains.acl.service.AclManagerService;
 import com.pluxity.domains.device_category_acl.device.dto.DeviceCategoryResponseDto;
-import com.pluxity.domains.device_category_acl.device.dto.GrantPermissionRequest;
-import com.pluxity.domains.device_category_acl.device.dto.RevokePermissionRequest;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionOperation;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionTarget;
 import com.pluxity.domains.device_category_acl.device.service.DeviceCategoryAclService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +18,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
-import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -85,41 +85,19 @@ class DeviceCategoryAclServiceTest {
     }
 
     @Test
-    @DisplayName("[통합] ADMIN 역할로 DeviceCategory에 사용자 READ 권한 부여")
-    void grantPermission_forUser_byAdmin_integration() {
-        // given
-        String testUsername = "testUserGrant";
-        GrantPermissionRequest request = new GrantPermissionRequest(
-                DeviceCategory.class.getSimpleName(), deviceCategoryId, testUsername, false, List.of("READ")
-        );
-        
-        // when
-        deviceCategoryAclService.grantPermission(request);
-        
-        // then
-        ObjectIdentity oi = new ObjectIdentityImpl(DeviceCategory.class, deviceCategoryId);
-        Acl acl = mutableAclService.readAclById(oi);
-        assertThat(acl).isNotNull()
-            .withFailMessage("ACL should exist for DeviceCategory ID: " + deviceCategoryId);
-        
-        Sid sid = new PrincipalSid(testUsername);
-        assertThat(acl.isGranted(List.of(BasePermission.READ), List.of(sid), false))
-            .isTrue()
-            .withFailMessage(testUsername + " should have READ permission");
-    }
-
-    @Test
     @DisplayName("ADMIN 역할로 DeviceCategory에 역할 WRITE, CREATE 권한 부여")
     void grantPermission_forRole_byAdmin() {
         // given
         String testRole = "ROLE_EDITOR_GRANT";
-        GrantPermissionRequest request = new GrantPermissionRequest(
-                DeviceCategory.class.getSimpleName(), deviceCategoryId, testRole, true, List.of("WRITE", "CREATE")
+        PermissionRequestDto request = new PermissionRequestDto(
+                DeviceCategory.class.getSimpleName(),
+                testRole,
+                List.of(new PermissionTarget(deviceCategoryId, PermissionOperation.GRANT))
         );
         List<Permission> expectedPermissions = List.of(BasePermission.WRITE, BasePermission.CREATE);
 
         // when
-        deviceCategoryAclService.grantPermission(request);
+        deviceCategoryAclService.managePermission(request);
 
         // then
         ObjectIdentity oi = new ObjectIdentityImpl(DeviceCategory.class, deviceCategoryId);
@@ -138,15 +116,17 @@ class DeviceCategoryAclServiceTest {
     void grantPermission_forRole_emptyPermissions_byAdmin() {
         // given
         String testRole = "ROLE_VIEWER_GRANT_EMPTY";
-        GrantPermissionRequest request = new GrantPermissionRequest(
-                DeviceCategory.class.getSimpleName(), deviceCategoryId, testRole, true, List.of()
+        PermissionRequestDto request = new PermissionRequestDto(
+                DeviceCategory.class.getSimpleName(),
+                testRole,
+                List.of(new PermissionTarget(deviceCategoryId, PermissionOperation.GRANT))
         );
         List<Permission> expectedDefaultPermissions = List.of(
             BasePermission.READ, BasePermission.WRITE, BasePermission.CREATE, BasePermission.DELETE
         );
 
         // when
-        deviceCategoryAclService.grantPermission(request);
+        deviceCategoryAclService.managePermission(request);
 
         // then
         ObjectIdentity oi = new ObjectIdentityImpl(DeviceCategory.class, deviceCategoryId);
@@ -177,12 +157,14 @@ class DeviceCategoryAclServiceTest {
             newContext.setAuthentication(authentication);
             SecurityContextHolder.setContext(newContext);
 
-            GrantPermissionRequest request = new GrantPermissionRequest(
-                    DeviceCategory.class.getSimpleName(), deviceCategoryId, "anotherUser", false, List.of("READ")
+            PermissionRequestDto request = new PermissionRequestDto(
+                    DeviceCategory.class.getSimpleName(),
+                    "anotherUser",
+                    List.of(new PermissionTarget(deviceCategoryId, PermissionOperation.GRANT))
             );
 
             // when & then
-            assertThatThrownBy(() -> deviceCategoryAclService.grantPermission(request))
+            assertThatThrownBy(() -> deviceCategoryAclService.managePermission(request))
                 .isInstanceOf(AccessDeniedException.class)
                 .withFailMessage("Non-ADMIN user should not be able to grant permissions.");
 
@@ -193,81 +175,43 @@ class DeviceCategoryAclServiceTest {
     
     @Test
     @DisplayName("ADMIN 역할로 DeviceCategory에서 사용자 READ 권한 회수")
-    void revokePermission_forUser_byAdmin() {
+    void revokePermission_forRole_byAdmin() {
         // given
         String targetUser = "testUserRevoke";
-        aclManagerService.addPermissionForUser(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.READ);
-        aclManagerService.addPermissionForUser(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.WRITE);
+        aclManagerService.addPermissionForRole(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.READ);
+        aclManagerService.addPermissionForRole(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.WRITE);
 
-        assertThat(aclManagerService.hasPermissionForUser(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.READ))
-            .isTrue()
-            .withFailMessage("READ permission should be granted before revocation for user " + targetUser);
+        assertThat(aclManagerService.hasPermissionForRole(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.READ))
+                .isTrue();
 
-        RevokePermissionRequest request = new RevokePermissionRequest(
-                DeviceCategory.class.getSimpleName(), deviceCategoryId, targetUser, false, List.of("READ"), false
+        PermissionRequestDto request = new PermissionRequestDto(
+                DeviceCategory.class.getSimpleName(),
+                targetUser,
+                List.of(new PermissionTarget(deviceCategoryId, PermissionOperation.REVOKE))
         );
 
         // when
-        deviceCategoryAclService.revokePermission(request);
+        deviceCategoryAclService.managePermission(request);
 
         // then
-        assertThat(aclManagerService.hasPermissionForUser(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.READ))
-            .isFalse()
-            .withFailMessage("READ permission should be revoked for user " + targetUser);
-        assertThat(aclManagerService.hasPermissionForUser(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.WRITE))
-            .isTrue()
-            .withFailMessage("WRITE permission should still exist for user " + targetUser);
-    }
-
-    @Test
-    @DisplayName("ADMIN 역할, 빈 권한 목록으로 DeviceCategory에서 역할 권한 회수 시 주요 권한들 회수")
-    void revokePermission_forRole_emptyPermissions_byAdmin() {
-        // given
-        String targetRole = "ROLE_VIEWER_REVOKE_EMPTY";
-        List<Permission> permissionsToGrant = List.of(
-            BasePermission.READ, BasePermission.WRITE, BasePermission.CREATE, BasePermission.DELETE, BasePermission.ADMINISTRATION
-        );
-        aclManagerService.addPermissionsForRole(DeviceCategory.class, deviceCategoryId, targetRole, permissionsToGrant);
-
-        for(Permission p : permissionsToGrant) {
-            assertThat(aclManagerService.hasPermissionForRole(DeviceCategory.class, deviceCategoryId, targetRole, p))
-                .isTrue()
-                .withFailMessage(p.toString() + " permission should be granted before revocation for role " + targetRole);
-        }
-
-        RevokePermissionRequest request = new RevokePermissionRequest(
-                DeviceCategory.class.getSimpleName(), deviceCategoryId, targetRole, true, List.of(), false
-        );
-        
-        // when
-        deviceCategoryAclService.revokePermission(request);
-
-        // then
-        List<Permission> expectedRevokedPermissions = List.of(
-            BasePermission.READ, BasePermission.WRITE, BasePermission.CREATE, BasePermission.DELETE
-        );
-        for (Permission p : expectedRevokedPermissions) {
-            assertThat(aclManagerService.hasPermissionForRole(DeviceCategory.class, deviceCategoryId, targetRole, p))
-                .isFalse()
-                .withFailMessage(p.toString() + " permission should be revoked for role " + targetRole + " when revoked with empty list");
-        }
-        
-        // ADMINISTRATION 권한은 유지되어야 함
-        assertThat(aclManagerService.hasPermissionForRole(DeviceCategory.class, deviceCategoryId, targetRole, BasePermission.ADMINISTRATION))
-            .isTrue()
-            .withFailMessage("ADMINISTRATION permission should be preserved after revoking with empty list");
+        assertThat(aclManagerService.hasPermissionForRole(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.READ))
+                .isFalse();
+        assertThat(aclManagerService.hasPermissionForRole(DeviceCategory.class, deviceCategoryId, targetUser, BasePermission.WRITE))
+                .isFalse();
     }
 
     @Test
     @DisplayName("타겟 타입이 DeviceCategory가 아닐 때 권한 부여 시도 시 IllegalArgumentException")
     void grantPermission_wrongTargetType_thenThrowException() {
         // given
-        GrantPermissionRequest request = new GrantPermissionRequest(
-                "com.example.WrongType", deviceCategoryId, "testUserWrongType", false, List.of("READ")
+        PermissionRequestDto request = new PermissionRequestDto(
+                "com.example.WrongType",
+                "testUserWrongType",
+                List.of(new PermissionTarget(deviceCategoryId, PermissionOperation.GRANT))
         );
         
         // when & then
-        assertThatThrownBy(() -> deviceCategoryAclService.grantPermission(request))
+        assertThatThrownBy(() -> deviceCategoryAclService.managePermission(request))
             .isInstanceOf(IllegalArgumentException.class);
     }
     
@@ -310,7 +254,7 @@ class DeviceCategoryAclServiceTest {
     void hasReadPermission_withPermission_returnsTrue() {
         // given
         String permittedUsername = "permittedUserHasRead";
-        aclManagerService.addPermissionForUser(DeviceCategory.class, deviceCategoryId, permittedUsername, BasePermission.READ);
+        aclManagerService.addPermissionForRole(DeviceCategory.class, deviceCategoryId, permittedUsername, BasePermission.READ);
         
         Authentication permittedUserAuth = new UsernamePasswordAuthenticationToken(
             permittedUsername, "password", List.of(new SimpleGrantedAuthority("ROLE_USER"))
@@ -423,12 +367,14 @@ class DeviceCategoryAclServiceTest {
                 .withFailMessage(p.toString() + " permission should be granted for role " + adminRole);
         }
 
-        RevokePermissionRequest request = new RevokePermissionRequest(
-                DeviceCategory.class.getSimpleName(), deviceCategoryId, adminRole, true, List.of("READ"), false
+        PermissionRequestDto request = new PermissionRequestDto(
+                DeviceCategory.class.getSimpleName(),
+                adminRole,
+                List.of(new PermissionTarget(deviceCategoryId, PermissionOperation.REVOKE))
         );
         
         // when & then
-        assertThatThrownBy(() -> deviceCategoryAclService.revokePermission(request))
+        assertThatThrownBy(() -> deviceCategoryAclService.managePermission(request))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("ADMIN 역할의 권한은 회수할 수 없습니다")
             .withFailMessage("Should throw IllegalStateException when trying to revoke permissions from ADMIN role");
@@ -451,12 +397,14 @@ class DeviceCategoryAclServiceTest {
         );
         aclManagerService.addPermissionsForRole(DeviceCategory.class, deviceCategoryId, adminRole, permissionsToGrant);
 
-        RevokePermissionRequest request = new RevokePermissionRequest(
-                DeviceCategory.class.getSimpleName(), deviceCategoryId, adminRole, true, null, true
+        PermissionRequestDto request = new PermissionRequestDto(
+                DeviceCategory.class.getSimpleName(),
+                adminRole,
+                List.of(new PermissionTarget(deviceCategoryId, PermissionOperation.REVOKE))
         );
         
         // when & then
-        assertThatThrownBy(() -> deviceCategoryAclService.revokePermission(request))
+        assertThatThrownBy(() -> deviceCategoryAclService.managePermission(request))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("ADMIN 역할의 권한은 회수할 수 없습니다")
             .withFailMessage("Should throw IllegalStateException when trying to revoke all permissions from ADMIN role");

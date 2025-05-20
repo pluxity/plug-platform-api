@@ -1,8 +1,7 @@
 package com.pluxity.domains.device_category_acl.device.controller;
 
 import com.pluxity.domains.device_category_acl.device.dto.DeviceCategoryResponseDto;
-import com.pluxity.domains.device_category_acl.device.dto.GrantPermissionRequest;
-import com.pluxity.domains.device_category_acl.device.dto.RevokePermissionRequest;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
 import com.pluxity.domains.device_category_acl.device.service.DeviceCategoryAclService;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -27,10 +26,10 @@ public class DeviceCategoryAclController {
 
     private final DeviceCategoryAclService deviceCategoryAclService;
 
-    @Operation(summary = "권한 부여", description = "사용자 또는 역할에 디바이스 카테고리에 대한 권한을 부여합니다")
+    @Operation(summary = "권한 관리", description = "사용자 또는 역할에 디바이스 카테고리에 대한 권한을 부여하거나 회수합니다")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "200", description = "권한 부여 성공"),
+                @ApiResponse(responseCode = "200", description = "권한 관리 성공"),
                 @ApiResponse(
                         responseCode = "400",
                         description = "잘못된 요청",
@@ -53,45 +52,11 @@ public class DeviceCategoryAclController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PostMapping("/grant")
-    public ResponseEntity<Void> grantPermission(
-            @Parameter(description = "권한 부여 요청 정보", required = true) @Valid @RequestBody
-                    GrantPermissionRequest request) {
-        deviceCategoryAclService.grantPermission(request);
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "권한 회수", description = "사용자 또는 역할로부터 디바이스 카테고리에 대한 권한을 회수합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "권한 회수 성공"),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "잘못된 요청",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "403",
-                        description = "권한 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @PostMapping("/revoke")
-    public ResponseEntity<Void> revokePermission(
-            @Parameter(description = "권한 회수 요청 정보", required = true) @Valid @RequestBody
-                    RevokePermissionRequest request) {
-        deviceCategoryAclService.revokePermission(request);
+    @PostMapping("/manage")
+    public ResponseEntity<Void> managePermission(
+            @Parameter(description = "권한 관리 요청 정보", required = true) @Valid @RequestBody
+                    PermissionRequestDto request) {
+        deviceCategoryAclService.managePermission(request);
         return ResponseEntity.ok().build();
     }
 

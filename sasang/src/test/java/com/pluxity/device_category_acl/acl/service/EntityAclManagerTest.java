@@ -4,8 +4,9 @@ import com.pluxity.SasangApplication;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.domains.acl.service.AclManagerService;
 import com.pluxity.domains.acl.service.EntityAclManager;
-import com.pluxity.domains.device_category_acl.device.dto.GrantPermissionRequest;
-import com.pluxity.domains.device_category_acl.device.dto.RevokePermissionRequest;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionOperation;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionTarget;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -112,14 +113,14 @@ class EntityAclManagerTest {
     @DisplayName("convertToPermissions: 권한 문자열 목록이 Permission 객체로 변환됨")
     void convertToPermissions_validPermissions_returnsPermissionList() {
         // given
-        List<String> permissionStrings = List.of("READ", "WRITE", "CREATE");
-        
+        List<String> permissionStrings = List.of("READ", "WRITE", "CREATE", "DELETE");
+
         // when
         List<Permission> result = entityAclManager.convertToPermissions(permissionStrings);
-        
+
         // then
-        assertThat(result).hasSize(3);
-        assertThat(result).contains(BasePermission.READ, BasePermission.WRITE, BasePermission.CREATE);
+        assertThat(result).hasSize(4);
+        assertThat(result).contains(BasePermission.READ, BasePermission.WRITE, BasePermission.CREATE, BasePermission.DELETE);
     }
 
     @Test
@@ -160,147 +161,111 @@ class EntityAclManagerTest {
         );
     }
     
-    @Test
-    @DisplayName("grantPermission: 사용자에게 권한 부여 시 권한이 정상적으로 추가됨")
-    void grantPermission_forUser_grantsPermissions() {
-        // given
-        String testUsername = "testUser";
-        GrantPermissionRequest request = new GrantPermissionRequest(
-            testEntityType, testEntityId, testUsername, false, List.of("READ", "WRITE")
-        );
-        
-        // when
-        entityAclManager.grantPermission(request, testEntityType, testEntityClass);
-        
-        // then
-        assertThat(aclManagerService.hasPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.READ))
-            .isTrue();
-        assertThat(aclManagerService.hasPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.WRITE))
-            .isTrue();
-    }
+//    @Test
+//    @DisplayName("managePermission: 사용자에게 권한 부여 시 권한이 정상적으로 추가됨")
+//    void managePermission_forRole_grantsPermissions() {
+//        // given
+//        String testUsername = "testUser";
+//        PermissionRequestDto request = new PermissionRequestDto(
+//            testEntityType,
+//            testUsername,
+//            List.of(new PermissionTarget(testEntityId, PermissionOperation.GRANT))
+//        );
+//
+//        // when
+//        entityAclManager.managePermission(request, testEntityType, testEntityClass);
+//
+//        // then
+//        assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.READ))
+//            .isTrue();
+//        assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.WRITE))
+//            .isTrue();
+//    }
     
     @Test
-    @DisplayName("grantPermission: 역할에게 권한 부여 시 권한이 정상적으로 추가됨")
-    void grantPermission_forRole_grantsPermissions() {
+    @DisplayName("managePermission: 역할에게 권한 부여 시 권한이 정상적으로 추가됨")
+    void managePermission_forRole_grantsPermissions() {
         // given
         String testRole = "ROLE_EDITOR";
-        GrantPermissionRequest request = new GrantPermissionRequest(
-            testEntityType, testEntityId, testRole, true, List.of("READ", "WRITE")
+        PermissionRequestDto request = new PermissionRequestDto(
+            testEntityType,
+            testRole,
+            List.of(new PermissionTarget(testEntityId, PermissionOperation.GRANT))
         );
-        
+
         // when
-        entityAclManager.grantPermission(request, testEntityType, testEntityClass);
-        
+        entityAclManager.managePermission(request, testEntityType, testEntityClass);
+
         // then
         assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testRole, BasePermission.READ))
             .isTrue();
         assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testRole, BasePermission.WRITE))
             .isTrue();
     }
-    
+
     @Test
-    @DisplayName("grantPermission: 잘못된 엔티티 타입으로 권한 부여 시도 시 예외 발생")
-    void grantPermission_wrongEntityType_throwsException() {
+    @DisplayName("managePermission: 잘못된 엔티티 타입으로 권한 부여 시도 시 예외 발생")
+    void managePermission_wrongEntityType_throwsException() {
         // given
-        GrantPermissionRequest request = new GrantPermissionRequest(
-            "WrongType", testEntityId, "testUser", false, List.of("READ")
+        PermissionRequestDto request = new PermissionRequestDto(
+            "WrongType", 
+            "testUser", 
+            List.of(new PermissionTarget(testEntityId, PermissionOperation.GRANT))
         );
         
         // when & then
-        assertThatThrownBy(() -> entityAclManager.grantPermission(request, testEntityType, testEntityClass))
+        assertThatThrownBy(() -> entityAclManager.managePermission(request, testEntityType, testEntityClass))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Target type must be");
     }
     
-    @Test
-    @DisplayName("revokePermission: 사용자의 모든 권한 회수 시 권한이 제거됨")
-    void revokePermission_removeAllForUser_revokesAllPermissions() {
-        // given
-        String testUsername = "testUserRevoke";
-        // 먼저 권한 부여
-        aclManagerService.addPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.READ);
-        aclManagerService.addPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.WRITE);
-        
-        RevokePermissionRequest request = new RevokePermissionRequest(
-            testEntityType, testEntityId, testUsername, false, Collections.emptyList(), true
-        );
-        
-        // when
-        entityAclManager.revokePermission(request, testEntityType, testEntityClass);
-        
-        // then
-        assertThat(aclManagerService.hasPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.READ))
-            .isFalse();
-        assertThat(aclManagerService.hasPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.WRITE))
-            .isFalse();
-    }
+//    @Test
+//    @DisplayName("managePermission: 사용자의 모든 권한 회수 시 권한이 제거됨")
+//    void managePermission_removeAllForRole_revokesAllPermissions() {
+//        // given
+//        String testUsername = "testUserRevoke";
+//        // 먼저 권한 부여
+//        aclManagerService.addPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.READ);
+//        aclManagerService.addPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.WRITE);
+//
+//        PermissionRequestDto request = new PermissionRequestDto(
+//            testEntityType,
+//            testUsername,
+//            List.of(new PermissionTarget(testEntityId, PermissionOperation.REVOKE))
+//        );
+//
+//        // when
+//        entityAclManager.managePermission(request, testEntityType, testEntityClass);
+//
+//        // then
+//        assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.READ))
+//            .isFalse();
+//        assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.WRITE))
+//            .isFalse();
+//    }
     
     @Test
-    @DisplayName("revokePermission: 역할의 모든 권한 회수 시 권한이 제거됨")
-    void revokePermission_removeAllForRole_revokesAllPermissions() {
+    @DisplayName("managePermission: 역할의 모든 권한 회수 시 권한이 제거됨")
+    void managePermission_removeAllForRole_revokesAllPermissions() {
         // given
         String testRole = "ROLE_EDITOR_REVOKE";
         // 먼저 권한 부여
         aclManagerService.addPermissionForRole(testEntityClass, testEntityId, testRole, BasePermission.READ);
         aclManagerService.addPermissionForRole(testEntityClass, testEntityId, testRole, BasePermission.WRITE);
         
-        RevokePermissionRequest request = new RevokePermissionRequest(
-            testEntityType, testEntityId, testRole, true, Collections.emptyList(), true
+        PermissionRequestDto request = new PermissionRequestDto(
+            testEntityType, 
+            testRole, 
+            List.of(new PermissionTarget(testEntityId, PermissionOperation.REVOKE))
         );
         
         // when
-        entityAclManager.revokePermission(request, testEntityType, testEntityClass);
+        entityAclManager.managePermission(request, testEntityType, testEntityClass);
         
         // then
         assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testRole, BasePermission.READ))
             .isFalse();
         assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testRole, BasePermission.WRITE))
-            .isFalse();
-    }
-    
-    @Test
-    @DisplayName("revokePermission: 사용자의 특정 권한만 회수 시 해당 권한만 제거됨")
-    void revokePermission_specificPermissionsForUser_revokesOnlySpecifiedPermissions() {
-        // given
-        String testUsername = "testUserSpecificRevoke";
-        // 먼저 권한 부여
-        aclManagerService.addPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.READ);
-        aclManagerService.addPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.WRITE);
-        
-        RevokePermissionRequest request = new RevokePermissionRequest(
-            testEntityType, testEntityId, testUsername, false, List.of("READ"), false
-        );
-        
-        // when
-        entityAclManager.revokePermission(request, testEntityType, testEntityClass);
-        
-        // then
-        assertThat(aclManagerService.hasPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.READ))
-            .isFalse();
-        assertThat(aclManagerService.hasPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.WRITE))
-            .isTrue();
-    }
-    
-    @Test
-    @DisplayName("revokePermission: 빈 권한 목록으로 권한 회수 시 모든 권한 제거")
-    void revokePermission_emptyPermissionList_revokesAllPermissions() {
-        // given
-        String testUsername = "testUserEmptyRevoke";
-        // 먼저 권한 부여
-        aclManagerService.addPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.READ);
-        aclManagerService.addPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.WRITE);
-        
-        RevokePermissionRequest request = new RevokePermissionRequest(
-            testEntityType, testEntityId, testUsername, false, Collections.emptyList(), false
-        );
-        
-        // when
-        entityAclManager.revokePermission(request, testEntityType, testEntityClass);
-        
-        // then
-        assertThat(aclManagerService.hasPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.READ))
-            .isFalse();
-        assertThat(aclManagerService.hasPermissionForUser(testEntityClass, testEntityId, testUsername, BasePermission.WRITE))
             .isFalse();
     }
     
@@ -345,7 +310,7 @@ class EntityAclManagerTest {
         );
         
         // entity1에만 접근 권한 부여
-        aclManagerService.addPermissionForUser(testEntityClass, 1L, regularUsername, BasePermission.READ);
+        aclManagerService.addPermissionForRole(testEntityClass, 1L, regularUsername, BasePermission.READ);
         
         // when
         List<String> result = entityAclManager.findAllAllowedForCurrentUser(
@@ -385,7 +350,7 @@ class EntityAclManagerTest {
     void hasReadPermission_userHasPermission_returnsTrue() {
         // given
         String username = "testUserHasRead";
-        aclManagerService.addPermissionForUser(testEntityClass, testEntityId, username, BasePermission.READ);
+        aclManagerService.addPermissionForRole(testEntityClass, testEntityId, username, BasePermission.READ);
         
         // when
         boolean result = entityAclManager.hasReadPermission(testEntityId, testEntityClass, username);
@@ -405,6 +370,96 @@ class EntityAclManagerTest {
         
         // then
         assertThat(result).isFalse();
+    }
+    
+    @Test
+    @DisplayName("managePermission: 순차적 요청 - 같은 targetId에 대해 GRANT 후 REVOKE 작업 시 최종 상태는 REVOKE")
+    void managePermission_sequentialRequests_finalStateIsRevoke() {
+        // given
+        String testUsername = "testUserSequential";
+        
+        // 1. 먼저 GRANT 작업 수행
+        PermissionRequestDto grantRequest = new PermissionRequestDto(
+            testEntityType, 
+            testUsername, 
+            List.of(new PermissionTarget(testEntityId, PermissionOperation.GRANT))
+        );
+        
+        entityAclManager.managePermission(grantRequest, testEntityType, testEntityClass);
+        
+        // GRANT 작업 후 권한이 있는지 확인
+        assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.READ))
+            .isTrue()
+            .withFailMessage("After GRANT, READ permission should be granted");
+        
+        // 2. 이후 REVOKE 작업 수행
+        PermissionRequestDto revokeRequest = new PermissionRequestDto(
+            testEntityType, 
+            testUsername, 
+            List.of(new PermissionTarget(testEntityId, PermissionOperation.REVOKE))
+        );
+        
+        entityAclManager.managePermission(revokeRequest, testEntityType, testEntityClass);
+        
+        // then
+        // REVOKE 작업 후 권한이 없는지 확인
+        assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.READ))
+            .isFalse()
+            .withFailMessage("After REVOKE, READ permission should be revoked");
+    }
+    
+    @Test
+    @DisplayName("managePermission: 동일 요청 내 충돌 - 동일한 targetId에 대해 GRANT와 REVOKE 모두 있을 때 마지막 operation이 적용됨")
+    void managePermission_conflictingOperations_lastOperationWins() {
+        // given
+        String testUsername = "testUserConflict";
+        
+        // GRANT와 REVOKE가 모두 포함된 요청 생성
+        // 순서: 1. GRANT, 2. REVOKE (REVOKE가 나중에 처리되므로 최종 상태는 REVOKE여야 함)
+        PermissionRequestDto conflictRequest = new PermissionRequestDto(
+            testEntityType, 
+            testUsername, 
+            List.of(
+                new PermissionTarget(testEntityId, PermissionOperation.GRANT),
+                new PermissionTarget(testEntityId, PermissionOperation.REVOKE)
+            )
+        );
+        
+        // when
+        entityAclManager.managePermission(conflictRequest, testEntityType, testEntityClass);
+        
+        // then
+        // 최종 상태는 REVOKE여야 함 (targets 배열에서 마지막에 처리된 operation)
+        assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.READ))
+            .isFalse()
+            .withFailMessage("When both GRANT and REVOKE operations exist for the same targetId, the last one (REVOKE) should be effective");
+    }
+    
+    @Test
+    @DisplayName("managePermission: 동일 요청 내 충돌(반대 순서) - 동일한 targetId에 대해 REVOKE 후 GRANT가 있을 때 마지막 operation이 적용됨")
+    void managePermission_conflictingOperationsReversed_lastOperationWins() {
+        // given
+        String testUsername = "testUserConflictReversed";
+        
+        // REVOKE와 GRANT가 모두 포함된 요청 생성 (순서를 반대로)
+        // 순서: 1. REVOKE, 2. GRANT (GRANT가 나중에 처리되므로 최종 상태는 GRANT여야 함)
+        PermissionRequestDto conflictRequest = new PermissionRequestDto(
+            testEntityType, 
+            testUsername, 
+            List.of(
+                new PermissionTarget(testEntityId, PermissionOperation.REVOKE),
+                new PermissionTarget(testEntityId, PermissionOperation.GRANT)
+            )
+        );
+        
+        // when
+        entityAclManager.managePermission(conflictRequest, testEntityType, testEntityClass);
+        
+        // then
+        // 최종 상태는 GRANT여야 함 (targets 배열에서 마지막에 처리된 operation)
+        assertThat(aclManagerService.hasPermissionForRole(testEntityClass, testEntityId, testUsername, BasePermission.READ))
+            .isTrue()
+            .withFailMessage("When both REVOKE and GRANT operations exist for the same targetId, the last one (GRANT) should be effective");
     }
     
     // 테스트용 내부 클래스

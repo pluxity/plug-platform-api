@@ -4,8 +4,7 @@ import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.domains.acl.service.EntityAclOperations;
 import com.pluxity.domains.device_category_acl.device.dto.DeviceCategoryResponseDto;
-import com.pluxity.domains.device_category_acl.device.dto.GrantPermissionRequest;
-import com.pluxity.domains.device_category_acl.device.dto.RevokePermissionRequest;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
 import java.util.List;
 import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +31,8 @@ public class DeviceCategoryAclService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public void grantPermission(GrantPermissionRequest request) {
-        entityAclOperations.grantPermission(request, ENTITY_TYPE, ENTITY_CLASS);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    public void revokePermission(RevokePermissionRequest request) {
-        entityAclOperations.revokePermission(request, ENTITY_TYPE, ENTITY_CLASS);
+    public void managePermission(PermissionRequestDto request) {
+        entityAclOperations.managePermission(request, ENTITY_TYPE, ENTITY_CLASS);
     }
 
     @PreAuthorize("hasPermission(#id, 'com.pluxity.device.entity.DeviceCategory', 'READ')")

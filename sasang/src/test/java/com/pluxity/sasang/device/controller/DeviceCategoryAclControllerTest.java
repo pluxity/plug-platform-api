@@ -3,8 +3,9 @@ package com.pluxity.sasang.device.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pluxity.domains.device_category_acl.device.controller.DeviceCategoryAclController;
 import com.pluxity.domains.device_category_acl.device.dto.DeviceCategoryResponseDto;
-import com.pluxity.domains.device_category_acl.device.dto.GrantPermissionRequest;
-import com.pluxity.domains.device_category_acl.device.dto.RevokePermissionRequest;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionOperation;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionTarget;
 import com.pluxity.domains.device_category_acl.device.service.DeviceCategoryAclService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,120 +55,81 @@ class DeviceCategoryAclControllerTest {
     @MockBean
     private DeviceCategoryAclService deviceCategoryAclService;
 
-    // =========== 권한 부여 테스트 ===========
+    // =========== 권한 관리 테스트 ===========
 
     @Test
     @DisplayName("디바이스 카테고리에 대한 권한 부여 요청 시 성공적으로 처리된다")
-    void grantPermission_ValidRequest_Success() throws Exception {
+    void managePermission_GrantValidRequest_Success() throws Exception {
         // given
-        GrantPermissionRequest request = createGrantPermissionRequest();
+        PermissionRequestDto request = createGrantPermissionRequest();
         
-        doNothing().when(deviceCategoryAclService).grantPermission(any(GrantPermissionRequest.class));
+        doNothing().when(deviceCategoryAclService).managePermission(any(PermissionRequestDto.class));
 
         // when
-        ResultActions result = mockMvc.perform(post("/acl/device-categories/grant")
+        ResultActions result = mockMvc.perform(post("/acl/device-categories/manage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
         result.andExpect(status().isOk());
         
-        verify(deviceCategoryAclService).grantPermission(any(GrantPermissionRequest.class));
+        verify(deviceCategoryAclService).managePermission(any(PermissionRequestDto.class));
     }
     
-    @Test
-    @DisplayName("디바이스 카테고리에 대한 권한 부여 요청 시 권한이 없으면 예외가 발생한다")
-    void grantPermission_NoPermission_ThrowsException() throws Exception {
-        // given
-        GrantPermissionRequest request = createGrantPermissionRequest();
-        
-        doThrow(new AccessDeniedException("Access denied")).when(deviceCategoryAclService)
-            .grantPermission(any(GrantPermissionRequest.class));
-
-        // when
-        ResultActions result = mockMvc.perform(post("/acl/device-categories/grant")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)));
-
-        // then
-        result.andExpect(status().isForbidden());
-        
-        verify(deviceCategoryAclService).grantPermission(any(GrantPermissionRequest.class));
-    }
-    
-    @Test
-    @DisplayName("디바이스 카테고리에 대한 권한 부여 요청 시 유효하지 않은 요청은 400 응답을 반환한다")
-    void grantPermission_InvalidRequest_ReturnsBadRequest() throws Exception {
-        // given
-        GrantPermissionRequest request = new GrantPermissionRequest(null, null, null, false, null);
-        
-        // when
-        ResultActions result = mockMvc.perform(post("/acl/device-categories/grant")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)));
-
-        // then
-        result.andExpect(status().isBadRequest());
-        
-        verify(deviceCategoryAclService, never()).grantPermission(any(GrantPermissionRequest.class));
-    }
-
-    // =========== 권한 회수 테스트 ===========
-
     @Test
     @DisplayName("디바이스 카테고리에 대한 권한 회수 요청 시 성공적으로 처리된다")
-    void revokePermission_ValidRequest_Success() throws Exception {
+    void managePermission_RevokeValidRequest_Success() throws Exception {
         // given
-        RevokePermissionRequest request = createRevokePermissionRequest();
+        PermissionRequestDto request = createRevokePermissionRequest();
         
-        doNothing().when(deviceCategoryAclService).revokePermission(any(RevokePermissionRequest.class));
+        doNothing().when(deviceCategoryAclService).managePermission(any(PermissionRequestDto.class));
 
         // when
-        ResultActions result = mockMvc.perform(post("/acl/device-categories/revoke")
+        ResultActions result = mockMvc.perform(post("/acl/device-categories/manage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
         result.andExpect(status().isOk());
         
-        verify(deviceCategoryAclService).revokePermission(any(RevokePermissionRequest.class));
+        verify(deviceCategoryAclService).managePermission(any(PermissionRequestDto.class));
     }
     
     @Test
-    @DisplayName("디바이스 카테고리에 대한 권한 회수 요청 시 권한이 없으면 예외가 발생한다")
-    void revokePermission_NoPermission_ThrowsException() throws Exception {
+    @DisplayName("디바이스 카테고리에 대한 권한 관리 요청 시 권한이 없으면 예외가 발생한다")
+    void managePermission_NoPermission_ThrowsException() throws Exception {
         // given
-        RevokePermissionRequest request = createRevokePermissionRequest();
+        PermissionRequestDto request = createGrantPermissionRequest();
         
         doThrow(new AccessDeniedException("Access denied")).when(deviceCategoryAclService)
-            .revokePermission(any(RevokePermissionRequest.class));
+            .managePermission(any(PermissionRequestDto.class));
 
         // when
-        ResultActions result = mockMvc.perform(post("/acl/device-categories/revoke")
+        ResultActions result = mockMvc.perform(post("/acl/device-categories/manage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
         result.andExpect(status().isForbidden());
         
-        verify(deviceCategoryAclService).revokePermission(any(RevokePermissionRequest.class));
+        verify(deviceCategoryAclService).managePermission(any(PermissionRequestDto.class));
     }
     
     @Test
-    @DisplayName("디바이스 카테고리에 대한 권한 회수 요청 시 유효하지 않은 요청은 400 응답을 반환한다")
-    void revokePermission_InvalidRequest_ReturnsBadRequest() throws Exception {
+    @DisplayName("디바이스 카테고리에 대한 권한 관리 요청 시 유효하지 않은 요청은 400 응답을 반환한다")
+    void managePermission_InvalidRequest_ReturnsBadRequest() throws Exception {
         // given
-        RevokePermissionRequest request = new RevokePermissionRequest(null, null, null, false, null, false);
+        PermissionRequestDto request = new PermissionRequestDto(null, null, null);
         
         // when
-        ResultActions result = mockMvc.perform(post("/acl/device-categories/revoke")
+        ResultActions result = mockMvc.perform(post("/acl/device-categories/manage")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
         // then
         result.andExpect(status().isBadRequest());
         
-        verify(deviceCategoryAclService, never()).revokePermission(any(RevokePermissionRequest.class));
+        verify(deviceCategoryAclService, never()).managePermission(any(PermissionRequestDto.class));
     }
 
     // =========== 읽기 권한 확인 테스트 ===========
@@ -263,9 +225,7 @@ class DeviceCategoryAclControllerTest {
     @DisplayName("접근 가능한 디바이스 카테고리가 없을 때 빈 목록을 반환한다")
     void getMyDeviceCategories_NoAccessibleCategories_ReturnsEmptyList() throws Exception {
         // given
-        List<DeviceCategoryResponseDto> categories = Collections.emptyList();
-        
-        given(deviceCategoryAclService.findAllAllowedForCurrentUser()).willReturn(categories);
+        given(deviceCategoryAclService.findAllAllowedForCurrentUser()).willReturn(Collections.emptyList());
 
         // when
         ResultActions result = mockMvc.perform(get("/acl/device-categories/mine")
@@ -283,38 +243,31 @@ class DeviceCategoryAclControllerTest {
     void getMyDeviceCategories_Unauthenticated_ThrowsException() throws Exception {
         // given
         given(deviceCategoryAclService.findAllAllowedForCurrentUser())
-            .willThrow(new AccessDeniedException("Not authenticated"));
+            .willThrow(new IllegalStateException("User is not authenticated"));
 
         // when
         ResultActions result = mockMvc.perform(get("/acl/device-categories/mine")
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
-        result.andExpect(status().isForbidden());
+        result.andExpect(status().isInternalServerError());
         
         verify(deviceCategoryAclService).findAllAllowedForCurrentUser();
     }
-    
-    // =========== 헬퍼 메소드 ===========
-    
-    private GrantPermissionRequest createGrantPermissionRequest() {
-        return new GrantPermissionRequest(
+
+    private PermissionRequestDto createGrantPermissionRequest() {
+        return new PermissionRequestDto(
             "DeviceCategory",
-            1L,
-            "user1",
-            false,
-            List.of("READ", "WRITE")
+            "ROLE_TEST",
+            List.of(new PermissionTarget(1L, PermissionOperation.GRANT))
         );
     }
     
-    private RevokePermissionRequest createRevokePermissionRequest() {
-        return new RevokePermissionRequest(
+    private PermissionRequestDto createRevokePermissionRequest() {
+        return new PermissionRequestDto(
             "DeviceCategory",
-            1L,
-            "user1",
-            false,
-            List.of("READ", "WRITE"),
-            false
+            "ROLE_TEST",
+            List.of(new PermissionTarget(1L, PermissionOperation.REVOKE))
         );
     }
 }

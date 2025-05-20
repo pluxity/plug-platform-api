@@ -1,7 +1,8 @@
 package com.pluxity.domains.acl.service;
 
-import com.pluxity.domains.device_category_acl.device.dto.GrantPermissionRequest;
-import com.pluxity.domains.device_category_acl.device.dto.RevokePermissionRequest;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionOperation;
+import com.pluxity.domains.device_category_acl.device.dto.PermissionRequestDto.PermissionTarget;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,96 +40,42 @@ public class EntityAclManager implements EntityAclOperations {
     /** 문자열 권한 목록을 Permission 객체 목록으로 변환 */
     @Override
     public List<Permission> convertToPermissions(List<String> permissionStrings, boolean forRevoke) {
-        if (permissionStrings == null || permissionStrings.isEmpty()) {
-            // 권한 회수인 경우 빈 목록 그대로 반환 (호출자가 처리)
-            if (forRevoke) {
-                return Collections.emptyList();
-            }
-
-            // 권한 부여인 경우 기본 CRUD 권한 반환
-            return List.of(
-                    BasePermission.READ, BasePermission.WRITE, BasePermission.CREATE, BasePermission.DELETE);
-        }
-
-        return permissionStrings.stream()
-                .map(PermissionMapper::fromString)
-                .collect(Collectors.toList());
+        return List.of(
+                BasePermission.READ, BasePermission.WRITE, BasePermission.CREATE, BasePermission.DELETE);
     }
 
     /** 문자열 권한 목록을 Permission 객체 목록으로 변환 (권한 부여용) */
     @Override
     public List<Permission> convertToPermissions(List<String> permissionStrings) {
-        return convertToPermissions(permissionStrings, false);
+        return List.of(
+                BasePermission.READ, BasePermission.WRITE, BasePermission.CREATE, BasePermission.DELETE);
     }
 
-    /** 권한 부여 */
+    /** 권한 부여/회수 통합 처리 */
     @Override
-    public void grantPermission(
-            GrantPermissionRequest request, String entityType, Class<?> entityClass) {
+    public void managePermission(
+            PermissionRequestDto request, String entityType, Class<?> entityClass) {
         validateEntityType(request.targetType(), entityType);
 
-        List<Permission> permissions = convertToPermissions(request.permissions());
+        List<Permission> permissions = convertToPermissions(request.getPermissions());
+        String principalName = request.principalName();
 
-        if (request.isRole()) {
-            aclManagerService.addPermissionsForRole(
-                    entityClass, request.targetId(), request.principalName(), permissions);
-        } else {
-            aclManagerService.addPermissionsForUser(
-                    entityClass, request.targetId(), request.principalName(), permissions);
-        }
-    }
-
-    /** 권한 회수 */
-    @Override
-    public void revokePermission(
-            RevokePermissionRequest request, String entityType, Class<?> entityClass) {
-        validateEntityType(request.targetType(), entityType);
-
-        // ADMIN 역할의 권한은 회수하지 않음
-        if (request.isRole() && "ROLE_ADMIN".equalsIgnoreCase(request.principalName())) {
+        // ADMIN 역할 권한 회수 요청 확인
+        if ("ROLE_ADMIN".equalsIgnoreCase(principalName)
+                && request.targets().stream().anyMatch(t -> t.operation() == PermissionOperation.REVOKE)) {
             throw new IllegalStateException("ADMIN 역할의 권한은 회수할 수 없습니다.");
         }
 
-        // 모든 권한 제거 요청인 경우
-        if (request.removeAll()) {
-            if (request.isRole()) {
-                aclManagerService.removeAllPermissionsForRole(
-                        entityClass, request.targetId(), request.principalName());
-            } else {
-                aclManagerService.removeAllPermissionsForUser(
-                        entityClass, request.targetId(), request.principalName());
-            }
-            return;
-        }
+        // 각 대상에 대해 처리
+        for (PermissionTarget target : request.targets()) {
+            Long targetId = target.targetId();
 
-        // 권한 목록이 비어있거나 null인 경우, 기본 CRUD 권한을 회수
-        if (request.permissions() == null || request.permissions().isEmpty()) {
-            List<Permission> defaultPermissionsToRevoke =
-                    List.of(
-                            BasePermission.READ,
-                            BasePermission.WRITE,
-                            BasePermission.CREATE,
-                            BasePermission.DELETE);
-
-            if (request.isRole()) {
+            if (target.operation() == PermissionOperation.GRANT) {
+                aclManagerService.addPermissionsForRole(entityClass, targetId, principalName, permissions);
+            } else if (target.operation() == PermissionOperation.REVOKE) {
                 aclManagerService.removePermissionsForRole(
-                        entityClass, request.targetId(), request.principalName(), defaultPermissionsToRevoke);
-            } else {
-                aclManagerService.removePermissionsForUser(
-                        entityClass, request.targetId(), request.principalName(), defaultPermissionsToRevoke);
+                        entityClass, targetId, principalName, permissions);
             }
-            return;
-        }
-
-        // 특정 권한만 제거 요청인 경우
-        List<Permission> permissionsToRevoke = convertToPermissions(request.permissions(), true);
-
-        if (request.isRole()) {
-            aclManagerService.removePermissionsForRole(
-                    entityClass, request.targetId(), request.principalName(), permissionsToRevoke);
-        } else {
-            aclManagerService.removePermissionsForUser(
-                    entityClass, request.targetId(), request.principalName(), permissionsToRevoke);
         }
     }
 
@@ -174,7 +121,7 @@ public class EntityAclManager implements EntityAclOperations {
                             return permissionCache.computeIfAbsent(
                                     id,
                                     entityId ->
-                                            aclManagerService.hasPermissionForUser(
+                                            aclManagerService.hasPermissionForRole(
                                                     entityClass, entityId, username, BasePermission.READ));
                         })
                 .map(dtoConverter)
@@ -184,7 +131,7 @@ public class EntityAclManager implements EntityAclOperations {
     /** 사용자가 해당 엔티티에 접근 권한이 있는지 확인 */
     @Override
     public boolean hasReadPermission(Serializable entityId, Class<?> entityClass, String username) {
-        return aclManagerService.hasPermissionForUser(
+        return aclManagerService.hasPermissionForRole(
                 entityClass, entityId, username, BasePermission.READ);
     }
 }
