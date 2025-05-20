@@ -74,14 +74,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean authenticationRequired(HttpServletRequest request) {
-        var path = request.getRequestURI();
-        WhiteListPath[] values = WhiteListPath.values();
-        for (WhiteListPath value : values) {
-            if (path.matches("^/" + value.getPath() + ".*")) {
+        String contextPath = request.getContextPath();
+        String path = request.getRequestURI().substring(contextPath.length());
+
+        for (WhiteListPath value : WhiteListPath.values()) {
+            if (path.startsWith("/" + value.getPath())) {
                 return false;
             }
         }
-
         return true;
     }
 }

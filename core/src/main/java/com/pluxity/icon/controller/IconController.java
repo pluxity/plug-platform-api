@@ -21,7 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/icons")
+@RequestMapping("/icons")
 @RequiredArgsConstructor
 @Tag(name = "Icon Controller", description = "아이콘 관리 API")
 public class IconController {

@@ -19,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/buildings")
+@RequestMapping("/buildings")
 @RequiredArgsConstructor
 @Tag(name = "Building Controller", description = "건물 관리 API")
 public class BuildingController {

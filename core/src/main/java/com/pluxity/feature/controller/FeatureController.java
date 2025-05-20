@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/features")
+@RequestMapping("/features")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Feature Controller", description = "피처 관리 API")

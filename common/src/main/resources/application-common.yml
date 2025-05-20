@@ -1,5 +1,7 @@
 server:
   port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
 #  address: ${SERVER_ADDRESS:0.0.0.0}
 
 management:

@@ -21,7 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/facility-categories")
+@RequestMapping("/facility-categories")
 @RequiredArgsConstructor
 @Tag(name = "Facility Category Controller", description = "시설 카테고리 관리 API")
 public class FacilityCategoryController {

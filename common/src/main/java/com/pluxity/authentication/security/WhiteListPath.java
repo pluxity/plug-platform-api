@@ -4,8 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum WhiteListPath {
-    AUTH_IN("api/auth/sign-in"),
-    AUTH_UP("api/auth/sign-up"),
+    AUTH_IN("auth/sign-in"),
+    AUTH_UP("auth/sign-up"),
     ACTUATOR("actuator"),
     APIDOC("api-docs"),
     HEALTH("health"),

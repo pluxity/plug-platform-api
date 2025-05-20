@@ -21,7 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/api/device-categories")
+@RequestMapping("/device-categories")
 @RequiredArgsConstructor
 @Tag(name = "Device Category Controller", description = "디바이스 카테고리 관리 API")
 public class DeviceCategoryController {

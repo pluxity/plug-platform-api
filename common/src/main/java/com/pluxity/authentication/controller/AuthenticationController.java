@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @Tag(name = "Authentication Controller", description = "사용자 인증 API")
 public class AuthenticationController {
 
@@ -93,10 +93,10 @@ public class AuthenticationController {
     @PostMapping(value = "/sign-in", produces = "application/json")
     @ResponseCreated(path = "/api/users/me")
     public ResponseEntity<Void> signIn(
-            @Parameter(description = "로그인 정보", required = true) @RequestBody
-                    SignInRequest signInRequestDto,
+            @Parameter(description = "로그인 정보", required = true) @RequestBody SignInRequest signInRequestDto,
+            HttpServletRequest request,
             HttpServletResponse response) {
-        authenticationService.signIn(signInRequestDto, response);
+        authenticationService.signIn(signInRequestDto, request, response);
         return ResponseEntity.noContent().build();
     }
 
