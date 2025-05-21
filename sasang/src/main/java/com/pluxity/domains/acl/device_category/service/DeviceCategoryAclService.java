@@ -8,8 +8,9 @@ import com.pluxity.domains.acl.service.EntityAclOperations;
 import java.util.List;
 import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,21 +31,35 @@ public class DeviceCategoryAclService {
         this.entityAclOperations = entityAclOperations;
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     public void managePermission(PermissionRequestDto request) {
+        if (!isAdmin()) {
+            throw new AccessDeniedException("Only admin users can manage permissions");
+        }
         entityAclOperations.managePermission(request, ENTITY_TYPE, ENTITY_CLASS);
     }
 
-    @PreAuthorize("hasPermission(#id, 'com.pluxity.device.entity.DeviceCategory', 'READ')")
     public DeviceCategory findById(Long id) {
-        return deviceCategoryRepository
-                .findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("DeviceCategory not found with ID: " + id));
+        DeviceCategory category =
+                deviceCategoryRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new AccessDeniedException("DeviceCategory not found with ID: " + id));
+        if (!isAdmin() && !hasReadPermission(id)) {
+            throw new AccessDeniedException("Access denied for device category with ID: " + id);
+        }
+
+        return category;
     }
 
     @Transactional(readOnly = true)
     public List<DeviceCategoryResponseDto> findAllAllowedForCurrentUser() {
         List<DeviceCategory> allCategories = deviceCategoryRepository.findAll();
+
+        if (isAdmin()) {
+            return allCategories.stream()
+                    .map(this::convertToDto)
+                    .collect(java.util.stream.Collectors.toList());
+        }
 
         Function<DeviceCategory, DeviceCategoryResponseDto> dtoConverter = this::convertToDto;
 
@@ -57,6 +72,10 @@ public class DeviceCategoryAclService {
     }
 
     public boolean hasReadPermission(Long categoryId) {
+        if (isAdmin()) {
+            return true;
+        }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             return false;
@@ -64,5 +83,16 @@ public class DeviceCategoryAclService {
 
         return entityAclOperations.hasReadPermission(
                 categoryId, ENTITY_CLASS, authentication.getName());
+    }
+
+    private boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(authority -> authority.equals("ROLE_ADMIN"));
     }
 }

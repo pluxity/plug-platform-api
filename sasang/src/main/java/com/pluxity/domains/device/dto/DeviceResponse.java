@@ -1,8 +1,9 @@
 package com.pluxity.domains.device.dto;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.domains.device.entity.DefaultDevice;
 import com.pluxity.feature.dto.FeatureResponse;
-import java.time.LocalDateTime;
+import com.pluxity.global.response.BaseResponse;
 import lombok.Builder;
 
 @Builder
@@ -20,8 +21,7 @@ public record DeviceResponse(
         String name,
         String code,
         String description,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt) {
+        @JsonUnwrapped BaseResponse baseResponse) {
     public static DeviceResponse from(DefaultDevice device) {
         return DeviceResponse.builder()
                 .id(device.getId())
@@ -37,8 +37,7 @@ public record DeviceResponse(
                 .name(device.getName())
                 .code(device.getCode())
                 .description(device.getDescription())
-                .createdAt(device.getCreatedAt())
-                .updatedAt(device.getUpdatedAt())
+                .baseResponse(BaseResponse.of(device))
                 .build();
     }
 }

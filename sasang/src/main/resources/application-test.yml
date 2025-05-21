@@ -5,8 +5,8 @@ spring:
       port: 6379
       timeout: 1000
   datasource:
-#    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=LEGACY # WARN: MODE=LEGACY를 사용하지 않으면 ACL이 h2에서 정상적으로 동작하지 않는다
-    url: jdbc:h2:tcp://localhost/~/pluxity;DB_CLOSE_DELAY=-1;MODE=LEGACY # WARN: MODE=LEGACY를 사용하지 않으면 ACL이 h2에서 정상적으로 동작하지 않는다
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=LEGACY # WARN: MODE=LEGACY를 사용하지 않으면 ACL이 h2에서 정상적으로 동작하지 않는다
+#    url: jdbc:h2:tcp://localhost/~/pluxity;DB_CLOSE_DELAY=-1;MODE=LEGACY # WARN: MODE=LEGACY를 사용하지 않으면 ACL이 h2에서 정상적으로 동작하지 않는다
     username: pluxity
     password:
   jpa:
