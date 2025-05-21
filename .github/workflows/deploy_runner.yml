@@ -1,4 +1,4 @@
-name: Deploy to Production (Self-hosted)
+name: Build, Save Tar, and Deploy to Production (Self-hosted)
 
 on:
   push:
@@ -6,58 +6,78 @@ on:
       - main # main 브랜치에 푸시될 때 실행
 
 jobs:
-  deploy:
-    # Self-hosted Runner를 지정합니다.
-    # Runner 설정 시 특정 레이블을 부여했다면 해당 레이블을 사용할 수 있습니다.
-    # 예: runs-on: [self-hosted, linux, x64, plug-platform-deployer]
-    # 기본적으로 'self-hosted' 레이블이 부여됩니다.
+  build_and_deploy: # Job 이름 변경 (빌드 과정 포함 명시)
     runs-on: self-hosted
 
     steps:
-      # 1. 저장소 코드 체크아웃 (선택 사항이지만, 배포 스크립트가 최신 코드를 참조해야 할 경우 필요)
-      #    만약 deploy.sh 스크립트가 이미 서버의 특정 위치에 있고, 코드 변경과 무관하게
-      #    항상 같은 스크립트를 실행한다면 이 단계는 생략 가능합니다.
-      #    하지만, 배포 스크립트 자체가 버전 관리되거나, 특정 버전의 설정을 읽어야 한다면 필요합니다.
       - name: Checkout repository code
         uses: actions/checkout@v4
-        # with:
-        #   path: 'source_code' # 코드를 특정 디렉토리에 체크아웃 (선택 사항)
 
-      # 2. 배포 스크립트 실행
-      #    'working-directory'는 deploy.sh 스크립트가 위치한 디렉토리로 설정합니다.
-      #    Self-hosted Runner가 실행되는 사용자의 홈 디렉토리 기준일 수도 있고,
-      #    Runner 설정 시 지정한 작업 디렉토리 기준일 수도 있습니다.
-      #    정확한 경로를 지정하는 것이 중요합니다.
+      - name: Set up Docker Buildx # Docker 빌드 성능 향상 및 다양한 아키텍처 지원 (선택적이지만 권장)
+        uses: docker/setup-buildx-action@v3
+
+      # Docker Hub 또는 다른 레지스트리 로그인 (만약 private base image 등을 사용한다면 필요)
+      # - name: Log in to Docker Hub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Define Docker image name and tar file name
+        id: docker_info
+        run: |
+          IMAGE_NAME="plug-platform-api"
+          TAR_FILE_NAME="${IMAGE_NAME}.tar"
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "TAR_FILE_NAME=${TAR_FILE_NAME}" >> $GITHUB_OUTPUT
+          # deploy.sh 스크립트가 있는 경로와 tar 파일이 생성될 경로를 일치시켜야 함
+          # 여기서는 working-directory가 deploy.sh가 있는 경로라고 가정하고,
+          # tar 파일도 같은 위치에 생성되도록 함.
+          echo "TAR_FILE_PATH=/home/pluxity/docker/plug-platform-api/${TAR_FILE_NAME}" >> $GITHUB_OUTPUT # deploy.sh가 있는 실제 경로로 변경!
+
+      - name: Build Docker image
+        run: |
+          echo "Building Docker image: ${{ steps.docker_info.outputs.IMAGE_NAME }}"
+          # Dockerfile 경로를 정확히 지정 (저장소 루트 기준 core/Dockerfile)
+          docker build -f core/Dockerfile -t ${{ steps.docker_info.outputs.IMAGE_NAME }} .
+        # working-directory: . # Dockerfile이 있는 프로젝트 루트에서 실행되도록 (필요시)
+
+      - name: Save Docker image to a .tar file
+        run: |
+          echo "Saving Docker image ${{ steps.docker_info.outputs.IMAGE_NAME }} to ${{ steps.docker_info.outputs.TAR_FILE_PATH }}"
+          # 이전 단계에서 정의한 TAR_FILE_PATH에 저장
+          # deploy.sh가 있는 디렉토리에 tar 파일을 생성하도록 경로 설정
+          # 예: /home/pluxity/docker/plug-platform-api/plug-platform-api.tar
+          mkdir -p $(dirname ${{ steps.docker_info.outputs.TAR_FILE_PATH }}) # 디렉토리가 없다면 생성
+          docker save -o ${{ steps.docker_info.outputs.TAR_FILE_PATH }} ${{ steps.docker_info.outputs.IMAGE_NAME }}
+          echo "Docker image saved to ${{ steps.docker_info.outputs.TAR_FILE_PATH }}"
+
       - name: Execute deployment script
-        # 예시: Runner의 작업 디렉토리 내 'docker/plug-platform-api'에 스크립트가 있다고 가정
-        # 또는 Runner가 /home/pluxity/actions-runner 에서 실행되고,
-        # 스크립트가 /home/pluxity/docker/plug-platform-api 에 있다면 절대 경로 사용 가능
+        # deploy.sh 스크립트가 있는 디렉토리로 설정
         working-directory: /home/pluxity/docker/plug-platform-api # deploy.sh가 있는 실제 경로로 변경!
+        env: # deploy.sh 스크립트에서 환경 변수로 tar 파일 경로를 참조할 수 있도록 전달
+          TAR_FILE_PATH_ENV: ${{ steps.docker_info.outputs.TAR_FILE_PATH }} # 환경변수 이름은 스크립트와 협의
         run: |
           echo "Current directory: $(pwd)"
-          echo "Executing deployment script: ./deploy.sh"
-
-          # deploy.sh 스크립트가 sudo 권한을 필요로 하는 경우:
-          # Self-hosted Runner를 실행하는 사용자가 비밀번호 없이 sudo 명령을 실행할 수 있도록
-          # 서버의 /etc/sudoers 파일에 설정이 필요할 수 있습니다.
-          # 예: your_runner_user ALL=(ALL) NOPASSWD: /home/pluxity/docker/plug-platform-api/deploy.sh
-          # 또는 your_runner_user ALL=(ALL) NOPASSWD: /bin/bash /home/pluxity/docker/plug-platform-api/deploy.sh
-          # (가장 마지막의 deploy.sh 실행 부분)
+          echo "Looking for deployment script: ./deploy.sh"
+          echo "Tar file to be used by script (from env var): $TAR_FILE_PATH_ENV" # 환경 변수 확인
+          echo "Tar file expected by script (from step output): ${{ steps.docker_info.outputs.TAR_FILE_PATH }}" # step output 확인
 
           if [ -f "./deploy.sh" ]; then
-            echo "Found deploy.sh. Executing with 'sudo bash ./deploy.sh'..."
-            sudo bash ./deploy.sh
+            if [ -f "${{ steps.docker_info.outputs.TAR_FILE_PATH }}" ]; then # 스크립트가 참조할 tar 파일이 실제로 존재하는지 확인
+              echo "Found deploy.sh and tar file. Executing with 'sudo bash ./deploy.sh'..."
+              # deploy.sh 스크립트가 TAR_FILE_PATH_ENV 환경 변수를 사용하거나,
+              # 또는 고정된 상대/절대 경로로 tar 파일을 참조하도록 수정 필요
+              # 예: sudo bash ./deploy.sh $TAR_FILE_PATH_ENV
+              # 또는 deploy.sh 내부에서 tar 파일 경로를 steps.docker_info.outputs.TAR_FILE_PATH 값으로 인지하도록
+              sudo bash ./deploy.sh
+            else
+              echo "Error: Tar file ${{ steps.docker_info.outputs.TAR_FILE_PATH }} not found!"
+              exit 1
+            fi
           else
             echo "Error: deploy.sh not found in $(pwd)"
             exit 1
           fi
 
           echo "Deployment script execution finished."
-
-      # 3. (선택 사항) 배포 후 정리 작업
-      # - name: Clean up old Docker images
-      #   if: always() # 이전 단계 실패 여부와 관계없이 항상 실행
-      #   working-directory: /home/pluxity/docker/plug-platform-api # deploy.sh가 있는 경로
-      #   run: |
-      #     echo "Cleaning up unused Docker images..."
-      #     sudo docker image prune -af # 매우 주의! 모든 사용하지 않는 이미지 삭제
