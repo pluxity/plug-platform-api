@@ -141,9 +141,10 @@ class AuthenticationServiceTest {
         given(jwtProvider.generateAccessToken(user.getUsername())).willReturn("access-token-value");
         given(jwtProvider.generateRefreshToken(user.getUsername())).willReturn("refresh-token-value");
         doNothing().when(response).addHeader(eq(HttpHeaders.SET_COOKIE), anyString());
+        given(request.getContextPath()).willReturn("");
 
         // when
-        authenticationService.signIn(signInRequest, response);
+        authenticationService.signIn(signInRequest, request, response);
 
         // then
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
@@ -165,7 +166,7 @@ class AuthenticationServiceTest {
 
         // when and then
         CustomException exception = assertThrows(CustomException.class,
-                () -> authenticationService.signIn(signInRequest, response));
+                () -> authenticationService.signIn(signInRequest, request, response));
         assertEquals(INVALID_ID_OR_PASSWORD, exception.getErrorCode());
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepository, never()).findByUsername(anyString());
@@ -181,6 +182,7 @@ class AuthenticationServiceTest {
 
         given(jwtProvider.getJwtFromRequest(REFRESH_TOKEN_NAME, request)).willReturn(refreshToken);
         given(refreshTokenRepository.findByToken(refreshToken)).willReturn(Optional.of(token));
+        given(request.getContextPath()).willReturn("");
 
         // WebUtils.getCookie 모킹
         try (MockedStatic<WebUtils> webUtilsMock = mockStatic(WebUtils.class)) {
@@ -221,6 +223,7 @@ class AuthenticationServiceTest {
         given(userRepository.findByUsername(username)).willReturn(Optional.of(user));
         given(jwtProvider.generateAccessToken(username)).willReturn("new-access-token");
         given(jwtProvider.generateRefreshToken(username)).willReturn("new-refresh-token");
+        given(request.getContextPath()).willReturn("");
         doNothing().when(response).addHeader(eq(HttpHeaders.SET_COOKIE), anyString());
 
         // when
