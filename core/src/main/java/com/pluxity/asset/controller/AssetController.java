@@ -5,6 +5,7 @@ import com.pluxity.asset.dto.AssetResponse;
 import com.pluxity.asset.dto.AssetUpdateRequest;
 import com.pluxity.asset.service.AssetService;
 import com.pluxity.global.annotation.ResponseCreated;
+import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,8 +42,8 @@ public class AssetController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<List<AssetResponse>> getAssets() {
-        return ResponseEntity.ok(service.getAssets());
+    public ResponseEntity<DataResponseBody<List<AssetResponse>>> getAssets() {
+        return ResponseEntity.ok(DataResponseBody.of(service.getAssets()));
     }
 
     @Operation(summary = "에셋 상세 조회", description = "ID로 특정 에셋의 상세 정보를 조회합니다")
@@ -65,9 +66,9 @@ public class AssetController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping("/{id}")
-    public ResponseEntity<AssetResponse> getAsset(
+    public ResponseEntity<DataResponseBody<AssetResponse>> getAsset(
             @Parameter(description = "에셋 ID", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(service.getAsset(id));
+        return ResponseEntity.ok(DataResponseBody.of(service.getAsset(id)));
     }
 
     @Operation(summary = "에셋 생성", description = "새로운 에셋을 생성합니다")
