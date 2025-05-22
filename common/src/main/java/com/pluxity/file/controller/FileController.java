@@ -77,7 +77,7 @@ public class FileController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseCreated(path = "/api/files/{id}")
+    @ResponseCreated(path = "/files/{id}")
     public ResponseEntity<Long> uploadFile(
             @Parameter(description = "업로드할 파일", required = true) @RequestParam("file")
                     MultipartFile file) {

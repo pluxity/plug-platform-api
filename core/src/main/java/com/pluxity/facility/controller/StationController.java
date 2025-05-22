@@ -46,7 +46,7 @@ public class StationController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/stations/{id}")
     public ResponseEntity<Long> create(
             @Parameter(description = "스테이션 생성 정보", required = true) @Valid @RequestBody
                     StationCreateRequest request) {

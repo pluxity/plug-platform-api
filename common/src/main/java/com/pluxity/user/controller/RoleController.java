@@ -116,7 +116,7 @@ public class RoleController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/roles/{id}")
     public ResponseEntity<Long> createRole(
             @Parameter(description = "역할 생성 정보", required = true) @Valid @RequestBody
                     RoleCreateRequest request) {

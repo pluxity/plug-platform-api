@@ -48,7 +48,7 @@ public class PanoramaController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/panoramas/{id}")
     public ResponseEntity<Long> create(
             @Parameter(description = "파노라마 생성 정보", required = true) @Valid @RequestBody
                     PanoramaCreateRequest request) {

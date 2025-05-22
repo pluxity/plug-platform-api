@@ -57,7 +57,7 @@ public class AuthenticationController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @ResponseCreated(path = "/api/users/me")
+    @ResponseCreated(path = "/users/me")
     @PostMapping("/sign-up")
     public ResponseEntity<Long> signUp(
             @Parameter(description = "회원가입 정보", required = true) @RequestBody SignUpRequest dto) {
@@ -91,7 +91,7 @@ public class AuthenticationController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping(value = "/sign-in", produces = "application/json")
-    @ResponseCreated(path = "/api/users/me")
+    @ResponseCreated(path = "/users/me")
     public ResponseEntity<Void> signIn(
             @Parameter(description = "로그인 정보", required = true) @RequestBody
                     SignInRequest signInRequestDto,

@@ -48,7 +48,7 @@ public class DeviceCategoryController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/device-categories/{id}")
     public ResponseEntity<Long> create(
             @Parameter(description = "카테고리 생성 정보", required = true) @Valid @RequestBody
                     DeviceCategoryRequest request) {

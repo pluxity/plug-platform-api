@@ -48,7 +48,7 @@ public class IconController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/icons/{id}")
     public ResponseEntity<Long> create(
             @Parameter(description = "아이콘 생성 정보", required = true) @Valid @RequestBody
                     IconCreateRequest request) {

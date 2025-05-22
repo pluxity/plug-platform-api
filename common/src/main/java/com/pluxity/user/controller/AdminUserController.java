@@ -137,7 +137,7 @@ public class AdminUserController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/admin/users/{id}")
     public ResponseEntity<Long> saveUser(
             @Parameter(description = "사용자 생성 정보", required = true) @Valid @RequestBody
                     UserCreateRequest request) {
@@ -185,7 +185,7 @@ public class AdminUserController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping("/{userId}/roles")
-    @ResponseCreated
+    @ResponseCreated(path = "/admin/roles/{id}")
     public ResponseEntity<Long> assignRolesToUser(
             @Parameter(description = "사용자 ID", required = true) @PathVariable("userId") Long userId,
             @Parameter(description = "할당할 역할 정보", required = true) @RequestBody

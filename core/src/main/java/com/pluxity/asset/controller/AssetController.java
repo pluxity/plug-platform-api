@@ -91,7 +91,7 @@ public class AssetController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/assets/{id}")
     public ResponseEntity<Long> createAsset(
             @Parameter(description = "에셋 생성 정보", required = true) @RequestBody
                     AssetCreateRequest request) {

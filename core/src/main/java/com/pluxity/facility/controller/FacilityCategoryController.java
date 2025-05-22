@@ -51,7 +51,7 @@ public class FacilityCategoryController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/facility-categories/{id}")
     public ResponseEntity<Long> createFacilityCategory(
             @Parameter(description = "시설 카테고리 생성 정보", required = true) @Valid @RequestBody
                     FacilityCategoryCreateRequest req) {

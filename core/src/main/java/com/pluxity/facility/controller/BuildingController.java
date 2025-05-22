@@ -46,7 +46,7 @@ public class BuildingController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/buildings/{id}")
     public ResponseEntity<Long> create(
             @Parameter(description = "건물 생성 정보", required = true) @Valid @RequestBody
                     BuildingCreateRequest request) {
