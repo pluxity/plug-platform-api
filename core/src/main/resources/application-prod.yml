@@ -35,9 +35,6 @@ file:
     secret-key: ${S3_SECRET_KEY:pluxity0304}
     pre-signed-url-expiration: 600
 
-domain:
-  name: plug-platform.com
-
 logging:
   level:
     org: INFO
