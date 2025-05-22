@@ -3,7 +3,7 @@ spring:
     group:
       default: common, local
       local: common, local
-      stage: common, stage
+      stage: stage, common
       prod: common, prod
   flyway:
     enabled: true
