@@ -4,4 +4,4 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record StationResponse(FacilityResponse facility, List<FloorResponse> floors) {}
+public record StationResponse(FacilityResponse facility, List<FloorResponse> floors, Long lineId) {}

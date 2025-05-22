@@ -61,6 +61,14 @@ public abstract class Facility extends BaseEntity {
         this.thumbnailFileId = thumbnailFile.getId();
     }
 
+    public void updateDrawingFileId(Long drawingFileId) {
+        this.drawingFileId = drawingFileId;
+    }
+
+    public void updateThumbnailFileId(Long thumbnailFileId) {
+        this.thumbnailFileId = thumbnailFileId;
+    }
+
     public void updateName(String name) {
         this.name = name;
     }
