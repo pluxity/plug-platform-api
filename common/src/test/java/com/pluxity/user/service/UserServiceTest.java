@@ -26,6 +26,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.pluxity.authentication.entity.RefreshToken;
+import com.pluxity.authentication.repository.RefreshTokenRepository;
+
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class UserServiceTest {
@@ -39,14 +42,22 @@ class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+
     @InjectMocks
     private UserService userService;
 
     @Mock
     private User testUser;
+    @Mock
+    private User anotherUser;
     
     private Role testRole;
     private Role adminRole;
+    
+    @Mock
+    private RefreshToken testUserRefreshToken;
 
     @BeforeEach
     void setUp() {
@@ -56,6 +67,15 @@ class UserServiceTest {
         lenient().when(testUser.getPassword()).thenReturn("encodedPassword");
         lenient().when(testUser.getName()).thenReturn("테스트유저");
         lenient().when(testUser.getCode()).thenReturn("TEST001");
+        lenient().when(testUser.getRoles()).thenReturn(new ArrayList<>());
+
+        // 다른 사용자 모킹
+        lenient().when(anotherUser.getId()).thenReturn(2L);
+        lenient().when(anotherUser.getUsername()).thenReturn("anotheruser");
+        lenient().when(anotherUser.getPassword()).thenReturn("encodedPassword2");
+        lenient().when(anotherUser.getName()).thenReturn("다른유저");
+        lenient().when(anotherUser.getCode()).thenReturn("ANO002");
+        lenient().when(anotherUser.getRoles()).thenReturn(new ArrayList<>());
 
         // 테스트 역할 생성
         testRole = mock(Role.class);
@@ -66,6 +86,10 @@ class UserServiceTest {
         adminRole = mock(Role.class);
         lenient().when(adminRole.getId()).thenReturn(2L);
         lenient().when(adminRole.getName()).thenReturn("ROLE_ADMIN");
+        
+        // RefreshToken 모킹
+        lenient().when(testUserRefreshToken.getToken()).thenReturn("some-refresh-token");
+        lenient().when(testUserRefreshToken.getUsername()).thenReturn("testuser");
     }
 
     @Test
@@ -390,5 +414,112 @@ class UserServiceTest {
         assertThat(roleResponses).hasSize(1);
         verify(userRepository, times(1)).findById(1L);
         verify(testUser, times(1)).getRoles();
+    }
+
+    @Test
+    @DisplayName("isLoggedIn - 모든 사용자 로그인 상태 조회 (로그인한 사용자, 로그아웃한 사용자 포함)")
+    void isLoggedIn_ReturnsCorrectLoginStatusForAllUsers() {
+        // given
+        // testUser는 로그인 상태, anotherUser는 로그아웃 상태로 설정
+        when(userRepository.findAll()).thenReturn(List.of(testUser, anotherUser));
+        when(refreshTokenRepository.findById("testuser")).thenReturn(Optional.of(testUserRefreshToken)); // testuser는 토큰 있음 (로그인)
+        when(refreshTokenRepository.findById("anotheruser")).thenReturn(Optional.empty());      // anotheruser는 토큰 없음 (로그아웃)
+
+        // 역할 설정 (예시)
+        List<Role> testUserRoles = List.of(testRole);
+        when(testUser.getRoles()).thenReturn(testUserRoles);
+
+        List<Role> anotherUserRoles = List.of(adminRole);
+        when(anotherUser.getRoles()).thenReturn(anotherUserRoles);
+
+
+        // when
+        List<UserLoggedInResponse> responses = userService.isLoggedIn();
+
+        // then
+        assertThat(responses).hasSize(2);
+
+        UserLoggedInResponse testUserResponse = responses.stream()
+                .filter(r -> r.username().equals("testuser"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(testUserResponse.isLoggedIn()).isTrue();
+        assertThat(testUserResponse.id()).isEqualTo(1L);
+        assertThat(testUserResponse.name()).isEqualTo("테스트유저");
+        assertThat(testUserResponse.code()).isEqualTo("TEST001");
+        assertThat(testUserResponse.roles()).hasSize(1);
+        assertThat(testUserResponse.roles().get(0).name()).isEqualTo("ROLE_USER");
+
+
+        UserLoggedInResponse anotherUserResponse = responses.stream()
+                .filter(r -> r.username().equals("anotheruser"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(anotherUserResponse.isLoggedIn()).isFalse();
+        assertThat(anotherUserResponse.id()).isEqualTo(2L);
+        assertThat(anotherUserResponse.name()).isEqualTo("다른유저");
+        assertThat(anotherUserResponse.code()).isEqualTo("ANO002");
+        assertThat(anotherUserResponse.roles()).hasSize(1);
+        assertThat(anotherUserResponse.roles().get(0).name()).isEqualTo("ROLE_ADMIN");
+
+        verify(userRepository, times(1)).findAll();
+        verify(refreshTokenRepository, times(1)).findById("testuser");
+        verify(refreshTokenRepository, times(1)).findById("anotheruser");
+    }
+
+    @Test
+    @DisplayName("isLoggedIn - 모든 사용자가 로그인한 상태")
+    void isLoggedIn_AllUsersLoggedIn() {
+        // given
+        when(userRepository.findAll()).thenReturn(List.of(testUser, anotherUser));
+        when(refreshTokenRepository.findById(anyString())).thenReturn(Optional.of(mock(RefreshToken.class))); // 모든 사용자가 토큰을 가짐
+
+        // 역할 설정
+        when(testUser.getRoles()).thenReturn(List.of(testRole));
+        when(anotherUser.getRoles()).thenReturn(List.of(adminRole));
+
+        // when
+        List<UserLoggedInResponse> responses = userService.isLoggedIn();
+
+        // then
+        assertThat(responses).hasSize(2);
+        assertThat(responses.stream().allMatch(UserLoggedInResponse::isLoggedIn)).isTrue();
+        verify(refreshTokenRepository, times(1)).findById("testuser");
+        verify(refreshTokenRepository, times(1)).findById("anotheruser");
+    }
+
+    @Test
+    @DisplayName("isLoggedIn - 모든 사용자가 로그아웃한 상태")
+    void isLoggedIn_AllUsersLoggedOut() {
+        // given
+        when(userRepository.findAll()).thenReturn(List.of(testUser, anotherUser));
+        when(refreshTokenRepository.findById(anyString())).thenReturn(Optional.empty()); // 모든 사용자가 토큰 없음
+
+        // 역할 설정
+        when(testUser.getRoles()).thenReturn(List.of(testRole));
+        when(anotherUser.getRoles()).thenReturn(List.of(adminRole));
+
+        // when
+        List<UserLoggedInResponse> responses = userService.isLoggedIn();
+
+        // then
+        assertThat(responses).hasSize(2);
+        assertThat(responses.stream().noneMatch(UserLoggedInResponse::isLoggedIn)).isTrue();
+        verify(refreshTokenRepository, times(1)).findById("testuser");
+        verify(refreshTokenRepository, times(1)).findById("anotheruser");
+    }
+
+    @Test
+    @DisplayName("isLoggedIn - 사용자가 없는 경우 빈 리스트 반환")
+    void isLoggedIn_NoUsers() {
+        // given
+        when(userRepository.findAll()).thenReturn(List.of());
+
+        // when
+        List<UserLoggedInResponse> responses = userService.isLoggedIn();
+
+        // then
+        assertThat(responses).isEmpty();
+        verify(refreshTokenRepository, never()).findById(anyString());
     }
 } 
