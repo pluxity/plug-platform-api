@@ -70,7 +70,7 @@ jobs:
               # 또는 고정된 상대/절대 경로로 tar 파일을 참조하도록 수정 필요
               # 예: sudo bash ./deploy.sh $TAR_FILE_PATH_ENV
               # 또는 deploy.sh 내부에서 tar 파일 경로를 steps.docker_info.outputs.TAR_FILE_PATH 값으로 인지하도록
-              sudo bash ./deploy.sh
+              echo "$SUDO_PASSWORD" | sudo -S bash ./deploy.sh
             else
               echo "Error: Tar file ${{ steps.docker_info.outputs.TAR_FILE_PATH }} not found!"
               exit 1
