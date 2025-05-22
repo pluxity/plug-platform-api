@@ -1,0 +1,1011 @@
+---
+description: Comprehensive backend testing strategy guide covering TDD methodology, unit and integration testing approaches, test data management, naming conventions, and Spring Boot testing annotations. Includes practical examples for service, repository, API, and controller tests with detailed patterns for fixture setup, test organization, and BDD-style testing implementation.
+globs: 
+alwaysApply: false
+---
+# 백엔드 테스트 전략 컨벤션
+
+## 개요
+
+이 문서는 백엔드 시스템의 테스트 전략에 관한 코딩 컨벤션을 정의합니다. TDD 방법론, 테스트 종류, 테스트 프레임워크 활용법, 테스트 코드 작성 규칙 등에 대한 일관된 가이드라인을 통해 안정적이고 유지보수하기 쉬운 코드를 구현하는 것을 목표로 합니다.
+
+## TDD(테스트 주도 개발) 방법론
+
+### TDD 기본 원칙
+- **Red**: 실패하는 테스트 작성
+- **Green**: 테스트를 통과하는 최소한의 코드 작성
+- **Refactor**: 코드 리팩토링 (중복 제거, 가독성 향상)
+
+### TDD 적용 가이드
+```java
+// 1. 실패하는 테스트 작성 (Red)
+@SpringBootTest
+@Transactional
+class UserServiceTest {
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    void createUser_WithValidRequest_ReturnsUserWithId() {
+        // given
+        UserCreateRequest request = new UserCreateRequest("test@example.com", "password", "Test User");
+        
+        // when & then
+        assertThrows(NotImplementedException.class, () -> userService.createUser(request));
+    }
+}
+
+// 2. 테스트 통과를 위한 최소 코드 작성 (Green)
+public User createUser(UserCreateRequest request) {
+    User user = new User();
+    user.setEmail(request.getEmail());
+    user.setPassword(passwordEncoder.encode(request.getPassword()));
+    user.setName(request.getName());
+    user.setId(1L); // 임시 ID 설정
+    
+    return user;
+}
+
+// 3. 리팩토링 (Refactor)
+public User createUser(UserCreateRequest request) {
+    User user = User.builder()
+            .email(request.getEmail())
+            .password(passwordEncoder.encode(request.getPassword()))
+            .name(request.getName())
+            .build();
+    
+    return userRepository.save(user);
+}
+```
+
+## 테스트 종류별 컨벤션
+
+### 단위 테스트 (Unit Test)
+
+단일 클래스 또는 메소드의 기능을 독립적으로 테스트합니다.
+
+```java
+@SpringBootTest
+@Transactional
+@DisplayName("UserService 단위 테스트")
+class UserServiceTest {
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    @DisplayName("유효한 요청으로 사용자 생성 시 ID가 부여된 사용자가 반환된다")
+    void createUser_WithValidRequest_ReturnsUserWithId() {
+        // given
+        UserCreateRequest request = new UserCreateRequest("test@example.com", "password", "Test User");
+        
+        // when
+        User result = userService.createUser(request);
+        
+        // then
+        assertNotNull(result.getId());
+        assertEquals(request.getEmail(), result.getEmail());
+        assertEquals(request.getName(), result.getName());
+        
+        // 데이터베이스에 저장되었는지 확인
+        User savedUser = userRepository.findById(result.getId()).orElseThrow();
+        assertEquals(request.getEmail(), savedUser.getEmail());
+    }
+}
+```
+
+### 통합 테스트 (Integration Test)
+
+여러 컴포넌트 간의 상호작용을 테스트합니다.
+
+```java
+@SpringBootTest
+@Transactional
+@DisplayName("UserService 통합 테스트")
+class UserServiceIntegrationTest {
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    @DisplayName("사용자 생성 후 조회 시 동일한 정보가 조회된다")
+    void createAndFindUser() {
+        // given
+        UserCreateRequest request = new UserCreateRequest("test@example.com", "password", "Test User");
+        
+        // when
+        User createdUser = userService.createUser(request);
+        User foundUser = userService.findById(createdUser.getId()).orElseThrow();
+        
+        // then
+        assertEquals(createdUser.getId(), foundUser.getId());
+        assertEquals(request.getEmail(), foundUser.getEmail());
+        assertEquals(request.getName(), foundUser.getName());
+    }
+}
+```
+
+### API 테스트 (Controller Test)
+
+컨트롤러 계층의 동작을 테스트합니다.
+
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+@DisplayName("UserController 테스트")
+class UserControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    @Test
+    @DisplayName("유효한 사용자 생성 요청 시 201 상태코드와 사용자 정보를 반환한다")
+    void createUser_ValidRequest_Returns201AndUserInfo() throws Exception {
+        // given
+        UserCreateRequest request = new UserCreateRequest("test@example.com", "password", "Test User");
+        
+        // when & then
+        mockMvc.perform(post("/api/v1/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.email").value(request.getEmail()))
+                .andExpect(jsonPath("$.name").value(request.getName()))
+                .andDo(print());
+        
+        // 데이터베이스에 저장되었는지 확인
+        User savedUser = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        assertEquals(request.getName(), savedUser.getName());
+    }
+}
+```
+
+### 리포지토리 테스트 (Repository Test)
+
+데이터 액세스 계층을 테스트합니다.
+
+```java
+@SpringBootTest
+@Transactional
+@DisplayName("UserRepository 테스트")
+class UserRepositoryTest {
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private EntityManager entityManager;
+    
+    @Test
+    @DisplayName("이메일로 사용자 조회 시 정확한 사용자가 반환된다")
+    void findByEmail_ExistingEmail_ReturnsUser() {
+        // given
+        String email = "test@example.com";
+        User user = User.builder()
+                .email(email)
+                .password("encodedPassword")
+                .name("Test User")
+                .build();
+        
+        userRepository.save(user);
+        entityManager.flush();
+        entityManager.clear();
+        
+        // when
+        User foundUser = userRepository.findByEmail(email).orElseThrow();
+        
+        // then
+        assertNotNull(foundUser.getId());
+        assertEquals(email, foundUser.getEmail());
+        assertEquals("Test User", foundUser.getName());
+    }
+}
+```
+
+## 통합 테스트 가이드
+
+### 실제 객체를 사용한 통합 테스트
+
+```java
+@SpringBootTest
+@Transactional
+class OrderServiceTest {
+    @Autowired
+    private OrderService orderService;
+    
+    @Autowired
+    private OrderRepository orderRepository;
+    
+    @Autowired
+    private ProductRepository productRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    void processOrder_ValidOrder_CompletesOrderSuccessfully() {
+        // given
+        User user = User.builder()
+                .email("user@example.com")
+                .password("encodedPassword")
+                .name("Test User")
+                .build();
+        userRepository.save(user);
+        
+        Product product = Product.builder()
+                .name("Test Product")
+                .price(new BigDecimal("100.00"))
+                .stock(10)
+                .build();
+        productRepository.save(product);
+        
+        OrderRequest request = new OrderRequest(user.getId(), List.of(
+                new OrderItemRequest(product.getId(), 2)
+        ));
+        
+        // when
+        OrderResult result = orderService.processOrder(request);
+        
+        // then
+        assertTrue(result.isSuccess());
+        assertNotNull(result.getOrderNumber());
+        
+        // 주문이 데이터베이스에 저장되었는지 확인
+        Order savedOrder = orderRepository.findByOrderNumber(result.getOrderNumber()).orElseThrow();
+        assertEquals(user.getId(), savedOrder.getUser().getId());
+        assertEquals(1, savedOrder.getItems().size());
+        assertEquals(product.getId(), savedOrder.getItems().get(0).getProduct().getId());
+        assertEquals(2, savedOrder.getItems().get(0).getQuantity());
+        
+        // 제품 재고가 감소했는지 확인
+        Product updatedProduct = productRepository.findById(product.getId()).orElseThrow();
+        assertEquals(8, updatedProduct.getStock());
+    }
+}
+```
+
+### Spring Boot 통합 테스트
+
+```java
+@SpringBootTest
+@Transactional
+class OrderServiceSpringBootTest {
+    @Autowired
+    private OrderService orderService;
+    
+    @Autowired
+    private OrderRepository orderRepository;
+    
+    @Autowired
+    private PaymentService paymentService;
+    
+    @Autowired
+    private ProductRepository productRepository;
+    
+    @Test
+    void processOrder_ValidOrder_CompletesOrderSuccessfully() {
+        // given
+        Product product = Product.builder()
+                .name("Test Product")
+                .price(new BigDecimal("100.00"))
+                .stock(10)
+                .build();
+        productRepository.save(product);
+        
+        User user = User.builder()
+                .email("user@example.com")
+                .name("Test User")
+                .build();
+        userRepository.save(user);
+        
+        OrderRequest request = new OrderRequest(user.getId(), List.of(
+                new OrderItemRequest(product.getId(), 2)
+        ));
+        
+        // when
+        OrderResult result = orderService.processOrder(request);
+        
+        // then
+        assertTrue(result.isSuccess());
+        assertNotNull(result.getOrderNumber());
+        
+        // 실제 서비스가 내부적으로 제대로 동작했는지 확인
+        Order order = orderRepository.findByOrderNumber(result.getOrderNumber()).orElseThrow();
+        assertEquals(OrderStatus.COMPLETED, order.getStatus());
+    }
+}
+```
+
+## 테스트 데이터 관리
+
+### 테스트 픽스처 활용
+
+```java
+@SpringBootTest
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ProductServiceTest {
+    @Autowired
+    private ProductRepository productRepository;
+    
+    @Autowired
+    private ProductService productService;
+    
+    private List<Product> sampleProducts;
+    
+    @BeforeEach
+    void setupTestFixtures() {
+        // given
+        Product product1 = Product.builder()
+                .name("Product 1")
+                .price(new BigDecimal("100.00"))
+                .category("Category A")
+                .build();
+        
+        Product product2 = Product.builder()
+                .name("Product 2")
+                .price(new BigDecimal("200.00"))
+                .category("Category B")
+                .build();
+        
+        Product product3 = Product.builder()
+                .name("Product 3")
+                .price(new BigDecimal("300.00"))
+                .category("Category A")
+                .build();
+        
+        sampleProducts = productRepository.saveAll(List.of(product1, product2, product3));
+    }
+    
+    @Test
+    void filterProductsByCategory_CategoryA_ReturnsCategoryAProducts() {
+        // when
+        List<Product> result = productService.filterByCategory("Category A");
+        
+        // then
+        assertEquals(2, result.size());
+        assertTrue(result.stream().allMatch(p -> p.getCategory().equals("Category A")));
+    }
+}
+```
+
+### 테스트 팩토리 메소드 패턴
+
+```java
+@SpringBootTest
+@Transactional
+class UserServiceTest {
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    private User createUser(String email, String name) {
+        User user = User.builder()
+                .email(email)
+                .password("encodedPassword")
+                .name(name)
+                .role(Role.USER)
+                .build();
+        return userRepository.save(user);
+    }
+    
+    private List<User> createUserList(int count) {
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            users.add(createUser("user" + i + "@example.com", "User " + i));
+        }
+        return users;
+    }
+    
+    @Test
+    void findAllUsers_WithExistingUsers_ReturnsUserList() {
+        // given
+        List<User> users = createUserList(3);
+        
+        // when
+        List<User> result = userService.findAllUsers();
+        
+        // then
+        assertEquals(3, result.size());
+        List<String> emails = result.stream().map(User::getEmail).toList();
+        assertTrue(emails.contains("user0@example.com"));
+        assertTrue(emails.contains("user1@example.com"));
+        assertTrue(emails.contains("user2@example.com"));
+    }
+}
+```
+
+### TestContainers 활용 (통합 테스트)
+
+```java
+@SpringBootTest
+@Testcontainers
+class UserServiceIntegrationTest {
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:13")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
+    
+    @DynamicPropertySource
+    static void registerProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    void createUser_WithValidRequest_StoresUserInDatabase() {
+        // given
+        UserCreateRequest request = new UserCreateRequest("test@example.com", "password", "Test User");
+        
+        // when
+        User user = userService.createUser(request);
+        
+        // then
+        assertNotNull(user.getId());
+        assertEquals(request.getEmail(), user.getEmail());
+        
+        // 실제 데이터베이스에 저장되었는지 확인
+        User savedUser = userRepository.findById(user.getId()).orElseThrow();
+        assertEquals(request.getEmail(), savedUser.getEmail());
+    }
+}
+```
+
+## 테스트 명명 규칙
+
+### 명명 패턴
+- `methodName_상태_기대결과`
+- `methodName_행동_결과`
+
+```java
+@Test
+void findById_ExistingId_ReturnsUser() { /* ... */ }
+
+@Test
+void findById_NonExistingId_ThrowsEntityNotFoundException() { /* ... */ }
+
+@Test
+void createUser_WithValidRequest_ReturnsUserWithId() { /* ... */ }
+
+@Test
+void createUser_WithExistingEmail_ThrowsDuplicateEmailException() { /* ... */ }
+```
+
+### 테스트 클래스 구조화
+```java
+@SpringBootTest
+@Transactional
+class UserServiceTest {
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    // 공통 설정 (BeforeEach, BeforeAll 등)
+    
+    @Nested
+    @DisplayName("사용자 생성 테스트")
+    class CreateUserTest {
+        @Test
+        @DisplayName("유효한 요청으로 사용자 생성 시 ID가 부여된 사용자가 반환된다")
+        void withValidRequest_ReturnsUserWithId() {
+            // given
+            UserCreateRequest request = new UserCreateRequest("test@example.com", "password", "Test User");
+            
+            // when
+            User result = userService.createUser(request);
+            
+            // then
+            assertNotNull(result.getId());
+            assertEquals(request.getEmail(), result.getEmail());
+        }
+        
+        @Test
+        @DisplayName("이미 존재하는 이메일로 요청 시 예외가 발생한다")
+        void withExistingEmail_ThrowsDuplicateEmailException() {
+            // given
+            String email = "test@example.com";
+            User existingUser = User.builder()
+                    .email(email)
+                    .password("encodedPassword")
+                    .name("Existing User")
+                    .build();
+            userRepository.save(existingUser);
+            
+            UserCreateRequest request = new UserCreateRequest(email, "password", "Test User");
+            
+            // when & then
+            assertThrows(DuplicateEmailException.class, () -> userService.createUser(request));
+        }
+    }
+    
+    @Nested
+    @DisplayName("사용자 조회 테스트")
+    class FindUserTest {
+        @Test
+        @DisplayName("존재하는 ID로 조회 시 사용자가 반환된다")
+        void byExistingId_ReturnsUser() {
+            // given
+            User user = User.builder()
+                    .email("test@example.com")
+                    .password("encodedPassword")
+                    .name("Test User")
+                    .build();
+            userRepository.save(user);
+            
+            // when
+            User result = userService.findById(user.getId()).orElseThrow();
+            
+            // then
+            assertEquals(user.getId(), result.getId());
+            assertEquals(user.getEmail(), result.getEmail());
+        }
+        
+        @Test
+        @DisplayName("존재하지 않는 ID로 조회 시 예외가 발생한다")
+        void byNonExistingId_ThrowsEntityNotFoundException() {
+            // given
+            Long nonExistingId = 999L;
+            
+            // when & then
+            assertThrows(EntityNotFoundException.class, () -> userService.findById(nonExistingId).orElseThrow(
+                    () -> new EntityNotFoundException("User not found")
+            ));
+        }
+    }
+}
+```
+
+## Spring Boot 테스트 어노테이션 가이드
+
+### 주요 어노테이션
+```java
+// 전체 애플리케이션 컨텍스트 로드 (실제 데이터베이스 연동)
+@SpringBootTest
+@Transactional
+class FullIntegrationTest { /* ... */ }
+
+// 웹 계층 통합 테스트
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+class WebIntegrationTest { /* ... */ }
+
+// JPA 통합 테스트
+@SpringBootTest
+@Transactional
+class JpaIntegrationTest { /* ... */ }
+
+// 외부 API 통합 테스트
+@SpringBootTest
+@Transactional
+class ExternalApiIntegrationTest { /* ... */ }
+```
+
+### 테스트 슬라이스 선택 가이드
+- 통합 테스트: `@SpringBootTest` + `@Transactional`
+- 웹 통합 테스트: `@SpringBootTest` + `@AutoConfigureMockMvc`
+- 실제 데이터베이스 테스트: `@SpringBootTest` + TestContainers
+- 레포지토리 테스트: `@SpringBootTest` + `@Transactional`
+
+## BDD(Behavior-Driven Development) 스타일 테스트
+
+### Given-When-Then 패턴
+```java
+@SpringBootTest
+@Transactional
+class RoleServiceTest {
+
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private PermissionRepository permissionRepository;
+
+    @Autowired
+    private EntityManager em;
+
+    @Test
+    @DisplayName("모든 역할을 조회할 수 있다")
+    void findAll() {
+        // given
+        Role role1 = Role.builder()
+                .roleName("ADMIN")
+                .build();
+        Role role2 = Role.builder()
+                .roleName("USER")
+                .build();
+
+        roleRepository.save(role1);
+        roleRepository.save(role2);
+
+        // when
+        List<RoleResponse> result = roleService.findAll();
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting("roleName")
+                .containsExactlyInAnyOrder("ADMIN", "USER");
+    }
+
+    @Test
+    @DisplayName("ID로 역할을 조회할 수 있다")
+    void findById() {
+        // given
+        Role role = Role.builder()
+                .roleName("ADMIN")
+                .build();
+        Role savedRole = roleRepository.save(role);
+
+        // when
+        RoleResponse result = roleService.findById(savedRole.getId());
+
+        // then
+        assertThat(result.id()).isEqualTo(savedRole.getId());
+        assertThat(result.roleName()).isEqualTo("ADMIN");
+    }
+}
+```
+
+### BDD 스타일의 더 풍부한 예시
+```java
+@SpringBootTest
+@Transactional
+class OrderServiceTest {
+    
+    @Autowired
+    private OrderService orderService;
+    
+    @Autowired
+    private OrderRepository orderRepository;
+    
+    @Autowired
+    private ProductRepository productRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    @DisplayName("상품 재고가 있으면 주문이 성공적으로 처리된다")
+    void processOrder_WhenProductInStock_OrderCompleted() {
+        // Given
+        Product product = Product.builder()
+                .name("테스트 상품")
+                .price(new BigDecimal("15000"))
+                .stock(10)
+                .build();
+        productRepository.save(product);
+        
+        User user = User.builder()
+                .email("user@example.com")
+                .name("테스트 사용자")
+                .build();
+        userRepository.save(user);
+        
+        OrderRequest request = new OrderRequest(user.getId(), 
+                List.of(new OrderItemRequest(product.getId(), 2)));
+        
+        // When
+        OrderResult result = orderService.processOrder(request);
+        
+        // Then
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getOrderNumber()).isNotNull();
+        
+        // 주문이 데이터베이스에 저장되었는지 확인
+        Order savedOrder = orderRepository.findByOrderNumber(result.getOrderNumber())
+                .orElseThrow();
+        assertThat(savedOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+        assertThat(savedOrder.getItems()).hasSize(1);
+        assertThat(savedOrder.getItems().get(0).getProduct().getId()).isEqualTo(product.getId());
+        assertThat(savedOrder.getItems().get(0).getQuantity()).isEqualTo(2);
+        
+        // 재고가 차감되었는지 확인
+        Product updatedProduct = productRepository.findById(product.getId()).orElseThrow();
+        assertThat(updatedProduct.getStock()).isEqualTo(8);
+    }
+}
+```
+
+## 예외 테스트
+
+### 예외 발생 테스트
+```java
+@SpringBootTest
+@Transactional
+class UserServiceTest {
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    @DisplayName("존재하지 않는 ID로 사용자 조회 시 예외가 발생한다")
+    void findById_NonExistingId_ThrowsEntityNotFoundException() {
+        // given
+        Long nonExistingId = 999L;
+        
+        // when & then
+        assertThrows(EntityNotFoundException.class, () -> 
+                userService.findById(nonExistingId).orElseThrow(
+                        () -> new EntityNotFoundException("User not found with id: " + nonExistingId)
+                ));
+    }
+    
+    @Test
+    @DisplayName("존재하지 않는 ID로 사용자 조회 시 정확한 메시지와 함께 예외가 발생한다")
+    void findById_NonExistingId_ThrowsExceptionWithCorrectMessage() {
+        // given
+        Long nonExistingId = 999L;
+        
+        // when
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> userService.findById(nonExistingId).orElseThrow(
+                        () -> new EntityNotFoundException("User not found with id: " + nonExistingId)
+                )
+        );
+        
+        // then
+        assertEquals("User not found with id: " + nonExistingId, exception.getMessage());
+    }
+}
+```
+
+### AssertJ 활용 예외 테스트
+```java
+@SpringBootTest
+@Transactional
+class ProductServiceTest {
+    
+    @Autowired
+    private ProductService productService;
+    
+    @Test
+    @DisplayName("재고가 부족한 상품 주문 시 예외가 발생한다")
+    void orderProduct_InsufficientStock_ThrowsException() {
+        // given
+        Product product = Product.builder()
+                .name("테스트 상품")
+                .price(new BigDecimal("10000"))
+                .stock(5)
+                .build();
+        productRepository.save(product);
+        
+        // when & then
+        assertThatThrownBy(() -> productService.orderProduct(product.getId(), 10))
+                .isInstanceOf(InsufficientStockException.class)
+                .hasMessageContaining("재고 부족")
+                .hasMessageContaining(product.getName());
+    }
+}
+```
+
+## 테스트 품질 관리
+
+### 코드 커버리지
+```java
+// JaCoCo 활용 - build.gradle
+plugins {
+    id 'jacoco'
+}
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+    
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "com/example/demo/config/**",
+                    "com/example/demo/exception/**"
+            ])
+        }))
+    }
+}
+
+test {
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            element = 'CLASS'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+            excludes = [
+                    "com.example.demo.config.*",
+                    "com.example.demo.exception.*"
+            ]
+        }
+    }
+}
+```
+
+### 테스트 가이드라인
+- 단위 테스트 커버리지: 최소 80%
+- 핵심 비즈니스 로직 커버리지: 최소 90%
+- 엔티티, 도메인 모델 커버리지: 100%
+- 성공 케이스와 실패 케이스를 모두 테스트
+- 경계값 테스트 필수 (빈 컬렉션, null, 최대값, 최소값 등)
+
+## 테스트 자동화
+
+### CI/CD 파이프라인 연동
+
+```yaml
+# GitHub Actions example
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'adopt'
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Run tests
+      run: ./gradlew test
+      
+    - name: Generate test report
+      run: ./gradlew jacocoTestReport
+      
+    - name: Check test coverage
+      run: ./gradlew jacocoTestCoverageVerification
+      
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v2
+      if: always()
+      with:
+        report_paths: '**/build/test-results/test/TEST-*.xml'
+```
+
+### 성능 테스트 자동화
+
+```java
+@SpringBootTest
+@Transactional
+public class PerformanceTest {
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    @Timeout(value = 500, unit = TimeUnit.MILLISECONDS)
+    void findAllUsers_Performance_CompleteWithin500ms() {
+        // given
+        createManyUsers(100);  // 100명의 사용자 생성
+        
+        // when & then - 500ms 내에 완료되어야 함
+        Page<User> users = userService.findAllUsers(PageRequest.of(0, 50));
+        
+        assertThat(users).isNotEmpty();
+    }
+    
+    @Test
+    void createMultipleUsers_Performance_MeasureExecutionTime() {
+        // given
+        int count = 50;
+        List<UserCreateRequest> requests = IntStream.range(0, count)
+                .mapToObj(i -> new UserCreateRequest(
+                        "user" + i + "@example.com",
+                        "password",
+                        "User " + i
+                ))
+                .collect(Collectors.toList());
+        
+        // when
+        long startTime = System.currentTimeMillis();
+        
+        for (UserCreateRequest request : requests) {
+            userService.createUser(request);
+        }
+        
+        long endTime = System.currentTimeMillis();
+        long executionTime = endTime - startTime;
+        
+        // then
+        System.out.println("Execution time for " + count + " users: " + executionTime + "ms");
+        assertThat(executionTime).isLessThan(2000); // 2초 내 완료되어야 함
+    }
+    
+    private void createManyUsers(int count) {
+        for (int i = 0; i < count; i++) {
+            User user = User.builder()
+                    .email("user" + i + "@example.com")
+                    .password("password")
+                    .name("User " + i)
+                    .build();
+            userRepository.save(user);
+        }
+    }
+}
+```
+
+## 테스트 체크리스트
+
+프로젝트에 적용할 테스트 체크리스트:
+
+1. **테스트 계획**
+   - [ ] 모든 비즈니스 요구사항에 대한 테스트 케이스 식별
+   - [ ] 주요 기능별 테스트 우선순위 설정
+   - [ ] 테스트 종류별(단위, 통합, E2E) 범위 정의
+
+2. **테스트 구현**
+   - [ ] 테스트는 실제 객체를 활용한 통합 테스트 형태로 구현
+   - [ ] Given-When-Then 패턴 준수
+   - [ ] 각 테스트는 독립적으로 실행 가능해야 함
+   - [ ] 명확한 테스트 명명 규칙 준수
+   - [ ] 각 테스트는 단일 동작만 검증
+
+3. **코드 커버리지**
+   - [ ] 단위 테스트 코드 커버리지 80% 이상
+   - [ ] 핵심 비즈니스 로직 90% 이상
+   - [ ] 커버리지 제외 대상 명확히 정의 (예: 설정 클래스, DTO 등)
+
+4. **테스트 자동화**
+   - [ ] CI/CD 파이프라인에 테스트 실행 포함
+   - [ ] 테스트 실패 시 빌드 실패하도록 설정
+   - [ ] 테스트 결과 및 커버리지 리포트 자동 생성
+
+## 참고 문헌
+
+- [JUnit 5 사용자 가이드](mdc:https:/junit.org/junit5/docs/current/user-guide)
+- [Spring Boot Test 문서](mdc:https:/docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.testing)
+- [Test Driven Development: By Example (Kent Beck)](mdc:https:/www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530)
+- [Effective Unit Testing (Lasse Koskela)](mdc:https:/www.amazon.com/Effective-Unit-Testing-guide-developers/dp/1935182579)
