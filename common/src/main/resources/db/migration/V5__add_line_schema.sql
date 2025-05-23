@@ -1,11 +1,11 @@
+-- V5__add_line_schema.sql
 CREATE TABLE line
 (
-    id                 bigserial primary key,
-    name       VARCHAR(50),
-    color      VARCHAR(255),
-    created_at         timestamp(6) not null,
-    created_by         varchar(20),
-    updated_at         timestamp(6) not null,
-    updated_by         varchar(20),
-    CONSTRAINT pk_line PRIMARY KEY (id)
+    id                 BIGSERIAL PRIMARY KEY,
+    name               VARCHAR(50),
+    color              VARCHAR(255),
+    created_at         TIMESTAMP(6) NOT NULL,
+    created_by         VARCHAR(20),
+    updated_at         TIMESTAMP(6) NOT NULL,
+    updated_by         VARCHAR(20)
 );
