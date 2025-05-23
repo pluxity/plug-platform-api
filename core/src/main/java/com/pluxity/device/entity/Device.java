@@ -1,6 +1,5 @@
 package com.pluxity.device.entity;
 
-import com.pluxity.asset.entity.Asset;
 import com.pluxity.facility.facility.Facility;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.entity.BaseEntity;
@@ -26,10 +25,6 @@ public abstract class Device extends BaseEntity {
     private Feature feature;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "asset_id")
-    private Asset asset;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private DeviceCategory category;
 
@@ -40,8 +35,7 @@ public abstract class Device extends BaseEntity {
     @Column(name = "name")
     protected String name;
 
-    protected Device(Feature feature, Asset asset, DeviceCategory category, Facility facility) {
-        this.asset = asset;
+    protected Device(Feature feature, DeviceCategory category, Facility facility) {
         this.feature = feature;
         if (this.feature != null) {
             this.feature.changeDevice(this);
@@ -55,10 +49,6 @@ public abstract class Device extends BaseEntity {
 
     public void updateName(String name) {
         this.name = name;
-    }
-
-    public void changeAsset(Asset asset) {
-        this.asset = asset;
     }
 
     public void changeFeature(Feature newFeature) {

@@ -40,6 +40,7 @@ class AssetServiceTest {
     private AssetService assetService;
 
     private Long fileId;
+    private Long thumbnailFileId;
 
     @BeforeEach
     void setup() throws IOException {
@@ -55,8 +56,17 @@ class AssetServiceTest {
                 fileContent  // 파일 내용
         );
 
+        // 썸네일용 MockMultipartFile 생성
+        MultipartFile thumbnailFile = new MockMultipartFile(
+                "thumbnail.png",  // 파일명
+                "thumbnail.png",  // 원본 파일명
+                "image/png",      // 컨텐츠 타입
+                fileContent       // 파일 내용
+        );
+
         // FileService를 통해 파일 업로드 초기화
         fileId = fileService.initiateUpload(multipartFile);
+        thumbnailFileId = fileService.initiateUpload(thumbnailFile);
     }
 
     @Test
@@ -65,7 +75,8 @@ class AssetServiceTest {
         // given
         AssetCreateRequest request = new AssetCreateRequest(
                 "테스트 에셋",
-                fileId
+                fileId,
+                thumbnailFileId
         );
 
         // when
@@ -79,6 +90,7 @@ class AssetServiceTest {
         assertThat(savedAsset).isNotNull();
         assertThat(savedAsset.name()).isEqualTo("테스트 에셋");
         assertThat(savedAsset.file()).isNotNull();
+        assertThat(savedAsset.thumbnailFile()).isNotNull();
     }
 
     @Test
@@ -87,6 +99,7 @@ class AssetServiceTest {
         // given
         AssetCreateRequest request = new AssetCreateRequest(
                 "테스트 에셋",
+                null,
                 null
         );
 
@@ -101,6 +114,32 @@ class AssetServiceTest {
         assertThat(savedAsset).isNotNull();
         assertThat(savedAsset.name()).isEqualTo("테스트 에셋");
         assertThat(savedAsset.file().id()).isNull();
+        assertThat(savedAsset.thumbnailFile().id()).isNull();
+    }
+    
+    @Test
+    @DisplayName("썸네일만 있는 요청으로 에셋 생성 시 썸네일만 저장된다")
+    void createAsset_WithThumbnailOnly_SavesAssetWithThumbnail() {
+        // given
+        AssetCreateRequest request = new AssetCreateRequest(
+                "썸네일만 있는 에셋",
+                null,
+                thumbnailFileId
+        );
+
+        // when
+        Long savedId = assetService.createAsset(request);
+
+        // then
+        assertThat(savedId).isNotNull();
+        
+        // 저장된 에셋 확인
+        AssetResponse savedAsset = assetService.getAsset(savedId);
+        assertThat(savedAsset).isNotNull();
+        assertThat(savedAsset.name()).isEqualTo("썸네일만 있는 에셋");
+        assertThat(savedAsset.file().id()).isNull();
+        assertThat(savedAsset.thumbnailFile()).isNotNull();
+        assertThat(savedAsset.thumbnailFile().id()).isNotNull();
     }
 
     @Test
@@ -119,6 +158,8 @@ class AssetServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(savedAsset.getId());
         assertThat(response.name()).isEqualTo("테스트 에셋");
+        assertThat(response.thumbnailFile()).isNotNull();
+        assertThat(response.thumbnailFile().id()).isNull();
     }
 
     @Test
@@ -169,6 +210,7 @@ class AssetServiceTest {
 
         AssetUpdateRequest request = new AssetUpdateRequest(
                 "수정된 에셋",
+                null,
                 null
         );
 
@@ -192,7 +234,8 @@ class AssetServiceTest {
 
         AssetUpdateRequest request = new AssetUpdateRequest(
                 "수정된 에셋",
-                fileId
+                fileId,
+                thumbnailFileId
         );
 
         // when
@@ -203,6 +246,34 @@ class AssetServiceTest {
         assertThat(updatedAsset).isNotNull();
         assertThat(updatedAsset.name()).isEqualTo("수정된 에셋");
         assertThat(updatedAsset.file()).isNotNull();
+        assertThat(updatedAsset.thumbnailFile()).isNotNull();
+    }
+    
+    @Test
+    @DisplayName("썸네일만 업데이트하는 요청 시 썸네일만 업데이트된다")
+    void updateAsset_WithThumbnailOnly_UpdatesThumbnailOnly() {
+        // given
+        Asset asset = Asset.builder()
+                .name("원본 에셋")
+                .build();
+        Asset savedAsset = assetRepository.save(asset);
+
+        AssetUpdateRequest request = new AssetUpdateRequest(
+                "썸네일 업데이트",
+                null,
+                thumbnailFileId
+        );
+
+        // when
+        assetService.updateAsset(savedAsset.getId(), request);
+
+        // then
+        AssetResponse updatedAsset = assetService.getAsset(savedAsset.getId());
+        assertThat(updatedAsset).isNotNull();
+        assertThat(updatedAsset.name()).isEqualTo("썸네일 업데이트");
+        assertThat(updatedAsset.file().id()).isNull();
+        assertThat(updatedAsset.thumbnailFile()).isNotNull();
+        assertThat(updatedAsset.thumbnailFile().id()).isNotNull();
     }
 
     @Test
@@ -212,6 +283,7 @@ class AssetServiceTest {
         Long nonExistingId = 999L;
         AssetUpdateRequest request = new AssetUpdateRequest(
                 "수정된 에셋",
+                null,
                 null
         );
 

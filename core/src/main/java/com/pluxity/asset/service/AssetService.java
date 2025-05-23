@@ -29,13 +29,18 @@ public class AssetService {
     public AssetResponse getAsset(Long id) {
         Asset asset = findAssetById(id);
         FileResponse assetFileResponse = getFileResponse(asset);
-        return AssetResponse.from(asset, assetFileResponse);
+        FileResponse thumbnailFileResponse = getThumbnailFileResponse(asset);
+        return AssetResponse.from(asset, assetFileResponse, thumbnailFileResponse);
     }
 
     @Transactional(readOnly = true)
     public List<AssetResponse> getAssets() {
         List<Asset> assets = assetRepository.findAll();
-        return assets.stream().map(asset -> AssetResponse.from(asset, getFileResponse(asset))).toList();
+        return assets.stream()
+                .map(
+                        asset ->
+                                AssetResponse.from(asset, getFileResponse(asset), getThumbnailFileResponse(asset)))
+                .toList();
     }
 
     @Transactional
@@ -47,6 +52,13 @@ public class AssetService {
             String filePath = savedAsset.getAssetFilePath();
             FileEntity fileEntity = fileService.finalizeUpload(request.fileId(), filePath);
             savedAsset.updateFileEntity(fileEntity);
+        }
+
+        if (request.thumbnailFileId() != null) {
+            String thumbnailPath = savedAsset.getThumbnailFilePath();
+            FileEntity thumbnailEntity =
+                    fileService.finalizeUpload(request.thumbnailFileId(), thumbnailPath);
+            savedAsset.updateThumbnailFileEntity(thumbnailEntity);
         }
 
         return savedAsset.getId();
@@ -62,6 +74,12 @@ public class AssetService {
             FileEntity fileEntity =
                     fileService.finalizeUpload(request.fileId(), asset.getAssetFilePath());
             asset.updateFileEntity(fileEntity);
+        }
+
+        if (request.thumbnailFileId() != null) {
+            FileEntity thumbnailEntity =
+                    fileService.finalizeUpload(request.thumbnailFileId(), asset.getThumbnailFilePath());
+            asset.updateThumbnailFileEntity(thumbnailEntity);
         }
     }
 
@@ -80,6 +98,13 @@ public class AssetService {
             return null;
         }
         return fileService.getFileResponse(asset.getFileId());
+    }
+
+    private FileResponse getThumbnailFileResponse(Asset asset) {
+        if (!asset.hasThumbnail()) {
+            return null;
+        }
+        return fileService.getFileResponse(asset.getThumbnailFileId());
     }
 
     private static Supplier<CustomException> notFoundAsset() {

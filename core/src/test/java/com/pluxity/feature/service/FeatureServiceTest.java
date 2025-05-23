@@ -1,5 +1,7 @@
 package com.pluxity.feature.service;
 
+import com.pluxity.asset.entity.Asset;
+import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
@@ -24,6 +26,9 @@ class FeatureServiceTest {
 
     @Autowired
     private FeatureRepository featureRepository;
+    
+    @Autowired
+    private AssetRepository assetRepository;
 
     @Autowired
     private FeatureService featureService;
@@ -366,5 +371,84 @@ class FeatureServiceTest {
         assertEquals(1.0, defaultScale.getX());
         assertEquals(1.0, defaultScale.getY());
         assertEquals(1.0, defaultScale.getZ());
+    }
+    
+    @Test
+    @DisplayName("Feature와 Asset의 양방향 연관관계 설정 테스트")
+    void testFeatureAssetBidirectionalRelationship() {
+        // given
+        // Asset 생성
+        Asset asset = Asset.builder()
+                .name("테스트 에셋")
+                .build();
+        Asset savedAsset = assetRepository.save(asset);
+        
+        // Feature 생성
+        Spatial position = Spatial.builder().x(1.0).y(2.0).z(3.0).build();
+        Spatial rotation = Spatial.builder().x(0.0).y(90.0).z(0.0).build();
+        Spatial scale = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
+        
+        Feature feature = Feature.builder()
+                .position(position)
+                .rotation(rotation)
+                .scale(scale)
+                .build();
+        
+        Feature savedFeature = featureRepository.save(feature);
+        
+        // when
+        // Feature에 Asset 설정 (양방향 연관관계 설정)
+        savedFeature.changeAsset(savedAsset);
+        
+        // then
+        // Feature -> Asset 접근 확인
+        assertNotNull(savedFeature.getAsset());
+        assertEquals(savedAsset.getId(), savedFeature.getAsset().getId());
+        assertEquals("테스트 에셋", savedFeature.getAsset().getName());
+        
+        // Asset -> Feature 접근 확인 (양방향 연관관계)
+        assertNotNull(savedAsset.getFeature());
+        assertEquals(savedFeature.getId(), savedAsset.getFeature().getId());
+        
+        // 관계 해제 테스트
+        savedFeature.changeAsset(null);
+        
+        assertNull(savedFeature.getAsset());
+        assertNull(savedAsset.getFeature());
+    }
+    
+    @Test
+    @DisplayName("Asset을 가진 Feature 생성 테스트")
+    void createFeature_WithAsset_CreatesFeatureWithAsset() {
+        // given
+        // Asset 생성
+        Asset asset = Asset.builder()
+                .name("테스트 에셋")
+                .build();
+        Asset savedAsset = assetRepository.save(asset);
+        
+        // Feature 생성
+        Spatial position = Spatial.builder().x(1.0).y(2.0).z(3.0).build();
+        Spatial rotation = Spatial.builder().x(0.0).y(90.0).z(0.0).build();
+        Spatial scale = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
+        
+        Feature feature = Feature.builder()
+                .position(position)
+                .rotation(rotation)
+                .scale(scale)
+                .asset(savedAsset)  // 생성자에서 Asset 설정
+                .build();
+        
+        // when
+        Feature savedFeature = featureRepository.save(feature);
+        
+        // then
+        assertNotNull(savedFeature.getAsset());
+        assertEquals(savedAsset.getId(), savedFeature.getAsset().getId());
+        assertEquals("테스트 에셋", savedFeature.getAsset().getName());
+        
+        // Asset -> Feature 접근 확인 (양방향 연관관계)
+        assertNotNull(savedAsset.getFeature());
+        assertEquals(savedFeature.getId(), savedAsset.getFeature().getId());
     }
 }

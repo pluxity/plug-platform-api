@@ -1,5 +1,6 @@
 package com.pluxity.feature.entity;
 
+import com.pluxity.asset.entity.Asset;
 import com.pluxity.device.entity.Device;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
@@ -43,12 +44,19 @@ public class Feature extends BaseEntity {
     @OneToOne(mappedBy = "feature", cascade = CascadeType.PERSIST)
     private Device device;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "asset_id")
+    private Asset asset;
+
     @Builder
-    public Feature(Long id, Spatial position, Spatial rotation, Spatial scale) {
+    public Feature(Long id, Spatial position, Spatial rotation, Spatial scale, Asset asset) {
         this.id = id;
         this.position = position;
         this.rotation = rotation;
         this.scale = scale;
+        if (asset != null) {
+            changeAsset(asset);
+        }
     }
 
     public static Feature create(FeatureCreateRequest request) {
@@ -109,5 +117,15 @@ public class Feature extends BaseEntity {
 
     public void changeDevice(Device device) {
         this.device = device;
+    }
+
+    public void changeAsset(Asset asset) {
+        if (this.asset != null) {
+            this.asset.changeFeature(null);
+        }
+        this.asset = asset;
+        if (asset != null && asset.getFeature() != this) {
+            asset.changeFeature(this);
+        }
     }
 }
