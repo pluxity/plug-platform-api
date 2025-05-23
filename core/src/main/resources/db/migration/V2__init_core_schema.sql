@@ -190,8 +190,7 @@ create table station
     id bigint not null
         primary key
         constraint fk_station_facility_id
-            references facility,
-    route varchar(255)
+            references facility
 );
 
 alter table station owner to pluxity;
