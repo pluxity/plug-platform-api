@@ -7,7 +7,7 @@ import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.line.Line;
-import com.pluxity.facility.line.LineRepository;
+import com.pluxity.facility.line.LineService;
 import com.pluxity.facility.station.dto.StationCreateRequest;
 import com.pluxity.facility.station.dto.StationResponse;
 import com.pluxity.facility.station.dto.StationUpdateRequest;
@@ -28,7 +28,8 @@ public class StationService {
     private final FacilityService facilityService;
     private final FloorStrategy floorStrategy;
     private final StationRepository stationRepository;
-    private final LineRepository lineRepository;
+
+    private final LineService lineService;
 
     @Transactional
     public Long save(StationCreateRequest request) {
@@ -49,13 +50,7 @@ public class StationService {
         }
 
         if (request.lineId() != null) {
-            Line line =
-                    lineRepository
-                            .findById(request.lineId())
-                            .orElseThrow(
-                                    () ->
-                                            new CustomException(
-                                                    "Line not found", HttpStatus.NOT_FOUND, "해당 호선을 찾을 수 없습니다."));
+            Line line = lineService.findLineById(request.lineId());
             station.changeLine(line);
         }
 
@@ -97,6 +92,15 @@ public class StationService {
     }
 
     @Transactional(readOnly = true)
+    public Station findStationById(Long id) {
+        return stationRepository
+                .findById(id)
+                .orElseThrow(
+                        () ->
+                                new CustomException("Station not found", HttpStatus.NOT_FOUND, "해당 역을 찾을 수 없습니다."));
+    }
+
+    @Transactional(readOnly = true)
     public List<FacilityHistoryResponse> findFacilityHistories(Long id) {
         return facilityService.findFacilityHistories(id);
     }
@@ -104,13 +108,7 @@ public class StationService {
     @Transactional
     public void update(Long id, StationUpdateRequest request) {
         // 먼저 스테이션을 조회
-        Station station =
-                stationRepository
-                        .findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "Station not found", HttpStatus.NOT_FOUND, "해당 역을 찾을 수 없습니다."));
+        Station station = findStationById(id);
 
         // 기본 정보 업데이트
         facilityService.update(
@@ -131,13 +129,7 @@ public class StationService {
         }
 
         if (request.lineId() != null) {
-            Line line =
-                    lineRepository
-                            .findById(request.lineId())
-                            .orElseThrow(
-                                    () ->
-                                            new CustomException(
-                                                    "Line not found", HttpStatus.NOT_FOUND, "해당 호선을 찾을 수 없습니다."));
+            Line line = lineService.findLineById(request.lineId());
             station.changeLine(line);
         }
     }
@@ -145,13 +137,7 @@ public class StationService {
     @Transactional
     public void delete(Long id) {
         // 삭제할 스테이션 조회
-        Station station =
-                stationRepository
-                        .findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "Station not found", HttpStatus.NOT_FOUND, "해당 역을 찾을 수 없습니다."));
+        Station station = findStationById(id);
 
         // Line과의 관계 제거
         station.changeLine(null);
