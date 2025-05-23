@@ -20,8 +20,8 @@ public class ResponseCreatedAspect {
         ID id = result.getBody();
 
         if (id == null) {
-             URI location = URI.create(responseCreated.path());
-             return ResponseEntity.created(location).build();
+            URI location = URI.create(responseCreated.path());
+            return ResponseEntity.created(location).build();
         }
 
         URI location = URI.create(responseCreated.path().replace("{id}", id.toString()));

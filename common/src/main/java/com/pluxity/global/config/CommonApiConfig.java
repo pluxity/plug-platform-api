@@ -59,8 +59,7 @@ public class CommonApiConfig {
     public GroupedOpenApi facilityApiByPath() {
         return GroupedOpenApi.builder()
                 .group("5. 시설관리 API")
-                .pathsToMatch(
-                        "/facilities/**", "/buildings/**", "/stations/**", "/panoramas/**")
+                .pathsToMatch("/facilities/**", "/buildings/**", "/stations/**", "/panoramas/**")
                 .build();
     }
 
