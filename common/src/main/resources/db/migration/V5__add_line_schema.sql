@@ -10,5 +10,3 @@ CREATE TABLE line
     updated_by         VARCHAR(20)
 );
 
-ALTER TABLE station
-    ADD COLUMN route VARCHAR(255);

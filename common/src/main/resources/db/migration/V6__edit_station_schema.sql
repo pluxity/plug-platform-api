@@ -1,0 +1,2 @@
+ALTER TABLE station
+    ADD COLUMN route VARCHAR(255);
