@@ -57,6 +57,7 @@ jobs:
         working-directory: /home/pluxity/docker/plug-platform-api # deploy.sh가 있는 실제 경로로 변경!
         env: # deploy.sh 스크립트에서 환경 변수로 tar 파일 경로를 참조할 수 있도록 전달
           TAR_FILE_PATH_ENV: ${{ steps.docker_info.outputs.TAR_FILE_PATH }} # 환경변수 이름은 스크립트와 협의
+          SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
         run: |
           echo "Current directory: $(pwd)"
           echo "Looking for deployment script: ./deploy.sh"
