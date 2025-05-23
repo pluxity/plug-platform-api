@@ -1,10 +1,15 @@
 package com.pluxity.facility.service;
 
-import com.pluxity.facility.dto.*;
-import com.pluxity.facility.entity.Line;
-import com.pluxity.facility.entity.Station;
-import com.pluxity.facility.repository.LineRepository;
-import com.pluxity.facility.repository.StationRepository;
+import com.pluxity.facility.facility.dto.FacilityCreateRequest;
+import com.pluxity.facility.facility.FacilityService;
+import com.pluxity.facility.line.Line;
+import com.pluxity.facility.line.LineService;
+import com.pluxity.facility.station.*;
+import com.pluxity.facility.floor.dto.FloorRequest;
+import com.pluxity.facility.line.LineRepository;
+import com.pluxity.facility.station.dto.StationCreateRequest;
+import com.pluxity.facility.station.dto.StationResponse;
+import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,11 +93,15 @@ class StationServiceTest {
         createRequest = new StationCreateRequest(
                 facilityRequest,
                 floorRequests,
-                null
+                null,
+                "route"
         );
         
         // 테스트 Line 생성
-        testLine = Line.create("#FF0000", "테스트 호선", "asdfee");
+        testLine = Line.builder()
+                .name("테스트 호선")
+                .color("#FF0000")
+                .build();
         testLine = lineRepository.save(testLine);
     }
 
@@ -126,7 +135,8 @@ class StationServiceTest {
         StationCreateRequest requestWithMultipleFloors = new StationCreateRequest(
                 createRequest.facility(),
                 multipleFloors,
-                null
+                null,
+                "route"
         );
         
         // when
@@ -155,7 +165,8 @@ class StationServiceTest {
         StationCreateRequest requestWithLine = new StationCreateRequest(
                 createRequest.facility(),
                 createRequest.floors(),
-                testLine.getId()
+                testLine.getId(),
+                "route"
         );
         
         // when
@@ -184,7 +195,8 @@ class StationServiceTest {
         StationCreateRequest requestWithInvalidLine = new StationCreateRequest(
                 createRequest.facility(),
                 createRequest.floors(),
-                nonExistingLineId
+                nonExistingLineId,
+                "route"
         );
         
         // when & then
@@ -204,7 +216,8 @@ class StationServiceTest {
                 "수정된 스테이션 설명",
                 drawingFileId,
                 thumbnailFileId,
-                testLine.getId()
+                testLine.getId(),
+                "수정된 경로"
         );
         
         // when
@@ -230,12 +243,16 @@ class StationServiceTest {
         StationCreateRequest requestWithLine = new StationCreateRequest(
                 createRequest.facility(),
                 createRequest.floors(),
-                testLine.getId()
+                testLine.getId(),
+                "route"
         );
         Long id = stationService.save(requestWithLine);
         
         // 두 번째 Line 생성
-        Line newLine = Line.create("#00FF00", "새 테스트 호선", "asdfbb");
+        Line newLine = Line.builder()
+                .name("새 테스트 호선")
+                .color("#00FF00")
+                .build();
         newLine = lineRepository.save(newLine);
         
         // 업데이트 요청 준비 (두 번째 Line으로 변경)
@@ -244,7 +261,8 @@ class StationServiceTest {
                 "수정된 스테이션 설명",
                 drawingFileId,
                 thumbnailFileId,
-                newLine.getId()
+                newLine.getId(),
+                "수정된 경로"
         );
         
         // when
@@ -275,7 +293,8 @@ class StationServiceTest {
         StationCreateRequest requestWithLine = new StationCreateRequest(
                 createRequest.facility(),
                 createRequest.floors(),
-                testLine.getId()
+                testLine.getId(),
+                "route"
         );
         Long id = stationService.save(requestWithLine);
         
@@ -285,7 +304,8 @@ class StationServiceTest {
                 "수정된 스테이션 설명",
                 drawingFileId,
                 thumbnailFileId,
-                testLine.getId()
+                testLine.getId(),
+                "수정된 경로"
         );
         
         // when
@@ -360,7 +380,8 @@ class StationServiceTest {
                 "수정된 스테이션 설명",
                 drawingFileId,
                 thumbnailFileId,
-                null
+                null,
+                "수정된 경로"
         );
 
         // when
@@ -387,7 +408,8 @@ class StationServiceTest {
                 "수정된 스테이션 설명",
                 newDrawingFileId,
                 newThumbnailFileId,
-                null
+                null,
+                "수정된 경로"
         );
         
         // when
@@ -420,7 +442,8 @@ class StationServiceTest {
         StationCreateRequest requestWithLine = new StationCreateRequest(
                 createRequest.facility(),
                 createRequest.floors(),
-                testLine.getId()
+                testLine.getId(),
+                "route"
         );
         Long id = stationService.save(requestWithLine);
         

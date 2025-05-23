@@ -1,7 +1,7 @@
 package com.pluxity.device.entity;
 
 import com.pluxity.asset.entity.Asset;
-import com.pluxity.facility.entity.Facility;
+import com.pluxity.facility.facility.Facility;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;

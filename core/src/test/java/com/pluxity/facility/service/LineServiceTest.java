@@ -1,11 +1,13 @@
 package com.pluxity.facility.service;
 
-import com.pluxity.facility.dto.LineRequest;
-import com.pluxity.facility.dto.LineResponse;
-import com.pluxity.facility.entity.Line;
-import com.pluxity.facility.entity.Station;
-import com.pluxity.facility.repository.LineRepository;
-import com.pluxity.facility.repository.StationRepository;
+import com.pluxity.facility.line.LineService;
+import com.pluxity.facility.line.dto.LineRequest;
+import com.pluxity.facility.line.dto.LineResponse;
+import com.pluxity.facility.line.Line;
+import com.pluxity.facility.station.Station;
+import com.pluxity.facility.line.LineRepository;
+import com.pluxity.facility.station.StationRepository;
+import com.pluxity.facility.station.StationService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,12 +45,13 @@ class LineServiceTest {
     @BeforeEach
     void setUp() {
         // 테스트용 LineRequest 생성
-        lineRequest = new LineRequest("테스트 노선", "#FF0000", "asdf");
+        lineRequest = new LineRequest("테스트 노선", "#FF0000");
         
         // 테스트용 Station 생성 - 실제 저장은 필요한 테스트에서만 수행
         testStation = Station.builder()
                 .name("테스트 역")
                 .description("테스트 역 설명")
+                .route("asdf")
                 .build();
     }
 
@@ -78,7 +81,7 @@ class LineServiceTest {
         
         // when
         for (int i = 0; i < count; i++) {
-            LineRequest request = new LineRequest("테스트 노선 " + i, "#" + i + "00000", "asdf");
+            LineRequest request = new LineRequest("테스트 노선 " + i, "#" + i + "00000");
             Long id = lineService.save(request);
             lineIds.add(id);
         }
@@ -100,7 +103,7 @@ class LineServiceTest {
     void save_WithDuplicateName_BehaviorAsExpected() {
         // given
         Long id1 = lineService.save(lineRequest);
-        LineRequest duplicateNameRequest = new LineRequest(lineRequest.name(), "#00FF00", "asdf");
+        LineRequest duplicateNameRequest = new LineRequest(lineRequest.name(), "#00FF00");
         
         // when & then
         // 현재 구현에서는 중복 검사가 없으므로 성공해야 함
@@ -160,7 +163,7 @@ class LineServiceTest {
     void update_WithValidRequest_UpdatesLine() {
         // given
         Long id = lineService.save(lineRequest);
-        LineRequest updateRequest = new LineRequest("수정된 노선", "#00FFFF", "asdf");
+        LineRequest updateRequest = new LineRequest("수정된 노선", "#00FFFF");
 
         // when
         lineService.update(id, updateRequest);

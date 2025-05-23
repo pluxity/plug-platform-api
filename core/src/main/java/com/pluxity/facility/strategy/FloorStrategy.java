@@ -1,10 +1,10 @@
 package com.pluxity.facility.strategy;
 
-import com.pluxity.facility.dto.FloorRequest;
-import com.pluxity.facility.dto.FloorResponse;
-import com.pluxity.facility.entity.Facility;
-import com.pluxity.facility.entity.Floor;
-import com.pluxity.facility.repository.FloorRepository;
+import com.pluxity.facility.facility.Facility;
+import com.pluxity.facility.floor.Floor;
+import com.pluxity.facility.floor.FloorRepository;
+import com.pluxity.facility.floor.dto.FloorRequest;
+import com.pluxity.facility.floor.dto.FloorResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
