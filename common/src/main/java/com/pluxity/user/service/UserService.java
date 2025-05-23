@@ -1,5 +1,7 @@
 package com.pluxity.user.service;
 
+import com.pluxity.authentication.entity.RefreshToken;
+import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
@@ -7,6 +9,7 @@ import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +23,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional(readOnly = true)
     public UserResponse findById(Long id) {
@@ -132,5 +136,25 @@ public class UserService {
         if (request.code() != null && !request.code().isBlank()) {
             user.changeCode(request.code());
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserLoggedInResponse> isLoggedIn() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(
+                        user -> {
+                            Optional<RefreshToken> refreshToken =
+                                    refreshTokenRepository.findById(user.getUsername());
+                            boolean isLoggedIn = refreshToken.isPresent();
+                            return UserLoggedInResponse.from(
+                                    user.getId(),
+                                    user.getUsername(),
+                                    user.getName(),
+                                    user.getCode(),
+                                    isLoggedIn,
+                                    user.getRoles().stream().map(RoleResponse::from).toList());
+                        })
+                .toList();
     }
 }

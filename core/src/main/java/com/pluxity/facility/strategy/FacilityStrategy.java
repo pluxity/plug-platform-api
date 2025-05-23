@@ -1,6 +1,6 @@
 package com.pluxity.facility.strategy;
 
-import com.pluxity.facility.entity.Facility;
+import com.pluxity.facility.facility.Facility;
 import java.util.List;
 import org.springframework.stereotype.Service;
 

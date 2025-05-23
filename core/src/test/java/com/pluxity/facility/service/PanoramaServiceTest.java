@@ -1,8 +1,12 @@
 package com.pluxity.facility.service;
 
-import com.pluxity.facility.dto.*;
-import com.pluxity.facility.entity.Panorama;
-import com.pluxity.facility.repository.PanoramaRepository;
+import com.pluxity.facility.facility.dto.FacilityCreateRequest;
+import com.pluxity.facility.facility.FacilityService;
+import com.pluxity.facility.panorama.*;
+import com.pluxity.facility.location.dto.LocationRequest;
+import com.pluxity.facility.panorama.dto.PanoramaCreateRequest;
+import com.pluxity.facility.panorama.dto.PanoramaResponse;
+import com.pluxity.facility.panorama.dto.PanoramaUpdateRequest;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;

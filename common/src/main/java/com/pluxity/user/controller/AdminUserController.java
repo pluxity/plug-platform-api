@@ -96,6 +96,43 @@ public class AdminUserController {
         return ResponseEntity.ok(DataResponseBody.of(service.findById(id)));
     }
 
+    @Operation(summary = "로그인된 사용자 정보 조회", description = "현재 로그인된 사용자의 정보를 조회합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "로그인된 사용자 정보 조회 성공",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = DataResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "401",
+                        description = "인증되지 않은 요청 (예: 세션이 없거나 유효하지 않은 토큰)",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "403",
+                        description = "권한 없음 (예: 인증은 되었으나 해당 정보 접근 권한이 없는 경우)",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/logged-in")
+    public ResponseEntity<DataResponseBody<List<UserLoggedInResponse>>> getLoggedInUser() {
+        return ResponseEntity.ok(DataResponseBody.of(service.isLoggedIn())); // 실제 서비스 호출
+    }
+
     @Operation(summary = "사용자 생성", description = "새로운 사용자를 생성합니다")
     @ApiResponses(
             value = {

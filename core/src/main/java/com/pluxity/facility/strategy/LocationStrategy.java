@@ -1,10 +1,10 @@
 package com.pluxity.facility.strategy;
 
-import com.pluxity.facility.dto.LocationRequest;
-import com.pluxity.facility.dto.LocationResponse;
-import com.pluxity.facility.entity.Facility;
-import com.pluxity.facility.entity.Location;
-import com.pluxity.facility.repository.LocationRepository;
+import com.pluxity.facility.facility.Facility;
+import com.pluxity.facility.location.Location;
+import com.pluxity.facility.location.LocationRepository;
+import com.pluxity.facility.location.dto.LocationRequest;
+import com.pluxity.facility.location.dto.LocationResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
