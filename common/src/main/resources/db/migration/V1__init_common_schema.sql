@@ -14,15 +14,11 @@ create table files
     updated_by         varchar(20)
 );
 
-alter table files owner to pluxity;
-
 create table revision_info
 (
     revision_id bigserial primary key,
     revision_timestamp    bigint
 );
-
-alter table revision_info owner to pluxity;
 
 create table roles
 (
@@ -35,8 +31,6 @@ create table roles
     updated_at  timestamp(6) not null,
     updated_by  varchar(20)
 );
-
-alter table roles owner to pluxity;
 
 create table users
 (
@@ -52,8 +46,6 @@ create table users
     updated_by varchar(20)
 );
 
-alter table users owner to pluxity;
-
 create table user_role
 (
     user_role_id bigserial primary key,
@@ -66,6 +58,3 @@ create table user_role
     updated_at   timestamp(6) not null,
     updated_by   varchar(20)
 );
-
-alter table user_role owner to pluxity;
-

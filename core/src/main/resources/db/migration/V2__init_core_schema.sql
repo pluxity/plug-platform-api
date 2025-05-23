@@ -9,8 +9,6 @@ create table asset
     updated_by varchar(20)
 );
 
-alter table asset owner to pluxity;
-
 create table facility_category
 (
     id            bigserial primary key,
@@ -23,8 +21,6 @@ create table facility_category
     updated_at    timestamp(6) not null,
     updated_by    varchar(20)
 );
-
-alter table facility_category owner to pluxity;
 
 create table facility
 (
@@ -44,14 +40,10 @@ create table facility
     updated_by        varchar(20)
 );
 
-alter table facility owner to pluxity;
-
 create table building
 (
     id bigint not null primary key constraint fk_building_facility_id references facility
 );
-
-alter table building owner to pluxity;
 
 create table feature
 (
@@ -71,8 +63,6 @@ create table feature
     updated_by varchar(20)
 );
 
-alter table feature owner to pluxity;
-
 create table floor
 (
     id          bigserial primary key,
@@ -82,8 +72,6 @@ create table floor
         constraint fk_floor_facility_id
             references facility
 );
-
-alter table floor owner to pluxity;
 
 create table icon
 (
@@ -95,8 +83,6 @@ create table icon
     updated_at timestamp(6) not null,
     updated_by varchar(20)
 );
-
-alter table icon owner to pluxity;
 
 create table device_category
 (
@@ -139,8 +125,6 @@ create table device
     updated_by  varchar(20)
 );
 
-alter table device owner to pluxity;
-
 create table location
 (
     id          bigserial primary key,
@@ -156,8 +140,6 @@ create table location
     updated_by  varchar(20)
 );
 
-alter table location owner to pluxity;
-
 create table panorama
 (
     altitude  double precision,
@@ -168,8 +150,6 @@ create table panorama
         constraint fk_panorama_facility_id
             references facility
 );
-
-alter table panorama owner to pluxity;
 
 create table facility_aud
 (
@@ -183,14 +163,23 @@ create table facility_aud
     primary key (rev, id)
 );
 
-alter table facility_aud owner to pluxity;
+CREATE TABLE line
+(
+    id                 BIGSERIAL PRIMARY KEY,
+    name               VARCHAR(50),
+    color              VARCHAR(255),
+    created_at         TIMESTAMP(6) NOT NULL,
+    created_by         VARCHAR(20),
+    updated_at         TIMESTAMP(6) NOT NULL,
+    updated_by         VARCHAR(20)
+);
 
 create table station
 (
     id bigint not null
         primary key
         constraint fk_station_facility_id
-            references facility
+            references facility,
+    route varchar(255),
+    line_id bigint constraint fk_station_line_id references line
 );
-
-alter table station owner to pluxity;
