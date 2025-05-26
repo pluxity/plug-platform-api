@@ -97,7 +97,7 @@ public class SasangDeviceController {
     @GetMapping("/{id}")
     public ResponseEntity<DataResponseBody<SasangDeviceResponse>> get(
             @Parameter(description = "디바이스 ID", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(DataResponseBody.of(service.findById(id)));
+        return ResponseEntity.ok(DataResponseBody.of(service.findDeviceById(id)));
     }
 
     @Operation(summary = "디바이스 수정", description = "기존 디바이스의 정보를 수정합니다")

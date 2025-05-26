@@ -114,7 +114,7 @@ class SasangDeviceServiceTest {
         assertThat(id).isNotNull();
 
         // 저장된 디바이스 확인
-        SasangDeviceResponse savedDevice = sasangDeviceService.findById(id);
+        SasangDeviceResponse savedDevice = sasangDeviceService.findDeviceById(id);
         assertThat(savedDevice).isNotNull();
         assertThat(savedDevice.name()).isEqualTo("테스트 디바이스");
         assertThat(savedDevice.code()).isEqualTo("TEST-001");
@@ -140,12 +140,12 @@ class SasangDeviceServiceTest {
 
     @Test
     @DisplayName("ID로 디바이스 조회 시 디바이스 정보가 반환된다")
-    void findById_WithExistingId_ReturnsDeviceResponse() {
+    void findById_WithExistingId_2_ReturnsDeviceResponse() {
         // given
         Long id = sasangDeviceService.save(createRequest);
 
         // when
-        SasangDeviceResponse response = sasangDeviceService.findById(id);
+        SasangDeviceResponse response = sasangDeviceService.findDeviceById(id);
 
         // then
         assertThat(response).isNotNull();
@@ -158,12 +158,12 @@ class SasangDeviceServiceTest {
 
     @Test
     @DisplayName("존재하지 않는 ID로 디바이스 조회 시 예외가 발생한다")
-    void findById_WithNonExistingId_ThrowsCustomException() {
+    void findById_WithNonExistingId_2_ThrowsCustomException() {
         // given
         Long nonExistingId = 9999L;
 
         // when & then
-        assertThrows(CustomException.class, () -> sasangDeviceService.findById(nonExistingId));
+        assertThrows(CustomException.class, () -> sasangDeviceService.findDeviceById(nonExistingId));
     }
 
     @Test
@@ -198,7 +198,7 @@ class SasangDeviceServiceTest {
         sasangDeviceService.update(id, updateRequest);
 
         // then
-        SasangDeviceResponse updatedDevice = sasangDeviceService.findById(id);
+        SasangDeviceResponse updatedDevice = sasangDeviceService.findDeviceById(id);
         assertThat(updatedDevice.name()).isEqualTo("수정된 디바이스");
         assertThat(updatedDevice.code()).isEqualTo("TEST-002");
         assertThat(updatedDevice.description()).isEqualTo("수정된 디바이스 설명입니다.");
@@ -214,13 +214,13 @@ class SasangDeviceServiceTest {
         Long id = sasangDeviceService.save(createRequest);
         
         // when
-        SasangDeviceResponse response = sasangDeviceService.findById(id);
+        SasangDeviceResponse response = sasangDeviceService.findDeviceById(id);
         assertThat(response).isNotNull();
         
         // then
         sasangDeviceService.delete(id);
         
         // 삭제 후에는 해당 ID로 디바이스를 찾을 수 없어야 함
-        assertThrows(CustomException.class, () -> sasangDeviceService.findById(id));
+        assertThrows(CustomException.class, () -> sasangDeviceService.findDeviceById(id));
     }
 }

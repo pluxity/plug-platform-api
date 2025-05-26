@@ -27,7 +27,7 @@ public class AssetService {
 
     @Transactional(readOnly = true)
     public AssetResponse getAsset(Long id) {
-        Asset asset = findAssetById(id);
+        Asset asset = findById(id);
         FileResponse assetFileResponse = getFileResponse(asset);
         FileResponse thumbnailFileResponse = getThumbnailFileResponse(asset);
         return AssetResponse.from(asset, assetFileResponse, thumbnailFileResponse);
@@ -66,7 +66,7 @@ public class AssetService {
 
     @Transactional
     public void updateAsset(Long id, AssetUpdateRequest request) {
-        Asset asset = findAssetById(id);
+        Asset asset = findById(id);
 
         asset.update(request);
 
@@ -85,11 +85,12 @@ public class AssetService {
 
     @Transactional
     public void deleteAsset(Long id) {
-        Asset asset = findAssetById(id);
+        Asset asset = findById(id);
         assetRepository.delete(asset);
     }
 
-    private Asset findAssetById(Long id) {
+    @Transactional
+    public Asset findById(Long id) {
         return assetRepository.findById(id).orElseThrow(notFoundAsset());
     }
 

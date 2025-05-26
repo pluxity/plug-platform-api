@@ -1,20 +1,21 @@
 package com.pluxity.domains.device.service;
 
 import com.pluxity.asset.entity.Asset;
-import com.pluxity.asset.repository.AssetRepository;
+import com.pluxity.asset.service.AssetService;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
+import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.domains.device.dto.SasangDeviceCreateRequest;
 import com.pluxity.domains.device.dto.SasangDeviceResponse;
 import com.pluxity.domains.device.dto.SasangDeviceUpdateRequest;
 import com.pluxity.domains.device.entity.SasangDevice;
 import com.pluxity.domains.device.repository.SasangDeviceRepository;
 import com.pluxity.facility.station.Station;
-import com.pluxity.facility.station.StationRepository;
+import com.pluxity.facility.station.StationService;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.icon.entity.Icon;
-import com.pluxity.icon.repository.IconRepository;
+import com.pluxity.icon.service.IconService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,13 +28,14 @@ public class SasangDeviceService {
 
     private final SasangDeviceRepository repository;
     private final DeviceCategoryRepository categoryRepository;
-    private final StationRepository stationRepository;
-    private final AssetRepository assetRepository;
-    private final IconRepository iconRepository;
+    private final DeviceCategoryService deviceCategoryService;
+    private final StationService stationService;
+    private final AssetService assetService;
+    private final IconService iconService;
 
     @Transactional(readOnly = true)
-    public SasangDeviceResponse findById(Long id) {
-        SasangDevice device = findDeviceById(id);
+    public SasangDeviceResponse findDeviceById(Long id) {
+        SasangDevice device = findById(id);
         return SasangDeviceResponse.from(device);
     }
 
@@ -75,7 +77,7 @@ public class SasangDeviceService {
 
     @Transactional
     public void update(Long id, SasangDeviceUpdateRequest request) {
-        SasangDevice device = findDeviceById(id);
+        SasangDevice device = findById(id);
 
         DeviceCategory categoryToUpdate = null;
         if (request.deviceCategoryId() != null) {
@@ -114,10 +116,11 @@ public class SasangDeviceService {
 
     @Transactional
     public void delete(Long id) {
-        repository.delete(findDeviceById(id));
+        repository.delete(findById(id));
     }
 
-    private SasangDevice findDeviceById(Long id) {
+    @Transactional
+    public SasangDevice findById(Long id) {
         return repository
                 .findById(id)
                 .orElseThrow(
@@ -127,40 +130,18 @@ public class SasangDeviceService {
     }
 
     private DeviceCategory findCategoryById(Long id) {
-        return categoryRepository
-                .findById(id)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "DeviceCategory not found",
-                                        HttpStatus.NOT_FOUND,
-                                        "해당 디바이스 카테고리를 찾을 수 없습니다 : " + id));
+        return deviceCategoryService.findById(id);
     }
 
     private Station findStationById(Long id) {
-        return stationRepository
-                .findById(id)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "Station not found", HttpStatus.NOT_FOUND, "해당 스테이션을 찾을 수 없습니다 : " + id));
+        return stationService.findStationById(id);
     }
 
     private Asset findAssetById(Long id) {
-        return assetRepository
-                .findById(id)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다 : " + id));
+        return assetService.findById(id);
     }
 
     private Icon findIconById(Long id) {
-        return iconRepository
-                .findById(id)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "Icon not found", HttpStatus.NOT_FOUND, "해당 아이콘을 찾을 수 없습니다 : " + id));
+        return iconService.findById(id);
     }
 }

@@ -25,7 +25,7 @@ public class IconService {
 
     @Transactional(readOnly = true)
     public IconResponse getIcon(Long id) {
-        Icon icon = findIconById(id);
+        Icon icon = findById(id);
         FileResponse fileResponse = getFileResponse(icon);
         return IconResponse.from(icon, fileResponse);
     }
@@ -53,7 +53,7 @@ public class IconService {
 
     @Transactional
     public void update(Long id, IconUpdateRequest request) {
-        Icon icon = findIconById(id);
+        Icon icon = findById(id);
         icon.update(request);
 
         if (request.fileId() != null) {
@@ -64,7 +64,7 @@ public class IconService {
 
     @Transactional
     public void delete(Long id) {
-        Icon icon = findIconById(id);
+        Icon icon = findById(id);
         repository.delete(icon);
     }
 
@@ -75,7 +75,8 @@ public class IconService {
         return fileService.getFileResponse(icon.getFileId());
     }
 
-    private Icon findIconById(Long id) {
+    @Transactional
+    public Icon findById(Long id) {
         return repository
                 .findById(id)
                 .orElseThrow(
