@@ -31,9 +31,11 @@ public record SasangDeviceResponse(
                 .facilityId(device.getFacility() != null ? device.getFacility().getId() : null)
                 .facilityName(device.getFacility() != null ? device.getFacility().getName() : null)
                 .asset(
-                        device.getFeature().getAsset() != null ? device.getFeature().getAsset().getId() : null)
+                        device.getFeature() != null && device.getFeature().getAsset() != null
+                                ? device.getFeature().getAsset().getId()
+                                : null)
                 .assetName(
-                        device.getFeature().getAsset() != null
+                        device.getFeature() != null && device.getFeature().getAsset() != null
                                 ? device.getFeature().getAsset().getName()
                                 : null)
                 .iconId(device.getIcon() != null ? device.getIcon().getId() : null)

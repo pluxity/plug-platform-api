@@ -20,4 +20,8 @@ public record AssetResponse(
                 thumbnailFile != null ? thumbnailFile : FileResponse.empty(),
                 BaseResponse.of(asset));
     }
+
+    public static AssetResponse from(Asset asset) {
+        return from(asset, null, null);
+    }
 }
