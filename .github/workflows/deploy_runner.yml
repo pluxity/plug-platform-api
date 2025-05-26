@@ -1,84 +1,84 @@
-name: Build, Save Tar, and Deploy to Production (Self-hosted)
+# name: Deploy to Stage with core (from /main) # 워크플로우 이름도 명확하게
 
-on:
-  push:
-    branches:
-      - main # main 브랜치에 푸시될 때 실행
+# on:
+#   push:
+#     branches:
+#       - main # main 브랜치에 푸시될 때 실행
 
-jobs:
-  build_and_deploy: # Job 이름 변경 (빌드 과정 포함 명시)
-    runs-on: self-hosted
+# jobs:
+#   build_and_deploy: # Job 이름 변경 (빌드 과정 포함 명시)
+#     runs-on: self-hosted
 
-    steps:
-      - name: Checkout repository code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout repository code
+#         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx # Docker 빌드 성능 향상 및 다양한 아키텍처 지원 (선택적이지만 권장)
-        uses: docker/setup-buildx-action@v3
+#       - name: Set up Docker Buildx # Docker 빌드 성능 향상 및 다양한 아키텍처 지원 (선택적이지만 권장)
+#         uses: docker/setup-buildx-action@v3
 
-      # Docker Hub 또는 다른 레지스트리 로그인 (만약 private base image 등을 사용한다면 필요)
-      # - name: Log in to Docker Hub
-      #   uses: docker/login-action@v3
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }}
+#       # Docker Hub 또는 다른 레지스트리 로그인 (만약 private base image 등을 사용한다면 필요)
+#       # - name: Log in to Docker Hub
+#       #   uses: docker/login-action@v3
+#       #   with:
+#       #     username: ${{ secrets.DOCKER_USERNAME }}
+#       #     password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Define Docker image name and tar file name
-        id: docker_info
-        run: |
-          IMAGE_NAME="plug-platform-api"
-          TAR_FILE_NAME="${IMAGE_NAME}.tar"
-          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_OUTPUT
-          echo "TAR_FILE_NAME=${TAR_FILE_NAME}" >> $GITHUB_OUTPUT
-          # deploy.sh 스크립트가 있는 경로와 tar 파일이 생성될 경로를 일치시켜야 함
-          # 여기서는 working-directory가 deploy.sh가 있는 경로라고 가정하고,
-          # tar 파일도 같은 위치에 생성되도록 함.
-          echo "TAR_FILE_PATH=/home/pluxity/docker/plug-platform-api/${TAR_FILE_NAME}" >> $GITHUB_OUTPUT # deploy.sh가 있는 실제 경로로 변경!
+#       - name: Define Docker image name and tar file name
+#         id: docker_info
+#         run: |
+#           IMAGE_NAME="plug-platform-api"
+#           TAR_FILE_NAME="${IMAGE_NAME}.tar"
+#           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+#           echo "TAR_FILE_NAME=${TAR_FILE_NAME}" >> $GITHUB_OUTPUT
+#           # deploy.sh 스크립트가 있는 경로와 tar 파일이 생성될 경로를 일치시켜야 함
+#           # 여기서는 working-directory가 deploy.sh가 있는 경로라고 가정하고,
+#           # tar 파일도 같은 위치에 생성되도록 함.
+#           echo "TAR_FILE_PATH=/home/pluxity/docker/plug-platform-api/${TAR_FILE_NAME}" >> $GITHUB_OUTPUT # deploy.sh가 있는 실제 경로로 변경!
 
-      - name: Build Docker image
-        run: |
-          echo "Building Docker image: ${{ steps.docker_info.outputs.IMAGE_NAME }}"
-          # Dockerfile 경로를 정확히 지정 (저장소 루트 기준 core/Dockerfile)
-          docker build -f core/Dockerfile -t ${{ steps.docker_info.outputs.IMAGE_NAME }} .
-        # working-directory: . # Dockerfile이 있는 프로젝트 루트에서 실행되도록 (필요시)
+#       - name: Build Docker image
+#         run: |
+#           echo "Building Docker image: ${{ steps.docker_info.outputs.IMAGE_NAME }}"
+#           # Dockerfile 경로를 정확히 지정 (저장소 루트 기준 core/Dockerfile)
+#           docker build -f core/Dockerfile -t ${{ steps.docker_info.outputs.IMAGE_NAME }} .
+#         # working-directory: . # Dockerfile이 있는 프로젝트 루트에서 실행되도록 (필요시)
 
-      - name: Save Docker image to a .tar file
-        run: |
-          echo "Saving Docker image ${{ steps.docker_info.outputs.IMAGE_NAME }} to ${{ steps.docker_info.outputs.TAR_FILE_PATH }}"
-          # 이전 단계에서 정의한 TAR_FILE_PATH에 저장
-          # deploy.sh가 있는 디렉토리에 tar 파일을 생성하도록 경로 설정
-          # 예: /home/pluxity/docker/plug-platform-api/plug-platform-api.tar
-          mkdir -p $(dirname ${{ steps.docker_info.outputs.TAR_FILE_PATH }}) # 디렉토리가 없다면 생성
-          docker save -o ${{ steps.docker_info.outputs.TAR_FILE_PATH }} ${{ steps.docker_info.outputs.IMAGE_NAME }}
-          echo "Docker image saved to ${{ steps.docker_info.outputs.TAR_FILE_PATH }}"
+#       - name: Save Docker image to a .tar file
+#         run: |
+#           echo "Saving Docker image ${{ steps.docker_info.outputs.IMAGE_NAME }} to ${{ steps.docker_info.outputs.TAR_FILE_PATH }}"
+#           # 이전 단계에서 정의한 TAR_FILE_PATH에 저장
+#           # deploy.sh가 있는 디렉토리에 tar 파일을 생성하도록 경로 설정
+#           # 예: /home/pluxity/docker/plug-platform-api/plug-platform-api.tar
+#           mkdir -p $(dirname ${{ steps.docker_info.outputs.TAR_FILE_PATH }}) # 디렉토리가 없다면 생성
+#           docker save -o ${{ steps.docker_info.outputs.TAR_FILE_PATH }} ${{ steps.docker_info.outputs.IMAGE_NAME }}
+#           echo "Docker image saved to ${{ steps.docker_info.outputs.TAR_FILE_PATH }}"
 
-      - name: Execute deployment script
-        # deploy.sh 스크립트가 있는 디렉토리로 설정
-        working-directory: /home/pluxity/docker/plug-platform-api # deploy.sh가 있는 실제 경로로 변경!
-        env: # deploy.sh 스크립트에서 환경 변수로 tar 파일 경로를 참조할 수 있도록 전달
-          TAR_FILE_PATH_ENV: ${{ steps.docker_info.outputs.TAR_FILE_PATH }} # 환경변수 이름은 스크립트와 협의
-          SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Looking for deployment script: ./deploy.sh"
-          echo "Tar file to be used by script (from env var): $TAR_FILE_PATH_ENV" # 환경 변수 확인
-          echo "Tar file expected by script (from step output): ${{ steps.docker_info.outputs.TAR_FILE_PATH }}" # step output 확인
+#       - name: Execute deployment script
+#         # deploy.sh 스크립트가 있는 디렉토리로 설정
+#         working-directory: /home/pluxity/docker/plug-platform-api # deploy.sh가 있는 실제 경로로 변경!
+#         env: # deploy.sh 스크립트에서 환경 변수로 tar 파일 경로를 참조할 수 있도록 전달
+#           TAR_FILE_PATH_ENV: ${{ steps.docker_info.outputs.TAR_FILE_PATH }} # 환경변수 이름은 스크립트와 협의
+#           SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
+#         run: |
+#           echo "Current directory: $(pwd)"
+#           echo "Looking for deployment script: ./deploy.sh"
+#           echo "Tar file to be used by script (from env var): $TAR_FILE_PATH_ENV" # 환경 변수 확인
+#           echo "Tar file expected by script (from step output): ${{ steps.docker_info.outputs.TAR_FILE_PATH }}" # step output 확인
 
-          if [ -f "./deploy.sh" ]; then
-            if [ -f "${{ steps.docker_info.outputs.TAR_FILE_PATH }}" ]; then # 스크립트가 참조할 tar 파일이 실제로 존재하는지 확인
-              echo "Found deploy.sh and tar file. Executing with 'sudo bash ./deploy.sh'..."
-              # deploy.sh 스크립트가 TAR_FILE_PATH_ENV 환경 변수를 사용하거나,
-              # 또는 고정된 상대/절대 경로로 tar 파일을 참조하도록 수정 필요
-              # 예: sudo bash ./deploy.sh $TAR_FILE_PATH_ENV
-              # 또는 deploy.sh 내부에서 tar 파일 경로를 steps.docker_info.outputs.TAR_FILE_PATH 값으로 인지하도록
-              echo "$SUDO_PASSWORD" | sudo -S bash ./deploy.sh
-            else
-              echo "Error: Tar file ${{ steps.docker_info.outputs.TAR_FILE_PATH }} not found!"
-              exit 1
-            fi
-          else
-            echo "Error: deploy.sh not found in $(pwd)"
-            exit 1
-          fi
+#           if [ -f "./deploy.sh" ]; then
+#             if [ -f "${{ steps.docker_info.outputs.TAR_FILE_PATH }}" ]; then # 스크립트가 참조할 tar 파일이 실제로 존재하는지 확인
+#               echo "Found deploy.sh and tar file. Executing with 'sudo bash ./deploy.sh'..."
+#               # deploy.sh 스크립트가 TAR_FILE_PATH_ENV 환경 변수를 사용하거나,
+#               # 또는 고정된 상대/절대 경로로 tar 파일을 참조하도록 수정 필요
+#               # 예: sudo bash ./deploy.sh $TAR_FILE_PATH_ENV
+#               # 또는 deploy.sh 내부에서 tar 파일 경로를 steps.docker_info.outputs.TAR_FILE_PATH 값으로 인지하도록
+#               echo "$SUDO_PASSWORD" | sudo -S bash ./deploy.sh
+#             else
+#               echo "Error: Tar file ${{ steps.docker_info.outputs.TAR_FILE_PATH }} not found!"
+#               exit 1
+#             fi
+#           else
+#             echo "Error: deploy.sh not found in $(pwd)"
+#             exit 1
+#           fi
 
-          echo "Deployment script execution finished."
+#           echo "Deployment script execution finished."
