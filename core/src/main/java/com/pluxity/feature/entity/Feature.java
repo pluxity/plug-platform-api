@@ -61,9 +61,9 @@ public class Feature extends BaseEntity {
 
     public static Feature create(FeatureCreateRequest request) {
         return Feature.builder()
-                .position(request.position())
-                .rotation(request.rotation())
-                .scale(request.scale())
+                .position(request.position() != null ? request.position() : new Spatial(0.0, 0.0, 0.0))
+                .rotation(request.rotation() != null ? request.rotation() : new Spatial(0.0, 0.0, 0.0))
+                .scale(request.scale() != null ? request.scale() : new Spatial(1.0, 1.0, 1.0))
                 .build();
     }
 
