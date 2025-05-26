@@ -1,5 +1,7 @@
 package com.pluxity.user.service;
 
+import com.pluxity.authentication.entity.RefreshToken;
+import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
@@ -25,9 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-
-import com.pluxity.authentication.entity.RefreshToken;
-import com.pluxity.authentication.repository.RefreshTokenRepository;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -67,6 +66,8 @@ class UserServiceTest {
         lenient().when(testUser.getPassword()).thenReturn("encodedPassword");
         lenient().when(testUser.getName()).thenReturn("테스트유저");
         lenient().when(testUser.getCode()).thenReturn("TEST001");
+        lenient().when(testUser.getPhoneNumber()).thenReturn("010-1234-5678");
+        lenient().when(testUser.getDepartment()).thenReturn("개발팀");
         lenient().when(testUser.getRoles()).thenReturn(new ArrayList<>());
 
         // 다른 사용자 모킹
@@ -75,6 +76,8 @@ class UserServiceTest {
         lenient().when(anotherUser.getPassword()).thenReturn("encodedPassword2");
         lenient().when(anotherUser.getName()).thenReturn("다른유저");
         lenient().when(anotherUser.getCode()).thenReturn("ANO002");
+        lenient().when(anotherUser.getPhoneNumber()).thenReturn("010-8765-4321");
+        lenient().when(anotherUser.getDepartment()).thenReturn("기획팀");
         lenient().when(anotherUser.getRoles()).thenReturn(new ArrayList<>());
 
         // 테스트 역할 생성
@@ -175,6 +178,8 @@ class UserServiceTest {
                 .password("password123")
                 .name("신규유저")
                 .code("NEW001")
+                .phoneNumber("010-9999-8888")
+                .department("인사팀")
                 .build();
 
         User newUser = mock(User.class);
@@ -182,6 +187,8 @@ class UserServiceTest {
         when(newUser.getUsername()).thenReturn("newuser");
         when(newUser.getName()).thenReturn("신규유저");
         when(newUser.getCode()).thenReturn("NEW001");
+        when(newUser.getPhoneNumber()).thenReturn("010-9999-8888");
+        when(newUser.getDepartment()).thenReturn("인사팀");
 
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(newUser);
@@ -207,6 +214,8 @@ class UserServiceTest {
                 .username("updateduser")
                 .name("업데이트유저")
                 .code("UPD001")
+                .phoneNumber("010-7777-6666")
+                .department("마케팅팀")
                 .build();
 
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser));
@@ -215,6 +224,8 @@ class UserServiceTest {
         when(testUser.getUsername()).thenReturn("updateduser");
         when(testUser.getName()).thenReturn("업데이트유저");
         when(testUser.getCode()).thenReturn("UPD001");
+        when(testUser.getPhoneNumber()).thenReturn("010-7777-6666");
+        when(testUser.getDepartment()).thenReturn("마케팅팀");
 
         // when
         UserResponse response = userService.update(1L, request);
@@ -228,6 +239,8 @@ class UserServiceTest {
         verify(testUser, times(1)).changeUsername("updateduser");
         verify(testUser, times(1)).changeName("업데이트유저");
         verify(testUser, times(1)).changeCode("UPD001");
+        verify(testUser, times(1)).changePhoneNumber("010-7777-6666");
+        verify(testUser, times(1)).changeDepartment("마케팅팀");
     }
 
     @Test
@@ -236,6 +249,7 @@ class UserServiceTest {
         // given
         UserUpdateRequest request = UserUpdateRequest.builder()
                 .username("updateduser")
+                .phoneNumber("010-5555-4444")
                 .build();
 
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser));
@@ -447,6 +461,8 @@ class UserServiceTest {
         assertThat(testUserResponse.id()).isEqualTo(1L);
         assertThat(testUserResponse.name()).isEqualTo("테스트유저");
         assertThat(testUserResponse.code()).isEqualTo("TEST001");
+        assertThat(testUserResponse.phoneNumber()).isEqualTo("010-1234-5678");
+        assertThat(testUserResponse.department()).isEqualTo("개발팀");
         assertThat(testUserResponse.roles()).hasSize(1);
         assertThat(testUserResponse.roles().get(0).name()).isEqualTo("ROLE_USER");
 
@@ -459,6 +475,8 @@ class UserServiceTest {
         assertThat(anotherUserResponse.id()).isEqualTo(2L);
         assertThat(anotherUserResponse.name()).isEqualTo("다른유저");
         assertThat(anotherUserResponse.code()).isEqualTo("ANO002");
+        assertThat(anotherUserResponse.phoneNumber()).isEqualTo("010-8765-4321");
+        assertThat(anotherUserResponse.department()).isEqualTo("기획팀");
         assertThat(anotherUserResponse.roles()).hasSize(1);
         assertThat(anotherUserResponse.roles().get(0).name()).isEqualTo("ROLE_ADMIN");
 

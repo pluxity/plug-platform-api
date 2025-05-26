@@ -160,4 +160,59 @@ public class SasangDeviceController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "디바이스에 카테고리 할당", description = "디바이스에 특정 카테고리를 할당합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "카테고리 할당 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "디바이스 또는 카테고리를 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @PutMapping("/{deviceId}/categories/{categoryId}")
+    public ResponseEntity<DataResponseBody<SasangDeviceResponse>> assignCategory(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId,
+            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long categoryId) {
+
+        SasangDeviceResponse response = service.assignCategory(deviceId, categoryId);
+        return ResponseEntity.ok(DataResponseBody.of(response));
+    }
+
+    @Operation(summary = "디바이스에서 카테고리 제거", description = "디바이스에서 할당된 카테고리를 제거합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "카테고리 제거 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "디바이스를 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @DeleteMapping("/{deviceId}/categories")
+    public ResponseEntity<DataResponseBody<SasangDeviceResponse>> removeCategory(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId) {
+
+        SasangDeviceResponse response = service.removeCategory(deviceId);
+        return ResponseEntity.ok(DataResponseBody.of(response));
+    }
 }

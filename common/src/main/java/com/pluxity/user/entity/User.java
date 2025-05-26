@@ -30,6 +30,12 @@ public class User extends BaseEntity {
     @Column(name = "code", nullable = false)
     private String code;
 
+    @Column(name = "phoneNumber")
+    private String phoneNumber;
+
+    @Column(name = "department")
+    private String department;
+
     @OneToMany(
             mappedBy = "user",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
@@ -37,11 +43,19 @@ public class User extends BaseEntity {
     private final Set<UserRole> userRoles = new LinkedHashSet<>();
 
     @Builder
-    public User(String username, String password, String name, String code) {
+    public User(
+            String username,
+            String password,
+            String name,
+            String code,
+            String phoneNumber,
+            String department) {
         this.username = Objects.requireNonNull(username, "Username must not be null");
         this.password = Objects.requireNonNull(password, "Password must not be null");
         this.name = Objects.requireNonNull(name, "Name must not be null");
         this.code = Objects.requireNonNull(code, "Code must not be null");
+        this.phoneNumber = phoneNumber;
+        this.department = department;
     }
 
     public void changeUsername(String username) {
@@ -120,5 +134,13 @@ public class User extends BaseEntity {
 
     public void changeCode(String code) {
         this.code = code;
+    }
+
+    public void changePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void changeDepartment(String department) {
+        this.department = department;
     }
 }

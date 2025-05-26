@@ -86,11 +86,7 @@ class SasangDeviceServiceTest {
         Spatial rotation = Spatial.builder().x(0.0).y(0.0).z(0.0).build();
         Spatial scale = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
 
-        FeatureCreateRequest featureRequest = FeatureCreateRequest.builder()
-                .position(position)
-                .rotation(rotation)
-                .scale(scale)
-                .build();
+        FeatureCreateRequest featureRequest = new FeatureCreateRequest(position, rotation, scale);
 
         createRequest = new SasangDeviceCreateRequest(
                 featureRequest,
@@ -134,8 +130,8 @@ class SasangDeviceServiceTest {
 
         // then
         assertThat(responses).isNotEmpty();
-        assertThat(responses.get(0).name()).isEqualTo("테스트 디바이스");
-        assertThat(responses.get(0).code()).isEqualTo("TEST-001");
+        assertThat(responses.getFirst().name()).isEqualTo("테스트 디바이스");
+        assertThat(responses.getFirst().code()).isEqualTo("TEST-001");
     }
 
     @Test
@@ -179,9 +175,7 @@ class SasangDeviceServiceTest {
         
         // Feature 업데이트 요청 생성
         Spatial newPosition = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
-        FeatureUpdateRequest featureUpdateRequest = FeatureUpdateRequest.builder()
-                .position(newPosition)
-                .build();
+        FeatureUpdateRequest featureUpdateRequest = new FeatureUpdateRequest(newPosition, null, null);
                 
         SasangDeviceUpdateRequest updateRequest = new SasangDeviceUpdateRequest(
                 featureUpdateRequest,
@@ -222,5 +216,90 @@ class SasangDeviceServiceTest {
         
         // 삭제 후에는 해당 ID로 디바이스를 찾을 수 없어야 함
         assertThrows(CustomException.class, () -> sasangDeviceService.findDeviceById(id));
+    }
+    
+    @Test
+    @DisplayName("디바이스에 카테고리를 할당한다")
+    void assignCategory_SetsDeviceCategory() {
+        // given
+        // 카테고리 없이 디바이스 생성
+        SasangDeviceCreateRequest requestWithoutCategory = new SasangDeviceCreateRequest(
+                createRequest.feature(),
+                null, // 카테고리 없음
+                createRequest.stationId(),
+                createRequest.asset(),
+                createRequest.iconId(),
+                createRequest.name(),
+                createRequest.code(),
+                createRequest.description()
+        );
+        
+        Long deviceId = sasangDeviceService.save(requestWithoutCategory);
+        SasangDeviceResponse deviceBeforeAssign = sasangDeviceService.findDeviceById(deviceId);
+        assertThat(deviceBeforeAssign.categoryId()).isNull();
+        
+        // 새 카테고리 생성
+        DeviceCategory newCategory = deviceCategoryRepository.save(DeviceCategory.builder()
+                .name("새 테스트 카테고리")
+                .build());
+        
+        // when
+        SasangDeviceResponse updatedDevice = sasangDeviceService.assignCategory(deviceId, newCategory.getId());
+        
+        // then
+        assertThat(updatedDevice.categoryId()).isEqualTo(newCategory.getId());
+        assertThat(updatedDevice.categoryName()).isEqualTo(newCategory.getName());
+        
+        // 데이터베이스에서 확인
+        SasangDeviceResponse fetchedDevice = sasangDeviceService.findDeviceById(deviceId);
+        assertThat(fetchedDevice.categoryId()).isEqualTo(newCategory.getId());
+        assertThat(fetchedDevice.categoryName()).isEqualTo(newCategory.getName());
+    }
+    
+    @Test
+    @DisplayName("디바이스에서 카테고리를 제거한다")
+    void removeCategory_RemovesDeviceCategory() {
+        // given
+        // 카테고리가 있는 디바이스 생성
+        Long deviceId = sasangDeviceService.save(createRequest);
+        SasangDeviceResponse deviceBeforeRemove = sasangDeviceService.findDeviceById(deviceId);
+        assertThat(deviceBeforeRemove.categoryId()).isEqualTo(category.getId());
+        
+        // when
+        SasangDeviceResponse updatedDevice = sasangDeviceService.removeCategory(deviceId);
+        
+        // then
+        assertThat(updatedDevice.categoryId()).isNull();
+        assertThat(updatedDevice.categoryName()).isNull();
+        
+        // 데이터베이스에서 확인
+        SasangDeviceResponse fetchedDevice = sasangDeviceService.findDeviceById(deviceId);
+        assertThat(fetchedDevice.categoryId()).isNull();
+        assertThat(fetchedDevice.categoryName()).isNull();
+    }
+    
+    @Test
+    @DisplayName("존재하지 않는 카테고리 할당 시 예외가 발생한다")
+    void assignCategory_WithNonExistingCategoryId_ThrowsCustomException() {
+        // given
+        Long deviceId = sasangDeviceService.save(createRequest);
+        Long nonExistingCategoryId = 9999L;
+        
+        // when & then
+        assertThrows(CustomException.class, () -> 
+            sasangDeviceService.assignCategory(deviceId, nonExistingCategoryId)
+        );
+    }
+    
+    @Test
+    @DisplayName("존재하지 않는 디바이스에 카테고리 할당 시 예외가 발생한다")
+    void assignCategory_WithNonExistingDeviceId_ThrowsCustomException() {
+        // given
+        Long nonExistingDeviceId = 9999L;
+        
+        // when & then
+        assertThrows(CustomException.class, () -> 
+            sasangDeviceService.assignCategory(nonExistingDeviceId, category.getId())
+        );
     }
 }

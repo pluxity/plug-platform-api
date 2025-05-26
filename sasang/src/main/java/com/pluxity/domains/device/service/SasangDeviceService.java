@@ -62,7 +62,7 @@ public class SasangDeviceService {
 
         Icon icon = request.iconId() != null ? findIconById(request.iconId()) : null;
 
-        Feature feature = Feature.create(request.feature());
+        Feature feature = request.feature() != null ? Feature.create(request.feature()) : null;
 
         return SasangDevice.create(
                 feature,
@@ -143,5 +143,24 @@ public class SasangDeviceService {
 
     private Icon findIconById(Long id) {
         return iconService.findById(id);
+    }
+
+    @Transactional
+    public SasangDeviceResponse assignCategory(Long deviceId, Long categoryId) {
+        SasangDevice device = findById(deviceId);
+        DeviceCategory category = findCategoryById(categoryId);
+
+        device.updateCategory(category);
+
+        return SasangDeviceResponse.from(device);
+    }
+
+    @Transactional
+    public SasangDeviceResponse removeCategory(Long deviceId) {
+        SasangDevice device = findById(deviceId);
+
+        device.updateCategory(null);
+
+        return SasangDeviceResponse.from(device);
     }
 }

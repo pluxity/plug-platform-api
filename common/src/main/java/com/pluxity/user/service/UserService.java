@@ -58,6 +58,8 @@ public class UserService {
                         .password(passwordEncoder.encode(request.password()))
                         .name(request.name())
                         .code(request.code())
+                        .phoneNumber(request.phoneNumber())
+                        .department(request.department())
                         .build();
 
         User savedUser = userRepository.save(user);
@@ -136,6 +138,12 @@ public class UserService {
         if (request.code() != null && !request.code().isBlank()) {
             user.changeCode(request.code());
         }
+        if (request.phoneNumber() != null) {
+            user.changePhoneNumber(request.phoneNumber());
+        }
+        if (request.department() != null) {
+            user.changeDepartment(request.department());
+        }
     }
 
     @Transactional(readOnly = true)
@@ -152,6 +160,8 @@ public class UserService {
                                     user.getUsername(),
                                     user.getName(),
                                     user.getCode(),
+                                    user.getPhoneNumber(),
+                                    user.getDepartment(),
                                     isLoggedIn,
                                     user.getRoles().stream().map(RoleResponse::from).toList());
                         })
