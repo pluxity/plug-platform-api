@@ -64,3 +64,5 @@ out/
 
 /data/.minio.sys
 /.cursor
+
+plug-platform-api.tar
