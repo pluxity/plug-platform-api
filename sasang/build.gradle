@@ -1,0 +1,9 @@
+bootJar { enabled = true }
+jar { enabled = true }
+
+dependencies {
+    implementation project(':common')
+    implementation project(':core')
+
+    implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0')
+}
