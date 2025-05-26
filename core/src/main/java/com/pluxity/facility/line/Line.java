@@ -1,6 +1,7 @@
 package com.pluxity.facility.line;
 
 import com.pluxity.facility.station.Station;
+import com.pluxity.facility.station.StationLine;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -19,8 +20,8 @@ public class Line extends BaseEntity {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "line", cascade = CascadeType.PERSIST)
-    private final List<Station> stations = new ArrayList<>();
+    @OneToMany(mappedBy = "line", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<StationLine> stationLines = new ArrayList<>();
 
     @Column(name = "name")
     private String name;
@@ -35,9 +36,15 @@ public class Line extends BaseEntity {
     }
 
     public void addStation(Station station) {
-        if (station.getLine() != this) {
-            station.changeLine(this);
-        }
+        station.addLine(this);
+    }
+
+    public void removeStation(Station station) {
+        station.removeLine(this);
+    }
+
+    public List<Station> getStations() {
+        return stationLines.stream().map(StationLine::getStation).toList();
     }
 
     public void update(Line line) {

@@ -15,6 +15,7 @@ import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,6 @@ public class StationService {
     private final FacilityService facilityService;
     private final FloorStrategy floorStrategy;
     private final StationRepository stationRepository;
-
     private final LineService lineService;
 
     @Transactional
@@ -39,6 +39,7 @@ public class StationService {
                         .name(request.facility().name())
                         .description(request.facility().description())
                         .route(request.route())
+                        .code(request.code())
                         .build();
 
         Facility saved = facilityService.save(station, request.facility());
@@ -51,7 +52,7 @@ public class StationService {
 
         if (request.lineId() != null) {
             Line line = lineService.findLineById(request.lineId());
-            station.changeLine(line);
+            station.addLine(line);
         }
 
         return saved.getId();
@@ -61,16 +62,23 @@ public class StationService {
     public List<StationResponse> findAll() {
         return stationRepository.findAll().stream()
                 .map(
-                        station ->
-                                StationResponse.builder()
-                                        .facility(
-                                                FacilityResponse.from(
-                                                        station,
-                                                        fileService.getFileResponse(station.getDrawingFileId()),
-                                                        fileService.getFileResponse(station.getThumbnailFileId())))
-                                        .lineId(station.getLine() != null ? station.getLine().getId() : null)
-                                        .route(station.getRoute())
-                                        .build())
+                        station -> {
+                            List<Long> lineIds =
+                                    station.getStationLines().stream()
+                                            .map(stationLine -> stationLine.getLine().getId())
+                                            .collect(Collectors.toList());
+
+                            return StationResponse.builder()
+                                    .facility(
+                                            FacilityResponse.from(
+                                                    station,
+                                                    fileService.getFileResponse(station.getDrawingFileId()),
+                                                    fileService.getFileResponse(station.getThumbnailFileId())))
+                                    .lineIds(lineIds)
+                                    .route(station.getRoute())
+                                    .code(station.getCode())
+                                    .build();
+                        })
                 .toList();
     }
 
@@ -79,6 +87,11 @@ public class StationService {
         Station station = (Station) facilityService.findById(id);
         List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
 
+        List<Long> lineIds =
+                station.getStationLines().stream()
+                        .map(stationLine -> stationLine.getLine().getId())
+                        .collect(Collectors.toList());
+
         return StationResponse.builder()
                 .facility(
                         FacilityResponse.from(
@@ -86,8 +99,9 @@ public class StationService {
                                 fileService.getFileResponse(station.getDrawingFileId()),
                                 fileService.getFileResponse(station.getThumbnailFileId())))
                 .floors(floorResponse)
-                .lineId(station.getLine() != null ? station.getLine().getId() : null)
+                .lineIds(lineIds)
                 .route(station.getRoute())
+                .code(station.getCode())
                 .build();
     }
 
@@ -119,6 +133,10 @@ public class StationService {
             station.updateRoute(request.route());
         }
 
+        if (request.code() != null) {
+            station.updateCode(request.code());
+        }
+
         // drawingFileId와 thumbnailFileId 직접 설정
         if (request.drawingFileId() != null) {
             station.updateDrawingFileId(request.drawingFileId());
@@ -129,8 +147,16 @@ public class StationService {
         }
 
         if (request.lineId() != null) {
+            // 기존 노선이 있는지 확인하고 없으면 추가
             Line line = lineService.findLineById(request.lineId());
-            station.changeLine(line);
+
+            boolean lineExists =
+                    station.getStationLines().stream()
+                            .anyMatch(sl -> sl.getLine().getId().equals(request.lineId()));
+
+            if (!lineExists) {
+                station.addLine(line);
+            }
         }
     }
 
@@ -139,11 +165,60 @@ public class StationService {
         // 삭제할 스테이션 조회
         Station station = findStationById(id);
 
-        // Line과의 관계 제거
-        station.changeLine(null);
-
         // Floor 삭제 및 Facility 삭제
         floorStrategy.delete(station);
         facilityService.deleteFacility(id);
+    }
+
+    @Transactional
+    public void addLineToStation(Long stationId, Long lineId) {
+        Station station = findStationById(stationId);
+        Line line = lineService.findLineById(lineId);
+
+        // 이미 연결되어 있는지 확인
+        boolean alreadyConnected =
+                station.getStationLines().stream().anyMatch(sl -> sl.getLine().getId().equals(lineId));
+
+        if (!alreadyConnected) {
+            station.addLine(line);
+        }
+    }
+
+    @Transactional
+    public void removeLineFromStation(Long stationId, Long lineId) {
+        Station station = findStationById(stationId);
+        Line line = lineService.findLineById(lineId);
+
+        station.removeLine(line);
+    }
+
+    @Transactional(readOnly = true)
+    public StationResponse findByCode(String code) {
+        Station station =
+                stationRepository
+                        .findByCode(code)
+                        .orElseThrow(
+                                () ->
+                                        new CustomException(
+                                                "Station not found", HttpStatus.NOT_FOUND, "해당 코드의 역을 찾을 수 없습니다."));
+
+        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+
+        List<Long> lineIds =
+                station.getStationLines().stream()
+                        .map(stationLine -> stationLine.getLine().getId())
+                        .collect(Collectors.toList());
+
+        return StationResponse.builder()
+                .facility(
+                        FacilityResponse.from(
+                                station,
+                                fileService.getFileResponse(station.getDrawingFileId()),
+                                fileService.getFileResponse(station.getThumbnailFileId())))
+                .floors(floorResponse)
+                .lineIds(lineIds)
+                .route(station.getRoute())
+                .code(station.getCode())
+                .build();
     }
 }

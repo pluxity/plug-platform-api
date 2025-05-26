@@ -52,6 +52,7 @@ class LineServiceTest {
                 .name("테스트 역")
                 .description("테스트 역 설명")
                 .route("asdf")
+                .code("ST001")
                 .build();
     }
 
@@ -207,7 +208,9 @@ class LineServiceTest {
         
         // 관계 확인
         assertThat(line.getStations()).contains(station);
-        assertThat(station.getLine()).isEqualTo(line);
+        assertThat(station.getStationLines().stream()
+                .anyMatch(sl -> sl.getLine().getId().equals(lineId)))
+                .isTrue();
         
         // 서비스 메서드를 통한 조회 테스트
         List<Long> stationIds = lineService.findStationsByLineId(lineId);
@@ -226,6 +229,8 @@ class LineServiceTest {
                 .mapToObj(i -> Station.builder()
                         .name("테스트 역 " + i)
                         .description("테스트 역 설명 " + i)
+                        .route("route" + i)
+                        .code("ST00" + (i+1))
                         .build())
                 .map(stationRepository::save)
                 .toList();
@@ -248,7 +253,9 @@ class LineServiceTest {
         // 각 스테이션이 해당 라인을 참조하는지 확인
         for (Station station : testStations) {
             Station refreshedStation = stationRepository.findById(station.getId()).orElseThrow();
-            assertThat(refreshedStation.getLine()).isEqualTo(line);
+            assertThat(refreshedStation.getStationLines().stream()
+                    .anyMatch(sl -> sl.getLine().getId().equals(lineId)))
+                    .isTrue();
             assertThat(stationIds).contains(refreshedStation.getId());
         }
     }
@@ -265,11 +272,12 @@ class LineServiceTest {
         Line line = lineRepository.findById(lineId).orElseThrow();
         Station station = stationRepository.findById(savedStation.getId()).orElseThrow();
         assertThat(line.getStations()).contains(station);
-        assertThat(station.getLine()).isEqualTo(line);
+        assertThat(station.getStationLines().stream()
+                .anyMatch(sl -> sl.getLine().getId().equals(lineId)))
+                .isTrue();
         
         // when
-        station.changeLine(null);  // 역에서 호선 관계 제거
-        stationRepository.save(station);
+        stationService.removeLineFromStation(savedStation.getId(), lineId);
         
         // then
         // 라인을 다시 조회하여 스테이션이 없는지 확인
@@ -277,7 +285,7 @@ class LineServiceTest {
         station = stationRepository.findById(savedStation.getId()).orElseThrow();
         
         assertThat(line.getStations()).doesNotContain(station);
-        assertThat(station.getLine()).isNull();
+        assertThat(station.getStationLines()).isEmpty();
         
         // 서비스 메서드를 통한 조회 테스트
         List<Long> stationIds = lineService.findStationsByLineId(lineId);
@@ -296,7 +304,9 @@ class LineServiceTest {
         Line line = lineRepository.findById(lineId).orElseThrow();
         Station station = stationRepository.findById(savedStation.getId()).orElseThrow();
         assertThat(line.getStations()).contains(station);
-        assertThat(station.getLine()).isEqualTo(line);
+        assertThat(station.getStationLines().stream()
+                .anyMatch(sl -> sl.getLine().getId().equals(lineId)))
+                .isTrue();
         
         // when
         lineService.delete(lineId);
@@ -307,7 +317,7 @@ class LineServiceTest {
         
         // 역은 여전히 존재하지만 라인 관계는 제거되어야 함
         station = stationRepository.findById(savedStation.getId()).orElseThrow();
-        assertThat(station.getLine()).isNull();
+        assertThat(station.getStationLines()).isEmpty();
     }
     
     @Test

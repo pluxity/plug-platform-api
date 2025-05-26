@@ -5,6 +5,24 @@ import com.pluxity.facility.floor.dto.FloorResponse;
 import java.util.List;
 import lombok.Builder;
 
-@Builder
 public record StationResponse(
-        FacilityResponse facility, List<FloorResponse> floors, Long lineId, String route) {}
+        FacilityResponse facility,
+        List<FloorResponse> floors,
+        List<Long> lineIds,
+        String route,
+        String code) {
+
+    @Builder
+    public StationResponse(
+            FacilityResponse facility,
+            List<FloorResponse> floors,
+            List<Long> lineIds,
+            String route,
+            String code) {
+        this.facility = facility;
+        this.floors = floors != null ? floors : List.of();
+        this.lineIds = lineIds != null ? lineIds : List.of();
+        this.route = route;
+        this.code = code;
+    }
+}

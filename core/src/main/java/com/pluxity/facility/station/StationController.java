@@ -191,4 +191,83 @@ public class StationController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "스테이션에 노선 추가", description = "특정 스테이션에 노선을 추가합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "노선 추가 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "스테이션 또는 노선을 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @PostMapping("/{stationId}/lines/{lineId}")
+    public ResponseEntity<Void> addLineToStation(
+            @Parameter(description = "스테이션 ID", required = true) @PathVariable Long stationId,
+            @Parameter(description = "노선 ID", required = true) @PathVariable Long lineId) {
+        service.addLineToStation(stationId, lineId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "스테이션에서 노선 제거", description = "특정 스테이션에서 노선을 제거합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "노선 제거 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "스테이션 또는 노선을 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @DeleteMapping("/{stationId}/lines/{lineId}")
+    public ResponseEntity<Void> removeLineFromStation(
+            @Parameter(description = "스테이션 ID", required = true) @PathVariable Long stationId,
+            @Parameter(description = "노선 ID", required = true) @PathVariable Long lineId) {
+        service.removeLineFromStation(stationId, lineId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "코드로 스테이션 조회", description = "코드로 특정 스테이션의 상세 정보를 조회합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "스테이션 조회 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "스테이션을 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/code/{code}")
+    public ResponseEntity<DataResponseBody<StationResponse>> getByCode(
+            @Parameter(description = "스테이션 코드", required = true) @PathVariable String code) {
+        return ResponseEntity.ok(DataResponseBody.of(service.findByCode(code)));
+    }
 }

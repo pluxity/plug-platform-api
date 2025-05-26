@@ -3,6 +3,8 @@ package com.pluxity.facility.station;
 import com.pluxity.facility.facility.Facility;
 import com.pluxity.facility.line.Line;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,34 +19,45 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @ConditionalOnProperty(name = "facility.station.enabled", havingValue = "true")
 public class Station extends Facility {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "line_id")
-    private Line line;
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<StationLine> stationLines = new ArrayList<>();
 
     @Column(name = "route")
     private String route;
 
+    @Column(name = "code", unique = true)
+    private String code;
+
     @Builder
-    public Station(String name, String description, String route) {
+    public Station(String name, String description, String route, String code) {
         super(name, description);
         this.route = route;
+        this.code = code;
     }
 
-    public void changeLine(Line newLine) {
-        if (this.line != null) {
-            this.line.getStations().remove(this);
-        }
+    public void addLine(Line line) {
+        StationLine stationLine = StationLine.builder().station(this).line(line).build();
 
-        this.line = newLine;
+        this.stationLines.add(stationLine);
+        line.getStationLines().add(stationLine);
+    }
 
-        if (newLine != null) {
-            if (!newLine.getStations().contains(this)) {
-                newLine.getStations().add(this);
-            }
-        }
+    public void removeLine(Line line) {
+        stationLines.removeIf(
+                stationLine -> {
+                    if (stationLine.getLine().equals(line)) {
+                        line.getStationLines().remove(stationLine);
+                        return true;
+                    }
+                    return false;
+                });
     }
 
     public void updateRoute(String route) {
         this.route = route;
+    }
+
+    public void updateCode(String code) {
+        this.code = code;
     }
 }

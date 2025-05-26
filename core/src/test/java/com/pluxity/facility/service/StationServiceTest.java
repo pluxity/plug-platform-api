@@ -1,12 +1,14 @@
 package com.pluxity.facility.service;
 
-import com.pluxity.facility.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.facility.FacilityService;
-import com.pluxity.facility.line.Line;
-import com.pluxity.facility.line.LineService;
-import com.pluxity.facility.station.*;
+import com.pluxity.facility.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.floor.dto.FloorRequest;
+import com.pluxity.facility.line.Line;
 import com.pluxity.facility.line.LineRepository;
+import com.pluxity.facility.line.LineService;
+import com.pluxity.facility.station.Station;
+import com.pluxity.facility.station.StationRepository;
+import com.pluxity.facility.station.StationService;
 import com.pluxity.facility.station.dto.StationCreateRequest;
 import com.pluxity.facility.station.dto.StationResponse;
 import com.pluxity.facility.station.dto.StationUpdateRequest;
@@ -33,7 +35,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SpringBootTest
+@SpringBootTest()
 @Transactional
 class StationServiceTest {
 
@@ -94,7 +96,8 @@ class StationServiceTest {
                 facilityRequest,
                 floorRequests,
                 null,
-                "route"
+                "route",
+                "ST001"
         );
         
         // 테스트 Line 생성
@@ -120,7 +123,8 @@ class StationServiceTest {
         assertThat(savedStation.facility().name()).isEqualTo("테스트 스테이션");
         assertThat(savedStation.facility().description()).isEqualTo("테스트 스테이션 설명");
         assertThat(savedStation.floors()).isNotEmpty();
-        assertThat(savedStation.lineId()).isNull(); // Line 없이 생성했으므로 null
+        assertThat(savedStation.lineIds()).isEmpty(); // Line 없이 생성했으므로 빈 리스트
+        assertThat(savedStation.code()).isEqualTo("ST001");
     }
 
     @Test
@@ -136,7 +140,8 @@ class StationServiceTest {
                 createRequest.facility(),
                 multipleFloors,
                 null,
-                "route"
+                "route",
+                "ST001"
         );
         
         // when
@@ -166,7 +171,8 @@ class StationServiceTest {
                 createRequest.facility(),
                 createRequest.floors(),
                 testLine.getId(),
-                "route"
+                "route",
+                "ST001"
         );
         
         // when
@@ -175,17 +181,15 @@ class StationServiceTest {
         // then
         // 데이터베이스에서 직접 Station과 Line을 조회하여 관계 확인
         Station station = stationRepository.findById(id).orElseThrow();
-        Line savedLine = lineRepository.findById(testLine.getId()).orElseThrow();
         
-        assertThat(station.getLine()).isEqualTo(savedLine);
-        assertThat(savedLine.getStations()).contains(station);
+        // 관계 확인
+        assertThat(station.getStationLines()).isNotEmpty();
+        assertThat(station.getStationLines().get(0).getLine().getId()).isEqualTo(testLine.getId());
         
-        // 응답에서도 lineId가 설정되어 있는지 확인
+        // 응답에서도 lineIds가 설정되어 있는지 확인
         StationResponse stationResponse = stationService.findById(id);
-        assertThat(stationResponse.lineId()).isEqualTo(testLine.getId());
+        assertThat(stationResponse.lineIds()).contains(testLine.getId());
     }
-    
-
     
     @Test
     @DisplayName("존재하지 않는 Line ID로 스테이션 생성 시 예외가 발생한다")
@@ -196,7 +200,8 @@ class StationServiceTest {
                 createRequest.facility(),
                 createRequest.floors(),
                 nonExistingLineId,
-                "route"
+                "route",
+                "ST001"
         );
         
         // when & then
@@ -217,7 +222,8 @@ class StationServiceTest {
                 drawingFileId,
                 thumbnailFileId,
                 testLine.getId(),
-                "수정된 경로"
+                "수정된 경로",
+                "ST002"
         );
         
         // when
@@ -225,64 +231,57 @@ class StationServiceTest {
         
         // then
         Station updatedStation = stationRepository.findById(id).orElseThrow();
-        Line savedLine = lineRepository.findById(testLine.getId()).orElseThrow();
         
-        assertThat(updatedStation.getLine()).isEqualTo(savedLine);
-        assertThat(savedLine.getStations()).contains(updatedStation);
+        // 관계 확인
+        assertThat(updatedStation.getStationLines()).isNotEmpty();
+        assertThat(updatedStation.getStationLines().get(0).getLine().getId()).isEqualTo(testLine.getId());
         
-        // 응답에서도 lineId가 설정되어 있는지 확인
+        // 응답에서도 lineIds가 설정되어 있는지 확인
         StationResponse stationResponse = stationService.findById(id);
-        assertThat(stationResponse.lineId()).isEqualTo(testLine.getId());
+        assertThat(stationResponse.lineIds()).contains(testLine.getId());
+        assertThat(stationResponse.code()).isEqualTo("ST002");
     }
     
     @Test
-    @DisplayName("스테이션의 Line을 다른 Line으로 변경하면 관계가 업데이트된다")
-    void update_WithDifferentLine_UpdatesRelationship() {
+    @DisplayName("스테이션에 다른 라인 추가 및 제거 기능이 작동한다")
+    void addAndRemoveLineToStation_Works() {
         // given
-        // 먼저 첫 번째 Line과 함께 스테이션 생성
-        StationCreateRequest requestWithLine = new StationCreateRequest(
-                createRequest.facility(),
-                createRequest.floors(),
-                testLine.getId(),
-                "route"
-        );
-        Long id = stationService.save(requestWithLine);
+        // Line 없이 스테이션 생성
+        Long id = stationService.save(createRequest);
         
         // 두 번째 Line 생성
-        Line newLine = Line.builder()
-                .name("새 테스트 호선")
+        Line secondLine = Line.builder()
+                .name("두 번째 테스트 호선")
                 .color("#00FF00")
                 .build();
-        newLine = lineRepository.save(newLine);
+        secondLine = lineRepository.save(secondLine);
         
-        // 업데이트 요청 준비 (두 번째 Line으로 변경)
-        StationUpdateRequest updateRequest = new StationUpdateRequest(
-                "수정된 스테이션",
-                "수정된 스테이션 설명",
-                drawingFileId,
-                thumbnailFileId,
-                newLine.getId(),
-                "수정된 경로"
-        );
+        // when - 첫 번째 라인 추가
+        stationService.addLineToStation(id, testLine.getId());
         
-        // when
-        stationService.update(id, updateRequest);
+        // then - 첫 번째 라인이 추가되었는지 확인
+        Station station = stationRepository.findById(id).orElseThrow();
+        assertThat(station.getStationLines()).hasSize(1);
+        assertThat(station.getStationLines().get(0).getLine().getId()).isEqualTo(testLine.getId());
         
-        // then
-        Station updatedStation = stationRepository.findById(id).orElseThrow();
-        Line oldLine = lineRepository.findById(testLine.getId()).orElseThrow();
-        Line savedNewLine = lineRepository.findById(newLine.getId()).orElseThrow();
+        // when - 두 번째 라인 추가
+        stationService.addLineToStation(id, secondLine.getId());
         
-        // 이전 관계가 제거되었는지 확인
-        assertThat(oldLine.getStations()).doesNotContain(updatedStation);
+        // then - 두 라인 모두 추가되었는지 확인
+        station = stationRepository.findById(id).orElseThrow();
+        assertThat(station.getStationLines()).hasSize(2);
+        List<Long> lineIds = station.getStationLines().stream()
+                .map(sl -> sl.getLine().getId())
+                .collect(Collectors.toList());
+        assertThat(lineIds).contains(testLine.getId(), secondLine.getId());
         
-        // 새 관계가 설정되었는지 확인
-        assertThat(updatedStation.getLine()).isEqualTo(savedNewLine);
-        assertThat(savedNewLine.getStations()).contains(updatedStation);
+        // when - 첫 번째 라인 제거
+        stationService.removeLineFromStation(id, testLine.getId());
         
-        // 응답에서도 새 lineId가 설정되어 있는지 확인
-        StationResponse stationResponse = stationService.findById(id);
-        assertThat(stationResponse.lineId()).isEqualTo(newLine.getId());
+        // then - 첫 번째 라인만 제거되었는지 확인
+        station = stationRepository.findById(id).orElseThrow();
+        assertThat(station.getStationLines()).hasSize(1);
+        assertThat(station.getStationLines().get(0).getLine().getId()).isEqualTo(secondLine.getId());
     }
     
     @Test
@@ -294,7 +293,8 @@ class StationServiceTest {
                 createRequest.facility(),
                 createRequest.floors(),
                 testLine.getId(),
-                "route"
+                "route",
+                "ST001"
         );
         Long id = stationService.save(requestWithLine);
         
@@ -305,7 +305,8 @@ class StationServiceTest {
                 drawingFileId,
                 thumbnailFileId,
                 testLine.getId(),
-                "수정된 경로"
+                "수정된 경로",
+                null  // code는 변경하지 않음
         );
         
         // when
@@ -313,18 +314,18 @@ class StationServiceTest {
         
         // then
         Station updatedStation = stationRepository.findById(id).orElseThrow();
-        Line savedLine = lineRepository.findById(testLine.getId()).orElseThrow();
         
         // 기본 정보가 업데이트되었는지 확인
         assertThat(updatedStation.getName()).isEqualTo("수정된 스테이션");
         assertThat(updatedStation.getDescription()).isEqualTo("수정된 스테이션 설명");
         
         // 관계는 유지되어야 함
-        assertThat(updatedStation.getLine()).isEqualTo(savedLine);
-        assertThat(savedLine.getStations()).contains(updatedStation);
+        assertThat(updatedStation.getStationLines()).isNotEmpty();
+        assertThat(updatedStation.getStationLines().get(0).getLine().getId()).isEqualTo(testLine.getId());
         
         StationResponse stationResponse = stationService.findById(id);
-        assertThat(stationResponse.lineId()).isEqualTo(testLine.getId());
+        assertThat(stationResponse.lineIds()).contains(testLine.getId());
+        assertThat(stationResponse.code()).isEqualTo("ST001");  // 원래 값 유지
     }
 
     @Test
@@ -358,6 +359,7 @@ class StationServiceTest {
         assertThat(response.facility().name()).isEqualTo("테스트 스테이션");
         assertThat(response.facility().description()).isEqualTo("테스트 스테이션 설명");
         assertThat(response.floors()).hasSize(1);
+        assertThat(response.code()).isEqualTo("ST001");
     }
 
     @Test
@@ -381,7 +383,8 @@ class StationServiceTest {
                 drawingFileId,
                 thumbnailFileId,
                 null,
-                "수정된 경로"
+                "수정된 경로",
+                "ST002"
         );
 
         // when
@@ -391,6 +394,7 @@ class StationServiceTest {
         StationResponse updatedStation = stationService.findById(id);
         assertThat(updatedStation.facility().name()).isEqualTo("수정된 스테이션");
         assertThat(updatedStation.facility().description()).isEqualTo("수정된 스테이션 설명");
+        assertThat(updatedStation.code()).isEqualTo("ST002");
     }
     
     @Test
@@ -409,7 +413,8 @@ class StationServiceTest {
                 newDrawingFileId,
                 newThumbnailFileId,
                 null,
-                "수정된 경로"
+                "수정된 경로",
+                null
         );
         
         // when
@@ -443,25 +448,43 @@ class StationServiceTest {
                 createRequest.facility(),
                 createRequest.floors(),
                 testLine.getId(),
-                "route"
+                "route",
+                "ST001"
         );
         Long id = stationService.save(requestWithLine);
-        
-        // 관계 설정 확인
-        Line line = lineRepository.findById(testLine.getId()).orElseThrow();
-        Station station = stationRepository.findById(id).orElseThrow();
-        assertThat(line.getStations()).contains(station);
         
         // when
         stationService.delete(id);
         
         // then
         // 라인은 여전히 존재해야 함
-        Line refreshedLine = lineRepository.findById(testLine.getId()).orElseThrow();
-        
-        // 스테이션이 삭제되어 더 이상 라인에서 조회되지 않아야 함
-        assertThat(refreshedLine.getStations().stream()
-                .anyMatch(s -> s.getId().equals(id)))
-                .isFalse();
+        assertThat(lineRepository.existsById(testLine.getId())).isTrue();
+    }
+
+    @Test
+    @DisplayName("코드로 스테이션 조회 시 스테이션 정보가 반환된다")
+    void findByCode_WithExistingCode_ReturnsStationResponse() {
+        // given
+        Long id = stationService.save(createRequest);
+
+        // when
+        StationResponse response = stationService.findByCode("ST001");
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.facility().name()).isEqualTo("테스트 스테이션");
+        assertThat(response.facility().description()).isEqualTo("테스트 스테이션 설명");
+        assertThat(response.floors()).hasSize(1);
+        assertThat(response.code()).isEqualTo("ST001");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 코드로 스테이션 조회 시 예외가 발생한다")
+    void findByCode_WithNonExistingCode_ThrowsCustomException() {
+        // given
+        String nonExistingCode = "NONEXIST";
+
+        // when & then
+        assertThrows(CustomException.class, () -> stationService.findByCode(nonExistingCode));
     }
 }

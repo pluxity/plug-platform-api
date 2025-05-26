@@ -66,8 +66,12 @@ public class LineService {
     @Transactional
     public void delete(Long id) {
         Line line = findLineById(id);
+
         List<Station> stations = new ArrayList<>(line.getStations());
-        stations.forEach(station -> station.changeLine(null));
+        for (Station station : stations) {
+            station.removeLine(line);
+        }
+
         lineRepository.delete(line);
     }
 
@@ -75,7 +79,7 @@ public class LineService {
     public void addStationToLine(Long lineId, Long stationId) {
         Line line = findLineById(lineId);
         Station station = stationService.findStationById(stationId);
-        station.changeLine(line);
+        station.addLine(line);
     }
 
     private static CustomException notFoundException() {

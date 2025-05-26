@@ -1,10 +1,7 @@
 package com.pluxity.facility.station;
 
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface StationRepository extends JpaRepository<Station, Long> {
-    Optional<Station> findByCode(String code);
-}
+public interface StationLineRepository extends JpaRepository<StationLine, Long> {}

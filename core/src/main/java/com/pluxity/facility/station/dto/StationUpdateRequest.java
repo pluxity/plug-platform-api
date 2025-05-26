@@ -6,4 +6,5 @@ public record StationUpdateRequest(
         Long drawingFileId,
         Long thumbnailFileId,
         Long lineId,
-        String route) {}
+        String route,
+        String code) {}
