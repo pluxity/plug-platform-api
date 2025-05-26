@@ -5,6 +5,7 @@ import com.pluxity.device.dto.DeviceCategoryResponse;
 import com.pluxity.device.dto.DeviceCategoryTreeResponse;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.icon.entity.Icon;
 import com.pluxity.icon.repository.IconRepository;
@@ -13,8 +14,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,15 +39,31 @@ class DeviceCategoryServiceTest {
 
     @Autowired
     IconRepository iconRepository;
+    
+    @Autowired
+    FileService fileService;
 
     private DeviceCategoryRequest createRequest;
     private Long iconId;
+    private Long iconFileId;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
+        // 테스트 이미지 파일 준비
+        ClassPathResource resource = new ClassPathResource("temp/temp.png");
+        byte[] fileContent = Files.readAllBytes(Path.of(resource.getURI()));
+        
+        // MockMultipartFile 생성
+        MultipartFile iconFile = new MockMultipartFile(
+                "icon.png", "icon.png", "image/png", fileContent);
+        
+        // 파일 업로드 초기화
+        iconFileId = fileService.initiateUpload(iconFile);
+        
         // 테스트용 아이콘 생성
         Icon icon = Icon.builder()
                 .name("테스트 아이콘")
+                .fileId(iconFileId)  // 파일 ID 설정
                 .build();
         Icon savedIcon = iconRepository.save(icon);
         iconId = savedIcon.getId();
@@ -63,6 +86,48 @@ class DeviceCategoryServiceTest {
         assertThat(savedCategory).isNotNull();
         assertThat(savedCategory.name()).isEqualTo("테스트 카테고리");
         assertThat(savedCategory.iconId()).isEqualTo(iconId);
+        
+        // 아이콘 파일 확인
+        Icon icon = iconRepository.findById(iconId).orElseThrow();
+        assertThat(icon.getFileId()).isEqualTo(iconFileId);
+    }
+
+    @Test
+    @DisplayName("아이콘 파일을 변경하고 카테고리를 업데이트한다")
+    void update_WithNewIconFile_UpdatesCategoryIcon() throws IOException {
+        // given
+        Long id = deviceCategoryService.create(createRequest);
+        
+        // 새로운 아이콘 파일 준비
+        ClassPathResource resource = new ClassPathResource("temp/temp.png");
+        byte[] fileContent = Files.readAllBytes(Path.of(resource.getURI()));
+        
+        MultipartFile newIconFile = new MockMultipartFile(
+                "new_icon.png", "new_icon.png", "image/png", fileContent);
+        
+        Long newFileId = fileService.initiateUpload(newIconFile);
+        
+        // 새 아이콘 생성
+        Icon newIcon = Icon.builder()
+                .name("새 테스트 아이콘")
+                .fileId(newFileId)
+                .build();
+        Icon savedNewIcon = iconRepository.save(newIcon);
+        Long newIconId = savedNewIcon.getId();
+        
+        DeviceCategoryRequest updateRequest = new DeviceCategoryRequest("수정된 카테고리", null, newIconId);
+
+        // when
+        deviceCategoryService.update(id, updateRequest);
+
+        // then
+        DeviceCategoryResponse updatedCategory = deviceCategoryService.getDeviceCategoryResponse(id);
+        assertThat(updatedCategory.name()).isEqualTo("수정된 카테고리");
+        assertThat(updatedCategory.iconId()).isEqualTo(newIconId);
+        
+        // 아이콘 파일 확인
+        Icon icon = iconRepository.findById(newIconId).orElseThrow();
+        assertThat(icon.getFileId()).isEqualTo(newFileId);
     }
 
     @Test
@@ -125,22 +190,12 @@ class DeviceCategoryServiceTest {
     void getDeviceCategoryTree_WithChildCategories_ReturnsTreeStructure() {
         // given
         Long parentId = deviceCategoryService.create(createRequest);
-        System.out.println("부모 카테고리 ID: " + parentId);
         
         DeviceCategoryRequest childRequest = new DeviceCategoryRequest("하위 카테고리", parentId, iconId);
         Long childId = deviceCategoryService.create(childRequest);
-        System.out.println("자식 카테고리 ID: " + childId);
-        
-        // 데이터베이스에서 직접 부모 카테고리 조회하여 자식 확인
-        DeviceCategory parent = deviceCategoryRepository.findById(parentId).orElseThrow();
-        System.out.println("부모 카테고리의 자식 수: " + parent.getChildren().size());
         
         // when
         List<DeviceCategoryTreeResponse> treeResponses = deviceCategoryService.getDeviceCategoryTree();
-        System.out.println("트리 응답 개수: " + treeResponses.size());
-        if (!treeResponses.isEmpty()) {
-            System.out.println("첫 번째 트리 응답의 자식 수: " + treeResponses.get(0).children().size());
-        }
         
         // then
         assertThat(treeResponses).isNotEmpty();
