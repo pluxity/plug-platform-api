@@ -1,7 +1,6 @@
 package com.pluxity.device.entity;
 
 import com.pluxity.category.entity.Category;
-import com.pluxity.icon.entity.Icon;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +15,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DeviceCategory extends Category<DeviceCategory> {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_id")
-    private Icon icon;
-
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<Device> devices = new ArrayList<>();
+
+    @Column(name = "icon_file_id")
+    private Long iconFileId;
 
     @Builder
     public DeviceCategory(String name, DeviceCategory parent) {
@@ -39,8 +37,8 @@ public class DeviceCategory extends Category<DeviceCategory> {
         return 3;
     }
 
-    public void updateIcon(Icon icon) {
-        this.icon = icon;
+    public void updateIconFileId(Long iconFileId) {
+        this.iconFileId = iconFileId;
     }
 
     public void addDevice(Device device) {

@@ -3,12 +3,9 @@ package com.pluxity.device.service;
 import com.pluxity.device.dto.DeviceCategoryRequest;
 import com.pluxity.device.dto.DeviceCategoryResponse;
 import com.pluxity.device.dto.DeviceCategoryTreeResponse;
-import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.icon.entity.Icon;
-import com.pluxity.icon.repository.IconRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,15 +33,11 @@ class DeviceCategoryServiceTest {
 
     @Autowired
     DeviceCategoryRepository deviceCategoryRepository;
-
-    @Autowired
-    IconRepository iconRepository;
     
     @Autowired
     FileService fileService;
 
     private DeviceCategoryRequest createRequest;
-    private Long iconId;
     private Long iconFileId;
 
     @BeforeEach
@@ -59,17 +52,9 @@ class DeviceCategoryServiceTest {
         
         // 파일 업로드 초기화
         iconFileId = fileService.initiateUpload(iconFile);
-        
-        // 테스트용 아이콘 생성
-        Icon icon = Icon.builder()
-                .name("테스트 아이콘")
-                .fileId(iconFileId)  // 파일 ID 설정
-                .build();
-        Icon savedIcon = iconRepository.save(icon);
-        iconId = savedIcon.getId();
 
         // 테스트 데이터 준비
-        createRequest = new DeviceCategoryRequest("테스트 카테고리", null, iconId);
+        createRequest = new DeviceCategoryRequest("테스트 카테고리", null, iconFileId);
     }
 
     @Test
@@ -85,11 +70,7 @@ class DeviceCategoryServiceTest {
         DeviceCategoryResponse savedCategory = deviceCategoryService.getDeviceCategoryResponse(id);
         assertThat(savedCategory).isNotNull();
         assertThat(savedCategory.name()).isEqualTo("테스트 카테고리");
-        assertThat(savedCategory.iconId()).isEqualTo(iconId);
-        
-        // 아이콘 파일 확인
-        Icon icon = iconRepository.findById(iconId).orElseThrow();
-        assertThat(icon.getFileId()).isEqualTo(iconFileId);
+        assertThat(savedCategory.iconFileId()).isEqualTo(iconFileId);
     }
 
     @Test
@@ -105,17 +86,9 @@ class DeviceCategoryServiceTest {
         MultipartFile newIconFile = new MockMultipartFile(
                 "new_icon.png", "new_icon.png", "image/png", fileContent);
         
-        Long newFileId = fileService.initiateUpload(newIconFile);
+        Long newIconFileId = fileService.initiateUpload(newIconFile);
         
-        // 새 아이콘 생성
-        Icon newIcon = Icon.builder()
-                .name("새 테스트 아이콘")
-                .fileId(newFileId)
-                .build();
-        Icon savedNewIcon = iconRepository.save(newIcon);
-        Long newIconId = savedNewIcon.getId();
-        
-        DeviceCategoryRequest updateRequest = new DeviceCategoryRequest("수정된 카테고리", null, newIconId);
+        DeviceCategoryRequest updateRequest = new DeviceCategoryRequest("수정된 카테고리", null, newIconFileId);
 
         // when
         deviceCategoryService.update(id, updateRequest);
@@ -123,11 +96,7 @@ class DeviceCategoryServiceTest {
         // then
         DeviceCategoryResponse updatedCategory = deviceCategoryService.getDeviceCategoryResponse(id);
         assertThat(updatedCategory.name()).isEqualTo("수정된 카테고리");
-        assertThat(updatedCategory.iconId()).isEqualTo(newIconId);
-        
-        // 아이콘 파일 확인
-        Icon icon = iconRepository.findById(newIconId).orElseThrow();
-        assertThat(icon.getFileId()).isEqualTo(newFileId);
+        assertThat(updatedCategory.iconFileId()).isEqualTo(newIconFileId);
     }
 
     @Test
@@ -141,8 +110,8 @@ class DeviceCategoryServiceTest {
 
         // then
         assertThat(responses).isNotEmpty();
-        assertThat(responses.get(0).name()).isEqualTo("테스트 카테고리");
-        assertThat(responses.get(0).iconId()).isEqualTo(iconId);
+        assertThat(responses.getFirst().name()).isEqualTo("테스트 카테고리");
+        assertThat(responses.getFirst().iconFileId()).isEqualTo(iconFileId);
     }
 
     @Test
@@ -157,7 +126,7 @@ class DeviceCategoryServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.name()).isEqualTo("테스트 카테고리");
-        assertThat(response.iconId()).isEqualTo(iconId);
+        assertThat(response.iconFileId()).isEqualTo(iconFileId);
     }
 
     @Test
@@ -166,7 +135,7 @@ class DeviceCategoryServiceTest {
         // given
         Long nonExistingId = 9999L;
 
-        // when & then
+        // when and then
         assertThrows(CustomException.class, () -> deviceCategoryService.getDeviceCategoryResponse(nonExistingId));
     }
 
@@ -175,7 +144,7 @@ class DeviceCategoryServiceTest {
     void update_WithValidRequest_UpdatesCategory() {
         // given
         Long id = deviceCategoryService.create(createRequest);
-        DeviceCategoryRequest updateRequest = new DeviceCategoryRequest("수정된 카테고리", null, iconId);
+        DeviceCategoryRequest updateRequest = new DeviceCategoryRequest("수정된 카테고리", null, iconFileId);
 
         // when
         deviceCategoryService.update(id, updateRequest);
@@ -191,7 +160,7 @@ class DeviceCategoryServiceTest {
         // given
         Long parentId = deviceCategoryService.create(createRequest);
         
-        DeviceCategoryRequest childRequest = new DeviceCategoryRequest("하위 카테고리", parentId, iconId);
+        DeviceCategoryRequest childRequest = new DeviceCategoryRequest("하위 카테고리", parentId, iconFileId);
         Long childId = deviceCategoryService.create(childRequest);
         
         // when
@@ -199,9 +168,9 @@ class DeviceCategoryServiceTest {
         
         // then
         assertThat(treeResponses).isNotEmpty();
-        assertThat(treeResponses.get(0).name()).isEqualTo("테스트 카테고리");
-        assertThat(treeResponses.get(0).children()).isNotEmpty();
-        assertThat(treeResponses.get(0).children().get(0).name()).isEqualTo("하위 카테고리");
+        assertThat(treeResponses.getFirst().name()).isEqualTo("테스트 카테고리");
+        assertThat(treeResponses.getFirst().children()).isNotEmpty();
+        assertThat(treeResponses.getFirst().children().getFirst().name()).isEqualTo("하위 카테고리");
     }
 
     @Test

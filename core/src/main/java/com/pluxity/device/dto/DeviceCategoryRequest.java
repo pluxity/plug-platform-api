@@ -17,5 +17,5 @@ public class DeviceCategoryRequest {
 
     private Long parentId;
 
-    private Long iconId;
+    private Long iconFileId;
 }

@@ -8,8 +8,6 @@ import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.icon.entity.Icon;
-import com.pluxity.icon.repository.IconRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class DeviceCategoryService extends CategoryService<DeviceCategory> {
 
     private final DeviceCategoryRepository deviceCategoryRepository;
-    private final IconRepository iconRepository;
 
     @Override
     protected JpaRepository<DeviceCategory, Long> getRepository() {
@@ -37,22 +33,11 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
             parent = findById(request.getParentId());
         }
 
-        Icon icon = null;
-        if (request.getIconId() != null) {
-            icon =
-                    iconRepository
-                            .findById(request.getIconId())
-                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-        }
+        DeviceCategory deviceCategory =
+                DeviceCategory.builder().name(request.getName()).parent(parent).build();
 
-        DeviceCategory deviceCategory = DeviceCategory.builder().name(request.getName()).build();
-
-        if (parent != null) {
-            deviceCategory.assignToParent(parent);
-        }
-
-        if (icon != null) {
-            deviceCategory.updateIcon(icon);
+        if (request.getIconFileId() != null) {
+            deviceCategory.updateIconFileId(request.getIconFileId());
         }
 
         return deviceCategoryRepository.save(deviceCategory).getId();
@@ -66,12 +51,8 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
             deviceCategory.setName(request.getName());
         }
 
-        if (request.getIconId() != null) {
-            Icon icon =
-                    iconRepository
-                            .findById(request.getIconId())
-                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-            deviceCategory.updateIcon(icon);
+        if (request.getIconFileId() != null) {
+            deviceCategory.updateIconFileId(request.getIconFileId());
         }
 
         if (request.getParentId() != null) {
@@ -91,22 +72,26 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         deviceCategoryRepository.delete(deviceCategory);
     }
 
+    @Transactional(readOnly = true)
     public List<DeviceCategoryResponse> getRootDeviceCategoryResponses() {
         return getRootCategories().stream()
                 .map(DeviceCategoryResponse::from)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<DeviceCategoryResponse> getChildrenResponses(Long id) {
         return getChildren(id).stream().map(DeviceCategoryResponse::from).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<DeviceCategoryTreeResponse> getDeviceCategoryTree() {
         return getRootCategories().stream()
                 .map(DeviceCategoryTreeResponse::from)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public DeviceCategoryResponse getDeviceCategoryResponse(Long id) {
         return DeviceCategoryResponse.from(findById(id));
     }
