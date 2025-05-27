@@ -37,15 +37,19 @@ public class SasangSecurityConfig {
     @Order(1) // 우선순위 높게 설정
     public SecurityFilterChain permitGetRequestsFilterChain(HttpSecurity http) throws Exception {
         http.securityMatcher(
-                        new AntPathRequestMatcher("/**", HttpMethod.GET.name())) // 모든 GET 요청을 대상으로 함
+                        new AntPathRequestMatcher("/**", HttpMethod.GET.name())) // 모든 GET 요청을 일단 대상으로 함
                 .authorizeHttpRequests(
-                        authorize -> authorize.anyRequest().permitAll() // 모든 GET 요청 허용
+                        authorize ->
+                                authorize
+                                        .requestMatchers(new AntPathRequestMatcher("/users/me", HttpMethod.GET.name()))
+                                        .authenticated() // "/users/me" GET 요청은 인증 필요
+                                        .anyRequest()
+                                        .permitAll() // 그 외 모든 GET 요청은 허용
                         )
-                .csrf(AbstractHttpConfigurer::disable) // GET 요청에는 CSRF 불필요
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(
-                        session ->
-                                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // 필요하다면 상태 비저장
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
