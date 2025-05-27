@@ -14,10 +14,13 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
         default_batch_fetch_size: 100
+
+  flyway:
+    enabled: false
 
 file:
   storage-strategy: ${FILE_STORAGE_STRATEGY:s3}
@@ -30,9 +33,6 @@ file:
     access-key: ${S3_ACCESS_KEY:pluxity}
     secret-key: ${S3_SECRET_KEY:pluxity0304}
     pre-signed-url-expiration: 600
-
-domain:
-  name: plug-platform.com
 
 logging:
   level:
