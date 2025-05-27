@@ -1,13 +1,17 @@
 package com.pluxity.domains.config;
 
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
+
 import com.pluxity.authentication.security.CustomUserDetails;
 import com.pluxity.authentication.security.JwtAuthenticationFilter;
 import com.pluxity.authentication.security.JwtProvider;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -27,19 +31,17 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
-
 @Configuration
 @EnableWebSecurity
+@Primary
 @RequiredArgsConstructor
 public class SasangSecurityConfig {
 
     private final UserRepository repository;
     private final JwtProvider jwtProvider;
 
-    @Bean
+    @Bean("sasangSecurityFilterChain")
+    @Primary
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -54,18 +56,21 @@ public class SasangSecurityConfig {
         return http.build();
     }
 
-    @Bean
+    @Bean("sasangPasswordEncoder")
+    @Primary
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
+    @Bean("sasangAuthenticationManager")
+    @Primary
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {
         return config.getAuthenticationManager();
     }
 
-    @Bean
+    @Bean("sasangUserDetailsService")
+    @Primary
     public UserDetailsService userDetailsService() {
         return username ->
                 repository
@@ -74,7 +79,8 @@ public class SasangSecurityConfig {
                         .orElseThrow(() -> new CustomException(NOT_FOUND_USER));
     }
 
-    @Bean
+    @Bean("sasangAuthenticationProvider")
+    @Primary
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(userDetailsService());
@@ -82,12 +88,14 @@ public class SasangSecurityConfig {
         return authenticationProvider;
     }
 
-    @Bean
+    @Bean("sasangJwtAuthenticationFilter")
+    @Primary
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtProvider, userDetailsService());
     }
 
-    @Bean
+    @Bean("sasangCorsConfigurationSource")
+    @Primary
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(

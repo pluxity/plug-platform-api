@@ -5,6 +5,8 @@ facility:
     enabled: false
 
 spring:
+  main:
+    allow-bean-definition-overriding: true
   profiles:
     group:
       default: common, local
