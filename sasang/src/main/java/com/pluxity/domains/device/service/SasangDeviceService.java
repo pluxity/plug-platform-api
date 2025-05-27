@@ -159,6 +159,13 @@ public class SasangDeviceService {
     public SasangDeviceResponse removeCategory(Long deviceId) {
         SasangDevice device = findById(deviceId);
 
+        if (device.getCategory() == null) {
+            throw new CustomException(
+                    "No Category Assigned",
+                    HttpStatus.BAD_REQUEST,
+                    String.format("DeviceCategory [%d]에 할당된 카테고리가 없습니다", deviceId));
+        }
+
         device.updateCategory(null);
 
         return SasangDeviceResponse.from(device);

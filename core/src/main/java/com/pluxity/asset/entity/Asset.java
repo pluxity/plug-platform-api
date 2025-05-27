@@ -30,6 +30,9 @@ public class Asset extends BaseEntity {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "code", unique = true, length = 3)
+    private String code;
+
     @Column(name = "file_id")
     private Long fileId;
 
@@ -39,20 +42,37 @@ public class Asset extends BaseEntity {
     @OneToOne(mappedBy = "asset")
     private Feature feature;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private AssetCategory category;
+
     @Builder
-    public Asset(String name, Long fileId, Long thumbnailFileId) {
+    public Asset(
+            String name, String code, Long fileId, Long thumbnailFileId, AssetCategory category) {
         this.name = name;
+        this.code = code;
         this.fileId = fileId;
         this.thumbnailFileId = thumbnailFileId;
+        this.category = category;
+        if (this.category != null) {
+            this.category.addAsset(this);
+        }
     }
 
     public static Asset create(AssetCreateRequest request) {
-        return Asset.builder().name(request.name()).thumbnailFileId(request.thumbnailFileId()).build();
+        return Asset.builder()
+                .name(request.name())
+                .code(request.code())
+                .thumbnailFileId(request.thumbnailFileId())
+                .build();
     }
 
     public void update(AssetUpdateRequest request) {
         if (request.name() != null) {
             this.name = request.name();
+        }
+        if (request.code() != null) {
+            this.code = request.code();
         }
         if (request.thumbnailFileId() != null) {
             this.thumbnailFileId = request.thumbnailFileId();
@@ -62,6 +82,12 @@ public class Asset extends BaseEntity {
     public void update(String name) {
         if (name != null) {
             this.name = name;
+        }
+    }
+
+    public void updateCode(String code) {
+        if (code != null) {
+            this.code = code;
         }
     }
 
@@ -82,6 +108,16 @@ public class Asset extends BaseEntity {
     public void updateThumbnailFileEntity(FileEntity fileEntity) {
         if (fileEntity != null) {
             this.thumbnailFileId = fileEntity.getId();
+        }
+    }
+
+    public void updateCategory(AssetCategory category) {
+        if (this.category != null) {
+            this.category.removeAsset(this);
+        }
+        this.category = category;
+        if (category != null) {
+            category.addAsset(this);
         }
     }
 

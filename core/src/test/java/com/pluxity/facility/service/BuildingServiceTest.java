@@ -69,9 +69,10 @@ class BuildingServiceTest {
         
         // 테스트 데이터 준비
         FacilityCreateRequest facilityRequest = new FacilityCreateRequest(
-                "테스트 건물", 
-                "테스트 건물 설명", 
-                drawingFileId, 
+                "테스트 건물",
+                "AAA",
+                "테스트 건물 설명",
+                drawingFileId,
                 thumbnailFileId
         );
         
@@ -115,8 +116,8 @@ class BuildingServiceTest {
 
         // then
         assertThat(responses).isNotEmpty();
-        assertThat(responses.get(0).facility().name()).isEqualTo("테스트 건물");
-        assertThat(responses.get(0).facility().description()).isEqualTo("테스트 건물 설명");
+        assertThat(responses.getFirst().facility().name()).isEqualTo("테스트 건물");
+        assertThat(responses.getFirst().facility().description()).isEqualTo("테스트 건물 설명");
     }
 
     @Test

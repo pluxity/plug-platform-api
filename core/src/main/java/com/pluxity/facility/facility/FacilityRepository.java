@@ -14,4 +14,8 @@ public interface FacilityRepository extends JpaRepository<Facility, Long> {
 
     @NonNull
     Optional<Facility> findById(@NonNull Long id);
+
+    boolean existsByCode(String code);
+
+    Optional<Facility> findByCode(String code);
 }

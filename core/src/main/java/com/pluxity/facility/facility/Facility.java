@@ -27,6 +27,9 @@ public abstract class Facility extends BaseEntity {
     @JoinColumn(name = "category_id")
     private FacilityCategory category;
 
+    @Column(name = "code", unique = true, length = 3)
+    private String code;
+
     @Audited
     @Column(name = "drawing_file_id")
     private Long drawingFileId;
@@ -43,15 +46,26 @@ public abstract class Facility extends BaseEntity {
     @Column(name = "history_comment")
     private String historyComment;
 
+    protected Facility(String name, String description) {
+        this(name, null, description, null);
+    }
+
     public Facility(String name, String description, String historyComment) {
+        this(name, null, description, historyComment);
+    }
+
+    protected Facility(String name, String code, Long drawingFileId, Long thumbnailFileId) {
+        this.code = code;
+        this.name = name;
+        this.drawingFileId = drawingFileId;
+        this.thumbnailFileId = thumbnailFileId;
+    }
+
+    protected Facility(String name, String code, String description, String historyComment) {
+        this.code = code;
         this.name = name;
         this.description = description;
         this.historyComment = historyComment;
-    }
-
-    protected Facility(String name, String description) {
-        this.name = name;
-        this.description = description;
     }
 
     public void updateDrawingFileId(FileEntity drawingFile) {
@@ -74,6 +88,10 @@ public abstract class Facility extends BaseEntity {
         this.name = name;
     }
 
+    public void updateCode(String code) {
+        this.code = code;
+    }
+
     public void updateDescription(String description) {
         this.description = description;
     }
@@ -89,6 +107,9 @@ public abstract class Facility extends BaseEntity {
     public void update(Facility facility) {
         if (facility.name != null) {
             this.name = facility.name;
+        }
+        if (facility.code != null) {
+            this.code = facility.code;
         }
         if (facility.description != null) {
             this.description = facility.description;

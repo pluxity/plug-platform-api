@@ -1,9 +1,9 @@
 package com.pluxity.asset.controller;
 
-import com.pluxity.asset.dto.AssetCreateRequest;
-import com.pluxity.asset.dto.AssetResponse;
-import com.pluxity.asset.dto.AssetUpdateRequest;
-import com.pluxity.asset.service.AssetService;
+import com.pluxity.asset.dto.AssetCategoryCreateRequest;
+import com.pluxity.asset.dto.AssetCategoryResponse;
+import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
+import com.pluxity.asset.service.AssetCategoryService;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -20,16 +20,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/assets")
+@RequestMapping("/asset-categories")
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Asset Controller", description = "에셋 관리 API")
-public class AssetController {
+@Tag(name = "Asset Category Controller", description = "에셋 카테고리 관리 API")
+public class AssetCategoryController {
 
-    private final AssetService service;
+    private final AssetCategoryService service;
 
-    @Operation(summary = "에셋 목록 조회", description = "모든 에셋 목록을 조회합니다")
+    @Operation(summary = "에셋 카테고리 목록 조회", description = "모든 에셋 카테고리 목록을 조회합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
@@ -42,17 +42,59 @@ public class AssetController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<List<AssetResponse>>> getAssets() {
-        return ResponseEntity.ok(DataResponseBody.of(service.getAssets()));
+    public ResponseEntity<DataResponseBody<List<AssetCategoryResponse>>> getAssetCategories() {
+        return ResponseEntity.ok(DataResponseBody.of(service.getAssetCategories()));
     }
 
-    @Operation(summary = "에셋 상세 조회", description = "ID로 특정 에셋의 상세 정보를 조회합니다")
+    @Operation(summary = "루트 에셋 카테고리 목록 조회", description = "최상위 에셋 카테고리 목록을 조회합니다")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "200", description = "에셋 조회 성공"),
+                @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/roots")
+    public ResponseEntity<DataResponseBody<List<AssetCategoryResponse>>> getRootCategories() {
+        return ResponseEntity.ok(DataResponseBody.of(service.getRootCategories()));
+    }
+
+    @Operation(summary = "하위 에셋 카테고리 목록 조회", description = "특정 카테고리의 하위 카테고리 목록을 조회합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "에셋을 찾을 수 없음",
+                        description = "부모 카테고리를 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/{id}/children")
+    public ResponseEntity<DataResponseBody<List<AssetCategoryResponse>>> getChildCategories(
+            @Parameter(description = "부모 카테고리 ID", required = true) @PathVariable Long id) {
+        return ResponseEntity.ok(DataResponseBody.of(service.getChildCategories(id)));
+    }
+
+    @Operation(summary = "에셋 카테고리 상세 조회", description = "ID로 특정 에셋 카테고리의 상세 정보를 조회합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "카테고리 조회 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "카테고리를 찾을 수 없음",
                         content =
                                 @Content(
                                         mediaType = "application/json",
@@ -66,15 +108,15 @@ public class AssetController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping("/{id}")
-    public ResponseEntity<DataResponseBody<AssetResponse>> getAsset(
-            @Parameter(description = "에셋 ID", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(DataResponseBody.of(service.getAsset(id)));
+    public ResponseEntity<DataResponseBody<AssetCategoryResponse>> getAssetCategory(
+            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
+        return ResponseEntity.ok(DataResponseBody.of(service.getAssetCategory(id)));
     }
 
-    @Operation(summary = "에셋 생성", description = "새로운 에셋을 생성합니다")
+    @Operation(summary = "에셋 카테고리 생성", description = "새로운 에셋 카테고리를 생성합니다")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "201", description = "에셋 생성 성공"),
+                @ApiResponse(responseCode = "201", description = "카테고리 생성 성공"),
                 @ApiResponse(
                         responseCode = "400",
                         description = "잘못된 요청",
@@ -91,17 +133,17 @@ public class AssetController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated(path = "/assets/{id}")
-    public ResponseEntity<Long> createAsset(
-            @Parameter(description = "에셋 생성 정보", required = true) @RequestBody
-                    AssetCreateRequest request) {
-        return ResponseEntity.ok(service.createAsset(request));
+    @ResponseCreated(path = "/asset-categories/{id}")
+    public ResponseEntity<Long> createAssetCategory(
+            @Parameter(description = "카테고리 생성 정보", required = true) @RequestBody
+                    AssetCategoryCreateRequest request) {
+        return ResponseEntity.ok(service.createAssetCategory(request));
     }
 
-    @Operation(summary = "에셋 수정", description = "기존 에셋의 정보를 수정합니다")
+    @Operation(summary = "에셋 카테고리 수정", description = "기존 에셋 카테고리의 정보를 수정합니다")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "204", description = "에셋 수정 성공"),
+                @ApiResponse(responseCode = "204", description = "카테고리 수정 성공"),
                 @ApiResponse(
                         responseCode = "400",
                         description = "잘못된 요청",
@@ -111,7 +153,7 @@ public class AssetController {
                                         schema = @Schema(implementation = ErrorResponseBody.class))),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "에셋을 찾을 수 없음",
+                        description = "카테고리를 찾을 수 없음",
                         content =
                                 @Content(
                                         mediaType = "application/json",
@@ -125,21 +167,28 @@ public class AssetController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateAsset(
-            @Parameter(description = "에셋 ID", required = true) @PathVariable Long id,
-            @Parameter(description = "에셋 수정 정보", required = true) @RequestBody
-                    AssetUpdateRequest request) {
-        service.updateAsset(id, request);
+    public ResponseEntity<Void> updateAssetCategory(
+            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id,
+            @Parameter(description = "카테고리 수정 정보", required = true) @RequestBody
+                    AssetCategoryUpdateRequest request) {
+        service.updateAssetCategory(id, request);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "에셋 삭제", description = "ID로 에셋을 삭제합니다")
+    @Operation(summary = "에셋 카테고리 삭제", description = "ID로 에셋 카테고리를 삭제합니다")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "204", description = "에셋 삭제 성공"),
+                @ApiResponse(responseCode = "204", description = "카테고리 삭제 성공"),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "삭제할 수 없는 카테고리",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "에셋을 찾을 수 없음",
+                        description = "카테고리를 찾을 수 없음",
                         content =
                                 @Content(
                                         mediaType = "application/json",
@@ -153,76 +202,9 @@ public class AssetController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAsset(
-            @Parameter(description = "에셋 ID", required = true) @PathVariable Long id) {
-        service.deleteAsset(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "에셋에 카테고리 할당", description = "에셋에 특정 카테고리를 할당합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "204", description = "카테고리 할당 성공"),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "잘못된 요청",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "에셋 또는 카테고리를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @PutMapping("/{id}/category/{categoryId}")
-    public ResponseEntity<Void> assignCategory(
-            @Parameter(description = "에셋 ID", required = true) @PathVariable Long id,
-            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long categoryId) {
-        service.assignCategory(id, categoryId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "에셋에서 카테고리 제거", description = "에셋에서 카테고리 할당을 제거합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "204", description = "카테고리 제거 성공"),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "잘못된 요청",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "에셋을 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @DeleteMapping("/{id}/category")
-    public ResponseEntity<Void> removeCategory(
-            @Parameter(description = "에셋 ID", required = true) @PathVariable Long id) {
-        service.removeCategory(id);
+    public ResponseEntity<Void> deleteAssetCategory(
+            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
+        service.deleteAssetCategory(id);
         return ResponseEntity.noContent().build();
     }
 }

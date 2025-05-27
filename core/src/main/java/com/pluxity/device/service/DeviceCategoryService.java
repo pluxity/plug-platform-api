@@ -91,7 +91,7 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     @Transactional(readOnly = true)
     public List<DeviceCategoryTreeResponse> getDeviceCategoryTree() {
         return getRootCategories().stream()
-                .map(DeviceCategoryTreeResponse::from)
+                .map(this::createDeviceCategoryTreeResponse)
                 .collect(Collectors.toList());
     }
 
@@ -102,6 +102,15 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
 
     private DeviceCategoryResponse createDeviceCategoryResponse(DeviceCategory deviceCategory) {
         return DeviceCategoryResponse.from(
+                deviceCategory,
+                deviceCategory.getIconFileId() != null
+                        ? fileService.getFileResponse(deviceCategory.getIconFileId())
+                        : null);
+    }
+
+    private DeviceCategoryTreeResponse createDeviceCategoryTreeResponse(
+            DeviceCategory deviceCategory) {
+        return DeviceCategoryTreeResponse.from(
                 deviceCategory,
                 deviceCategory.getIconFileId() != null
                         ? fileService.getFileResponse(deviceCategory.getIconFileId())

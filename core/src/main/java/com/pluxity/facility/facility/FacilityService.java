@@ -2,6 +2,7 @@ package com.pluxity.facility.facility;
 
 import com.pluxity.facility.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.facility.dto.FacilityUpdateRequest;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
@@ -29,6 +30,12 @@ public class FacilityService {
     @Transactional
     public Facility save(Facility facility, FacilityCreateRequest request) {
         try {
+            // 코드 중복 검사
+            if (request.code() != null && !request.code().isEmpty()) {
+                checkDuplicateCode(request.code());
+                facility.updateCode(request.code());
+            }
+
             Facility savedFacility = facilityRepository.save(facility);
 
             String filePath = PREFIX + savedFacility.getId() + "/";
@@ -47,6 +54,25 @@ public class FacilityService {
             throw new CustomException(
                     "Facility creation failed", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    private void checkDuplicateCode(String code) {
+        if (facilityRepository.existsByCode(code)) {
+            throw new CustomException(
+                    "Duplicate code", HttpStatus.BAD_REQUEST, String.format("이미 존재하는 코드입니다: %s", code));
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Facility findByCode(String code) {
+        return facilityRepository
+                .findByCode(code)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "Facility not found",
+                                        HttpStatus.NOT_FOUND,
+                                        String.format("코드 %s인 시설을 찾을 수 없습니다", code)));
     }
 
     @Transactional(readOnly = true)
@@ -70,28 +96,48 @@ public class FacilityService {
     }
 
     @Transactional
+    public void update(Long id, FacilityUpdateRequest request) {
+        Facility facility = findById(id);
+
+        // 코드 변경 요청이 있고, 기존 코드와 다른 경우에만 중복 검사
+        if (request.code() != null && !request.code().equals(facility.getCode())) {
+            checkDuplicateCode(request.code());
+            facility.updateCode(request.code());
+        }
+
+        if (request.name() != null) {
+            facility.updateName(request.name());
+        }
+
+        if (request.description() != null) {
+            facility.updateDescription(request.description());
+        }
+
+        if (request.thumbnailFileId() != null) {
+            String filePath = PREFIX + facility.getId() + "/";
+            facility.updateThumbnailFileId(
+                    fileService.finalizeUpload(request.thumbnailFileId(), filePath));
+        }
+
+        facilityRepository.save(facility);
+    }
+
+    @Transactional
     public void update(Long id, Facility newFacility) {
-        Facility facility =
-                facilityRepository
-                        .findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
+        Facility facility = findById(id);
+
+        // 코드 변경 요청이 있고, 기존 코드와 다른 경우에만 중복 검사
+        if (newFacility.getCode() != null && !newFacility.getCode().equals(facility.getCode())) {
+            checkDuplicateCode(newFacility.getCode());
+        }
+
         facility.update(newFacility);
         facilityRepository.save(facility);
     }
 
     @Transactional
     public void deleteFacility(Long id) {
-        Facility facility =
-                facilityRepository
-                        .findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
-
+        Facility facility = findById(id);
         facilityRepository.delete(facility);
     }
 
@@ -126,6 +172,7 @@ public class FacilityService {
                                         new FacilityHistoryResponse(
                                                 facilityId,
                                                 facility.getClass().getSimpleName(),
+                                                facility.getCode(),
                                                 facility.getName(),
                                                 facility.getDescription(),
                                                 facility.getDrawingFileId(),

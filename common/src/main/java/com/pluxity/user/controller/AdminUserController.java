@@ -128,7 +128,7 @@ public class AdminUserController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @GetMapping("/logged-in")
+    @GetMapping("/with-is-logged-in")
     public ResponseEntity<DataResponseBody<List<UserLoggedInResponse>>> getLoggedInUser() {
         return ResponseEntity.ok(DataResponseBody.of(service.isLoggedIn())); // 실제 서비스 호출
     }

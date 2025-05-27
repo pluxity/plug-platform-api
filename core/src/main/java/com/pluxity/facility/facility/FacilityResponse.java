@@ -8,6 +8,7 @@ import lombok.Builder;
 @Builder
 public record FacilityResponse(
         Long id,
+        String code,
         String name,
         String description,
         FileResponse drawing,
@@ -17,6 +18,7 @@ public record FacilityResponse(
             Facility facility, FileResponse drawing, FileResponse thumbnail) {
         return new FacilityResponse(
                 facility.getId(),
+                facility.getCode(),
                 facility.getName(),
                 facility.getDescription(),
                 drawing != null ? drawing : FileResponse.empty(),

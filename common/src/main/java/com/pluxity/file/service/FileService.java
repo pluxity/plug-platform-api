@@ -48,7 +48,6 @@ public class FileService {
     @Value("${file.s3.endpoint-url}")
     private String endpointUrl;
 
-
     // TODO: PreSigned URL 생성 시 추가 로직 필요 (예: Drawing / ID 등)
     public String generatePreSignedUrl(String s3Key) {
         GetObjectRequest getObjectRequest =
@@ -165,7 +164,7 @@ public class FileService {
         String url =
                 "local".equals(storageStrategyType)
                         ? "/files/" + fileEntity.getFilePath()
-//                        : this.generatePreSignedUrl(fileEntity.getFilePath());
+                        //                        : this.generatePreSignedUrl(fileEntity.getFilePath());
                         : endpointUrl + "/" + bucket + "/" + fileEntity.getFilePath();
 
         return FileResponse.builder()

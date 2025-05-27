@@ -5,6 +5,7 @@ import java.util.Date;
 public record FacilityHistoryResponse(
         Long facilityId,
         String facilityType,
+        String code,
         String name,
         String description,
         Long drawingFileId,

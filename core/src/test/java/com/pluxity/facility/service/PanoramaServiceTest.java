@@ -66,6 +66,7 @@ class PanoramaServiceTest {
         // 테스트 데이터 준비
         FacilityCreateRequest facilityRequest = new FacilityCreateRequest(
                 "테스트 파노라마",
+                "AAA",
                 "테스트 파노라마 설명",
                 drawingFileId,
                 thumbnailFileId
