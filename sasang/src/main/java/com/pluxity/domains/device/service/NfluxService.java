@@ -12,18 +12,24 @@ import com.pluxity.domains.device.entity.Nflux;
 import com.pluxity.domains.device.repository.NfluxRepository;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationService;
+import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.file.dto.FileResponse;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.response.BaseResponse;
 import com.pluxity.icon.entity.Icon;
 import com.pluxity.icon.service.IconService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NfluxService {
 
     private final NfluxRepository repository;
@@ -32,16 +38,54 @@ public class NfluxService {
     private final StationService stationService;
     private final AssetService assetService;
     private final IconService iconService;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public NfluxResponse findDeviceById(Long id) {
         Nflux device = findById(id);
-        return NfluxResponse.from(device);
+        return createResponse(device);
     }
 
     @Transactional(readOnly = true)
     public List<NfluxResponse> findAll() {
-        return repository.findAll().stream().map(NfluxResponse::from).toList();
+        return repository.findAll().stream().map(this::createResponse).toList();
+    }
+
+    private NfluxResponse createResponse(Nflux device) {
+        FileResponse iconResponse = getIconFileResponse(device);
+
+        return new NfluxResponse(
+                device.getId(),
+                device.getFeature() != null ? FeatureResponse.from(device.getFeature()) : null,
+                device.getCategory() != null ? device.getCategory().getId() : null,
+                device.getCategory() != null ? device.getCategory().getName() : null,
+                device.getFacility() != null ? device.getFacility().getId() : null,
+                device.getFacility() != null ? device.getFacility().getName() : null,
+                device.getFeature() != null && device.getFeature().getAsset() != null
+                        ? device.getFeature().getAsset().getId()
+                        : null,
+                device.getFeature() != null && device.getFeature().getAsset() != null
+                        ? device.getFeature().getAsset().getName()
+                        : null,
+                iconResponse,
+                device.getIcon() != null ? device.getIcon().getName() : null,
+                device.getName(),
+                device.getCode(),
+                device.getDescription(),
+                BaseResponse.of(device));
+    }
+
+    private FileResponse getIconFileResponse(Nflux device) {
+        if (device.getIcon() == null || device.getIcon().getFileId() == null) {
+            return FileResponse.empty();
+        }
+
+        try {
+            return fileService.getFileResponse(device.getIcon().getFileId());
+        } catch (Exception e) {
+            log.error("Failed to get icon file: {}", e.getMessage());
+            return FileResponse.empty();
+        }
     }
 
     @Transactional
@@ -152,7 +196,7 @@ public class NfluxService {
 
         device.updateCategory(category);
 
-        return NfluxResponse.from(device);
+        return createResponse(device);
     }
 
     @Transactional
@@ -168,6 +212,6 @@ public class NfluxService {
 
         device.updateCategory(null);
 
-        return NfluxResponse.from(device);
+        return createResponse(device);
     }
 }

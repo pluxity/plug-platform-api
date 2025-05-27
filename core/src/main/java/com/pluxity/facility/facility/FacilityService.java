@@ -3,6 +3,7 @@ package com.pluxity.facility.facility;
 import com.pluxity.facility.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.facility.dto.FacilityUpdateRequest;
+import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
@@ -168,6 +169,10 @@ public class FacilityService {
 
                                 String revisionType = revision.getMetadata().getRevisionType().name();
 
+                                // 파일 정보 가져오기
+                                FileResponse drawingFileResponse = getDrawingFileResponse(facility);
+                                FileResponse thumbnailFileResponse = getThumbnailFileResponse(facility);
+
                                 historyResponses.add(
                                         new FacilityHistoryResponse(
                                                 facilityId,
@@ -175,8 +180,8 @@ public class FacilityService {
                                                 facility.getCode(),
                                                 facility.getName(),
                                                 facility.getDescription(),
-                                                facility.getDrawingFileId(),
-                                                facility.getThumbnailFileId(),
+                                                drawingFileResponse,
+                                                thumbnailFileResponse,
                                                 revisionDate,
                                                 revisionType));
                             });
@@ -186,6 +191,30 @@ public class FacilityService {
             log.error("Failed to fetch facility history: {}", e.getMessage());
             throw new CustomException(
                     "Failed to fetch facility history", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    private FileResponse getDrawingFileResponse(Facility facility) {
+        if (facility.getDrawingFileId() == null) {
+            return FileResponse.empty();
+        }
+        try {
+            return fileService.getFileResponse(facility.getDrawingFileId());
+        } catch (Exception e) {
+            log.error("Failed to get drawing file: {}", e.getMessage());
+            return FileResponse.empty();
+        }
+    }
+
+    private FileResponse getThumbnailFileResponse(Facility facility) {
+        if (facility.getThumbnailFileId() == null) {
+            return FileResponse.empty();
+        }
+        try {
+            return fileService.getFileResponse(facility.getThumbnailFileId());
+        } catch (Exception e) {
+            log.error("Failed to get thumbnail file: {}", e.getMessage());
+            return FileResponse.empty();
         }
     }
 }

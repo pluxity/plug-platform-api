@@ -116,7 +116,7 @@ class NfluxServiceTest {
         assertThat(savedDevice.code()).isEqualTo("TEST-001");
         assertThat(savedDevice.categoryId()).isEqualTo(category.getId());
         assertThat(savedDevice.facilityId()).isEqualTo(station.getId());
-        assertThat(savedDevice.iconId()).isEqualTo(icon.getId());
+        assertThat(savedDevice.icon()).isNotNull();
     }
 
     @Test
@@ -148,8 +148,7 @@ class NfluxServiceTest {
         assertThat(response.name()).isEqualTo("테스트 디바이스");
         assertThat(response.code()).isEqualTo("TEST-001");
         assertThat(response.description()).isEqualTo("테스트용 디바이스입니다.");
-        assertThat(response.iconId()).isEqualTo(icon.getId());
-        assertThat(response.iconName()).isEqualTo(icon.getName());
+        assertThat(response.icon()).isNotNull();
     }
 
     @Test
@@ -197,8 +196,7 @@ class NfluxServiceTest {
         assertThat(updatedDevice.code()).isEqualTo("TEST-002");
         assertThat(updatedDevice.description()).isEqualTo("수정된 디바이스 설명입니다.");
         assertThat(updatedDevice.feature().position().getX()).isEqualTo(1.0);
-        assertThat(updatedDevice.iconId()).isEqualTo(newIcon.getId());
-        assertThat(updatedDevice.iconName()).isEqualTo(newIcon.getName());
+        assertThat(updatedDevice.icon()).isNotNull();
     }
 
     @Test

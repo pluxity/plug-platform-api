@@ -1,5 +1,6 @@
 package com.pluxity.facility.facility.dto;
 
+import com.pluxity.file.dto.FileResponse;
 import java.util.Date;
 
 public record FacilityHistoryResponse(
@@ -8,7 +9,7 @@ public record FacilityHistoryResponse(
         String code,
         String name,
         String description,
-        Long drawingFileId,
-        Long thumbnailFileId,
+        FileResponse drawingFile,
+        FileResponse thumbnailFile,
         Date changedAt,
         String revisionType) {}

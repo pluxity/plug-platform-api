@@ -8,21 +8,27 @@ import com.pluxity.domains.device.dto.NfluxCategoryResponse;
 import com.pluxity.domains.device.dto.NfluxCategoryUpdateRequest;
 import com.pluxity.domains.device.entity.NfluxCategory;
 import com.pluxity.domains.device.repository.NfluxCategoryRepository;
+import com.pluxity.file.dto.FileResponse;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.response.BaseResponse;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class NfluxCategoryService {
 
     private final NfluxCategoryRepository nfluxCategoryRepository;
     private final DeviceCategoryService deviceCategoryService;
+    private final FileService fileService;
 
     @Transactional
     public Long save(NfluxCategoryCreateRequest request) {
@@ -73,13 +79,13 @@ public class NfluxCategoryService {
 
     public List<NfluxCategoryResponse> findAll() {
         return nfluxCategoryRepository.findAll().stream()
-                .map(NfluxCategoryResponse::from)
+                .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     public List<NfluxCategoryResponse> findAllRoots() {
         return nfluxCategoryRepository.findAllRootCategories().stream()
-                .map(NfluxCategoryResponse::from)
+                .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -89,7 +95,7 @@ public class NfluxCategoryService {
                         .findById(id)
                         .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "카테고리를 찾을 수 없습니다."));
 
-        return NfluxCategoryResponse.from(category);
+        return toResponse(category);
     }
 
     @Transactional
@@ -142,7 +148,7 @@ public class NfluxCategoryService {
             category.assignToParent(parent);
         }
 
-        return NfluxCategoryResponse.from(category);
+        return toResponse(category);
     }
 
     @Transactional
@@ -161,5 +167,34 @@ public class NfluxCategoryService {
         }
 
         nfluxCategoryRepository.delete(category);
+    }
+
+    private NfluxCategoryResponse toResponse(NfluxCategory category) {
+        FileResponse iconFileResponse = getIconFileResponse(category);
+
+        return new NfluxCategoryResponse(
+                category.getId(),
+                category.getName(),
+                category.getParent() != null ? category.getParent().getId() : null,
+                category.getContextPath(),
+                iconFileResponse,
+                category.getChildren().stream()
+                        .filter(c -> c instanceof NfluxCategory)
+                        .map(c -> toResponse((NfluxCategory) c))
+                        .collect(Collectors.toList()),
+                BaseResponse.of(category));
+    }
+
+    private FileResponse getIconFileResponse(NfluxCategory category) {
+        if (category.getIconFileId() == null) {
+            return FileResponse.empty();
+        }
+
+        try {
+            return fileService.getFileResponse(category.getIconFileId());
+        } catch (Exception e) {
+            log.error("Failed to get icon file: {}", e.getMessage());
+            return FileResponse.empty();
+        }
     }
 }
