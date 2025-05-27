@@ -70,7 +70,7 @@ class DeviceCategoryServiceTest {
         DeviceCategoryResponse savedCategory = deviceCategoryService.getDeviceCategoryResponse(id);
         assertThat(savedCategory).isNotNull();
         assertThat(savedCategory.name()).isEqualTo("테스트 카테고리");
-        assertThat(savedCategory.iconFileId()).isEqualTo(iconFileId);
+        assertThat(savedCategory.iconFile().id()).isEqualTo(iconFileId);
     }
 
     @Test
@@ -96,7 +96,7 @@ class DeviceCategoryServiceTest {
         // then
         DeviceCategoryResponse updatedCategory = deviceCategoryService.getDeviceCategoryResponse(id);
         assertThat(updatedCategory.name()).isEqualTo("수정된 카테고리");
-        assertThat(updatedCategory.iconFileId()).isEqualTo(newIconFileId);
+        assertThat(updatedCategory.iconFile().id()).isEqualTo(newIconFileId);
     }
 
     @Test
@@ -111,7 +111,7 @@ class DeviceCategoryServiceTest {
         // then
         assertThat(responses).isNotEmpty();
         assertThat(responses.getFirst().name()).isEqualTo("테스트 카테고리");
-        assertThat(responses.getFirst().iconFileId()).isEqualTo(iconFileId);
+        assertThat(responses.getFirst().iconFile().id()).isEqualTo(iconFileId);
     }
 
     @Test
@@ -126,7 +126,7 @@ class DeviceCategoryServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.name()).isEqualTo("테스트 카테고리");
-        assertThat(response.iconFileId()).isEqualTo(iconFileId);
+        assertThat(response.iconFile().id()).isEqualTo(iconFileId);
     }
 
     @Test

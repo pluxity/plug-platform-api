@@ -6,6 +6,7 @@ import com.pluxity.device.dto.DeviceCategoryResponse;
 import com.pluxity.device.dto.DeviceCategoryTreeResponse;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DeviceCategoryService extends CategoryService<DeviceCategory> {
 
     private final DeviceCategoryRepository deviceCategoryRepository;
+    private final FileService fileService;
 
     @Override
     protected JpaRepository<DeviceCategory, Long> getRepository() {
@@ -75,13 +77,15 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     @Transactional(readOnly = true)
     public List<DeviceCategoryResponse> getRootDeviceCategoryResponses() {
         return getRootCategories().stream()
-                .map(DeviceCategoryResponse::from)
+                .map(this::createDeviceCategoryResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<DeviceCategoryResponse> getChildrenResponses(Long id) {
-        return getChildren(id).stream().map(DeviceCategoryResponse::from).collect(Collectors.toList());
+        return getChildren(id).stream()
+                .map(this::createDeviceCategoryResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -93,6 +97,14 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
 
     @Transactional(readOnly = true)
     public DeviceCategoryResponse getDeviceCategoryResponse(Long id) {
-        return DeviceCategoryResponse.from(findById(id));
+        return createDeviceCategoryResponse(findById(id));
+    }
+
+    private DeviceCategoryResponse createDeviceCategoryResponse(DeviceCategory deviceCategory) {
+        return DeviceCategoryResponse.from(
+                deviceCategory,
+                deviceCategory.getIconFileId() != null
+                        ? fileService.getFileResponse(deviceCategory.getIconFileId())
+                        : null);
     }
 }

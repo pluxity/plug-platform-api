@@ -1,16 +1,22 @@
 package com.pluxity.device.dto;
 
 import com.pluxity.device.entity.DeviceCategory;
-import lombok.Builder;
+import com.pluxity.file.dto.FileResponse;
 
-@Builder
-public record DeviceCategoryResponse(Long id, String name, Long parentId, Long iconFileId) {
+public record DeviceCategoryResponse(Long id, String name, Long parentId, FileResponse iconFile) {
     public static DeviceCategoryResponse from(DeviceCategory deviceCategory) {
-        return DeviceCategoryResponse.builder()
-                .id(deviceCategory.getId())
-                .name(deviceCategory.getName())
-                .parentId(deviceCategory.getParent() != null ? deviceCategory.getParent().getId() : null)
-                .iconFileId(deviceCategory.getIconFileId() != null ? deviceCategory.getIconFileId() : null)
-                .build();
+        return new DeviceCategoryResponse(
+                deviceCategory.getId(),
+                deviceCategory.getName(),
+                deviceCategory.getParent() != null ? deviceCategory.getParent().getId() : null,
+                null);
+    }
+
+    public static DeviceCategoryResponse from(DeviceCategory deviceCategory, FileResponse iconFile) {
+        return new DeviceCategoryResponse(
+                deviceCategory.getId(),
+                deviceCategory.getName(),
+                deviceCategory.getParent() != null ? deviceCategory.getParent().getId() : null,
+                iconFile);
     }
 }
