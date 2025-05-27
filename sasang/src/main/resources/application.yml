@@ -4,6 +4,11 @@ facility:
   building:
     enabled: false
 
+pluxity:
+  security:
+    common:
+      enabled: false
+
 spring:
   main:
     allow-bean-definition-overriding: true

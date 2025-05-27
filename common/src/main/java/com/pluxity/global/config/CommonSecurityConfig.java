@@ -9,6 +9,7 @@ import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,6 +33,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "pluxity.security.common.enabled", havingValue = "true", matchIfMissing = true)
 public class CommonSecurityConfig {
 
     private final UserRepository repository;
