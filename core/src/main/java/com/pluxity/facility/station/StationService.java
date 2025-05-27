@@ -39,7 +39,6 @@ public class StationService {
                         .name(request.facility().name())
                         .description(request.facility().description())
                         .route(request.route())
-                        .code(request.code())
                         .build();
 
         Facility saved = facilityService.save(station, request.facility());
@@ -76,7 +75,6 @@ public class StationService {
                                                     fileService.getFileResponse(station.getThumbnailFileId())))
                                     .lineIds(lineIds)
                                     .route(station.getRoute())
-                                    .code(station.getCode())
                                     .build();
                         })
                 .toList();
@@ -101,7 +99,6 @@ public class StationService {
                 .floors(floorResponse)
                 .lineIds(lineIds)
                 .route(station.getRoute())
-                .code(station.getCode())
                 .build();
     }
 
@@ -131,10 +128,6 @@ public class StationService {
         // 추가 정보 업데이트
         if (request.route() != null) {
             station.updateRoute(request.route());
-        }
-
-        if (request.code() != null) {
-            station.updateCode(request.code());
         }
 
         // drawingFileId와 thumbnailFileId 직접 설정
@@ -190,35 +183,5 @@ public class StationService {
         Line line = lineService.findLineById(lineId);
 
         station.removeLine(line);
-    }
-
-    @Transactional(readOnly = true)
-    public StationResponse findByCode(String code) {
-        Station station =
-                stationRepository
-                        .findByCode(code)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "Station not found", HttpStatus.NOT_FOUND, "해당 코드의 역을 찾을 수 없습니다."));
-
-        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
-
-        List<Long> lineIds =
-                station.getStationLines().stream()
-                        .map(stationLine -> stationLine.getLine().getId())
-                        .collect(Collectors.toList());
-
-        return StationResponse.builder()
-                .facility(
-                        FacilityResponse.from(
-                                station,
-                                fileService.getFileResponse(station.getDrawingFileId()),
-                                fileService.getFileResponse(station.getThumbnailFileId())))
-                .floors(floorResponse)
-                .lineIds(lineIds)
-                .route(station.getRoute())
-                .code(station.getCode())
-                .build();
     }
 }

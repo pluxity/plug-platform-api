@@ -27,7 +27,7 @@ public abstract class Facility extends BaseEntity {
     @JoinColumn(name = "category_id")
     private FacilityCategory category;
 
-    @Column(name = "code", unique = true, length = 3)
+    @Column(name = "code", unique = true, length = 10)
     private String code;
 
     @Audited

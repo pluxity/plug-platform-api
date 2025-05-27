@@ -52,7 +52,6 @@ class LineServiceTest {
                 .name("테스트 역")
                 .description("테스트 역 설명")
                 .route("asdf")
-                .code("ST001")
                 .build();
     }
 
@@ -230,7 +229,6 @@ class LineServiceTest {
                         .name("테스트 역 " + i)
                         .description("테스트 역 설명 " + i)
                         .route("route" + i)
-                        .code("ST00" + (i+1))
                         .build())
                 .map(stationRepository::save)
                 .toList();

@@ -12,9 +12,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
 jwt:
   access-token:
     expiration: 3600
   refresh-token:
-    expiration: 604800 
+    expiration: 604800
+
+#C:\task\plug-platform-api\core\src\test\resources\application-test.yml

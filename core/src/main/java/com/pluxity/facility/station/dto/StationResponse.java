@@ -6,23 +6,14 @@ import java.util.List;
 import lombok.Builder;
 
 public record StationResponse(
-        FacilityResponse facility,
-        List<FloorResponse> floors,
-        List<Long> lineIds,
-        String route,
-        String code) {
+        FacilityResponse facility, List<FloorResponse> floors, List<Long> lineIds, String route) {
 
     @Builder
     public StationResponse(
-            FacilityResponse facility,
-            List<FloorResponse> floors,
-            List<Long> lineIds,
-            String route,
-            String code) {
+            FacilityResponse facility, List<FloorResponse> floors, List<Long> lineIds, String route) {
         this.facility = facility;
         this.floors = floors != null ? floors : List.of();
         this.lineIds = lineIds != null ? lineIds : List.of();
         this.route = route;
-        this.code = code;
     }
 }

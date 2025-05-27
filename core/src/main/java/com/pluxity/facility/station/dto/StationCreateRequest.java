@@ -5,8 +5,4 @@ import com.pluxity.facility.floor.dto.FloorRequest;
 import java.util.List;
 
 public record StationCreateRequest(
-        FacilityCreateRequest facility,
-        List<FloorRequest> floors,
-        Long lineId,
-        String route,
-        String code) {}
+        FacilityCreateRequest facility, List<FloorRequest> floors, Long lineId, String route) {}

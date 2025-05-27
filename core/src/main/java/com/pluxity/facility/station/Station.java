@@ -25,14 +25,10 @@ public class Station extends Facility {
     @Column(name = "route")
     private String route;
 
-    @Column(name = "code", unique = true)
-    private String code;
-
     @Builder
-    public Station(String name, String description, String route, String code) {
+    public Station(String name, String description, String route) {
         super(name, description);
         this.route = route;
-        this.code = code;
     }
 
     public void addLine(Line line) {
@@ -55,9 +51,5 @@ public class Station extends Facility {
 
     public void updateRoute(String route) {
         this.route = route;
-    }
-
-    public void updateCode(String code) {
-        this.code = code;
     }
 }

@@ -1,35 +1,22 @@
 package com.pluxity.domains.config;
 
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
-
-import com.pluxity.authentication.security.CustomUserDetails;
-import com.pluxity.authentication.security.JwtAuthenticationFilter;
 import com.pluxity.authentication.security.JwtProvider;
-import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -40,78 +27,26 @@ public class SasangSecurityConfig {
     private final UserRepository repository;
     private final JwtProvider jwtProvider;
 
-    @Bean("sasangSecurityFilterChain")
-    @Primary
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers(HttpMethod.GET)
-                                        .permitAll()
-                                        .requestMatchers("/auth/**")
-                                        .permitAll()
-                                        .anyRequest()
-                                        .authenticated())
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(
-                        sessionManagement ->
-                                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        return http.build();
-    }
-
-    @Bean("sasangPasswordEncoder")
-    @Primary
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean("sasangAuthenticationManager")
-    @Primary
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
-            throws Exception {
-        return config.getAuthenticationManager();
-    }
+    // 1. GET 요청은 모두 허용하는 SecurityFilterChain
+    @Bean
+    @Order(1) // 우선순위 높게 설정
+    public SecurityFilterChain permitGetRequestsFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher(
+                        new AntPathRequestMatcher("/**", HttpMethod.GET.name())) // 모든 GET 요청을 대상으로 함
+                .authorizeHttpRequests(
+                        authorize -> authorize.anyRequest().permitAll() // 모든 GET 요청 허용
+                        )
+                .csrf(AbstractHttpConfigurer::disable) // GET 요청에는 CSRF 불필요
+                .cors(Customizer.withDefaults())
+                .sessionManagement(
+                        session ->
+                                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // 필요하다면 상태 비저장
 
-    @Bean("sasangUserDetailsService")
-    @Primary
-    public UserDetailsService userDetailsService() {
-        return username ->
-                repository
-                        .findByUsername(username)
-                        .map(CustomUserDetails::new)
-                        .orElseThrow(() -> new CustomException(NOT_FOUND_USER));
-    }
-
-    @Bean("sasangAuthenticationProvider")
-    @Primary
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService());
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        return authenticationProvider;
-    }
-
-    @Bean("sasangJwtAuthenticationFilter")
-    @Primary
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProvider, userDetailsService());
-    }
-
-    @Bean("sasangCorsConfigurationSource")
-    @Primary
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(
-                List.of("http://localhost:*", "http://app.plug-platform:*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Content-Type", "Authorization"));
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+        return http.build();
     }
 }
