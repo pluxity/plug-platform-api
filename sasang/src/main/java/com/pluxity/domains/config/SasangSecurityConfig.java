@@ -46,7 +46,13 @@ public class SasangSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers(HttpMethod.GET).permitAll().anyRequest().authenticated())
+                        auth ->
+                                auth.requestMatchers(HttpMethod.GET)
+                                        .permitAll()
+                                        .requestMatchers("/auth/**")
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
