@@ -5,11 +5,11 @@ import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
-import com.pluxity.domains.device.dto.SasangDeviceCreateRequest;
-import com.pluxity.domains.device.dto.SasangDeviceResponse;
-import com.pluxity.domains.device.dto.SasangDeviceUpdateRequest;
-import com.pluxity.domains.device.repository.SasangDeviceRepository;
-import com.pluxity.domains.device.service.SasangDeviceService;
+import com.pluxity.domains.device.dto.NfluxCreateRequest;
+import com.pluxity.domains.device.dto.NfluxResponse;
+import com.pluxity.domains.device.dto.NfluxUpdateRequest;
+import com.pluxity.domains.device.repository.NfluxRepository;
+import com.pluxity.domains.device.service.NfluxService;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationRepository;
 import com.pluxity.feature.dto.FeatureCreateRequest;
@@ -32,16 +32,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(classes = SasangApplication.class)
 @Transactional
-class SasangDeviceServiceTest {
+class NfluxServiceTest {
 
     @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
-    SasangDeviceService sasangDeviceService;
+    NfluxService nfluxService;
 
     @Autowired
-    SasangDeviceRepository deviceRepository;
+    NfluxRepository deviceRepository;
 
     @Autowired
     DeviceCategoryRepository deviceCategoryRepository;
@@ -59,7 +59,7 @@ class SasangDeviceServiceTest {
     private Station station;
     private Asset asset;
     private Icon icon;
-    private SasangDeviceCreateRequest createRequest;
+    private NfluxCreateRequest createRequest;
 
     @BeforeEach
     void setUp() {
@@ -88,7 +88,7 @@ class SasangDeviceServiceTest {
 
         FeatureCreateRequest featureRequest = new FeatureCreateRequest(position, rotation, scale);
 
-        createRequest = new SasangDeviceCreateRequest(
+        createRequest = new NfluxCreateRequest(
                 featureRequest,
                 category.getId(),
                 station.getId(),
@@ -104,13 +104,13 @@ class SasangDeviceServiceTest {
     @DisplayName("유효한 요청으로 디바이스 생성 시 디바이스가 저장된다")
     void save_WithValidRequest_SavesDevice() {
         // when
-        Long id = sasangDeviceService.save(createRequest);
+        Long id = nfluxService.save(createRequest);
 
         // then
         assertThat(id).isNotNull();
 
         // 저장된 디바이스 확인
-        SasangDeviceResponse savedDevice = sasangDeviceService.findDeviceById(id);
+        NfluxResponse savedDevice = nfluxService.findDeviceById(id);
         assertThat(savedDevice).isNotNull();
         assertThat(savedDevice.name()).isEqualTo("테스트 디바이스");
         assertThat(savedDevice.code()).isEqualTo("TEST-001");
@@ -123,10 +123,10 @@ class SasangDeviceServiceTest {
     @DisplayName("모든 디바이스 조회 시 디바이스 목록이 반환된다")
     void findAll_ReturnsListOfDeviceResponses() {
         // given
-        Long id = sasangDeviceService.save(createRequest);
+        Long id = nfluxService.save(createRequest);
 
         // when
-        var responses = sasangDeviceService.findAll();
+        var responses = nfluxService.findAll();
 
         // then
         assertThat(responses).isNotEmpty();
@@ -138,10 +138,10 @@ class SasangDeviceServiceTest {
     @DisplayName("ID로 디바이스 조회 시 디바이스 정보가 반환된다")
     void findById_WithExistingId_2_ReturnsDeviceResponse() {
         // given
-        Long id = sasangDeviceService.save(createRequest);
+        Long id = nfluxService.save(createRequest);
 
         // when
-        SasangDeviceResponse response = sasangDeviceService.findDeviceById(id);
+        NfluxResponse response = nfluxService.findDeviceById(id);
 
         // then
         assertThat(response).isNotNull();
@@ -159,14 +159,14 @@ class SasangDeviceServiceTest {
         Long nonExistingId = 9999L;
 
         // when & then
-        assertThrows(CustomException.class, () -> sasangDeviceService.findDeviceById(nonExistingId));
+        assertThrows(CustomException.class, () -> nfluxService.findDeviceById(nonExistingId));
     }
 
     @Test
     @DisplayName("유효한 요청으로 디바이스 정보 수정 시 디바이스 정보가 업데이트된다")
     void update_WithValidRequest_UpdatesDevice() {
         // given
-        Long id = sasangDeviceService.save(createRequest);
+        Long id = nfluxService.save(createRequest);
         
         // 새로운 아이콘 생성
         Icon newIcon = iconRepository.save(Icon.builder()
@@ -177,7 +177,7 @@ class SasangDeviceServiceTest {
         Spatial newPosition = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
         FeatureUpdateRequest featureUpdateRequest = new FeatureUpdateRequest(newPosition, null, null);
                 
-        SasangDeviceUpdateRequest updateRequest = new SasangDeviceUpdateRequest(
+        NfluxUpdateRequest updateRequest = new NfluxUpdateRequest(
                 featureUpdateRequest,
                 null,
                 null,
@@ -189,10 +189,10 @@ class SasangDeviceServiceTest {
         );
 
         // when
-        sasangDeviceService.update(id, updateRequest);
+        nfluxService.update(id, updateRequest);
 
         // then
-        SasangDeviceResponse updatedDevice = sasangDeviceService.findDeviceById(id);
+        NfluxResponse updatedDevice = nfluxService.findDeviceById(id);
         assertThat(updatedDevice.name()).isEqualTo("수정된 디바이스");
         assertThat(updatedDevice.code()).isEqualTo("TEST-002");
         assertThat(updatedDevice.description()).isEqualTo("수정된 디바이스 설명입니다.");
@@ -205,17 +205,17 @@ class SasangDeviceServiceTest {
     @DisplayName("디바이스 삭제 시 디바이스가 삭제된다")
     void delete_WithExistingId_DeletesDevice() {
         // given
-        Long id = sasangDeviceService.save(createRequest);
+        Long id = nfluxService.save(createRequest);
         
         // when
-        SasangDeviceResponse response = sasangDeviceService.findDeviceById(id);
+        NfluxResponse response = nfluxService.findDeviceById(id);
         assertThat(response).isNotNull();
         
         // then
-        sasangDeviceService.delete(id);
+        nfluxService.delete(id);
         
         // 삭제 후에는 해당 ID로 디바이스를 찾을 수 없어야 함
-        assertThrows(CustomException.class, () -> sasangDeviceService.findDeviceById(id));
+        assertThrows(CustomException.class, () -> nfluxService.findDeviceById(id));
     }
     
     @Test
@@ -223,7 +223,7 @@ class SasangDeviceServiceTest {
     void assignCategory_SetsDeviceCategory() {
         // given
         // 카테고리 없이 디바이스 생성
-        SasangDeviceCreateRequest requestWithoutCategory = new SasangDeviceCreateRequest(
+        NfluxCreateRequest requestWithoutCategory = new NfluxCreateRequest(
                 createRequest.feature(),
                 null, // 카테고리 없음
                 createRequest.stationId(),
@@ -234,8 +234,8 @@ class SasangDeviceServiceTest {
                 createRequest.description()
         );
         
-        Long deviceId = sasangDeviceService.save(requestWithoutCategory);
-        SasangDeviceResponse deviceBeforeAssign = sasangDeviceService.findDeviceById(deviceId);
+        Long deviceId = nfluxService.save(requestWithoutCategory);
+        NfluxResponse deviceBeforeAssign = nfluxService.findDeviceById(deviceId);
         assertThat(deviceBeforeAssign.categoryId()).isNull();
         
         // 새 카테고리 생성
@@ -244,14 +244,14 @@ class SasangDeviceServiceTest {
                 .build());
         
         // when
-        SasangDeviceResponse updatedDevice = sasangDeviceService.assignCategory(deviceId, newCategory.getId());
+        NfluxResponse updatedDevice = nfluxService.assignCategory(deviceId, newCategory.getId());
         
         // then
         assertThat(updatedDevice.categoryId()).isEqualTo(newCategory.getId());
         assertThat(updatedDevice.categoryName()).isEqualTo(newCategory.getName());
         
         // 데이터베이스에서 확인
-        SasangDeviceResponse fetchedDevice = sasangDeviceService.findDeviceById(deviceId);
+        NfluxResponse fetchedDevice = nfluxService.findDeviceById(deviceId);
         assertThat(fetchedDevice.categoryId()).isEqualTo(newCategory.getId());
         assertThat(fetchedDevice.categoryName()).isEqualTo(newCategory.getName());
     }
@@ -261,19 +261,19 @@ class SasangDeviceServiceTest {
     void removeCategory_RemovesDeviceCategory() {
         // given
         // 카테고리가 있는 디바이스 생성
-        Long deviceId = sasangDeviceService.save(createRequest);
-        SasangDeviceResponse deviceBeforeRemove = sasangDeviceService.findDeviceById(deviceId);
+        Long deviceId = nfluxService.save(createRequest);
+        NfluxResponse deviceBeforeRemove = nfluxService.findDeviceById(deviceId);
         assertThat(deviceBeforeRemove.categoryId()).isEqualTo(category.getId());
         
         // when
-        SasangDeviceResponse updatedDevice = sasangDeviceService.removeCategory(deviceId);
+        NfluxResponse updatedDevice = nfluxService.removeCategory(deviceId);
         
         // then
         assertThat(updatedDevice.categoryId()).isNull();
         assertThat(updatedDevice.categoryName()).isNull();
         
         // 데이터베이스에서 확인
-        SasangDeviceResponse fetchedDevice = sasangDeviceService.findDeviceById(deviceId);
+        NfluxResponse fetchedDevice = nfluxService.findDeviceById(deviceId);
         assertThat(fetchedDevice.categoryId()).isNull();
         assertThat(fetchedDevice.categoryName()).isNull();
     }
@@ -282,12 +282,12 @@ class SasangDeviceServiceTest {
     @DisplayName("존재하지 않는 카테고리 할당 시 예외가 발생한다")
     void assignCategory_WithNonExistingCategoryId_ThrowsCustomException() {
         // given
-        Long deviceId = sasangDeviceService.save(createRequest);
+        Long deviceId = nfluxService.save(createRequest);
         Long nonExistingCategoryId = 9999L;
         
         // when & then
         assertThrows(CustomException.class, () -> 
-            sasangDeviceService.assignCategory(deviceId, nonExistingCategoryId)
+            nfluxService.assignCategory(deviceId, nonExistingCategoryId)
         );
     }
     
@@ -299,7 +299,7 @@ class SasangDeviceServiceTest {
         
         // when & then
         assertThrows(CustomException.class, () -> 
-            sasangDeviceService.assignCategory(nonExistingDeviceId, category.getId())
+            nfluxService.assignCategory(nonExistingDeviceId, category.getId())
         );
     }
 }

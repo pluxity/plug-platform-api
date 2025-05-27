@@ -2,7 +2,7 @@ package com.pluxity.domains.device.dto;
 
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 
-public record SasangDeviceUpdateRequest(
+public record NfluxUpdateRequest(
         FeatureUpdateRequest feature,
         Long deviceCategoryId,
         Long stationId,

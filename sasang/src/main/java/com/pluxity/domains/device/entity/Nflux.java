@@ -14,11 +14,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "sasang_device")
-@DiscriminatorValue("SASANG_DEVICE")
+@Table(name = "nflux")
+@DiscriminatorValue("nflux")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SasangDevice extends Device {
+public class Nflux extends Device {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_id")
@@ -31,7 +31,7 @@ public class SasangDevice extends Device {
     private String description;
 
     @Builder
-    public SasangDevice(
+    public Nflux(
             Feature feature,
             DeviceCategory category,
             Facility facility,
@@ -46,7 +46,7 @@ public class SasangDevice extends Device {
         this.description = description;
     }
 
-    public static SasangDevice create(
+    public static Nflux create(
             Feature feature,
             DeviceCategory category,
             Facility facility,
@@ -55,7 +55,7 @@ public class SasangDevice extends Device {
             String name,
             String code,
             String description) {
-        return SasangDevice.builder()
+        return Nflux.builder()
                 .feature(feature)
                 .category(category)
                 .facility(facility)

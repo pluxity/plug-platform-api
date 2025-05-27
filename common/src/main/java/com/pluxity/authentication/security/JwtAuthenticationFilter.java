@@ -35,7 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         try {
-
             Optional.of(request)
                     .filter(this::authenticationRequired)
                     .map(jwtProvider::getAccessTokenFromRequest)

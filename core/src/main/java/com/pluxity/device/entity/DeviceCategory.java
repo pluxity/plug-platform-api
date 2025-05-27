@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "device_category")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "CATEGORY_TYPE")
+@DiscriminatorValue("DEVICE_BASE")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DeviceCategory extends Category<DeviceCategory> {
@@ -20,6 +23,9 @@ public class DeviceCategory extends Category<DeviceCategory> {
 
     @Column(name = "icon_file_id")
     private Long iconFileId;
+
+    @Column(name = "DTYPE", insertable = true, updatable = false)
+    private String dtype = "DEVICE_BASE";
 
     @Builder
     public DeviceCategory(String name, DeviceCategory parent) {

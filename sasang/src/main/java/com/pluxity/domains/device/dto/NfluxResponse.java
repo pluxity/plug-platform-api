@@ -1,12 +1,12 @@
 package com.pluxity.domains.device.dto;
 
-import com.pluxity.domains.device.entity.SasangDevice;
+import com.pluxity.domains.device.entity.Nflux;
 import com.pluxity.feature.dto.FeatureResponse;
-import java.time.LocalDateTime;
+import com.pluxity.global.response.BaseResponse;
 import lombok.Builder;
 
 @Builder
-public record SasangDeviceResponse(
+public record NfluxResponse(
         Long id,
         FeatureResponse feature,
         Long categoryId,
@@ -20,10 +20,9 @@ public record SasangDeviceResponse(
         String name,
         String code,
         String description,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt) {
-    public static SasangDeviceResponse from(SasangDevice device) {
-        return SasangDeviceResponse.builder()
+        BaseResponse baseResponse) {
+    public static NfluxResponse from(Nflux device) {
+        return NfluxResponse.builder()
                 .id(device.getId())
                 .feature(device.getFeature() != null ? FeatureResponse.from(device.getFeature()) : null)
                 .categoryId(device.getCategory() != null ? device.getCategory().getId() : null)
@@ -43,8 +42,7 @@ public record SasangDeviceResponse(
                 .name(device.getName())
                 .code(device.getCode())
                 .description(device.getDescription())
-                .createdAt(device.getCreatedAt())
-                .updatedAt(device.getUpdatedAt())
+                .baseResponse(BaseResponse.of(device))
                 .build();
     }
 }

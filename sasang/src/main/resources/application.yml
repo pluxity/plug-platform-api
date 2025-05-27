@@ -1,0 +1,15 @@
+facility:
+  station:
+    enabled: true
+  building:
+    enabled: false
+
+spring:
+  profiles:
+    group:
+      default: common, local
+      local: common, local
+      stage: common, stage
+      prod: common, prod
+  flyway:
+    enabled: false

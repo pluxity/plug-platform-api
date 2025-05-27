@@ -2,7 +2,7 @@ package com.pluxity.domains.device.dto;
 
 import com.pluxity.feature.dto.FeatureCreateRequest;
 
-public record SasangDeviceCreateRequest(
+public record NfluxCreateRequest(
         FeatureCreateRequest feature,
         Long deviceCategoryId,
         Long stationId,

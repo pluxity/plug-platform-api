@@ -5,11 +5,11 @@ import com.pluxity.asset.service.AssetService;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.service.DeviceCategoryService;
-import com.pluxity.domains.device.dto.SasangDeviceCreateRequest;
-import com.pluxity.domains.device.dto.SasangDeviceResponse;
-import com.pluxity.domains.device.dto.SasangDeviceUpdateRequest;
-import com.pluxity.domains.device.entity.SasangDevice;
-import com.pluxity.domains.device.repository.SasangDeviceRepository;
+import com.pluxity.domains.device.dto.NfluxCreateRequest;
+import com.pluxity.domains.device.dto.NfluxResponse;
+import com.pluxity.domains.device.dto.NfluxUpdateRequest;
+import com.pluxity.domains.device.entity.Nflux;
+import com.pluxity.domains.device.repository.NfluxRepository;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationService;
 import com.pluxity.feature.entity.Feature;
@@ -24,9 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class SasangDeviceService {
+public class NfluxService {
 
-    private final SasangDeviceRepository repository;
+    private final NfluxRepository repository;
     private final DeviceCategoryRepository categoryRepository;
     private final DeviceCategoryService deviceCategoryService;
     private final StationService stationService;
@@ -34,25 +34,25 @@ public class SasangDeviceService {
     private final IconService iconService;
 
     @Transactional(readOnly = true)
-    public SasangDeviceResponse findDeviceById(Long id) {
-        SasangDevice device = findById(id);
-        return SasangDeviceResponse.from(device);
+    public NfluxResponse findDeviceById(Long id) {
+        Nflux device = findById(id);
+        return NfluxResponse.from(device);
     }
 
     @Transactional(readOnly = true)
-    public List<SasangDeviceResponse> findAll() {
-        return repository.findAll().stream().map(SasangDeviceResponse::from).toList();
+    public List<NfluxResponse> findAll() {
+        return repository.findAll().stream().map(NfluxResponse::from).toList();
     }
 
     @Transactional
-    public Long save(SasangDeviceCreateRequest request) {
-        SasangDevice sasangDevice = createSasangDevice(request);
+    public Long save(NfluxCreateRequest request) {
+        Nflux nflux = createSasangDevice(request);
 
-        SasangDevice saved = repository.save(sasangDevice);
+        Nflux saved = repository.save(nflux);
         return saved.getId();
     }
 
-    private SasangDevice createSasangDevice(SasangDeviceCreateRequest request) {
+    private Nflux createSasangDevice(NfluxCreateRequest request) {
         DeviceCategory category =
                 request.deviceCategoryId() != null ? findCategoryById(request.deviceCategoryId()) : null;
 
@@ -64,7 +64,7 @@ public class SasangDeviceService {
 
         Feature feature = request.feature() != null ? Feature.create(request.feature()) : null;
 
-        return SasangDevice.create(
+        return Nflux.create(
                 feature,
                 category,
                 station,
@@ -76,8 +76,8 @@ public class SasangDeviceService {
     }
 
     @Transactional
-    public void update(Long id, SasangDeviceUpdateRequest request) {
-        SasangDevice device = findById(id);
+    public void update(Long id, NfluxUpdateRequest request) {
+        Nflux device = findById(id);
 
         DeviceCategory categoryToUpdate = null;
         if (request.deviceCategoryId() != null) {
@@ -120,7 +120,7 @@ public class SasangDeviceService {
     }
 
     @Transactional
-    public SasangDevice findById(Long id) {
+    public Nflux findById(Long id) {
         return repository
                 .findById(id)
                 .orElseThrow(
@@ -146,18 +146,18 @@ public class SasangDeviceService {
     }
 
     @Transactional
-    public SasangDeviceResponse assignCategory(Long deviceId, Long categoryId) {
-        SasangDevice device = findById(deviceId);
+    public NfluxResponse assignCategory(Long deviceId, Long categoryId) {
+        Nflux device = findById(deviceId);
         DeviceCategory category = findCategoryById(categoryId);
 
         device.updateCategory(category);
 
-        return SasangDeviceResponse.from(device);
+        return NfluxResponse.from(device);
     }
 
     @Transactional
-    public SasangDeviceResponse removeCategory(Long deviceId) {
-        SasangDevice device = findById(deviceId);
+    public NfluxResponse removeCategory(Long deviceId) {
+        Nflux device = findById(deviceId);
 
         if (device.getCategory() == null) {
             throw new CustomException(
@@ -168,6 +168,6 @@ public class SasangDeviceService {
 
         device.updateCategory(null);
 
-        return SasangDeviceResponse.from(device);
+        return NfluxResponse.from(device);
     }
 }

@@ -1,9 +1,9 @@
 package com.pluxity.domains.device.controller;
 
-import com.pluxity.domains.device.dto.SasangDeviceCreateRequest;
-import com.pluxity.domains.device.dto.SasangDeviceResponse;
-import com.pluxity.domains.device.dto.SasangDeviceUpdateRequest;
-import com.pluxity.domains.device.service.SasangDeviceService;
+import com.pluxity.domains.device.dto.NfluxCreateRequest;
+import com.pluxity.domains.device.dto.NfluxResponse;
+import com.pluxity.domains.device.dto.NfluxUpdateRequest;
+import com.pluxity.domains.device.service.NfluxService;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -24,9 +24,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/devices")
 @RequiredArgsConstructor
 @Tag(name = "Device Controller", description = "디바이스 관리 API")
-public class SasangDeviceController {
+public class NfluxController {
 
-    private final SasangDeviceService service;
+    private final NfluxService service;
 
     @Operation(summary = "디바이스 생성", description = "새로운 디바이스를 생성합니다")
     @ApiResponses(
@@ -51,7 +51,7 @@ public class SasangDeviceController {
     @ResponseCreated
     public ResponseEntity<Long> create(
             @Parameter(description = "디바이스 생성 정보", required = true) @Valid @RequestBody
-                    SasangDeviceCreateRequest request) {
+                    NfluxCreateRequest request) {
 
         Long id = service.save(request);
 
@@ -71,7 +71,7 @@ public class SasangDeviceController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<List<SasangDeviceResponse>>> getAll() {
+    public ResponseEntity<DataResponseBody<List<NfluxResponse>>> getAll() {
         return ResponseEntity.ok(DataResponseBody.of(service.findAll()));
     }
 
@@ -95,7 +95,7 @@ public class SasangDeviceController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping("/{id}")
-    public ResponseEntity<DataResponseBody<SasangDeviceResponse>> get(
+    public ResponseEntity<DataResponseBody<NfluxResponse>> get(
             @Parameter(description = "디바이스 ID", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(DataResponseBody.of(service.findDeviceById(id)));
     }
@@ -130,7 +130,7 @@ public class SasangDeviceController {
     public ResponseEntity<Void> patch(
             @Parameter(description = "디바이스 ID", required = true) @PathVariable Long id,
             @Parameter(description = "디바이스 수정 정보", required = true) @Valid @RequestBody
-                    SasangDeviceUpdateRequest request) {
+                    NfluxUpdateRequest request) {
         service.update(id, request);
         return ResponseEntity.noContent().build();
     }
@@ -181,11 +181,11 @@ public class SasangDeviceController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PutMapping("/{deviceId}/categories/{categoryId}")
-    public ResponseEntity<DataResponseBody<SasangDeviceResponse>> assignCategory(
+    public ResponseEntity<DataResponseBody<NfluxResponse>> assignCategory(
             @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId,
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long categoryId) {
 
-        SasangDeviceResponse response = service.assignCategory(deviceId, categoryId);
+        NfluxResponse response = service.assignCategory(deviceId, categoryId);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
 
@@ -209,10 +209,10 @@ public class SasangDeviceController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @DeleteMapping("/{deviceId}/categories")
-    public ResponseEntity<DataResponseBody<SasangDeviceResponse>> removeCategory(
+    public ResponseEntity<DataResponseBody<NfluxResponse>> removeCategory(
             @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId) {
 
-        SasangDeviceResponse response = service.removeCategory(deviceId);
+        NfluxResponse response = service.removeCategory(deviceId);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
 }
