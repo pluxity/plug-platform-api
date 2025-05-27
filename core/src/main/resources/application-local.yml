@@ -1,3 +1,6 @@
+domain:
+  name: localhost
+
 spring:
   data:
     redis:
