@@ -1,13 +1,12 @@
 package com.pluxity.asset.entity;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.entity.FileEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AssetTest {
 
@@ -144,20 +143,4 @@ class AssetTest {
         assertThat(asset.getFileId()).isEqualTo(fileEntity.getId());
         assertThat(asset.getThumbnailFileId()).isEqualTo(thumbnailEntity.getId());
     }
-
-    @Test
-    @DisplayName("Feature 변경 테스트")
-    void changeFeature() {
-        // given
-        Asset asset = Asset.builder()
-                .name("테스트 자산")
-                .build();
-        Feature feature = mock(Feature.class);
-        
-        // when
-        asset.changeFeature(feature);
-        
-        // then
-        assertThat(asset.getFeature()).isEqualTo(feature);
-    }
-} 
+}

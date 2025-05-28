@@ -8,6 +8,8 @@ import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,8 +41,8 @@ public class Asset extends BaseEntity {
     @Column(name = "thumbnail_file_id")
     private Long thumbnailFileId;
 
-    @OneToOne(mappedBy = "asset")
-    private Feature feature;
+    @OneToMany(mappedBy = "asset", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Feature> features = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -137,7 +139,21 @@ public class Asset extends BaseEntity {
         return this.thumbnailFileId != null;
     }
 
-    public void changeFeature(Feature feature) {
-        this.feature = feature;
+    public void addFeature(Feature feature) {
+        if (feature != null && !this.features.contains(feature)) {
+            this.features.add(feature);
+            if (feature.getAsset() != this) {
+                feature.changeAsset(this);
+            }
+        }
+    }
+
+    public void removeFeature(Feature feature) {
+        if (feature != null && this.features.contains(feature)) {
+            this.features.remove(feature);
+            if (feature.getAsset() == this) {
+                feature.changeAsset(null);
+            }
+        }
     }
 }

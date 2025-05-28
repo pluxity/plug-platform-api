@@ -4,4 +4,6 @@ import com.pluxity.feature.entity.Spatial;
 import lombok.Builder;
 
 @Builder
-public record FeatureUpdateRequest(Spatial position, Spatial rotation, Spatial scale) {}
+public record FeatureUpdateRequest(
+        Spatial position, Spatial rotation, Spatial scale, Long assetId
+        ) {}

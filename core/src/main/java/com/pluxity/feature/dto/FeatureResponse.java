@@ -9,7 +9,7 @@ import lombok.Builder;
 
 @Builder
 public record FeatureResponse(
-        Long id,
+        String id,
         Spatial position,
         Spatial rotation,
         Spatial scale,

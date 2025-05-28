@@ -15,10 +15,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/devices")
@@ -213,6 +214,37 @@ public class NfluxController {
             @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId) {
 
         NfluxResponse response = service.removeCategory(deviceId);
+        return ResponseEntity.ok(DataResponseBody.of(response));
+    }
+
+    // Feature 할당 API
+    @Operation(summary = "디바이스에 피처 할당", description = "디바이스에 특정 피처를 할당합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "피처 할당 성공"),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스에 할당됨)"),
+                @ApiResponse(responseCode = "404", description = "디바이스 또는 피처를 찾을 수 없음")
+            })
+    @PutMapping("/{deviceId}/features/{featureId}")
+    public ResponseEntity<DataResponseBody<NfluxResponse>> assignFeatureToDevice(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId,
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId) {
+        NfluxResponse response = service.assignFeatureToNflux(deviceId, featureId);
+        return ResponseEntity.ok(DataResponseBody.of(response));
+    }
+
+    // Feature 연결 해제 API
+    @Operation(summary = "디바이스에서 피처 연결 해제", description = "디바이스에 할당된 피처와의 연결을 해제합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "피처 연결 해제 성공"),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 디바이스에 피처가 할당되지 않음)"),
+                @ApiResponse(responseCode = "404", description = "디바이스를 찾을 수 없음")
+            })
+    @DeleteMapping("/{deviceId}/features")
+    public ResponseEntity<DataResponseBody<NfluxResponse>> removeFeatureFromDevice(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId) {
+        NfluxResponse response = service.removeFeatureFromNflux(deviceId);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
 }

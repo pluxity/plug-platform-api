@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -86,7 +88,7 @@ class NfluxServiceTest {
         Spatial rotation = Spatial.builder().x(0.0).y(0.0).z(0.0).build();
         Spatial scale = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
 
-        FeatureCreateRequest featureRequest = new FeatureCreateRequest(position, rotation, scale);
+        FeatureCreateRequest featureRequest = new FeatureCreateRequest(UUID.randomUUID().toString(), position, rotation, scale, null);
 
         createRequest = new NfluxCreateRequest(
                 featureRequest,
@@ -174,7 +176,7 @@ class NfluxServiceTest {
         
         // Feature 업데이트 요청 생성
         Spatial newPosition = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
-        FeatureUpdateRequest featureUpdateRequest = new FeatureUpdateRequest(newPosition, null, null);
+        FeatureUpdateRequest featureUpdateRequest = new FeatureUpdateRequest(newPosition, null, null, null);
                 
         NfluxUpdateRequest updateRequest = new NfluxUpdateRequest(
                 featureUpdateRequest,

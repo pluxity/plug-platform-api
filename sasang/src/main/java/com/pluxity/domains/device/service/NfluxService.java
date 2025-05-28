@@ -14,6 +14,7 @@ import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationService;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
@@ -39,6 +40,7 @@ public class NfluxService {
     private final AssetService assetService;
     private final IconService iconService;
     private final FileService fileService;
+    private final FeatureRepository featureRepository;
 
     @Transactional(readOnly = true)
     public NfluxResponse findDeviceById(Long id) {
@@ -106,7 +108,14 @@ public class NfluxService {
 
         Icon icon = request.iconId() != null ? findIconById(request.iconId()) : null;
 
-        Feature feature = request.feature() != null ? Feature.create(request.feature()) : null;
+        Feature feature = null;
+        if (request.feature() != null) {
+            if (request.feature().id() == null || request.feature().id().isBlank()) {
+                throw new CustomException(
+                        "Feature ID is missing", HttpStatus.BAD_REQUEST, "Feature 생성 요청 시 ID(UUID)는 필수입니다.");
+            }
+            feature = Feature.create(request.feature(), request.feature().id());
+        }
 
         return Nflux.create(
                 feature,
@@ -212,6 +221,43 @@ public class NfluxService {
 
         device.updateCategory(null);
 
+        return createResponse(device);
+    }
+
+    @Transactional
+    public NfluxResponse assignFeatureToNflux(Long deviceId, String featureId) {
+        Nflux device = findById(deviceId);
+        Feature feature =
+                featureRepository
+                        .findById(featureId)
+                        .orElseThrow(
+                                () ->
+                                        new CustomException(
+                                                "Feature not found",
+                                                HttpStatus.NOT_FOUND,
+                                                "해당 피처를 찾을 수 없습니다: " + featureId));
+
+        if (feature.getDevice() != null && !feature.getDevice().getId().equals(deviceId)) {
+            throw new CustomException(
+                    "Feature already assigned", HttpStatus.BAD_REQUEST, "해당 피처는 이미 다른 디바이스에 할당되어 있습니다.");
+        }
+
+        device.changeFeature(feature);
+        return createResponse(device);
+    }
+
+    @Transactional
+    public NfluxResponse removeFeatureFromNflux(Long deviceId) {
+        Nflux device = findById(deviceId);
+
+        if (device.getFeature() == null) {
+            throw new CustomException(
+                    "No Feature Assigned",
+                    HttpStatus.BAD_REQUEST,
+                    String.format("디바이스 ID [%d]에 할당된 피처가 없습니다", deviceId));
+        }
+
+        device.changeFeature(null);
         return createResponse(device);
     }
 }

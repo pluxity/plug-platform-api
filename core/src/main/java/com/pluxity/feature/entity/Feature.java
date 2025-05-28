@@ -20,8 +20,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public class Feature extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Embedded
     @AttributeOverride(name = "x", column = @Column(name = "position_x"))
@@ -44,12 +43,12 @@ public class Feature extends BaseEntity {
     @OneToOne(mappedBy = "feature", cascade = CascadeType.PERSIST)
     private Device device;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "asset_id")
     private Asset asset;
 
     @Builder
-    public Feature(Long id, Spatial position, Spatial rotation, Spatial scale, Asset asset) {
+    public Feature(String id, Spatial position, Spatial rotation, Spatial scale, Asset asset) {
         this.id = id;
         this.position = position;
         this.rotation = rotation;
@@ -59,8 +58,9 @@ public class Feature extends BaseEntity {
         }
     }
 
-    public static Feature create(FeatureCreateRequest request) {
+    public static Feature create(FeatureCreateRequest request, String uuid) {
         return Feature.builder()
+                .id(uuid)
                 .position(request.position() != null ? request.position() : new Spatial(0.0, 0.0, 0.0))
                 .rotation(request.rotation() != null ? request.rotation() : new Spatial(0.0, 0.0, 0.0))
                 .scale(request.scale() != null ? request.scale() : new Spatial(1.0, 1.0, 1.0))
@@ -119,13 +119,15 @@ public class Feature extends BaseEntity {
         this.device = device;
     }
 
-    public void changeAsset(Asset asset) {
+    public void changeAsset(Asset newAsset) {
+        // 기존 Asset과의 관계 해제
         if (this.asset != null) {
-            this.asset.changeFeature(null);
+            this.asset.getFeatures().remove(this);
         }
-        this.asset = asset;
-        if (asset != null && asset.getFeature() != this) {
-            asset.changeFeature(this);
+        this.asset = newAsset;
+        // 새로운 Asset과의 관계 설정
+        if (newAsset != null && !newAsset.getFeatures().contains(this)) {
+            newAsset.getFeatures().add(this);
         }
     }
 }

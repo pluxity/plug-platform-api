@@ -12,12 +12,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/features")
@@ -49,7 +51,7 @@ public class FeatureController {
             })
     @PostMapping
     public ResponseEntity<FeatureResponse> createFeature(
-            @Parameter(description = "피처 생성 정보", required = true) @RequestBody
+            @Parameter(description = "피처 생성 정보", required = true) @Valid @RequestBody
                     FeatureCreateRequest request) {
         FeatureResponse response = featureService.createFeature(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -94,7 +96,7 @@ public class FeatureController {
             })
     @GetMapping("/{id}")
     public ResponseEntity<FeatureResponse> getFeature(
-            @Parameter(description = "피처 ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "피처 ID", required = true) @PathVariable String id) {
         FeatureResponse response = featureService.getFeature(id);
         return ResponseEntity.ok(response);
     }
@@ -127,8 +129,8 @@ public class FeatureController {
             })
     @PutMapping("/{id}")
     public ResponseEntity<FeatureResponse> updateFeature(
-            @Parameter(description = "피처 ID", required = true) @PathVariable Long id,
-            @Parameter(description = "피처 수정 정보", required = true) @RequestBody
+            @Parameter(description = "피처 ID", required = true) @PathVariable String id,
+            @Parameter(description = "피처 수정 정보", required = true) @Valid @RequestBody
                     FeatureUpdateRequest request) {
         FeatureResponse response = featureService.updateFeature(id, request);
         return ResponseEntity.ok(response);
@@ -162,8 +164,8 @@ public class FeatureController {
             })
     @PatchMapping("/{id}/position")
     public ResponseEntity<FeatureResponse> updatePosition(
-            @Parameter(description = "피처 ID", required = true) @PathVariable Long id,
-            @Parameter(description = "위치 수정 정보", required = true) @RequestBody
+            @Parameter(description = "피처 ID", required = true) @PathVariable String id,
+            @Parameter(description = "위치 수정 정보", required = true) @Valid @RequestBody
                     FeatureUpdateRequest request) {
         FeatureResponse response = featureService.updateFeature(id, request);
         return ResponseEntity.ok(response);
@@ -197,8 +199,8 @@ public class FeatureController {
             })
     @PatchMapping("/{id}/rotation")
     public ResponseEntity<FeatureResponse> updateRotation(
-            @Parameter(description = "피처 ID", required = true) @PathVariable Long id,
-            @Parameter(description = "회전 수정 정보", required = true) @RequestBody
+            @Parameter(description = "피처 ID", required = true) @PathVariable String id,
+            @Parameter(description = "회전 수정 정보", required = true) @Valid @RequestBody
                     FeatureUpdateRequest request) {
         FeatureResponse response = featureService.updateFeature(id, request);
         return ResponseEntity.ok(response);
@@ -232,8 +234,8 @@ public class FeatureController {
             })
     @PatchMapping("/{id}/scale")
     public ResponseEntity<FeatureResponse> updateScale(
-            @Parameter(description = "피처 ID", required = true) @PathVariable Long id,
-            @Parameter(description = "크기 수정 정보", required = true) @RequestBody
+            @Parameter(description = "피처 ID", required = true) @PathVariable String id,
+            @Parameter(description = "크기 수정 정보", required = true) @Valid @RequestBody
                     FeatureUpdateRequest request) {
         FeatureResponse response = featureService.updateFeature(id, request);
         return ResponseEntity.ok(response);
@@ -260,8 +262,38 @@ public class FeatureController {
             })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFeature(
-            @Parameter(description = "피처 ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "피처 ID", required = true) @PathVariable String id) {
         featureService.deleteFeature(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Feature에 Asset 할당 API
+    @Operation(summary = "피처에 에셋 할당", description = "특정 피처에 에셋을 할당(연결)합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "에셋 할당 성공", content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(responseCode = "404", description = "피처 또는 에셋을 찾을 수 없음")
+            })
+    @PutMapping("/{featureId}/assets/{assetId}")
+    public ResponseEntity<FeatureResponse> assignAssetToFeature(
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
+            @Parameter(description = "에셋 ID (Long)", required = true) @PathVariable Long assetId) {
+        FeatureResponse response = featureService.assignAssetToFeature(featureId, assetId);
+        return ResponseEntity.ok(response);
+    }
+
+    // Feature에서 Asset 연결 해제 API
+    @Operation(summary = "피처에서 에셋 연결 해제", description = "특정 피처에 할당된 에셋과의 연결을 해제합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "에셋 연결 해제 성공", content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처에 에셋이 할당되지 않음)"),
+                @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
+            })
+    @DeleteMapping("/{featureId}/assets")
+    public ResponseEntity<FeatureResponse> removeAssetFromFeature(
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId) {
+        FeatureResponse response = featureService.removeAssetFromFeature(featureId);
+        return ResponseEntity.ok(response);
     }
 }
