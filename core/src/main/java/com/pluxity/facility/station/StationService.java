@@ -14,12 +14,13 @@ import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -67,12 +68,15 @@ public class StationService {
                                             .map(stationLine -> stationLine.getLine().getId())
                                             .collect(Collectors.toList());
 
+                            List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+
                             return StationResponse.builder()
                                     .facility(
                                             FacilityResponse.from(
                                                     station,
                                                     fileService.getFileResponse(station.getDrawingFileId()),
                                                     fileService.getFileResponse(station.getThumbnailFileId())))
+                                    .floors(floorResponse)
                                     .lineIds(lineIds)
                                     .route(station.getRoute())
                                     .build();
