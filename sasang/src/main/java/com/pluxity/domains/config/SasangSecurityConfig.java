@@ -1,6 +1,10 @@
 package com.pluxity.domains.config;
 
+import com.pluxity.authentication.security.CustomUserDetails;
+import com.pluxity.authentication.security.JwtAuthenticationFilter;
 import com.pluxity.authentication.security.JwtProvider;
+import com.pluxity.global.constant.ErrorCode;
+import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -8,14 +12,16 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
@@ -28,29 +34,44 @@ public class SasangSecurityConfig {
     private final JwtProvider jwtProvider;
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    // 1. GET 요청은 모두 허용하는 SecurityFilterChain
-    @Bean
-    @Order(1) // 우선순위 높게 설정
+    @Order(1)
     public SecurityFilterChain permitGetRequestsFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher(
-                        new AntPathRequestMatcher("/**", HttpMethod.GET.name())) // 모든 GET 요청을 일단 대상으로 함
+        http.securityMatcher(new AntPathRequestMatcher("/**", HttpMethod.GET.name()))
                 .authorizeHttpRequests(
                         authorize ->
                                 authorize
                                         .requestMatchers(new AntPathRequestMatcher("/users/me", HttpMethod.GET.name()))
-                                        .authenticated() // "/users/me" GET 요청은 인증 필요
+                                        .authenticated()
                                         .anyRequest()
-                                        .permitAll() // 그 외 모든 GET 요청은 허용
-                        )
+                                        .permitAll())
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
+                // JWT 필터 추가
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
-                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Add AuthenticationEntryPoint to ensure 401 for authentication failures
+                .exceptionHandling(
+                        exceptions ->
+                                exceptions.authenticationEntryPoint(
+                                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
 
         return http.build();
+    }
+
+    // CommonSecurityConfig와 동일한 JWT 필터 빈 추가
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtProvider, userDetailsService());
+    }
+
+    // UserDetailsService 빈도 필요
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username ->
+                repository
+                        .findByUsername(username)
+                        .map(CustomUserDetails::new)
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
     }
 }
