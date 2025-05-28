@@ -2,11 +2,12 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import java.util.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -53,7 +54,7 @@ public class User extends BaseEntity {
         this.username = Objects.requireNonNull(username, "Username must not be null");
         this.password = Objects.requireNonNull(password, "Password must not be null");
         this.name = Objects.requireNonNull(name, "Name must not be null");
-        this.code = Objects.requireNonNull(code, "Code must not be null");
+        this.code = code;
         this.phoneNumber = phoneNumber;
         this.department = department;
     }
