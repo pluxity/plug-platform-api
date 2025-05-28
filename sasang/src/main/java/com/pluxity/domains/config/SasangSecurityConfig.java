@@ -1,8 +1,8 @@
 package com.pluxity.domains.config;
 
 import com.pluxity.authentication.security.CustomUserDetails;
-import com.pluxity.authentication.security.JwtAuthenticationFilter;
 import com.pluxity.authentication.security.JwtProvider;
+import com.pluxity.domains.config.security.SasangJwtAuthenticationFilter;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
@@ -46,8 +46,9 @@ public class SasangSecurityConfig {
                                         .permitAll())
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                // JWT 필터 추가
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                // JWT 필터 추가 - 새로운 SasangJwtAuthenticationFilter 사용
+                .addFilterBefore(
+                        sasangJwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Add AuthenticationEntryPoint to ensure 401 for authentication failures
@@ -59,10 +60,10 @@ public class SasangSecurityConfig {
         return http.build();
     }
 
-    // CommonSecurityConfig와 동일한 JWT 필터 빈 추가
+    // 기존 JwtAuthenticationFilter 대신 SasangJwtAuthenticationFilter 빈 추가
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtProvider, userDetailsService());
+    public SasangJwtAuthenticationFilter sasangJwtAuthenticationFilter() {
+        return new SasangJwtAuthenticationFilter(jwtProvider, userDetailsService());
     }
 
     // UserDetailsService 빈도 필요

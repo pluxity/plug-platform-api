@@ -19,7 +19,6 @@ public record UserCreateRequest(
                 @NotBlank(message = "이름은 공백이 될 수 없습니다.")
                 @Size(max = 10, message = "이름은 10자 이하 여야 합니다.")
                 String name,
-        @NotBlank(message = "코드는 공백이 될 수 없습니다.") @Size(max = 20, message = "코드는 20자 이하 여야 합니다.")
-                String code,
+        @Size(max = 20, message = "코드는 20자 이하 여야 합니다.") String code,
         @Size(max = 20, message = "연락처는 20자 이하 여야 합니다.") String phoneNumber,
         @Size(max = 50, message = "부서는 50자 이하 여야 합니다.") String department) {}
