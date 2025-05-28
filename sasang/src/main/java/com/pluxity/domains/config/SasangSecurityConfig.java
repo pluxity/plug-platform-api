@@ -60,6 +60,43 @@ public class SasangSecurityConfig {
         return http.build();
     }
 
+    // GET 이외의 모든 요청에 대한 필터체인 (POST, PUT, DELETE 등)
+    @Bean
+    @Order(2)
+    public SecurityFilterChain nonGetRequestsFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher(request -> !HttpMethod.GET.matches(request.getMethod()))
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(
+                                                new AntPathRequestMatcher("/actuator/**"),
+                                                new AntPathRequestMatcher("/health"),
+                                                new AntPathRequestMatcher("/info"),
+                                                new AntPathRequestMatcher("/prometheus"),
+                                                new AntPathRequestMatcher("/error"),
+                                                new AntPathRequestMatcher("/swagger-ui/**"),
+                                                new AntPathRequestMatcher("/swagger-ui.html"),
+                                                new AntPathRequestMatcher("/api-docs/**"),
+                                                new AntPathRequestMatcher("/swagger-config/**"),
+                                                new AntPathRequestMatcher("/docs/**"))
+                                        .permitAll()
+                                        .requestMatchers(new AntPathRequestMatcher("/auth/**"))
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .addFilterBefore(
+                        sasangJwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(
+                        exceptions ->
+                                exceptions.authenticationEntryPoint(
+                                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+
+        return http.build();
+    }
+
     // 기존 JwtAuthenticationFilter 대신 SasangJwtAuthenticationFilter 빈 추가
     @Bean
     public SasangJwtAuthenticationFilter sasangJwtAuthenticationFilter() {

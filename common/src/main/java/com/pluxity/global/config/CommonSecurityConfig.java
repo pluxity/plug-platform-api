@@ -9,6 +9,7 @@ import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -46,6 +47,8 @@ public class CommonSecurityConfig {
     // 2. GET 이외의 요청 및 기존 규칙을 처리하는 SecurityFilterChain
     @Bean
     @Order(2) // GET 필터 체인보다 낮은 우선순위
+    @ConditionalOnMissingBean(
+            name = "nonGetRequestsFilterChain") // SasangSecurityConfig에 정의된 빈이 있으면 이 빈을 사용하지 않음
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 // 이 필터 체인은 GET 요청을 제외한 모든 요청 또는 특정 경로의 모든 메소드에 적용될 수 있습니다.
