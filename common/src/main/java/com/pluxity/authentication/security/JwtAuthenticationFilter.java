@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,13 +33,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @Nonnull HttpServletResponse response,
             @Nonnull FilterChain filterChain)
             throws ServletException, IOException {
-
-        // GET 메서드이면서 /users/me가 아닌 경우에만 바로 필터체인 진행
-        String requestURI = request.getRequestURI();
-        if (HttpMethod.GET.matches(request.getMethod()) && !requestURI.endsWith("/users/me")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
         try {
             Optional.of(request)
@@ -83,11 +75,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private boolean authenticationRequired(HttpServletRequest request) {
         String contextPath = request.getContextPath();
         String path = request.getRequestURI().substring(contextPath.length());
-
-        // GET 요청이면서 /users/me 경로인 경우에는 인증 필요
-        if (HttpMethod.GET.matches(request.getMethod()) && path.endsWith("/users/me")) {
-            return true;
-        }
 
         for (WhiteListPath value : WhiteListPath.values()) {
             if (path.startsWith("/" + value.getPath())) {
