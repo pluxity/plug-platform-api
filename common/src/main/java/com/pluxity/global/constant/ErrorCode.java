@@ -1,10 +1,10 @@
 package com.pluxity.global.constant;
 
+import static org.springframework.http.HttpStatus.*;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-
-import static org.springframework.http.HttpStatus.*;
 
 @Getter
 @RequiredArgsConstructor
@@ -38,7 +38,6 @@ public enum ErrorCode implements Code {
     CATEGORY_HAS_DEVICES(BAD_REQUEST, "카테고리에 등록된 디바이스가 있어 삭제할 수 없습니다."),
 
     EXCEED_CATEGORY_DEPTH(BAD_REQUEST, "카테고리는 깊이를 초과했습니다"),
-
     ;
     private final HttpStatus httpStatus;
     private final String message;
