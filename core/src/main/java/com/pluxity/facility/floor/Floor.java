@@ -18,16 +18,16 @@ public class Floor {
     @JoinColumn(name = "facility_id")
     private Facility facility;
 
-    @Column(name = "group_id", nullable = false)
-    private Integer groupId;
+    @Column(name = "floor_id", nullable = false)
+    private Integer floorId;
 
     @Column(name = "name", nullable = false)
     private String name;
 
     @Builder
-    public Floor(Facility facility, Integer groupId, String name) {
+    public Floor(Facility facility, Integer floorId, String name) {
         this.facility = facility;
-        this.groupId = groupId;
+        this.floorId = floorId;
         this.name = name;
     }
 

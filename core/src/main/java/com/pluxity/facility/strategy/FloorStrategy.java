@@ -48,7 +48,7 @@ public class FloorStrategy implements FacilityStrategy<FloorRequest, FloorRespon
     private Floor toEntity(Facility facility, FloorRequest request) {
         return Floor.builder()
                 .facility(facility)
-                .groupId(request.groupId())
+                .floorId(request.floorId())
                 .name(request.name())
                 .build();
     }
