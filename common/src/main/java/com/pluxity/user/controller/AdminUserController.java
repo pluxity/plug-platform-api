@@ -13,10 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/users")
@@ -367,7 +368,7 @@ public class AdminUserController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping(value = "/{id}/roles")
+    @PutMapping(value = "/{id}/roles")
     public ResponseEntity<Void> updateRoles(
             @Parameter(description = "사용자 ID", required = true) @PathVariable("id") Long id,
             @Parameter(description = "역할 수정 정보", required = true) @Valid @RequestBody
