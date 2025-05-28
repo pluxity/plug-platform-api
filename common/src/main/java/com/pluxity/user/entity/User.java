@@ -2,11 +2,15 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import java.util.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -108,12 +112,9 @@ public class User extends BaseEntity {
     public void updateRoles(List<Role> newRoles) {
         Objects.requireNonNull(newRoles, "Roles list must not be null");
 
-        Set<Role> currentRoles = new HashSet<>(getRoles());
-        Set<Role> updatedRoles = new HashSet<>(newRoles);
+        clearRoles();
 
-        currentRoles.stream().filter(role -> !updatedRoles.contains(role)).forEach(this::removeRole);
-
-        updatedRoles.stream().filter(role -> !currentRoles.contains(role)).forEach(this::addRole);
+        newRoles.forEach(this::addRole);
     }
 
     public void clearRoles() {
