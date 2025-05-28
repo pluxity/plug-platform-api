@@ -26,11 +26,11 @@ jwt:
   access-token:
     name: AccessToken
     secret: +iBcUJRWGvl+94+ow4nXV1fzWIq4rph8x7MyRmrtWio=
-    expiration: 3600
+    expiration: 36000000
   refresh-token:
     name: RefreshToken
     secret: gtzRlqF6bIkmOi5i15A9G5xbLdwiAMmZi6JPOeemC1E=
-    expiration: 86400
+    expiration: 864000000
 
 springdoc:
   api-docs:
