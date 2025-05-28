@@ -1,13 +1,18 @@
 package com.pluxity.user.service;
 
-import com.pluxity.user.dto.*;
+import com.pluxity.global.exception.CustomException;
+import com.pluxity.user.dto.RoleCreateRequest;
+import com.pluxity.user.dto.RoleResponse;
+import com.pluxity.user.dto.RoleUpdateRequest;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.repository.RoleRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +33,10 @@ public class RoleService {
     @Transactional
     public RoleResponse save(RoleCreateRequest request) {
         Role role = Role.builder().name(request.name()).build();
-
+        roleRepository.findByName(request.name()).ifPresent(
+                existingRole -> {
+                    throw new CustomException("Role already exists with name", HttpStatus.BAD_REQUEST, "이미 Role에 존재하는 이름입니다: " + request.name());
+                });
         Role savedRole = roleRepository.save(role);
         return RoleResponse.from(savedRole);
     }

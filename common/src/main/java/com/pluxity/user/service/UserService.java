@@ -115,7 +115,8 @@ public class UserService {
         User user = findUserById(id);
 
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-            throw new CustomException("Invalid current password", HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
+            throw new CustomException(
+                    "Invalid current password", HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
         }
 
         user.changePassword(passwordEncoder.encode(request.newPassword()));
