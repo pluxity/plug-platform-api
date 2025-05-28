@@ -1,13 +1,10 @@
 package com.pluxity.global.config;
 
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
-
 import com.pluxity.authentication.security.CustomUserDetails;
 import com.pluxity.authentication.security.JwtAuthenticationFilter;
 import com.pluxity.authentication.security.JwtProvider;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +27,10 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_USER;
 
 @Configuration
 @EnableWebSecurity
@@ -112,6 +113,7 @@ public class CommonSecurityConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = "sasangJwtAuthenticationFilter")
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtProvider, userDetailsService());
     }
