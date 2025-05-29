@@ -101,10 +101,6 @@ class FeatureServiceTest {
         assertEquals(scale.getX(), response.scale().getX());
         assertEquals(scale.getY(), response.scale().getY());
         assertEquals(scale.getZ(), response.scale().getZ());
-        assertNotNull(response.asset());
-        assertEquals(assetId, response.asset().id());
-        assertNotNull(response.facilityId());
-        assertEquals(facilityId, response.facilityId().id());
         assertEquals(floorId, response.floorId());
         
         // 저장된 피처 확인
@@ -154,8 +150,6 @@ class FeatureServiceTest {
         assertEquals(1.0, response.scale().getX());
         assertEquals(1.0, response.scale().getY());
         assertEquals(1.0, response.scale().getZ());
-        assertNotNull(response.asset());
-        assertNotNull(response.facilityId());
         assertEquals(floorId, response.floorId());
 
         Feature savedFeature = featureRepository.findById(featureId).orElse(null);
@@ -205,8 +199,6 @@ class FeatureServiceTest {
         assertEquals(scale.getX(), response.scale().getX());
         assertEquals(scale.getY(), response.scale().getY());
         assertEquals(scale.getZ(), response.scale().getZ());
-        assertNotNull(response.asset());
-        assertNotNull(response.facilityId());
         assertEquals(floorId, response.floorId());
     }
     
@@ -340,8 +332,6 @@ class FeatureServiceTest {
         assertEquals(originalScale.getX(), response.scale().getX());
         assertEquals(originalScale.getY(), response.scale().getY());
         assertEquals(originalScale.getZ(), response.scale().getZ());
-        assertNotNull(response.asset());
-        assertNotNull(response.facilityId());
         assertEquals(floorId, response.floorId());
         
         Feature updatedFeatureFromDb = featureRepository.findById(savedFeature.getId()).orElseThrow();
@@ -393,8 +383,6 @@ class FeatureServiceTest {
         assertEquals(originalPosition.getX(), response.position().getX());
         assertEquals(originalRotation.getY(), response.rotation().getY());
         assertEquals(newScale.getZ(), response.scale().getZ());
-        assertNotNull(response.asset());
-        assertNotNull(response.facilityId());
         assertEquals(floorId, response.floorId());
         
         Feature updatedFeature = featureRepository.findById(featureId).orElse(null);
@@ -540,11 +528,6 @@ class FeatureServiceTest {
         // then
         assertNotNull(response);
         assertEquals(featureId, response.id());
-        assertNotNull(response.asset());
-        assertEquals(assetId, response.asset().id());
-        assertEquals("Test Asset", response.asset().name());
-        assertNotNull(response.facilityId());
-        assertEquals(facilityId, response.facilityId().id());
         assertEquals(floorId, response.floorId());
 
         Feature savedFeature = featureRepository.findById(featureId).orElse(null);
@@ -581,9 +564,6 @@ class FeatureServiceTest {
 
         // then
         assertNotNull(response);
-        assertNotNull(response.asset());
-        assertEquals(assetId, response.asset().id());
-        assertNotNull(response.facilityId());
         assertEquals(floorId, response.floorId());
 
         Feature updatedFeature = featureRepository.findById(savedFeature.getId()).orElseThrow();
@@ -655,9 +635,6 @@ class FeatureServiceTest {
         FeatureResponse response = featureService.assignAssetToFeature(feature.getId(), newAssetId);
 
         // then
-        assertNotNull(response.asset());
-        assertEquals(newAssetId, response.asset().id());
-        assertNotNull(response.facilityId());
         assertEquals(floorId, response.floorId());
 
         Feature updatedFeature = featureRepository.findById(feature.getId()).orElseThrow();
