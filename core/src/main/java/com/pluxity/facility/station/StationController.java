@@ -15,13 +15,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/stations")
+import java.util.List;
+
+//@RestController
+//@RequestMapping("/stations")
 @RequiredArgsConstructor
 @Tag(name = "Station Controller", description = "스테이션 관리 API")
 public class StationController {

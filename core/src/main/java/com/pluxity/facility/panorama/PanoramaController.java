@@ -14,13 +14,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/panoramas")
+import java.util.List;
+
+//@RestController
+//@RequestMapping("/panoramas")
 @RequiredArgsConstructor
 @Tag(name = "Panorama Controller", description = "파노라마 관리 API")
 public class PanoramaController {

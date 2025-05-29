@@ -15,13 +15,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/device-categories")
+import java.util.List;
+
+//@RestController
+//@RequestMapping("/device-categories")
 @RequiredArgsConstructor
 @Tag(name = "Device Category Controller", description = "디바이스 카테고리 관리 API")
 public class DeviceCategoryController {
