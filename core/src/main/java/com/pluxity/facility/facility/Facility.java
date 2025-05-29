@@ -1,9 +1,12 @@
 package com.pluxity.facility.facility;
 
 import com.pluxity.facility.category.FacilityCategory;
+import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,6 +48,9 @@ public abstract class Facility extends BaseEntity {
 
     @Column(name = "history_comment")
     private String historyComment;
+
+    @OneToMany(mappedBy = "facility")
+    private final List<Feature> features = new ArrayList<>();
 
     protected Facility(String name, String description) {
         this(name, null, description, null);
@@ -102,6 +108,16 @@ public abstract class Facility extends BaseEntity {
 
     public void assignCategory(FacilityCategory category) {
         this.category = category;
+    }
+
+    public void addFeature(Feature feature) {
+        if (!this.features.contains(feature)) {
+            this.features.add(feature);
+        }
+    }
+
+    public void removeFeature(Feature feature) {
+        this.features.remove(feature);
     }
 
     public void update(Facility facility) {

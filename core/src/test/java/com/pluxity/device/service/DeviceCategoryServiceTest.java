@@ -271,3 +271,4 @@ class DeviceCategoryServiceTest {
         assertThrows(CustomException.class, () -> deviceCategoryService.delete(parentId));
     }
 }
+//test

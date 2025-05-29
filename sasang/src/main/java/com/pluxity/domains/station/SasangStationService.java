@@ -4,16 +4,17 @@ import com.pluxity.domains.station.dto.SasangStationCreateRequest;
 import com.pluxity.domains.station.dto.SasangStationResponse;
 import com.pluxity.domains.station.dto.SasangStationUpdateRequest;
 import com.pluxity.facility.facility.Facility;
-import com.pluxity.facility.facility.FacilityResponse;
 import com.pluxity.facility.facility.FacilityService;
 import com.pluxity.facility.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.line.Line;
 import com.pluxity.facility.line.LineService;
 import com.pluxity.facility.station.StationService;
 import com.pluxity.facility.station.dto.StationResponse;
+import com.pluxity.facility.station.dto.StationResponseWithFeature;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
@@ -137,6 +138,12 @@ public class SasangStationService {
     public List<FacilityHistoryResponse> findFacilityHistories(Long id) {
         findSasangStationById(id);
         return stationService.findFacilityHistories(id);
+    }
+
+    @Transactional(readOnly = true)
+    public StationResponseWithFeature findStationWithFeatures(Long id) {
+        findSasangStationById(id);
+        return stationService.findStationWithFeatures(id);
     }
 
     private SasangStation findSasangStationById(Long id) {

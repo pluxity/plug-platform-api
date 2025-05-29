@@ -1,26 +1,35 @@
-package com.pluxity.facility.facility;
+package com.pluxity.facility.facility.dto;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.pluxity.facility.facility.Facility;
+import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.global.response.BaseResponse;
-import lombok.Builder;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@Builder
-public record FacilityResponse(
+public record FacilityResponseWithFeature(
         Long id,
         String code,
         String name,
         String description,
+        List<FeatureResponse> features,
         FileResponse drawing,
         FileResponse thumbnail,
         @JsonUnwrapped BaseResponse baseResponse) {
-    public static FacilityResponse from(
+
+    public static FacilityResponseWithFeature from(
             Facility facility, FileResponse drawing, FileResponse thumbnail) {
-        return new FacilityResponse(
+
+        List<FeatureResponse> featureResponses =
+                facility.getFeatures().stream().map(FeatureResponse::from).collect(Collectors.toList());
+
+        return new FacilityResponseWithFeature(
                 facility.getId(),
                 facility.getCode(),
                 facility.getName(),
                 facility.getDescription(),
+                featureResponses,
                 drawing != null ? drawing : FileResponse.empty(),
                 thumbnail != null ? thumbnail : FileResponse.empty(),
                 BaseResponse.of(facility));

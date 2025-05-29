@@ -156,7 +156,15 @@ public class Feature extends BaseEntity {
     }
 
     public void changeFacility(Facility newFacility) {
+        if (this.facility != null) {
+            this.facility.getFeatures().remove(this);
+        }
+
         this.facility = newFacility;
+
+        if (newFacility != null && !newFacility.getFeatures().contains(this)) {
+            newFacility.getFeatures().add(this);
+        }
     }
 
     public void clearDeviceOnly() {

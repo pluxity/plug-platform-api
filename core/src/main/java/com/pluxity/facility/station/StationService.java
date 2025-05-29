@@ -1,15 +1,17 @@
 package com.pluxity.facility.station;
 
 import com.pluxity.facility.facility.Facility;
-import com.pluxity.facility.facility.FacilityResponse;
 import com.pluxity.facility.facility.FacilityService;
 import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.facility.dto.FacilityResponse;
+import com.pluxity.facility.facility.dto.FacilityResponseWithFeature;
 import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.line.Line;
 import com.pluxity.facility.line.LineService;
 import com.pluxity.facility.station.dto.StationCreateRequest;
 import com.pluxity.facility.station.dto.StationResponse;
+import com.pluxity.facility.station.dto.StationResponseWithFeature;
 import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
@@ -188,5 +190,29 @@ public class StationService {
         Station station = findStationById(stationId);
         Line line = lineService.findLineById(lineId);
         station.removeLine(line);
+    }
+
+    @Transactional(readOnly = true)
+    public StationResponseWithFeature findStationWithFeatures(Long id) {
+        Station station = findStationById(id);
+        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+
+        List<Long> lineIds =
+                station.getStationLines().stream()
+                        .map(stationLine -> stationLine.getLine().getId())
+                        .collect(Collectors.toList());
+
+        FacilityResponseWithFeature facilityResponse =
+                FacilityResponseWithFeature.from(
+                        station,
+                        fileService.getFileResponse(station.getDrawingFileId()),
+                        fileService.getFileResponse(station.getThumbnailFileId()));
+
+        return StationResponseWithFeature.builder()
+                .facility(facilityResponse)
+                .floors(floorResponse)
+                .lineIds(lineIds)
+                .route(station.getRoute())
+                .build();
     }
 }

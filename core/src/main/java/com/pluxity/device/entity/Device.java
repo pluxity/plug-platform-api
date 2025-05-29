@@ -76,4 +76,9 @@ public abstract class Device extends BaseEntity {
             category.addDevice(this);
         }
     }
+
+    // 디바이스 코드를 반환하는 메서드 (기본 구현은 null 반환)
+    public String getDeviceCode() {
+        return null;
+    }
 }

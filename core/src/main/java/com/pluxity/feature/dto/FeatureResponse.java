@@ -2,14 +2,12 @@ package com.pluxity.feature.dto;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.asset.dto.AssetResponse;
-import com.pluxity.facility.facility.FacilityResponse;
+import com.pluxity.facility.facility.dto.FacilityResponse;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.Spatial;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.global.response.BaseResponse;
-import lombok.Builder;
 
-@Builder
 public record FeatureResponse(
         String id,
         Spatial position,
@@ -18,6 +16,7 @@ public record FeatureResponse(
         AssetResponse asset,
         FacilityResponse facilityId,
         Long floorId,
+        String deviceCode,
         @JsonUnwrapped BaseResponse baseResponse) {
 
     public static FeatureResponse from(
@@ -26,6 +25,13 @@ public record FeatureResponse(
             FileResponse assetThumbnail,
             FileResponse facilityDrawing,
             FileResponse facilityThumbnail) {
+
+        // Device에서 code 정보 가져오기
+        String deviceCode = null;
+        if (feature.getDevice() != null) {
+            deviceCode = feature.getDevice().getDeviceCode();
+        }
+
         return new FeatureResponse(
                 feature.getId(),
                 feature.getPosition(),
@@ -38,10 +44,17 @@ public record FeatureResponse(
                         ? FacilityResponse.from(feature.getFacility(), facilityDrawing, facilityThumbnail)
                         : null,
                 feature.getFloorId(),
+                deviceCode,
                 BaseResponse.of(feature));
     }
 
     public static FeatureResponse from(Feature feature) {
+        // Device에서 code 정보 가져오기
+        String deviceCode = null;
+        if (feature.getDevice() != null) {
+            deviceCode = feature.getDevice().getDeviceCode();
+        }
+
         return new FeatureResponse(
                 feature.getId(),
                 feature.getPosition(),
@@ -50,6 +63,7 @@ public record FeatureResponse(
                 null,
                 null,
                 feature.getFloorId(),
+                deviceCode,
                 BaseResponse.of(feature));
     }
 }

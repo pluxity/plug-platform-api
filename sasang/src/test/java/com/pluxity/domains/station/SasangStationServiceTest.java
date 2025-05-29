@@ -12,7 +12,11 @@ import com.pluxity.facility.line.LineRepository;
 import com.pluxity.facility.line.LineService;
 import com.pluxity.facility.station.StationService;
 import com.pluxity.facility.station.dto.StationCreateRequest;
+import com.pluxity.facility.station.dto.StationResponseWithFeature;
 import com.pluxity.facility.station.dto.StationUpdateRequest;
+import com.pluxity.feature.entity.Feature;
+import com.pluxity.feature.entity.Spatial;
+import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
@@ -32,6 +36,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -63,6 +68,9 @@ class SasangStationServiceTest {
 
     @Autowired
     EntityManager em;
+
+    @Autowired
+    FeatureRepository featureRepository;
 
     private Long drawingFileId;
     private Long thumbnailFileId;
@@ -221,5 +229,76 @@ class SasangStationServiceTest {
 
         // when & then
         assertThrows(CustomException.class, () -> sasangStationService.findByExternalCode(nonExistingExternalCode));
+    }
+
+    @Test
+    @DisplayName("스테이션과 피처 간의 양방향 연관관계가 올바르게 설정된다")
+    void stationAndFeature_BidirectionalRelationship_IsSetCorrectly() {
+        // given
+        Long stationId = sasangStationService.save(createRequest);
+        SasangStation station = sasangStationRepository.findById(stationId).orElseThrow();
+        
+        // Feature 생성
+        Feature feature = Feature.builder()
+                .id(UUID.randomUUID().toString())
+                .position(new Spatial(10.0, 20.0, 30.0))
+                .rotation(new Spatial(0.0, 0.0, 0.0))
+                .scale(new Spatial(1.0, 1.0, 1.0))
+                .floorId(1L)
+                .build();
+        
+        // when
+        // Feature에서 Station 설정 (양방향 연관관계 설정)
+        feature.changeFacility(station);
+        featureRepository.save(feature);
+        
+        em.flush();
+        em.clear();
+        
+        // then
+        // 다시 로드해서 연관관계 확인
+        SasangStation foundStation = sasangStationRepository.findById(stationId).orElseThrow();
+        Feature foundFeature = featureRepository.findById(feature.getId()).orElseThrow();
+        
+        // Station에서 Feature로의 참조 확인
+        assertThat(foundStation.getFeatures()).hasSize(1);
+        assertThat(foundStation.getFeatures().get(0).getId()).isEqualTo(feature.getId());
+        
+        // Feature에서 Station으로의 참조 확인
+        assertThat(foundFeature.getFacility()).isNotNull();
+        assertThat(foundFeature.getFacility().getId()).isEqualTo(stationId);
+    }
+    
+    @Test
+    @DisplayName("스테이션의 피처 목록을 조회할 수 있다")
+    void findStationWithFeatures_ReturnsStationWithFeatures() {
+        // given
+        Long stationId = sasangStationService.save(createRequest);
+        SasangStation station = sasangStationRepository.findById(stationId).orElseThrow();
+        
+        // 여러 Feature 생성 및 연결
+        for (int i = 0; i < 3; i++) {
+            Feature feature = Feature.builder()
+                    .id(UUID.randomUUID().toString())
+                    .position(new Spatial(i * 10.0, i * 20.0, i * 30.0))
+                    .rotation(new Spatial(0.0, 0.0, 0.0))
+                    .scale(new Spatial(1.0, 1.0, 1.0))
+                    .floorId(1L)
+                    .build();
+            
+            feature.changeFacility(station);
+            featureRepository.save(feature);
+        }
+        
+        em.flush();
+        em.clear();
+        
+        // when
+        StationResponseWithFeature response = sasangStationService.findStationWithFeatures(stationId);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.facility().features()).hasSize(3);
+        assertThat(response.facility().id()).isEqualTo(stationId);
     }
 } 

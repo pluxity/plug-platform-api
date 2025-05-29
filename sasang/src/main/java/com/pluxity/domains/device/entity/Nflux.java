@@ -82,4 +82,9 @@ public class Nflux extends Device {
     public void updateDescription(String description) {
         this.description = description;
     }
+
+    @Override
+    public String getDeviceCode() {
+        return this.code;
+    }
 }

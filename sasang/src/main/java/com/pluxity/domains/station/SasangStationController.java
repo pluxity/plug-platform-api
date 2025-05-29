@@ -4,6 +4,7 @@ import com.pluxity.domains.station.dto.SasangStationCreateRequest;
 import com.pluxity.domains.station.dto.SasangStationResponse;
 import com.pluxity.domains.station.dto.SasangStationUpdateRequest;
 import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.station.dto.StationResponseWithFeature;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -269,5 +270,30 @@ public class SasangStationController {
             @Parameter(description = "노선 ID", required = true) @PathVariable Long lineId) {
         service.removeLineFromStation(stationId, lineId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "역의 피처 목록 조회", description = "특정 역의 모든 피처 목록을 조회합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "피처 목록 조회 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "역을 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/{stationId}/features")
+    public ResponseEntity<DataResponseBody<StationResponseWithFeature>> getStationFeatures(
+            @Parameter(description = "역 ID", required = true) @PathVariable Long stationId) {
+        return ResponseEntity.ok(DataResponseBody.of(service.findStationWithFeatures(stationId)));
     }
 }
