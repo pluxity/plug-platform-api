@@ -2,7 +2,6 @@ package com.pluxity.domains.config;
 
 import com.pluxity.authentication.security.CustomUserDetails;
 import com.pluxity.authentication.security.JwtProvider;
-import com.pluxity.domains.config.security.SasangJwtAuthenticationFilter;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;

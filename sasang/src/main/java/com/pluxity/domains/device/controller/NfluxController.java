@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/devices")
+@RequestMapping("/sasang/devices")
 @RequiredArgsConstructor
 @Tag(name = "Device Controller", description = "디바이스 관리 API")
 public class NfluxController {

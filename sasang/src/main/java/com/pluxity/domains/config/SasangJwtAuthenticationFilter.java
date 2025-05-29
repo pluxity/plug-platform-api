@@ -1,4 +1,4 @@
-package com.pluxity.domains.config.security;
+package com.pluxity.domains.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pluxity.authentication.security.JwtProvider;
