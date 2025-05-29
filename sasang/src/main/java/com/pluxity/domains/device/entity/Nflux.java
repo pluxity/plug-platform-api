@@ -3,10 +3,8 @@ package com.pluxity.domains.device.entity;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
-import com.pluxity.facility.facility.Facility;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
-import com.pluxity.icon.entity.Icon;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,10 +18,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Nflux extends Device {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_id")
-    private Icon icon;
-
     @Column(name = "code")
     private String code;
 
@@ -32,15 +26,8 @@ public class Nflux extends Device {
 
     @Builder
     public Nflux(
-            Feature feature,
-            DeviceCategory category,
-            Facility facility,
-            Icon icon,
-            String name,
-            String code,
-            String description) {
-        super(feature, category, facility);
-        this.icon = icon;
+            Feature feature, DeviceCategory category, String name, String code, String description) {
+        super(feature, category);
         updateName(name);
         this.code = code;
         this.description = description;
@@ -49,8 +36,6 @@ public class Nflux extends Device {
     public static Nflux create(
             Feature feature,
             DeviceCategory category,
-            Facility facility,
-            Icon icon,
             Asset asset,
             String name,
             String code,
@@ -58,8 +43,6 @@ public class Nflux extends Device {
         return Nflux.builder()
                 .feature(feature)
                 .category(category)
-                .facility(facility)
-                .icon(icon)
                 .name(name)
                 .code(code)
                 .description(description)
@@ -68,8 +51,6 @@ public class Nflux extends Device {
 
     public void update(
             DeviceCategory newCategory,
-            Facility newFacility,
-            Icon newIcon,
             Asset newAsset,
             String newName,
             String newCode,
@@ -81,14 +62,6 @@ public class Nflux extends Device {
 
         if (newCategory != null) {
             updateCategory(newCategory);
-        }
-
-        if (newFacility != null) {
-            updateFacility(newFacility);
-        }
-
-        if (newIcon != null) {
-            this.icon = newIcon;
         }
 
         if (newName != null) {
@@ -108,9 +81,5 @@ public class Nflux extends Device {
 
     public void updateDescription(String description) {
         this.description = description;
-    }
-
-    public void updateIcon(Icon icon) {
-        this.icon = icon;
     }
 }

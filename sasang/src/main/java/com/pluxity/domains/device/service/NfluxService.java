@@ -10,17 +10,11 @@ import com.pluxity.domains.device.dto.NfluxResponse;
 import com.pluxity.domains.device.dto.NfluxUpdateRequest;
 import com.pluxity.domains.device.entity.Nflux;
 import com.pluxity.domains.device.repository.NfluxRepository;
-import com.pluxity.facility.station.Station;
-import com.pluxity.facility.station.StationService;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.repository.FeatureRepository;
-import com.pluxity.file.dto.FileResponse;
-import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.response.BaseResponse;
-import com.pluxity.icon.entity.Icon;
-import com.pluxity.icon.service.IconService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +30,7 @@ public class NfluxService {
     private final NfluxRepository repository;
     private final DeviceCategoryRepository categoryRepository;
     private final DeviceCategoryService deviceCategoryService;
-    private final StationService stationService;
     private final AssetService assetService;
-    private final IconService iconService;
-    private final FileService fileService;
     private final FeatureRepository featureRepository;
 
     @Transactional(readOnly = true)
@@ -59,40 +50,21 @@ public class NfluxService {
     }
 
     private NfluxResponse createResponse(Nflux device) {
-        FileResponse iconResponse = getIconFileResponse(device);
-
         return new NfluxResponse(
                 device.getId(),
                 device.getFeature() != null ? FeatureResponse.from(device.getFeature()) : null,
                 device.getCategory() != null ? device.getCategory().getId() : null,
                 device.getCategory() != null ? device.getCategory().getName() : null,
-                device.getFacility() != null ? device.getFacility().getId() : null,
-                device.getFacility() != null ? device.getFacility().getName() : null,
                 device.getFeature() != null && device.getFeature().getAsset() != null
                         ? device.getFeature().getAsset().getId()
                         : null,
                 device.getFeature() != null && device.getFeature().getAsset() != null
                         ? device.getFeature().getAsset().getName()
                         : null,
-                iconResponse,
-                device.getIcon() != null ? device.getIcon().getName() : null,
                 device.getName(),
                 device.getCode(),
                 device.getDescription(),
                 BaseResponse.of(device));
-    }
-
-    private FileResponse getIconFileResponse(Nflux device) {
-        if (device.getIcon() == null || device.getIcon().getFileId() == null) {
-            return FileResponse.empty();
-        }
-
-        try {
-            return fileService.getFileResponse(device.getIcon().getFileId());
-        } catch (Exception e) {
-            log.error("Failed to get icon file: {}", e.getMessage());
-            return FileResponse.empty();
-        }
     }
 
     @Transactional
@@ -107,11 +79,7 @@ public class NfluxService {
         DeviceCategory category =
                 request.deviceCategoryId() != null ? findCategoryById(request.deviceCategoryId()) : null;
 
-        Station station = request.stationId() != null ? findStationById(request.stationId()) : null;
-
         Asset asset = request.asset() != null ? findAssetById(request.asset()) : null;
-
-        Icon icon = request.iconId() != null ? findIconById(request.iconId()) : null;
 
         Feature feature = null;
         if (request.feature() != null) {
@@ -123,14 +91,7 @@ public class NfluxService {
         }
 
         return Nflux.create(
-                feature,
-                category,
-                station,
-                icon,
-                asset,
-                request.name(),
-                request.code(),
-                request.description());
+                feature, category, asset, request.name(), request.code(), request.description());
     }
 
     @Transactional
@@ -140,16 +101,6 @@ public class NfluxService {
         DeviceCategory categoryToUpdate = null;
         if (request.deviceCategoryId() != null) {
             categoryToUpdate = findCategoryById(request.deviceCategoryId());
-        }
-
-        Station stationToUpdate = null;
-        if (request.stationId() != null) {
-            stationToUpdate = findStationById(request.stationId());
-        }
-
-        Icon icon = null;
-        if (request.iconId() != null) {
-            icon = findIconById(request.iconId());
         }
 
         Asset asset = null;
@@ -163,8 +114,6 @@ public class NfluxService {
 
         device.update(
                 categoryToUpdate,
-                stationToUpdate,
-                icon,
                 asset,
                 request.name(),
                 request.code(),
@@ -191,16 +140,8 @@ public class NfluxService {
         return deviceCategoryService.findById(id);
     }
 
-    private Station findStationById(Long id) {
-        return stationService.findStationById(id);
-    }
-
     private Asset findAssetById(Long id) {
         return assetService.findById(id);
-    }
-
-    private Icon findIconById(Long id) {
-        return iconService.findById(id);
     }
 
     @Transactional

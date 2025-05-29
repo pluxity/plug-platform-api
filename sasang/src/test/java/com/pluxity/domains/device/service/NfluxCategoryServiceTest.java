@@ -1,7 +1,6 @@
 package com.pluxity.domains.device.service;
 
 import com.pluxity.SasangApplication;
-import com.pluxity.device.dto.DeviceCategoryRequest;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.domains.device.dto.NfluxCategoryCreateRequest;
 import com.pluxity.domains.device.dto.NfluxCategoryResponse;
@@ -40,8 +39,7 @@ class NfluxCategoryServiceTest {
     private DeviceCategoryService deviceCategoryService;
 
     private NfluxCategory rootCategory; // 루트 카테고리 (depth=1)
-    private NfluxCategoryCreateRequest createRequestWithoutParent; // 루트 카테고리 생성용
-    private NfluxCategoryCreateRequest createRequestWithDeviceCategory;
+    private NfluxCategoryCreateRequest createRequest; // 루트 카테고리 생성용
 
     @BeforeEach
     void setUp() {
@@ -52,25 +50,11 @@ class NfluxCategoryServiceTest {
                 .build();
         nfluxCategoryRepository.save(rootCategory);
 
-        // 루트 카테고리 생성 요청 준비 (parent 없음 - 루트 카테고리 됨)
-        createRequestWithoutParent = new NfluxCategoryCreateRequest(
+        // 생성 요청 준비
+        createRequest = NfluxCategoryCreateRequest.of(
                 "테스트 루트 카테고리",
-                null, // 부모 없음
-                "/test-root"
-        );
-        
-        // DeviceCategoryRequest를 포함한 생성 요청 준비 (부모 없는 루트 카테고리)
-        DeviceCategoryRequest deviceCategoryRequest = new DeviceCategoryRequest(
-                "테스트 디바이스 루트 카테고리",
-                null, // 부모 없음
-                null // thumbnailFileId
-        );
-        
-        createRequestWithDeviceCategory = new NfluxCategoryCreateRequest(
-                "테스트 카테고리 with DeviceCategory",
-                null, // 부모 없음
-                "/test-with-device",
-                deviceCategoryRequest
+                "/test-root",
+                null
         );
     }
 
@@ -78,7 +62,7 @@ class NfluxCategoryServiceTest {
     @DisplayName("루트 카테고리 생성 시 카테고리가 저장된다")
     void save_WithValidRequest_SavesCategory() {
         // when
-        Long id = nfluxCategoryService.save(createRequestWithoutParent);
+        Long id = nfluxCategoryService.save(createRequest);
 
         // then
         assertThat(id).isNotNull();
@@ -87,51 +71,35 @@ class NfluxCategoryServiceTest {
         NfluxCategoryResponse savedCategory = nfluxCategoryService.findById(id);
         assertThat(savedCategory).isNotNull();
         assertThat(savedCategory.name()).isEqualTo("테스트 루트 카테고리");
-        assertThat(savedCategory.parentId()).isNull(); // 루트 카테고리이므로 부모 없음
         assertThat(savedCategory.contextPath()).isEqualTo("/test-root");
     }
     
     @Test
-    @DisplayName("DeviceCategoryRequest를 포함한 요청으로 루트 카테고리 생성 시 카테고리가 저장된다")
-    void save_WithDeviceCategoryRequest_SavesCategory() {
+    @DisplayName("아이콘 ID를 포함한 요청으로 카테고리 생성 시 카테고리가 저장된다")
+    void save_WithIconFileId_SavesCategory() {
+        // given
+        Long iconFileId = 1L;
+        NfluxCategoryCreateRequest requestWithIcon = NfluxCategoryCreateRequest.of(
+                "아이콘 포함 카테고리",
+                "/with-icon",
+                iconFileId
+        );
+                
         // when
-        Long id = nfluxCategoryService.save(createRequestWithDeviceCategory);
+        Long id = nfluxCategoryService.save(requestWithIcon);
 
         // then
-        assertThat(id).isNotNull();
-
-        // 저장된 카테고리 확인
         NfluxCategoryResponse savedCategory = nfluxCategoryService.findById(id);
         assertThat(savedCategory).isNotNull();
-        assertThat(savedCategory.name()).isEqualTo("테스트 디바이스 루트 카테고리");
-        assertThat(savedCategory.parentId()).isNull(); // 루트 카테고리이므로 부모 없음
-        assertThat(savedCategory.contextPath()).isEqualTo("/test-with-device");
-    }
-
-    @Test
-    @DisplayName("깊이 제한을 초과하면 예외가 발생한다")
-    void save_ExceedingMaxDepth_ThrowsException() {
-        // given - 이미 루트 카테고리가 있음 (depth=1)
-        
-        // 루트 카테고리의 자식 카테고리 생성 요청 (depth=2)
-        NfluxCategoryCreateRequest childRequest = new NfluxCategoryCreateRequest(
-                "자식 카테고리",
-                rootCategory.getId(), // 루트 카테고리를 부모로 지정
-                "/child"
-        );
-        
-        // when & then
-        // NfluxCategory의 maxDepth가 1이므로, 자식 카테고리 생성 시 예외가 발생해야 함
-        assertThrows(CustomException.class, () -> 
-            nfluxCategoryService.save(childRequest)
-        );
+        assertThat(savedCategory.name()).isEqualTo("아이콘 포함 카테고리");
+        assertThat(savedCategory.iconFile()).isNotNull();
     }
 
     @Test
     @DisplayName("모든 카테고리 조회 시 카테고리 목록이 반환된다")
     void findAll_ReturnsListOfCategoryResponses() {
         // given
-        nfluxCategoryService.save(createRequestWithoutParent);
+        nfluxCategoryService.save(createRequest);
 
         // when
         List<NfluxCategoryResponse> responses = nfluxCategoryService.findAll();
@@ -145,21 +113,20 @@ class NfluxCategoryServiceTest {
     @DisplayName("루트 카테고리만 조회 시 부모가 없는 카테고리만 반환된다")
     void findAllRoots_ReturnsOnlyRootCategories() {
         // given
-        nfluxCategoryService.save(createRequestWithoutParent);
+        nfluxCategoryService.save(createRequest);
 
         // when
         List<NfluxCategoryResponse> rootCategories = nfluxCategoryService.findAllRoots();
 
         // then
         assertThat(rootCategories).isNotEmpty();
-        assertThat(rootCategories).allMatch(category -> category.parentId() == null);
     }
 
     @Test
     @DisplayName("ID로 카테고리 조회 시 카테고리 정보가 반환된다")
     void findById_WithExistingId_ReturnsCategoryResponse() {
         // given
-        Long id = nfluxCategoryService.save(createRequestWithoutParent);
+        Long id = nfluxCategoryService.save(createRequest);
 
         // when
         NfluxCategoryResponse response = nfluxCategoryService.findById(id);
@@ -187,12 +154,12 @@ class NfluxCategoryServiceTest {
     @DisplayName("유효한 요청으로 카테고리 정보 수정 시 카테고리 정보가 업데이트된다")
     void update_WithValidRequest_UpdatesCategory() {
         // given
-        Long id = nfluxCategoryService.save(createRequestWithoutParent);
+        Long id = nfluxCategoryService.save(createRequest);
         
-        NfluxCategoryUpdateRequest updateRequest = new NfluxCategoryUpdateRequest(
+        NfluxCategoryUpdateRequest updateRequest = NfluxCategoryUpdateRequest.of(
                 "수정된 카테고리",
-                null, // 부모 ID는 변경하지 않음
-                "/updated"
+                "/updated",
+                null
         );
 
         // when
@@ -200,7 +167,6 @@ class NfluxCategoryServiceTest {
 
         // then
         assertThat(updatedCategory.name()).isEqualTo("수정된 카테고리");
-        assertThat(updatedCategory.parentId()).isNull(); // 여전히 루트 카테고리
         assertThat(updatedCategory.contextPath()).isEqualTo("/updated");
         
         // 데이터베이스에서 직접 확인
@@ -214,10 +180,10 @@ class NfluxCategoryServiceTest {
     @DisplayName("부분 업데이트 시 지정된 필드만 변경된다")
     void update_WithPartialRequest_UpdatesOnlySpecifiedFields() {
         // given
-        Long id = nfluxCategoryService.save(createRequestWithoutParent);
+        Long id = nfluxCategoryService.save(createRequest);
         
         // 이름만 변경
-        NfluxCategoryUpdateRequest nameOnlyRequest = new NfluxCategoryUpdateRequest(
+        NfluxCategoryUpdateRequest nameOnlyRequest = NfluxCategoryUpdateRequest.of(
                 "이름만 변경",
                 null,
                 null
@@ -228,49 +194,40 @@ class NfluxCategoryServiceTest {
 
         // then
         assertThat(updatedCategory.name()).isEqualTo("이름만 변경");
-        assertThat(updatedCategory.parentId()).isNull(); // 변경 안됨
         assertThat(updatedCategory.contextPath()).isEqualTo("/test-root"); // 변경 안됨
     }
     
     @Test
-    @DisplayName("DeviceCategoryRequest를 통한 업데이트 시 정보가 업데이트된다")
-    void update_WithDeviceCategoryRequest_UpdatesCategory() {
+    @DisplayName("아이콘 ID를 포함한 업데이트 시 정보가 업데이트된다")
+    void update_WithIconFileId_UpdatesCategory() {
         // given
-        Long id = nfluxCategoryService.save(createRequestWithoutParent);
+        Long id = nfluxCategoryService.save(createRequest);
+        Long iconFileId = 2L;
         
-        DeviceCategoryRequest deviceRequest = new DeviceCategoryRequest(
-                "디바이스 요청으로 수정",
-                null, // 부모 없음
-                null // 아이콘 없음
+        NfluxCategoryUpdateRequest updateRequest = NfluxCategoryUpdateRequest.of(
+                "아이콘 추가 카테고리",
+                null,
+                iconFileId
         );
         
-        NfluxCategoryUpdateRequest updateRequest = new NfluxCategoryUpdateRequest(
-                null,
-                null,
-                "/updated-via-device",
-                deviceRequest
-        );
-
         // when
         NfluxCategoryResponse updatedCategory = nfluxCategoryService.update(id, updateRequest);
-
+        
         // then
-        assertThat(updatedCategory.name()).isEqualTo("디바이스 요청으로 수정"); // deviceRequest에서 가져온 값
-        assertThat(updatedCategory.parentId()).isNull(); // 여전히 루트 카테고리
-        assertThat(updatedCategory.contextPath()).isEqualTo("/updated-via-device"); // 직접 지정된 값
+        assertThat(updatedCategory.name()).isEqualTo("아이콘 추가 카테고리");
+        assertThat(updatedCategory.iconFile()).isNotNull();
     }
 
     @Test
     @DisplayName("카테고리 삭제 시 카테고리가 삭제된다")
     void delete_WithExistingId_DeletesCategory() {
         // given
-        Long id = nfluxCategoryService.save(createRequestWithoutParent);
+        Long id = nfluxCategoryService.save(createRequest);
         
         // when
         nfluxCategoryService.delete(id);
         
         // then
-        // 삭제 후에는 해당 ID로 카테고리를 찾을 수 없어야 함
         assertThrows(CustomException.class, () -> nfluxCategoryService.findById(id));
     }
 } 

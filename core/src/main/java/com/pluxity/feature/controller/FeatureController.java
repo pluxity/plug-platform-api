@@ -301,4 +301,39 @@ public class FeatureController {
         FeatureResponse response = featureService.removeAssetFromFeature(featureId);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "피처에 디바이스 할당", description = "특정 피처에 디바이스를 할당(연결)합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "디바이스 할당 성공",
+                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스에 할당됨)"),
+                @ApiResponse(responseCode = "404", description = "피처 또는 디바이스를 찾을 수 없음")
+            })
+    @PutMapping("/{featureId}/devices/{deviceId}")
+    public ResponseEntity<FeatureResponse> assignDeviceToFeature(
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
+            @Parameter(description = "디바이스 ID (Long)", required = true) @PathVariable Long deviceId) {
+        FeatureResponse response = featureService.assignDeviceToFeature(featureId, deviceId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "피처에서 디바이스 연결 해제", description = "특정 피처에 할당된 디바이스와의 연결을 해제합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "디바이스 연결 해제 성공",
+                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처에 디바이스가 할당되지 않음)"),
+                @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
+            })
+    @DeleteMapping("/{featureId}/devices")
+    public ResponseEntity<FeatureResponse> removeDeviceFromFeature(
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId) {
+        FeatureResponse response = featureService.removeDeviceFromFeature(featureId);
+        return ResponseEntity.ok(response);
+    }
 }

@@ -157,6 +157,50 @@ public class FeatureService {
         return getFeatureResponse(feature);
     }
 
+    @Transactional
+    public FeatureResponse assignDeviceToFeature(String featureId, Long deviceId) {
+        log.debug("피처에 디바이스 할당: featureId={}, deviceId={}", featureId, deviceId);
+
+        Feature feature = findFeatureById(featureId);
+
+        // 이미 할당된 디바이스가 있는지 확인
+        if (feature.getDevice() != null) {
+            if (feature.getDevice().getId().equals(deviceId)) {
+                log.debug("이미 해당 디바이스가 할당되어 있습니다: featureId={}, deviceId={}", featureId, deviceId);
+                return getFeatureResponse(feature);
+            }
+            throw new CustomException(
+                    "Feature already assigned to another device",
+                    HttpStatus.BAD_REQUEST,
+                    "이미 다른 디바이스에 할당된 피처입니다: " + featureId);
+        }
+
+        // 디바이스 조회 로직 - 디바이스 서비스를 통해 조회해야 하지만,
+        // 순환 참조 문제를 피하기 위해 여기서는 예외만 던집니다.
+        // 실제 구현은 NfluxService의 assignFeatureToNflux 메서드를 통해 수행
+        throw new CustomException(
+                "Operation not supported", HttpStatus.BAD_REQUEST, "디바이스에서 피처를 할당하는 API를 사용해주세요.");
+    }
+
+    @Transactional
+    public FeatureResponse removeDeviceFromFeature(String featureId) {
+        Feature feature = findFeatureById(featureId);
+
+        if (feature.getDevice() == null) {
+            throw new CustomException(
+                    "No Device Assigned to Feature",
+                    HttpStatus.BAD_REQUEST,
+                    String.format("피처 ID [%s]에 할당된 디바이스가 없습니다", featureId));
+        }
+
+        Long deviceId = feature.getDevice().getId();
+        // 양방향 연관관계 제거 - 엔티티의 편의 메서드 사용
+        feature.changeDevice(null);
+        log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, deviceId);
+
+        return getFeatureResponse(feature);
+    }
+
     private FeatureResponse getFeatureResponse(Feature feature) {
         FileResponse assetFileResponse = assetService.getFileResponse(feature.getAsset());
         FileResponse assetthumbnailFileResponse =

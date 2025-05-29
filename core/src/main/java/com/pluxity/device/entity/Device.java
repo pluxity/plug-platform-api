@@ -1,6 +1,5 @@
 package com.pluxity.device.entity;
 
-import com.pluxity.facility.facility.Facility;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -28,20 +27,15 @@ public abstract class Device extends BaseEntity {
     @JoinColumn(name = "category_id")
     private DeviceCategory category;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "facility_id")
-    private Facility facility;
-
     @Column(name = "name")
     protected String name;
 
-    protected Device(Feature feature, DeviceCategory category, Facility facility) {
+    protected Device(Feature feature, DeviceCategory category) {
         this.feature = feature;
         if (this.feature != null) {
             this.feature.changeDevice(this);
         }
         this.category = category;
-        this.facility = facility;
         if (this.category != null) {
             this.category.addDevice(this);
         }
@@ -52,13 +46,25 @@ public abstract class Device extends BaseEntity {
     }
 
     public void changeFeature(Feature newFeature) {
-        if (this.feature != null) {
-            this.feature.changeDevice(null);
+        if (this.feature != null
+                && this.feature.getDevice() != null
+                && this.feature.getDevice().equals(this)) {
+            this.feature.clearDeviceOnly();
         }
         this.feature = newFeature;
-        if (newFeature != null && newFeature.getDevice() != this) {
-            newFeature.changeDevice(this);
+
+        if (newFeature != null
+                && (newFeature.getDevice() == null || !newFeature.getDevice().equals(this))) {
+            newFeature.assignDeviceOnly(this);
         }
+    }
+
+    public void assignFeatureOnly(Feature feature) {
+        this.feature = feature;
+    }
+
+    public void clearFeatureOnly() {
+        this.feature = null;
     }
 
     public void updateCategory(DeviceCategory category) {
@@ -69,9 +75,5 @@ public abstract class Device extends BaseEntity {
         if (category != null) {
             category.addDevice(this);
         }
-    }
-
-    public void updateFacility(Facility facility) {
-        this.facility = facility;
     }
 }

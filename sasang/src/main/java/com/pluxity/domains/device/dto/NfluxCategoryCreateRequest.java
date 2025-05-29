@@ -1,11 +1,8 @@
 package com.pluxity.domains.device.dto;
 
-import com.pluxity.device.dto.DeviceCategoryRequest;
+public record NfluxCategoryCreateRequest(String name, String contextPath, Long iconFileId) {
 
-public record NfluxCategoryCreateRequest(
-        String name, Long parentId, String contextPath, DeviceCategoryRequest deviceCategoryRequest) {
-    // 기본 생성자 - parentId를 받는 기존 방식을 위해 유지
-    public NfluxCategoryCreateRequest(String name, Long parentId, String contextPath) {
-        this(name, parentId, contextPath, null);
+    public static NfluxCategoryCreateRequest of(String name, String contextPath, Long iconFileId) {
+        return new NfluxCategoryCreateRequest(name, contextPath, iconFileId);
     }
 }

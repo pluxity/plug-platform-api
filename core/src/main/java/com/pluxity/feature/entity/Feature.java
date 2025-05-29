@@ -130,12 +130,21 @@ public class Feature extends BaseEntity {
                 && rotation.getZ() == 0.0;
     }
 
-    public void changeDevice(Device device) {
-        this.device = device;
+    public void changeDevice(Device newDevice) {
+        if (this.device != null
+                && this.device.getFeature() != null
+                && this.device.getFeature().equals(this)) {
+            this.device.clearFeatureOnly();
+        }
+        this.device = newDevice;
+
+        if (newDevice != null
+                && (newDevice.getFeature() == null || !newDevice.getFeature().equals(this))) {
+            newDevice.assignFeatureOnly(this);
+        }
     }
 
     public void changeAsset(Asset newAsset) {
-        // 기존 Asset과의 관계 해제
         if (this.asset != null) {
             this.asset.getFeatures().remove(this);
         }
@@ -148,5 +157,13 @@ public class Feature extends BaseEntity {
 
     public void changeFacility(Facility newFacility) {
         this.facility = newFacility;
+    }
+
+    public void clearDeviceOnly() {
+        this.device = null;
+    }
+
+    public void assignDeviceOnly(Device device) {
+        this.device = device;
     }
 }
