@@ -11,7 +11,7 @@ public class ApiConfig {
     public GroupedOpenApi deviceApi() {
         return GroupedOpenApi.builder()
                 .group("99. 사상하단선 API")
-                .pathsToMatch("/sasang/devices/**", "/sasang/device-categories/**")
+                .pathsToMatch("/devices/**", "/device-categories/**", "/stations/**")
                 .build();
     }
 }

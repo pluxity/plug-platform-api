@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-//@RestController
-//@RequestMapping("/buildings")
+// @RestController
+// @RequestMapping("/buildings")
 @RequiredArgsConstructor
 @Tag(name = "Building Controller", description = "건물 관리 API")
 public class BuildingController {
