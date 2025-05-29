@@ -63,7 +63,7 @@ class NfluxCategoryServiceTest {
         DeviceCategoryRequest deviceCategoryRequest = new DeviceCategoryRequest(
                 "테스트 디바이스 루트 카테고리",
                 null, // 부모 없음
-                null // iconFileId
+                null // thumbnailFileId
         );
         
         createRequestWithDeviceCategory = new NfluxCategoryCreateRequest(

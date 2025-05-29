@@ -75,8 +75,8 @@ public class AssetCategoryService {
         AssetCategory category =
                 AssetCategory.builder().name(request.name()).code(request.code()).parent(parent).build();
 
-        if (request.iconFileId() != null) {
-            category.updateIconFileId(request.iconFileId());
+        if (request.thumbnailFileId() != null) {
+            category.updateIconFileId(request.thumbnailFileId());
         }
 
         AssetCategory savedCategory = assetCategoryRepository.save(category);
@@ -96,8 +96,8 @@ public class AssetCategoryService {
             category.updateName(request.name());
         }
 
-        if (request.iconFileId() != null) {
-            category.updateIconFileId(request.iconFileId());
+        if (request.thumbnailFileId() != null) {
+            category.updateIconFileId(request.thumbnailFileId());
         }
 
         if (request.parentId() != null) {

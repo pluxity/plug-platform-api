@@ -70,7 +70,7 @@ public class NfluxCategoryService {
                         .contextPath(request.contextPath())
                         .build();
 
-        // 4. iconFileId 설정 (DeviceCategoryRequest에서 제공된 경우)
+        // 4. thumbnailFileId 설정 (DeviceCategoryRequest에서 제공된 경우)
         if (request.deviceCategoryRequest() != null
                 && request.deviceCategoryRequest().getIconFileId() != null) {
             category.updateIconFileId(request.deviceCategoryRequest().getIconFileId());
@@ -125,7 +125,7 @@ public class NfluxCategoryService {
                 category.setName(deviceRequest.getName());
             }
 
-            // iconFileId 업데이트
+            // thumbnailFileId 업데이트
             if (deviceRequest.getIconFileId() != null) {
                 category.updateIconFileId(deviceRequest.getIconFileId());
             }

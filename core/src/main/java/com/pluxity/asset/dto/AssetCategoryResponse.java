@@ -14,7 +14,7 @@ public record AssetCategoryResponse(
         @Schema(description = "카테고리 코드", example = "GRAPHIC_ASSET") String code,
         @Schema(description = "부모 카테고리 ID", example = "2") Long parentId,
         @Schema(description = "자식 카테고리 목록") List<AssetCategoryResponse> children,
-        @Schema(description = "아이콘 파일 정보") FileResponse iconFile,
+        @Schema(description = "아이콘 파일 정보") FileResponse thumbnail,
         @Schema(description = "소속 에셋 ID 목록") List<Long> assetIds,
         @Schema(description = "생성일시") LocalDateTime createdAt,
         @Schema(description = "수정일시") LocalDateTime updatedAt) {

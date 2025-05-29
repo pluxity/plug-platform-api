@@ -14,4 +14,4 @@ public record AssetCategoryCreateRequest(
                 @Size(max = 3, message = "카테고리 코드는 3글자를 초과할 수 없습니다")
                 String code,
         @Schema(description = "부모 카테고리 ID", example = "1") Long parentId,
-        @Schema(description = "아이콘 파일 ID", example = "10") Long iconFileId) {}
+        @Schema(description = "아이콘 파일 ID", example = "10") Long thumbnailFileId) {}
