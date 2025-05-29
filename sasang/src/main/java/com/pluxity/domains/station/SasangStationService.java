@@ -42,7 +42,6 @@ public class SasangStationService {
                         .name(request.stationRequest().facility().name())
                         .description(request.stationRequest().facility().description())
                         .route(request.stationRequest().route())
-                        .code(request.code())
                         .externalCode(request.externalCode())
                         .build();
 
@@ -62,9 +61,12 @@ public class SasangStationService {
         }
 
         // 노선 정보 저장
-        if (request.stationRequest().lineId() != null) {
-            Line line = lineService.findLineById(request.stationRequest().lineId());
-            sasangStation.addLine(line);
+        if (request.stationRequest().lineIds() != null
+                && !request.stationRequest().lineIds().isEmpty()) {
+            for (Long lineId : request.stationRequest().lineIds()) {
+                Line line = lineService.findLineById(lineId);
+                sasangStation.addLine(line);
+            }
         }
 
         return saved.getId();
@@ -80,19 +82,6 @@ public class SasangStationService {
     @Transactional(readOnly = true)
     public SasangStationResponse findById(Long id) {
         SasangStation sasangStation = findSasangStationById(id);
-        return convertToResponse(sasangStation);
-    }
-
-    @Transactional(readOnly = true)
-    public SasangStationResponse findByCode(String code) {
-        SasangStation sasangStation =
-                sasangStationRepository
-                        .findByCode(code)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "SasangStation not found", HttpStatus.NOT_FOUND, "해당 코드의 역을 찾을 수 없습니다."));
-
         return convertToResponse(sasangStation);
     }
 
@@ -121,10 +110,6 @@ public class SasangStationService {
         }
 
         // SasangStation 고유 필드 업데이트
-        if (request.code() != null) {
-            sasangStation.updateCode(request.code());
-        }
-
         if (request.externalCode() != null) {
             sasangStation.updateExternalCode(request.externalCode());
         }
@@ -166,11 +151,7 @@ public class SasangStationService {
     private SasangStationResponse convertToResponse(SasangStation sasangStation) {
         StationResponse stationResponse = convertToStationResponse(sasangStation);
 
-        return SasangStationResponse.builder()
-                .stationResponse(stationResponse)
-                .code(sasangStation.getCode())
-                .externalCode(sasangStation.getExternalCode())
-                .build();
+        return SasangStationResponse.of(stationResponse, sasangStation.getExternalCode());
     }
 
     private StationResponse convertToStationResponse(SasangStation station) {

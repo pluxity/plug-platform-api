@@ -6,7 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SasangStationRepository extends JpaRepository<SasangStation, Long> {
-    Optional<SasangStation> findByCode(String code);
-
     Optional<SasangStation> findByExternalCode(String externalCode);
 }

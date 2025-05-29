@@ -13,22 +13,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SasangStation extends Station {
 
-    @Column(name = "code", unique = true)
-    private String code;
-
     @Column(name = "external_code")
     private String externalCode;
 
     @Builder(builderMethodName = "sasangStationBuilder")
-    public SasangStation(
-            String name, String description, String route, String code, String externalCode) {
+    public SasangStation(String name, String description, String route, String externalCode) {
         super(name, description, route);
-        this.code = code;
         this.externalCode = externalCode;
-    }
-
-    public void updateCode(String code) {
-        this.code = code;
     }
 
     public void updateExternalCode(String externalCode) {

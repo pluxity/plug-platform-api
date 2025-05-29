@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,13 +103,12 @@ class SasangStationServiceTest {
         StationCreateRequest stationRequest = new StationCreateRequest(
                 facilityRequest,
                 floorRequests,
-                null,
+                Collections.emptyList(),
                 "route"
         );
         
         createRequest = new SasangStationCreateRequest(
                 stationRequest,
-                "S001",
                 "EXT001"
         );
         
@@ -136,7 +136,6 @@ class SasangStationServiceTest {
         assertThat(savedStation.stationResponse().facility().description()).isEqualTo("테스트 사상역 설명");
         assertThat(savedStation.stationResponse().floors()).isNotEmpty();
         assertThat(savedStation.stationResponse().lineIds()).isEmpty(); // Line 없이 생성했으므로 빈 리스트
-        assertThat(savedStation.code()).isEqualTo("ST001");
         assertThat(savedStation.externalCode()).isEqualTo("EXT001");
     }
 
@@ -195,13 +194,12 @@ class SasangStationServiceTest {
                 "수정된 사상역 설명",
                 drawingFileId,
                 thumbnailFileId,
-                null,
+                Collections.emptyList(),
                 "수정된 경로"
         );
         
         SasangStationUpdateRequest updateRequest = new SasangStationUpdateRequest(
                 stationUpdateRequest,
-                "ST002",
                 "EXT002"
         );
 
@@ -212,18 +210,7 @@ class SasangStationServiceTest {
         SasangStationResponse updatedStation = sasangStationService.findById(id);
         assertThat(updatedStation.stationResponse().facility().name()).isEqualTo("수정된 사상역");
         assertThat(updatedStation.stationResponse().facility().description()).isEqualTo("수정된 사상역 설명");
-        assertThat(updatedStation.code()).isEqualTo("ST002");
         assertThat(updatedStation.externalCode()).isEqualTo("EXT002");
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 코드로 사상역 조회 시 예외가 발생한다")
-    void findByCode_WithNonExistingCode_ThrowsCustomException() {
-        // given
-        String nonExistingCode = "NONEXIST";
-
-        // when & then
-        assertThrows(CustomException.class, () -> sasangStationService.findByCode(nonExistingCode));
     }
 
     @Test

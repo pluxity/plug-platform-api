@@ -49,9 +49,11 @@ public class StationService {
             }
         }
 
-        if (request.lineId() != null) {
-            Line line = lineService.findLineById(request.lineId());
-            station.addLine(line);
+        if (request.lineIds() != null && !request.lineIds().isEmpty()) {
+            for (Long lineId : request.lineIds()) {
+                Line line = lineService.findLineById(lineId);
+                station.addLine(line);
+            }
         }
 
         return saved.getId();
@@ -142,16 +144,17 @@ public class StationService {
             station.updateThumbnailFileId(request.thumbnailFileId());
         }
 
-        if (request.lineId() != null) {
-            // 기존 노선이 있는지 확인하고 없으면 추가
-            Line line = lineService.findLineById(request.lineId());
+        if (request.lineIds() != null && !request.lineIds().isEmpty()) {
+            for (Long lineId : request.lineIds()) {
+                // 기존 노선이 있는지 확인하고 없으면 추가
+                Line line = lineService.findLineById(lineId);
 
-            boolean lineExists =
-                    station.getStationLines().stream()
-                            .anyMatch(sl -> sl.getLine().getId().equals(request.lineId()));
+                boolean lineExists =
+                        station.getStationLines().stream().anyMatch(sl -> sl.getLine().getId().equals(lineId));
 
-            if (!lineExists) {
-                station.addLine(line);
+                if (!lineExists) {
+                    station.addLine(line);
+                }
             }
         }
     }
@@ -184,7 +187,6 @@ public class StationService {
     public void removeLineFromStation(Long stationId, Long lineId) {
         Station station = findStationById(stationId);
         Line line = lineService.findLineById(lineId);
-
         station.removeLine(line);
     }
 }

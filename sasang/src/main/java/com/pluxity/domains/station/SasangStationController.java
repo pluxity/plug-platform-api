@@ -100,31 +100,6 @@ public class SasangStationController {
         return ResponseEntity.ok(DataResponseBody.of(service.findById(id)));
     }
 
-    @Operation(summary = "코드로 역 조회", description = "코드로 특정 역의 상세 정보를 조회합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "역 조회 성공"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "역을 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/code/{code}")
-    public ResponseEntity<DataResponseBody<SasangStationResponse>> getByCode(
-            @Parameter(description = "역 코드", required = true) @PathVariable String code) {
-        return ResponseEntity.ok(DataResponseBody.of(service.findByCode(code)));
-    }
-
     @Operation(summary = "외부 코드로 역 조회", description = "외부 코드로 특정 역의 상세 정보를 조회합니다")
     @ApiResponses(
             value = {
