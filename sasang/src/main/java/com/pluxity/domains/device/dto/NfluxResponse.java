@@ -1,5 +1,6 @@
 package com.pluxity.domains.device.dto;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.domains.device.entity.Nflux;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.global.response.BaseResponse;
@@ -14,7 +15,7 @@ public record NfluxResponse(
         String name,
         String code,
         String description,
-        BaseResponse baseResponse) {
+        @JsonUnwrapped BaseResponse baseResponse) {
     public static NfluxResponse from(Nflux device) {
         return new NfluxResponse(
                 device.getId(),
