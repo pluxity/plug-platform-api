@@ -1,20 +1,21 @@
 package com.pluxity.asset.entity;
 
-import static java.io.File.separator;
-
 import com.pluxity.asset.dto.AssetCreateRequest;
 import com.pluxity.asset.dto.AssetUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.io.File.separator;
 
 @Entity
 @Table(name = "asset")
@@ -32,7 +33,7 @@ public class Asset extends BaseEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "code", unique = true, length = 3)
+    @Column(name = "code", unique = true, length = 10)
     private String code;
 
     @Column(name = "file_id")

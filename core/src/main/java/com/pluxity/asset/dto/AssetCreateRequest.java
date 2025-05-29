@@ -11,7 +11,7 @@ public record AssetCreateRequest(
                 String name,
         @Schema(description = "에셋 코드", example = "LOGO_IMAGE")
                 @NotBlank(message = "에셋 코드는 필수입니다")
-                @Size(max = 3, message = "에셋 코드는 3글자를 초과할 수 없습니다")
+                @Size(max = 10, message = "에셋 코드는 10글자를 초과할 수 없습니다")
                 String code,
         @Schema(description = "파일 ID", example = "1") Long fileId,
         @Schema(description = "썸네일 파일 ID", example = "2") Long thumbnailFileId,
