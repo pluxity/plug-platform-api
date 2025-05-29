@@ -68,12 +68,8 @@ public class Feature extends BaseEntity {
         this.rotation = rotation;
         this.scale = scale;
         this.floorId = floorId;
-        if (asset != null) {
-            changeAsset(asset);
-        }
-        if (facility != null) {
-            changeFacility(facility);
-        }
+        this.asset = asset;
+        this.facility = facility;
     }
 
     public static Feature create(FeatureCreateRequest request, String uuid) {
@@ -144,9 +140,9 @@ public class Feature extends BaseEntity {
             this.asset.getFeatures().remove(this);
         }
         this.asset = newAsset;
-        // 새로운 Asset과의 관계 설정
+        
         if (newAsset != null && !newAsset.getFeatures().contains(this)) {
-            newAsset.getFeatures().add(this);
+            newAsset.addFeature(this);
         }
     }
 

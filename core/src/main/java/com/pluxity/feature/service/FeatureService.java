@@ -14,13 +14,15 @@ import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
-import java.util.List;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -36,20 +38,39 @@ public class FeatureService {
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
-        Feature feature = Feature.create(request, request.id());
-
+        log.debug("피처 생성 요청: id={}, facilityId={}, assetId={}", 
+                 request.id(), request.facilityId(), request.assetId());
+        
+        // ID 중복 체크
+        String featureId = request.id();
+        Optional<Feature> existingFeature = featureRepository.findById(featureId);
+        if (existingFeature.isPresent()) {
+            throw new CustomException(
+                    "Feature already exists", 
+                    HttpStatus.CONFLICT, 
+                    "이미 존재하는 피처 ID입니다: " + featureId);
+        }
+        
+        // 먼저 관련 엔티티 조회
         Facility facility = facilityService.findById(request.facilityId());
-        feature.changeFacility(facility);
-
         Asset asset = assetService.findById(request.assetId());
+        
+        // Feature 엔티티 생성
+        Feature feature = Feature.create(request, featureId);
+        
+        // 양방향 연관관계 설정 - 엔티티의 편의 메서드 사용
+        feature.changeFacility(facility);
         feature.changeAsset(asset);
+        
+        // 저장
+        Feature savedFeature = featureRepository.save(feature);
+        log.debug("피처 저장 완료: id={}", savedFeature.getId());
 
         FileResponse assetFileResponse = assetService.getFileResponse(asset);
         FileResponse assetthumbnailFileResponse = assetService.getThumbnailFileResponse(asset);
         FileResponse facilityDrawingFileResponse = facilityService.getDrawingFileResponse(facility);
         FileResponse facilityThumbnailFileResponse = facilityService.getThumbnailFileResponse(facility);
 
-        Feature savedFeature = featureRepository.save(feature);
         return FeatureResponse.from(
                 savedFeature,
                 assetFileResponse,
@@ -80,6 +101,12 @@ public class FeatureService {
     @Transactional
     public void deleteFeature(String id) {
         Feature feature = findFeatureById(id);
+        
+        // Asset과의 양방향 관계 제거 - 엔티티의 편의 메서드 사용
+        if (feature.getAsset() != null) {
+            feature.changeAsset(null);
+        }
+        
         featureRepository.delete(feature);
     }
 
@@ -93,16 +120,19 @@ public class FeatureService {
 
     @Transactional
     public FeatureResponse assignAssetToFeature(String featureId, Long assetId) {
+        log.debug("피처에 에셋 할당: featureId={}, assetId={}", featureId, assetId);
+        
         Feature feature = findFeatureById(featureId);
-        Asset asset =
-                assetRepository
-                        .findById(assetId)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다: " + assetId));
+        Asset asset = assetRepository
+                .findById(assetId)
+                .orElseThrow(() -> new CustomException(
+                        "Asset not found", HttpStatus.NOT_FOUND, 
+                        "해당 에셋을 찾을 수 없습니다: " + assetId));
 
-        feature.changeAsset(asset); // 엔티티의 편의 메서드 사용
+        // 양방향 연관관계 설정 - 엔티티의 편의 메서드 사용
+        feature.changeAsset(asset);
+        log.debug("새 에셋과 피처 관계 설정: assetId={}, featureId={}", assetId, featureId);
+        
         return getFeatureResponse(feature);
     }
 
@@ -117,7 +147,11 @@ public class FeatureService {
                     String.format("피처 ID [%s]에 할당된 에셋이 없습니다", featureId));
         }
 
-        feature.changeAsset(null); // 엔티티의 편의 메서드 사용 (Asset과의 연결 해제)
+        Long assetId = feature.getAsset().getId();
+        // 양방향 연관관계 제거 - 엔티티의 편의 메서드 사용
+        feature.changeAsset(null);
+        log.debug("피처에서 에셋 제거: featureId={}, assetId={}", featureId, assetId);
+        
         return getFeatureResponse(feature);
     }
 
