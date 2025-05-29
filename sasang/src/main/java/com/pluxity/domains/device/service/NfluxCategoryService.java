@@ -1,6 +1,5 @@
 package com.pluxity.domains.device.service;
 
-import com.pluxity.category.entity.Category;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.domains.device.dto.NfluxCategoryCreateRequest;
@@ -46,8 +45,8 @@ public class NfluxCategoryService {
         DeviceCategory savedCategory = nfluxCategoryRepository.save(category);
 
         if (request.iconFileId() != null) {
-            category.updateIconFileId(fileService
-                    .finalizeUpload(request.iconFileId(), savedCategory.getPrefix()).getId());
+            category.updateIconFileId(
+                    fileService.finalizeUpload(request.iconFileId(), savedCategory.getPrefix()).getId());
         }
 
         return nfluxCategoryRepository.save(category).getId();
@@ -83,9 +82,8 @@ public class NfluxCategoryService {
         }
 
         if (request.iconFileId() != null) {
-            category.updateIconFileId(fileService
-                            .finalizeUpload(request.iconFileId(), category.getPrefix()).getId()
-            );
+            category.updateIconFileId(
+                    fileService.finalizeUpload(request.iconFileId(), category.getPrefix()).getId());
         }
 
         return toResponse(category);
