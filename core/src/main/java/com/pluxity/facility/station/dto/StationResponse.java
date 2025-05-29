@@ -1,12 +1,16 @@
 package com.pluxity.facility.station.dto;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.facility.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import java.util.List;
 import lombok.Builder;
 
 public record StationResponse(
-        FacilityResponse facility, List<FloorResponse> floors, List<Long> lineIds, String route) {
+        @JsonUnwrapped FacilityResponse facility,
+        List<FloorResponse> floors,
+        List<Long> lineIds,
+        String route) {
 
     @Builder
     public StationResponse(
