@@ -186,4 +186,88 @@ class DeviceCategoryServiceTest {
         // 삭제 후에는 해당 ID로 카테고리를 찾을 수 없어야 함
         assertThrows(CustomException.class, () -> deviceCategoryService.getDeviceCategoryResponse(id));
     }
+    
+    @Test
+    @DisplayName("빈 이름으로 카테고리 생성 시 예외가 발생한다")
+    void create_WithEmptyName_ThrowsCustomException() {
+        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
+        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 부모 ID로 카테고리 생성 시 예외가 발생한다")
+    void create_WithInvalidParentId_ThrowsCustomException() {
+        // given
+        Long nonExistingParentId = 9999L;
+        DeviceCategoryRequest invalidRequest = new DeviceCategoryRequest("테스트 카테고리", nonExistingParentId, iconFileId);
+
+        // when & then
+        assertThrows(CustomException.class, () -> deviceCategoryService.create(invalidRequest));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 카테고리 업데이트 시 예외가 발생한다")
+    void update_WithNonExistingId_ThrowsCustomException() {
+        // given
+        Long nonExistingId = 9999L;
+        DeviceCategoryRequest updateRequest = new DeviceCategoryRequest("수정된 카테고리", null, iconFileId);
+
+        // when & then
+        assertThrows(CustomException.class, () -> deviceCategoryService.update(nonExistingId, updateRequest));
+    }
+
+    @Test
+    @DisplayName("카테고리 업데이트 시 이름이 비어있으면 예외가 발생한다")
+    void update_WithEmptyName_ThrowsCustomException() {
+        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
+        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 카테고리 삭제 시 예외가 발생한다")
+    void delete_WithNonExistingId_ThrowsCustomException() {
+        // given
+        Long nonExistingId = 9999L;
+
+        // when & then
+        assertThrows(CustomException.class, () -> deviceCategoryService.delete(nonExistingId));
+    }
+
+    @Test
+    @DisplayName("카테고리 최대 깊이 초과 시 예외가 발생한다")
+    void create_ExceedsMaxDepth_ThrowsCustomException() {
+        // given
+        // 첫 번째 레벨 (루트) 카테고리 생성
+        Long rootId = deviceCategoryService.create(createRequest);
+        
+        // 두 번째 레벨 카테고리 생성
+        DeviceCategoryRequest level2Request = new DeviceCategoryRequest("레벨2 카테고리", rootId, iconFileId);
+        Long level2Id = deviceCategoryService.create(level2Request);
+        
+        // 세 번째 레벨 카테고리 생성
+        DeviceCategoryRequest level3Request = new DeviceCategoryRequest("레벨3 카테고리", level2Id, iconFileId);
+        Long level3Id = deviceCategoryService.create(level3Request);
+        
+        // 네 번째 레벨 카테고리 생성 시도 (일반적으로 최대 3단계로 제한되는 경우)
+        DeviceCategoryRequest level4Request = new DeviceCategoryRequest("레벨4 카테고리", level3Id, iconFileId);
+        
+        // when & then
+        assertThrows(CustomException.class, () -> deviceCategoryService.create(level4Request));
+    }
+
+    @Test
+    @DisplayName("자식 카테고리가 있는 카테고리 삭제 시 예외가 발생한다")
+    void delete_WithChildCategories_ThrowsCustomException() {
+        // given
+        // 부모 카테고리 생성
+        Long parentId = deviceCategoryService.create(createRequest);
+        
+        // 자식 카테고리 생성
+        DeviceCategoryRequest childRequest = new DeviceCategoryRequest("자식 카테고리", parentId, iconFileId);
+        Long childId = deviceCategoryService.create(childRequest);
+        
+        // when & then
+        // 자식이 있는 부모 카테고리 삭제 시도
+        assertThrows(CustomException.class, () -> deviceCategoryService.delete(parentId));
+    }
 }

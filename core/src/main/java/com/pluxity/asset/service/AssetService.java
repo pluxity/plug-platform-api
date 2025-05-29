@@ -47,6 +47,33 @@ public class AssetService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<AssetResponse> getAssetsByCategory(Long categoryId) {
+        AssetCategory category = assetCategoryService.findById(categoryId);
+        List<Asset> assets = assetRepository.findByCategory(category);
+        return assets.stream()
+                .map(
+                        asset ->
+                                AssetResponse.from(asset, getFileResponse(asset), getThumbnailFileResponse(asset)))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AssetResponse getAssetByCode(String code) {
+        Asset asset =
+                assetRepository
+                        .findByCode(code)
+                        .orElseThrow(
+                                () ->
+                                        new CustomException(
+                                                "Asset Not Found By Code",
+                                                HttpStatus.NOT_FOUND,
+                                                String.format("코드가 %s인 에셋을 찾을 수 없습니다", code)));
+        FileResponse assetFileResponse = getFileResponse(asset);
+        FileResponse thumbnailFileResponse = getThumbnailFileResponse(asset);
+        return AssetResponse.from(asset, assetFileResponse, thumbnailFileResponse);
+    }
+
     @Transactional
     public Long createAsset(AssetCreateRequest request) {
         Asset asset = Asset.create(request);
@@ -85,6 +112,13 @@ public class AssetService {
     @Transactional
     public void updateAsset(Long id, AssetUpdateRequest request) {
         Asset asset = findById(id);
+
+        if (assetRepository.existsByCodeAndIdNot(request.code(), asset.getId())) {
+            throw new CustomException(
+                    "Code Already Exists",
+                    HttpStatus.BAD_REQUEST,
+                    String.format("코드가 %s인 에셋이 이미 존재합니다", request.code()));
+        }
 
         asset.update(request);
 

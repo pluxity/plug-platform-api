@@ -30,7 +30,7 @@ public class NfluxCategoryController {
 
     private final NfluxCategoryService nfluxCategoryService;
 
-    @Operation(summary = "Nflux 카테고리 생성", description = "새로운 Nflux 카테고리를 생성합니다")
+    @Operation(summary = "디바이스 카테고리 생성", description = "새로운 디바이스 카테고리를 생성합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "201", description = "카테고리 생성 성공"),
@@ -52,13 +52,13 @@ public class NfluxCategoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public DataResponseBody<Long> create(
-            @Parameter(description = "Nflux 카테고리 생성 정보", required = true) @Valid @RequestBody
+            @Parameter(description = "디바이스 카테고리 생성 정보", required = true) @Valid @RequestBody
                     NfluxCategoryCreateRequest request) {
         Long id = nfluxCategoryService.save(request);
-        return DataResponseBody.of(HttpStatus.CREATED, "NFLux 카테고리가 생성되었습니다.", id);
+        return DataResponseBody.of(HttpStatus.CREATED, "디바이스 카테고리가 생성되었습니다.", id);
     }
 
-    @Operation(summary = "Nflux 카테고리 목록 조회", description = "모든 Nflux 카테고리 목록을 조회합니다")
+    @Operation(summary = "디바이스 카테고리 목록 조회", description = "모든 디바이스 카테고리 목록을 조회합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
@@ -76,7 +76,7 @@ public class NfluxCategoryController {
         return DataResponseBody.of(categories);
     }
 
-    @Operation(summary = "루트 Nflux 카테고리 목록 조회", description = "최상위 Nflux 카테고리 목록을 조회합니다")
+    @Operation(summary = "루트 디바이스 카테고리 목록 조회", description = "최상위 디바이스 카테고리 목록을 조회합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "루트 카테고리 목록 조회 성공"),
@@ -94,7 +94,7 @@ public class NfluxCategoryController {
         return DataResponseBody.of(categories);
     }
 
-    @Operation(summary = "Nflux 카테고리 상세 조회", description = "ID로 특정 Nflux 카테고리의 상세 정보를 조회합니다")
+    @Operation(summary = "디바이스 카테고리 상세 조회", description = "ID로 특정 디바이스 카테고리의 상세 정보를 조회합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "카테고리 조회 성공"),
@@ -146,7 +146,7 @@ public class NfluxCategoryController {
                 DataResponseBody.of(nfluxCategoryService.findDevicesByCategoryId(categoryId)));
     }
 
-    @Operation(summary = "Nflux 카테고리 수정", description = "기존 Nflux 카테고리의 정보를 수정합니다")
+    @Operation(summary = "디바이스 카테고리 수정", description = "기존 디바이스 카테고리의 정보를 수정합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "카테고리 수정 성공"),

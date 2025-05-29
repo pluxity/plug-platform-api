@@ -25,7 +25,18 @@ public class FacilityCategory extends Category<FacilityCategory> {
     @Builder
     public FacilityCategory(String name, FacilityCategory parent) {
         this.name = name;
+        changeParent(parent);
+        this.validateDepth();
+    }
+
+    private void changeParent(FacilityCategory parent) {
+        if (this.parent != null) {
+            this.parent.getChildren().remove(this);
+        }
         this.parent = parent;
+        if (parent != null) {
+            parent.getChildren().add(this);
+        }
         this.validateDepth();
     }
 

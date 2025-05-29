@@ -30,12 +30,7 @@ public class DeviceCategory extends Category<DeviceCategory> {
     @Builder
     public DeviceCategory(String name, DeviceCategory parent) {
         this.name = name;
-        if (parent != null) {
-            this.assignToParent(parent);
-        } else {
-            this.parent = null;
-        }
-        this.validateDepth();
+        changeParent(parent);
     }
 
     @Override
@@ -57,5 +52,16 @@ public class DeviceCategory extends Category<DeviceCategory> {
         if (device != null) {
             this.devices.remove(device);
         }
+    }
+
+    public void changeParent(DeviceCategory newParent) {
+        if (this.parent != null) {
+            this.parent.getChildren().remove(this);
+        }
+        this.parent = newParent;
+        if (newParent != null) {
+            newParent.getChildren().add(this);
+        }
+        this.validateDepth();
     }
 }

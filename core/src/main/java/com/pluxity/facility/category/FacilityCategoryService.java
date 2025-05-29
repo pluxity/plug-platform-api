@@ -21,6 +21,13 @@ public class FacilityCategoryService {
     public FacilityCategoryResponse create(FacilityCategoryCreateRequest request) {
         FacilityCategory parent = null;
         if (request.parentId() != null) {
+            repository
+                    .findByNameAndParentId(request.name(), request.parentId())
+                    .ifPresent(
+                            existingCategory -> {
+                                throw new CustomException(ErrorCode.INVALID_REFERENCE, "이미 존재하는 카테고리 이름입니다.");
+                            });
+
             parent =
                     repository
                             .findById(request.parentId())
@@ -62,6 +69,10 @@ public class FacilityCategoryService {
 
         if (request.name() != null) category.setName(request.name());
         if (request.parentId() != null) {
+
+            if (request.parentId().equals(id)) {
+                throw new CustomException(ErrorCode.INVALID_REFERENCE, "자기 자신을 부모로 설정할 수 없습니다.");
+            }
             FacilityCategory parent =
                     repository
                             .findById(request.parentId())
@@ -85,6 +96,10 @@ public class FacilityCategoryService {
                                 () ->
                                         new CustomException(
                                                 "FacilityCategory not found", HttpStatus.NOT_FOUND, "해당 카테고리를 찾을 수 없습니다."));
+
+        if (!facility.getChildren().isEmpty()) {
+            throw new CustomException(ErrorCode.PERMISSION_DENIED, "하위 카테고리가 있어 삭제할 수 없습니다.");
+        }
 
         repository.delete(facility);
     }

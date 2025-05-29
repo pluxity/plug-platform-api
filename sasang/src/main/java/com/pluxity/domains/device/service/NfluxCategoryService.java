@@ -34,15 +34,13 @@ public class NfluxCategoryService {
     public Long save(NfluxCategoryCreateRequest request) {
         String name = request.name();
 
-        // NfluxCategory 생성 및 저장
         NfluxCategory category =
                 NfluxCategory.nfluxBuilder()
                         .name(name)
-                        .parent(null) // MaxDepth가 1이므로 부모 카테고리는 null
+                        .parent(null) // NfluxCategory는 MaxDepth가 1이므로 부모 카테고리는 null
                         .contextPath(request.contextPath())
                         .build();
 
-        // iconFileId 설정
         if (request.iconFileId() != null) {
             category.updateIconFileId(request.iconFileId());
         }
@@ -63,22 +61,14 @@ public class NfluxCategoryService {
     }
 
     public NfluxCategoryResponse findById(Long id) {
-        NfluxCategory category =
-                nfluxCategoryRepository
-                        .findById(id)
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "카테고리를 찾을 수 없습니다."));
-
+        NfluxCategory category = findNfluxCategoryById(id);
         return toResponse(category);
     }
 
     @Transactional
     public NfluxCategoryResponse update(Long id, NfluxCategoryUpdateRequest request) {
-        NfluxCategory category =
-                nfluxCategoryRepository
-                        .findById(id)
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "카테고리를 찾을 수 없습니다."));
+        NfluxCategory category = findNfluxCategoryById(id);
 
-        // 기본 필드 업데이트
         if (request.name() != null) {
             category.setName(request.name());
         }
@@ -87,7 +77,6 @@ public class NfluxCategoryService {
             category.updateContextPath(request.contextPath());
         }
 
-        // iconFileId 업데이트
         if (request.iconFileId() != null) {
             category.updateIconFileId(request.iconFileId());
         }
@@ -97,10 +86,7 @@ public class NfluxCategoryService {
 
     @Transactional
     public void delete(Long id) {
-        NfluxCategory category =
-                nfluxCategoryRepository
-                        .findById(id)
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "카테고리를 찾을 수 없습니다."));
+        NfluxCategory category = findNfluxCategoryById(id);
 
         if (!category.getChildren().isEmpty()) {
             throw new CustomException(ErrorCode.PERMISSION_DENIED, "하위 카테고리가 있어 삭제할 수 없습니다.");
@@ -111,6 +97,19 @@ public class NfluxCategoryService {
         }
 
         nfluxCategoryRepository.delete(category);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NfluxResponse> findDevicesByCategoryId(Long categoryId) {
+        findNfluxCategoryById(categoryId);
+
+        return nfluxService.findByCategoryId(categoryId);
+    }
+
+    private NfluxCategory findNfluxCategoryById(Long id) {
+        return nfluxCategoryRepository
+                .findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "카테고리를 찾을 수 없습니다."));
     }
 
     private NfluxCategoryResponse toResponse(NfluxCategory category) {
@@ -135,17 +134,5 @@ public class NfluxCategoryService {
             log.error("Failed to get icon file: {}", e.getMessage());
             return FileResponse.empty();
         }
-    }
-
-    @Transactional(readOnly = true)
-    public List<NfluxResponse> findDevicesByCategoryId(Long categoryId) {
-        // 카테고리가 존재하는지 확인
-        NfluxCategory category =
-                nfluxCategoryRepository
-                        .findById(categoryId)
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "카테고리를 찾을 수 없습니다."));
-
-        // 해당 카테고리에 속한 디바이스들을 조회
-        return nfluxService.findByCategoryId(categoryId);
     }
 }

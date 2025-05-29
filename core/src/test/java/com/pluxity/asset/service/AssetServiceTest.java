@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,12 +48,13 @@ class AssetServiceTest {
     private String categoryCode = "TCC";
     private String categoryName = "테스트 카테고리";
     private AssetCreateRequest createRequest;
+    private byte[] fileContent;
 
     @BeforeEach
     void setUp() throws IOException {
         // 테스트 이미지 파일 준비
         ClassPathResource resource = new ClassPathResource("temp/temp.png");
-        byte[] fileContent = Files.readAllBytes(Path.of(resource.getURI()));
+        fileContent = Files.readAllBytes(Path.of(resource.getURI()));
 
         // MockMultipartFile 생성
         MultipartFile assetFile = new MockMultipartFile(
@@ -83,11 +85,31 @@ class AssetServiceTest {
         );
     }
 
+    // 새로운 파일 ID를 생성하는 헬퍼 메서드
+    private Long createNewFileId() throws IOException {
+        MultipartFile file = new MockMultipartFile(
+                "new_file.png", "new_file.png", "image/png", fileContent);
+        return fileService.initiateUpload(file);
+    }
+
     @Test
     @DisplayName("유효한 요청으로 에셋 생성 시 에셋이 저장된다")
-    void createAsset_WithValidRequest_SavesAsset() {
+    void createAsset_WithValidRequest_SavesAsset() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // 생성 요청 객체 업데이트
+        AssetCreateRequest request = new AssetCreateRequest(
+                createRequest.name(),
+                createRequest.code(),
+                newAssetFileId,
+                newThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
         // when
-        Long id = assetService.createAsset(createRequest);
+        Long id = assetService.createAsset(request);
 
         // then
         assertThat(id).isNotNull();
@@ -106,9 +128,22 @@ class AssetServiceTest {
 
     @Test
     @DisplayName("모든 에셋 조회 시 에셋 목록이 반환된다")
-    void getAssets_ReturnsListOfAssetResponses() {
+    void getAssets_ReturnsListOfAssetResponses() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // 생성 요청 객체 업데이트
+        AssetCreateRequest request = new AssetCreateRequest(
+                createRequest.name(),
+                createRequest.code(),
+                newAssetFileId,
+                newThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
         // given
-        assetService.createAsset(createRequest);
+        assetService.createAsset(request);
 
         // when
         List<AssetResponse> responses = assetService.getAssets();
@@ -123,9 +158,22 @@ class AssetServiceTest {
 
     @Test
     @DisplayName("ID로 에셋 조회 시 에셋 정보가 반환된다")
-    void getAsset_WithExistingId_ReturnsAssetResponse() {
+    void getAsset_WithExistingId_ReturnsAssetResponse() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // 생성 요청 객체 업데이트
+        AssetCreateRequest request = new AssetCreateRequest(
+                createRequest.name(),
+                createRequest.code(),
+                newAssetFileId,
+                newThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
         // given
-        Long id = assetService.createAsset(createRequest);
+        Long id = assetService.createAsset(request);
 
         // when
         AssetResponse response = assetService.getAsset(id);
@@ -156,14 +204,27 @@ class AssetServiceTest {
     @Test
     @DisplayName("유효한 요청으로 에셋 정보 수정 시 에셋 정보가 업데이트된다")
     void updateAsset_WithValidRequest_UpdatesAsset() throws IOException {
+        // 새로운 파일 ID 생성 (에셋 생성용)
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // 생성 요청 객체 업데이트
+        AssetCreateRequest request = new AssetCreateRequest(
+                createRequest.name(),
+                createRequest.code(),
+                newAssetFileId,
+                newThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
         // given
-        Long id = assetService.createAsset(createRequest);
+        Long id = assetService.createAsset(request);
 
-        // 새로운 파일 업로드
+        // 새로운 파일 업로드 (업데이트용)
         ClassPathResource newResource = new ClassPathResource("temp/temp2.png");
         byte[] newFileContent = Files.readAllBytes(Path.of(newResource.getURI()));
         MultipartFile newAssetFile = new MockMultipartFile("new_asset.png", "new_asset.png", "image/png", newFileContent);
-        Long newAssetFileId = fileService.initiateUpload(newAssetFile);
+        Long updateAssetFileId = fileService.initiateUpload(newAssetFile);
 
         AssetCategoryCreateRequest newCategoryRequest = new AssetCategoryCreateRequest(
                 "새로운 카테고리",
@@ -176,7 +237,7 @@ class AssetServiceTest {
         AssetUpdateRequest updateRequest = new AssetUpdateRequest(
                 "수정된 에셋",
                 "UPD",
-                newAssetFileId,
+                updateAssetFileId,
                 null,
                 newCategoryId
         );
@@ -196,9 +257,22 @@ class AssetServiceTest {
 
     @Test
     @DisplayName("에셋 삭제 시 해당 에셋이 삭제된다")
-    void deleteAsset_RemovesAsset() {
+    void deleteAsset_RemovesAsset() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // 생성 요청 객체 업데이트
+        AssetCreateRequest request = new AssetCreateRequest(
+                createRequest.name(),
+                createRequest.code(),
+                newAssetFileId,
+                newThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
         // given
-        Long id = assetService.createAsset(createRequest);
+        Long id = assetService.createAsset(request);
         AssetResponse response = assetService.getAsset(id);
         assertThat(response).isNotNull();
 
@@ -211,14 +285,18 @@ class AssetServiceTest {
 
     @Test
     @DisplayName("에셋에 카테고리 할당 시 에셋의 카테고리가 업데이트된다")
-    void assignCategory_UpdatesAssetCategory() {
+    void assignCategory_UpdatesAssetCategory() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
         // given
         // 카테고리 없이 에셋 생성
         AssetCreateRequest requestWithoutCategory = new AssetCreateRequest(
                 "카테고리 없는 에셋",
                 "NCA",
-                assetFileId,
-                thumbnailFileId,
+                newAssetFileId,
+                newThumbnailFileId,
                 null
         );
         Long assetId = assetService.createAsset(requestWithoutCategory);
@@ -237,9 +315,22 @@ class AssetServiceTest {
 
     @Test
     @DisplayName("에셋에서 카테고리 제거 시 에셋의 카테고리가 null이 된다")
-    void removeCategory_SetsAssetCategoryToNull() {
+    void removeCategory_SetsAssetCategoryToNull() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // 생성 요청 객체 업데이트
+        AssetCreateRequest request = new AssetCreateRequest(
+                createRequest.name(),
+                createRequest.code(),
+                newAssetFileId,
+                newThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
         // given
-        Long assetId = assetService.createAsset(createRequest);
+        Long assetId = assetService.createAsset(request);
         AssetResponse asset = assetService.getAsset(assetId);
         assertThat(asset.categoryId()).isNotNull();
 
@@ -255,13 +346,17 @@ class AssetServiceTest {
 
     @Test
     @DisplayName("카테고리가 없는 에셋에서 카테고리 제거 시도 시 예외가 발생한다")
-    void removeCategory_FromAssetWithNoCategory_ThrowsCustomException() {
+    void removeCategory_FromAssetWithNoCategory_ThrowsCustomException() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
         // given
         AssetCreateRequest requestWithoutCategory = new AssetCreateRequest(
                 "카테고리 없는 에셋",
                 "NCA",
-                assetFileId,
-                thumbnailFileId,
+                newAssetFileId,
+                newThumbnailFileId,
                 null
         );
         Long assetId = assetService.createAsset(requestWithoutCategory);
@@ -270,5 +365,295 @@ class AssetServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> assetService.removeCategory(assetId));
         assertThat(exception.getHttpStatus()).isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST);
         assertThat(exception.getMessage()).isEqualTo(String.format("에셋 [%d]에 할당된 카테고리가 없습니다", assetId));
+    }
+
+    @Test
+    @DisplayName("중복된 코드로 에셋 생성 시 예외가 발생한다")
+    void createAsset_WithDuplicateCode_ThrowsCustomException() throws IOException {
+        // 새로운 파일 ID 생성 (첫 번째 에셋용)
+        Long firstAssetFileId = createNewFileId();
+        Long firstThumbnailFileId = createNewFileId();
+        
+        // 첫 번째 에셋 생성 요청
+        AssetCreateRequest firstRequest = new AssetCreateRequest(
+                createRequest.name(),
+                createRequest.code(),
+                firstAssetFileId,
+                firstThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
+        // 1. 첫 번째 에셋 생성
+        Long id1 = assetService.createAsset(firstRequest);
+
+        // 새로운 파일 ID 생성 (두 번째 에셋용)
+        Long secondAssetFileId = createNewFileId();
+        Long secondThumbnailFileId = createNewFileId();
+        
+        // 2. 동일한 코드로 두 번째 에셋 생성 시도
+        AssetCreateRequest duplicateRequest = new AssetCreateRequest(
+                "다른 에셋",
+                "TES",  // 중복 코드
+                secondAssetFileId,
+                secondThumbnailFileId,
+                categoryId
+        );
+
+        // when & then
+        assertThrows(DataIntegrityViolationException.class, () -> assetService.createAsset(duplicateRequest));
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 파일 ID로 에셋 생성 시 예외가 발생한다")
+    void createAsset_WithInvalidFileId_ThrowsCustomException() {
+        // given
+        Long invalidFileId = 9999L;
+        AssetCreateRequest invalidRequest = new AssetCreateRequest(
+                "테스트 에셋",
+                "INV",
+                invalidFileId,
+                thumbnailFileId,
+                categoryId
+        );
+
+        // when & then
+        assertThrows(CustomException.class, () -> assetService.createAsset(invalidRequest));
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 썸네일 파일 ID로 에셋 생성 시 예외가 발생한다")
+    void createAsset_WithInvalidThumbnailFileId_ThrowsCustomException() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        
+        // given
+        Long invalidThumbnailId = 9999L;
+        AssetCreateRequest invalidRequest = new AssetCreateRequest(
+                "테스트 에셋",
+                "INV",
+                newAssetFileId,
+                invalidThumbnailId,
+                categoryId
+        );
+
+        // when & then
+        assertThrows(CustomException.class, () -> assetService.createAsset(invalidRequest));
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 카테고리 ID로 에셋 생성 시 예외가 발생한다")
+    void createAsset_WithInvalidCategoryId_ThrowsCustomException() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // given
+        Long invalidCategoryId = 9999L;
+        AssetCreateRequest invalidRequest = new AssetCreateRequest(
+                "테스트 에셋",
+                "CAT",
+                newAssetFileId,
+                newThumbnailFileId,
+                invalidCategoryId
+        );
+
+        // when & then
+        assertThrows(CustomException.class, () -> assetService.createAsset(invalidRequest));
+    }
+
+    @Test
+    @DisplayName("에셋 업데이트 시 중복 코드로 변경 시도할 때 예외가 발생한다")
+    void updateAsset_WithDuplicateCode_ThrowsCustomException() throws IOException {
+        // 새로운 파일 ID 생성 (첫 번째 에셋용)
+        Long firstAssetFileId = createNewFileId();
+        Long firstThumbnailFileId = createNewFileId();
+        
+        // 첫 번째 에셋 생성
+        AssetCreateRequest firstRequest = new AssetCreateRequest(
+                "첫 번째 에셋",
+                "TES",
+                firstAssetFileId,
+                firstThumbnailFileId,
+                categoryId
+        );
+        Long id1 = assetService.createAsset(firstRequest);
+
+        // 새로운 파일 ID 생성 (두 번째 에셋용)
+        Long secondAssetFileId = createNewFileId();
+        Long secondThumbnailFileId = createNewFileId();
+        
+        // 두 번째 에셋 생성
+        AssetCreateRequest secondRequest = new AssetCreateRequest(
+                "두 번째 에셋",
+                "SEC",
+                secondAssetFileId,
+                secondThumbnailFileId,
+                categoryId
+        );
+        Long id2 = assetService.createAsset(secondRequest);
+
+        // 새로운 파일 ID 생성 (업데이트용)
+        Long updateAssetFileId = createNewFileId();
+        Long updateThumbnailFileId = createNewFileId();
+        
+        // 두 번째 에셋을 첫 번째 에셋과 동일한 코드로 업데이트 시도
+        AssetUpdateRequest updateRequest = new AssetUpdateRequest(
+                "수정된 에셋",
+                "TES",  // 첫 번째 에셋과 동일한 코드
+                updateAssetFileId,
+                updateThumbnailFileId,
+                categoryId
+        );
+
+        // when & then
+        assertThrows(CustomException.class, () -> assetService.updateAsset(id2, updateRequest));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 에셋을 업데이트 시도할 때 예외가 발생한다")
+    void updateAsset_WithNonExistingId_ThrowsCustomException() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // given
+        Long nonExistingId = 9999L;
+        AssetUpdateRequest updateRequest = new AssetUpdateRequest(
+                "수정된 에셋",
+                "UPD",
+                newAssetFileId,
+                newThumbnailFileId,
+                categoryId
+        );
+
+        // when & then
+        assertThrows(CustomException.class, () -> assetService.updateAsset(nonExistingId, updateRequest));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 에셋을 삭제 시도할 때 예외가 발생한다")
+    void deleteAsset_WithNonExistingId_ThrowsCustomException() {
+        // given
+        Long nonExistingId = 9999L;
+
+        // when & then
+        assertThrows(CustomException.class, () -> assetService.deleteAsset(nonExistingId));
+    }
+
+    @Test
+    @DisplayName("카테고리별 에셋 조회 시 해당 카테고리의 에셋만 반환된다")
+    void getAssetsByCategory_ReturnsAssetsOfSpecifiedCategory() throws IOException {
+        // 첫 번째 에셋 생성용 파일 ID
+        Long firstAssetFileId = createNewFileId();
+        Long firstThumbnailFileId = createNewFileId();
+        
+        // 1. 첫 번째 카테고리의 에셋 생성
+        AssetCreateRequest firstAssetRequest = new AssetCreateRequest(
+                "첫 번째 에셋",
+                "AS1",
+                firstAssetFileId,
+                firstThumbnailFileId,
+                categoryId
+        );
+        Long assetId1 = assetService.createAsset(firstAssetRequest);
+
+        // 2. 두 번째 카테고리 생성
+        AssetCategoryCreateRequest secondCategoryRequest = new AssetCategoryCreateRequest(
+                "두 번째 카테고리",
+                "SEC",
+                null,
+                null
+        );
+        Long secondCategoryId = assetCategoryService.createAssetCategory(secondCategoryRequest);
+
+        // 두 번째 에셋 생성용 파일 ID
+        Long secondAssetFileId = createNewFileId();
+        Long secondThumbnailFileId = createNewFileId();
+        
+        // 3. 두 번째 카테고리의 에셋 생성
+        AssetCreateRequest secondAssetRequest = new AssetCreateRequest(
+                "두 번째 에셋",
+                "AS2",
+                secondAssetFileId,
+                secondThumbnailFileId,
+                secondCategoryId
+        );
+        Long assetId2 = assetService.createAsset(secondAssetRequest);
+
+        // when
+        List<AssetResponse> firstCategoryAssets = assetService.getAssetsByCategory(categoryId);
+        List<AssetResponse> secondCategoryAssets = assetService.getAssetsByCategory(secondCategoryId);
+
+        // then
+        assertThat(firstCategoryAssets).hasSize(1);
+        assertThat(firstCategoryAssets.getFirst().id()).isEqualTo(assetId1);
+        assertThat(firstCategoryAssets.getFirst().categoryId()).isEqualTo(categoryId);
+
+        assertThat(secondCategoryAssets).hasSize(1);
+        assertThat(secondCategoryAssets.getFirst().id()).isEqualTo(assetId2);
+        assertThat(secondCategoryAssets.getFirst().categoryId()).isEqualTo(secondCategoryId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 카테고리 ID로 에셋에 카테고리 할당 시도 시 예외가 발생한다")
+    void assignCategory_WithNonExistingCategoryId_ThrowsCustomException() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // 생성 요청 객체 업데이트
+        AssetCreateRequest request = new AssetCreateRequest(
+                createRequest.name(),
+                createRequest.code(),
+                newAssetFileId,
+                newThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
+        // given
+        Long assetId = assetService.createAsset(request);
+        Long nonExistingCategoryId = 9999L;
+
+        // when & then
+        assertThrows(CustomException.class, () -> assetService.assignCategory(assetId, nonExistingCategoryId));
+    }
+
+    @Test
+    @DisplayName("에셋 코드로 에셋 조회 시 해당 코드의 에셋이 반환된다")
+    void getAssetByCode_ReturnsAssetWithSpecifiedCode() throws IOException {
+        // 새로운 파일 ID 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        // 생성 요청 객체 업데이트
+        AssetCreateRequest request = new AssetCreateRequest(
+                createRequest.name(),
+                createRequest.code(),
+                newAssetFileId,
+                newThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
+        // given
+        Long id = assetService.createAsset(request);
+        String assetCode = "TES";
+
+        // when
+        AssetResponse asset = assetService.getAssetByCode(assetCode);
+
+        // then
+        assertThat(asset).isNotNull();
+        assertThat(asset.id()).isEqualTo(id);
+        assertThat(asset.code()).isEqualTo(assetCode);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 코드로 에셋 조회 시 예외가 발생한다")
+    void getAssetByCode_WithNonExistingCode_ThrowsCustomException() {
+        // given
+        String nonExistingCode = "NON";
+
+        // when & then
+        assertThrows(CustomException.class, () -> assetService.getAssetByCode(nonExistingCode));
     }
 }

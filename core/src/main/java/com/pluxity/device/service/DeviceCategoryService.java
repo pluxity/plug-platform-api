@@ -67,7 +67,7 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     public void delete(Long id) {
         DeviceCategory deviceCategory = findById(id);
 
-        if (!deviceCategory.getDevices().isEmpty()) {
+        if (!deviceCategory.getChildren().isEmpty()) {
             throw new CustomException(ErrorCode.CATEGORY_HAS_DEVICES);
         }
 
@@ -100,7 +100,7 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         return createDeviceCategoryResponse(findById(id));
     }
 
-    private DeviceCategoryResponse createDeviceCategoryResponse(DeviceCategory deviceCategory) {
+    protected DeviceCategoryResponse createDeviceCategoryResponse(DeviceCategory deviceCategory) {
         return DeviceCategoryResponse.from(
                 deviceCategory,
                 deviceCategory.getIconFileId() != null
@@ -108,7 +108,7 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
                         : null);
     }
 
-    private DeviceCategoryTreeResponse createDeviceCategoryTreeResponse(
+    protected DeviceCategoryTreeResponse createDeviceCategoryTreeResponse(
             DeviceCategory deviceCategory) {
         return DeviceCategoryTreeResponse.from(
                 deviceCategory,

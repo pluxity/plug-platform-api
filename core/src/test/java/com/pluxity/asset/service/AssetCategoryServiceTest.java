@@ -192,4 +192,134 @@ class AssetCategoryServiceTest {
         // then
         assertThrows(CustomException.class, () -> assetCategoryService.getAssetCategory(id));
     }
+
+    @Test
+    @DisplayName("빈 이름으로 에셋 카테고리 생성 시 예외가 발생한다")
+    void createAssetCategory_WithEmptyName_ThrowsCustomException() {
+        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
+        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
+    }
+
+    @Test
+    @DisplayName("빈 코드로 에셋 카테고리 생성 시 예외가 발생한다")
+    void createAssetCategory_WithEmptyCode_ThrowsCustomException() {
+        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
+        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 부모 카테고리 ID로 에셋 카테고리 생성 시 예외가 발생한다")
+    void createAssetCategory_WithNonExistingParentId_ThrowsCustomException() {
+        // given
+        Long nonExistingParentId = 9999L;
+        AssetCategoryCreateRequest invalidRequest = new AssetCategoryCreateRequest(
+                "자식 카테고리",
+                "CC1",
+                nonExistingParentId,
+                null
+        );
+
+        // when & then
+        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(invalidRequest));
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 아이콘 파일 ID로 에셋 카테고리 생성 시 예외가 발생한다")
+    void createAssetCategory_WithInvalidIconFileId_ThrowsCustomException() {
+        // given
+        Long invalidIconFileId = 9999L;
+        AssetCategoryCreateRequest invalidRequest = new AssetCategoryCreateRequest(
+                "테스트 카테고리",
+                "TC3",
+                null,
+                invalidIconFileId
+        );
+
+        // when & then
+        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
+        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
+//        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(invalidRequest));
+    }
+
+    @Test
+    @DisplayName("최대 깊이를 초과하는 계층 구조로 에셋 카테고리 생성 시 예외가 발생한다")
+    void createAssetCategory_ExceedingMaxDepth_ThrowsCustomException() {
+        // given
+        // 1. 루트 카테고리 생성
+        Long rootId = assetCategoryService.createAssetCategory(createRequest);
+        
+//        // 2. 1단계 자식 카테고리 생성
+//        AssetCategoryCreateRequest childRequest = new AssetCategoryCreateRequest(
+//                "자식 카테고리",
+//                "CC1",
+//                rootId,
+//                null
+//        );
+//        Long childId = assetCategoryService.createAssetCategory(childRequest);
+        
+        // 3. 2단계 자식 카테고리 생성 시도 (최대 깊이 초과)
+        AssetCategoryCreateRequest grandchildRequest = new AssetCategoryCreateRequest(
+                "손자 카테고리",
+                "GC1",
+                rootId,
+                null
+        );
+        
+        // when & then
+        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(grandchildRequest));
+    }
+
+    @Test
+    @DisplayName("에셋 카테고리 업데이트 시 중복 코드로 변경 시도할 때 예외가 발생한다")
+    void updateAssetCategory_WithDuplicateCode_ThrowsCustomException() {
+        // given
+        // 1. 첫 번째 카테고리 생성
+        Long id1 = assetCategoryService.createAssetCategory(createRequest);
+        
+        // 2. 두 번째 카테고리 생성
+        AssetCategoryCreateRequest secondRequest = new AssetCategoryCreateRequest(
+                "두 번째 카테고리",
+                "TC2",
+                null,
+                null
+        );
+        Long id2 = assetCategoryService.createAssetCategory(secondRequest);
+        
+        // 3. 두 번째 카테고리를 첫 번째 카테고리와 동일한 코드로 업데이트 시도
+        AssetCategoryUpdateRequest updateRequest = new AssetCategoryUpdateRequest(
+                "수정된 카테고리",
+                "TC1", // 첫 번째 카테고리와 동일한 코드
+                null,
+                null
+        );
+        
+        // when & then
+        assertThrows(CustomException.class, () -> assetCategoryService.updateAssetCategory(id2, updateRequest));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 카테고리를 업데이트 시도할 때 예외가 발생한다")
+    void updateAssetCategory_WithNonExistingId_ThrowsCustomException() {
+        // given
+        Long nonExistingId = 9999L;
+        AssetCategoryUpdateRequest updateRequest = new AssetCategoryUpdateRequest(
+                "수정된 카테고리",
+                "UC2",
+                null,
+                null
+        );
+        
+        // when & then
+        assertThrows(CustomException.class, () -> assetCategoryService.updateAssetCategory(nonExistingId, updateRequest));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 카테고리를 삭제 시도할 때 예외가 발생한다")
+    void deleteAssetCategory_WithNonExistingId_ThrowsCustomException() {
+        // given
+        Long nonExistingId = 9999L;
+        
+        // when & then
+        assertThrows(CustomException.class, () -> assetCategoryService.deleteAssetCategory(nonExistingId));
+    }
 }

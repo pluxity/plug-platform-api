@@ -38,6 +38,7 @@ public enum ErrorCode implements Code {
     CATEGORY_HAS_DEVICES(BAD_REQUEST, "카테고리에 등록된 디바이스가 있어 삭제할 수 없습니다."),
 
     EXCEED_CATEGORY_DEPTH(BAD_REQUEST, "카테고리는 깊이를 초과했습니다"),
+    INVALID_REFERENCE(BAD_REQUEST, "요청 된 참조가 유효하지 않습니다."),
     ;
     private final HttpStatus httpStatus;
     private final String message;
