@@ -6,6 +6,7 @@ import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.domains.device.dto.NfluxCategoryCreateRequest;
 import com.pluxity.domains.device.dto.NfluxCategoryResponse;
 import com.pluxity.domains.device.dto.NfluxCategoryUpdateRequest;
+import com.pluxity.domains.device.dto.NfluxResponse;
 import com.pluxity.domains.device.entity.NfluxCategory;
 import com.pluxity.domains.device.repository.NfluxCategoryRepository;
 import com.pluxity.file.dto.FileResponse;
@@ -29,6 +30,7 @@ public class NfluxCategoryService {
     private final NfluxCategoryRepository nfluxCategoryRepository;
     private final DeviceCategoryService deviceCategoryService;
     private final FileService fileService;
+    private final NfluxService nfluxService;
 
     @Transactional
     public Long save(NfluxCategoryCreateRequest request) {
@@ -196,5 +198,17 @@ public class NfluxCategoryService {
             log.error("Failed to get icon file: {}", e.getMessage());
             return FileResponse.empty();
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<NfluxResponse> findDevicesByCategoryId(Long categoryId) {
+        // 카테고리가 존재하는지 확인
+        NfluxCategory category =
+                nfluxCategoryRepository
+                        .findById(categoryId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "카테고리를 찾을 수 없습니다."));
+
+        // 해당 카테고리에 속한 디바이스들을 조회
+        return nfluxService.findByCategoryId(categoryId);
     }
 }

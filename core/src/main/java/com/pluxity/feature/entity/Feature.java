@@ -140,7 +140,7 @@ public class Feature extends BaseEntity {
             this.asset.getFeatures().remove(this);
         }
         this.asset = newAsset;
-        
+
         if (newAsset != null && !newAsset.getFeatures().contains(this)) {
             newAsset.addFeature(this);
         }

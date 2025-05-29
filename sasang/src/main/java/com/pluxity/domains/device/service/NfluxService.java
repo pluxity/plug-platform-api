@@ -53,6 +53,11 @@ public class NfluxService {
         return repository.findAll().stream().map(this::createResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<NfluxResponse> findByCategoryId(Long categoryId) {
+        return repository.findByCategoryId(categoryId).stream().map(this::createResponse).toList();
+    }
+
     private NfluxResponse createResponse(Nflux device) {
         FileResponse iconResponse = getIconFileResponse(device);
 
