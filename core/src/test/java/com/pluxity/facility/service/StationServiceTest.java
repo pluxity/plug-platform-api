@@ -160,7 +160,7 @@ class StationServiceTest {
             assertThat(savedStation.floors().stream()
                     .anyMatch(floor -> 
                         floor.name().equals(floorNumber + "층") && 
-                        floor.groupId() == floorNumber))
+                        floor.floorId() == floorNumber))
                     .isTrue();
         }
     }

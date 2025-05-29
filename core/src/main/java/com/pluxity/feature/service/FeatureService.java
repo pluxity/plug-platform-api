@@ -2,11 +2,17 @@ package com.pluxity.feature.service;
 
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
+import com.pluxity.asset.service.AssetService;
+import com.pluxity.facility.facility.Facility;
+import com.pluxity.facility.facility.FacilityRepository;
+import com.pluxity.facility.facility.FacilityService;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.repository.FeatureRepository;
+import com.pluxity.file.dto.FileResponse;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import java.util.List;
 import java.util.function.Supplier;
@@ -23,55 +29,52 @@ public class FeatureService {
 
     private final FeatureRepository featureRepository;
     private final AssetRepository assetRepository;
+    private final FacilityRepository facilityRepository;
+    private final FacilityService facilityService;
+    private final AssetService assetService;
+    private final FileService fileService;
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
         Feature feature = Feature.create(request, request.id());
 
-        if (request.assetId() != null) {
-            Asset asset =
-                    assetRepository
-                            .findById(request.assetId())
-                            .orElseThrow(
-                                    () ->
-                                            new CustomException(
-                                                    "Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다."));
-            feature.changeAsset(asset);
-        }
+        Facility facility = facilityService.findById(request.facilityId());
+        feature.changeFacility(facility);
+
+        Asset asset = assetService.findById(request.assetId());
+        feature.changeAsset(asset);
+
+        FileResponse assetFileResponse = assetService.getFileResponse(asset);
+        FileResponse assetthumbnailFileResponse = assetService.getThumbnailFileResponse(asset);
+        FileResponse facilityDrawingFileResponse = facilityService.getDrawingFileResponse(facility);
+        FileResponse facilityThumbnailFileResponse = facilityService.getThumbnailFileResponse(facility);
 
         Feature savedFeature = featureRepository.save(feature);
-        return FeatureResponse.from(savedFeature);
+        return FeatureResponse.from(
+                savedFeature,
+                assetFileResponse,
+                assetthumbnailFileResponse,
+                facilityDrawingFileResponse,
+                facilityThumbnailFileResponse);
     }
 
     @Transactional(readOnly = true)
     public FeatureResponse getFeature(String id) {
         Feature feature = findFeatureById(id);
-        return FeatureResponse.from(feature);
+        return getFeatureResponse(feature);
     }
 
     @Transactional(readOnly = true)
     public List<FeatureResponse> getFeatures() {
         List<Feature> features = featureRepository.findAll();
-        return features.stream().map(FeatureResponse::from).toList();
+        return features.stream().map(this::getFeatureResponse).toList();
     }
 
     @Transactional
     public FeatureResponse updateFeature(String id, FeatureUpdateRequest request) {
         Feature feature = findFeatureById(id);
         feature.update(request);
-
-        if (request.assetId() != null) {
-            Asset asset =
-                    assetRepository
-                            .findById(request.assetId())
-                            .orElseThrow(
-                                    () ->
-                                            new CustomException(
-                                                    "Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다."));
-            feature.changeAsset(asset);
-        }
-
-        return FeatureResponse.from(feature);
+        return getFeatureResponse(feature);
     }
 
     @Transactional
@@ -91,12 +94,16 @@ public class FeatureService {
     @Transactional
     public FeatureResponse assignAssetToFeature(String featureId, Long assetId) {
         Feature feature = findFeatureById(featureId);
-        Asset asset = assetRepository.findById(assetId)
-                .orElseThrow(() -> new CustomException("Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다: " + assetId));
-        
+        Asset asset =
+                assetRepository
+                        .findById(assetId)
+                        .orElseThrow(
+                                () ->
+                                        new CustomException(
+                                                "Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다: " + assetId));
+
         feature.changeAsset(asset); // 엔티티의 편의 메서드 사용
-        // featureRepository.save(feature); // 변경 감지로 처리될 수 있음
-        return FeatureResponse.from(feature);
+        return getFeatureResponse(feature);
     }
 
     @Transactional
@@ -111,7 +118,22 @@ public class FeatureService {
         }
 
         feature.changeAsset(null); // 엔티티의 편의 메서드 사용 (Asset과의 연결 해제)
-        // featureRepository.save(feature);
-        return FeatureResponse.from(feature);
+        return getFeatureResponse(feature);
+    }
+
+    private FeatureResponse getFeatureResponse(Feature feature) {
+        FileResponse assetFileResponse = assetService.getFileResponse(feature.getAsset());
+        FileResponse assetthumbnailFileResponse =
+                assetService.getThumbnailFileResponse(feature.getAsset());
+        FileResponse facilityDrawingFileResponse =
+                facilityService.getDrawingFileResponse(feature.getFacility());
+        FileResponse facilityThumbnailFileResponse =
+                facilityService.getThumbnailFileResponse(feature.getFacility());
+        return FeatureResponse.from(
+                feature,
+                assetFileResponse,
+                assetthumbnailFileResponse,
+                facilityDrawingFileResponse,
+                facilityThumbnailFileResponse);
     }
 }

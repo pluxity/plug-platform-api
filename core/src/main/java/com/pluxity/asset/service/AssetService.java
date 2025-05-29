@@ -149,14 +149,21 @@ public class AssetService {
         return assetRepository.findById(id).orElseThrow(notFoundAsset());
     }
 
-    private FileResponse getFileResponse(Asset asset) {
+    public FileResponse getFileResponse(Asset asset) {
+        if (asset == null) {
+            return null;
+        }
+
         if (!asset.hasFile()) {
             return null;
         }
         return fileService.getFileResponse(asset.getFileId());
     }
 
-    private FileResponse getThumbnailFileResponse(Asset asset) {
+    public FileResponse getThumbnailFileResponse(Asset asset) {
+        if (asset == null) {
+            return null;
+        }
         if (!asset.hasThumbnail()) {
             return null;
         }

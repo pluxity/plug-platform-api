@@ -194,7 +194,7 @@ public class FacilityService {
         }
     }
 
-    private FileResponse getDrawingFileResponse(Facility facility) {
+    public FileResponse getDrawingFileResponse(Facility facility) {
         if (facility.getDrawingFileId() == null) {
             return FileResponse.empty();
         }
@@ -206,7 +206,7 @@ public class FacilityService {
         }
     }
 
-    private FileResponse getThumbnailFileResponse(Facility facility) {
+    public FileResponse getThumbnailFileResponse(Facility facility) {
         if (facility.getThumbnailFileId() == null) {
             return FileResponse.empty();
         }

@@ -88,7 +88,16 @@ class NfluxServiceTest {
         Spatial rotation = Spatial.builder().x(0.0).y(0.0).z(0.0).build();
         Spatial scale = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
 
-        FeatureCreateRequest featureRequest = new FeatureCreateRequest(UUID.randomUUID().toString(), position, rotation, scale, null);
+        // 수정된 FeatureCreateRequest - assetId, facilityId, floorId 추가
+        FeatureCreateRequest featureRequest = new FeatureCreateRequest(
+                UUID.randomUUID().toString(),
+                position,
+                rotation,
+                scale,
+                asset.getId(),
+                station.getId(),
+                1L // floorId 추가
+        );
 
         createRequest = new NfluxCreateRequest(
                 featureRequest,
@@ -174,9 +183,13 @@ class NfluxServiceTest {
                 .name("새 테스트 아이콘")
                 .build());
         
-        // Feature 업데이트 요청 생성
+        // Feature 업데이트 요청 생성 - 수정된 FeatureUpdateRequest 생성자 사용
         Spatial newPosition = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
-        FeatureUpdateRequest featureUpdateRequest = new FeatureUpdateRequest(newPosition, null, null, null);
+        FeatureUpdateRequest featureUpdateRequest = new FeatureUpdateRequest(
+                newPosition, 
+                null, 
+                null
+        );
                 
         NfluxUpdateRequest updateRequest = new NfluxUpdateRequest(
                 featureUpdateRequest,

@@ -2,12 +2,13 @@ package com.pluxity.feature.dto;
 
 import com.pluxity.feature.entity.Spatial;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Builder;
+import jakarta.validation.constraints.NotNull;
 
-@Builder
 public record FeatureCreateRequest(
         @NotBlank String id, // UUID
         Spatial position,
         Spatial rotation,
         Spatial scale,
-        Long assetId) {}
+        @NotNull Long assetId,
+        @NotNull Long facilityId,
+        @NotNull Long floorId) {}

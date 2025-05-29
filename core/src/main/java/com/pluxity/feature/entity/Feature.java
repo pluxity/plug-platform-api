@@ -2,6 +2,7 @@ package com.pluxity.feature.entity;
 
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.device.entity.Device;
+import com.pluxity.facility.facility.Facility;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.global.entity.BaseEntity;
@@ -19,8 +20,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class Feature extends BaseEntity {
 
-    @Id
-    private String id;
+    @Id private String id;
 
     @Embedded
     @AttributeOverride(name = "x", column = @Column(name = "position_x"))
@@ -47,14 +47,32 @@ public class Feature extends BaseEntity {
     @JoinColumn(name = "asset_id")
     private Asset asset;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facility_id")
+    private Facility facility;
+
+    @Column(name = "floor_id")
+    private Long floorId;
+
     @Builder
-    public Feature(String id, Spatial position, Spatial rotation, Spatial scale, Asset asset) {
+    public Feature(
+            String id,
+            Spatial position,
+            Spatial rotation,
+            Spatial scale,
+            Asset asset,
+            Facility facility,
+            Long floorId) {
         this.id = id;
         this.position = position;
         this.rotation = rotation;
         this.scale = scale;
+        this.floorId = floorId;
         if (asset != null) {
             changeAsset(asset);
+        }
+        if (facility != null) {
+            changeFacility(facility);
         }
     }
 
@@ -64,6 +82,7 @@ public class Feature extends BaseEntity {
                 .position(request.position() != null ? request.position() : new Spatial(0.0, 0.0, 0.0))
                 .rotation(request.rotation() != null ? request.rotation() : new Spatial(0.0, 0.0, 0.0))
                 .scale(request.scale() != null ? request.scale() : new Spatial(1.0, 1.0, 1.0))
+                .floorId(request.floorId())
                 .build();
     }
 
@@ -129,5 +148,9 @@ public class Feature extends BaseEntity {
         if (newAsset != null && !newAsset.getFeatures().contains(this)) {
             newAsset.getFeatures().add(this);
         }
+    }
+
+    public void changeFacility(Facility newFacility) {
+        this.facility = newFacility;
     }
 }

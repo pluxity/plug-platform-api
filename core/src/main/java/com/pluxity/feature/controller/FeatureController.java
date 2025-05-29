@@ -13,13 +13,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/features")
@@ -271,7 +270,10 @@ public class FeatureController {
     @Operation(summary = "피처에 에셋 할당", description = "특정 피처에 에셋을 할당(연결)합니다.")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "200", description = "에셋 할당 성공", content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "에셋 할당 성공",
+                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
                 @ApiResponse(responseCode = "404", description = "피처 또는 에셋을 찾을 수 없음")
             })
     @PutMapping("/{featureId}/assets/{assetId}")
@@ -286,7 +288,10 @@ public class FeatureController {
     @Operation(summary = "피처에서 에셋 연결 해제", description = "특정 피처에 할당된 에셋과의 연결을 해제합니다.")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "200", description = "에셋 연결 해제 성공", content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "에셋 연결 해제 성공",
+                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
                 @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처에 에셋이 할당되지 않음)"),
                 @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
             })
