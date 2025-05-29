@@ -1,5 +1,7 @@
 package com.pluxity.domains.device.service;
 
+import com.pluxity.category.entity.Category;
+import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.domains.device.dto.NfluxCategoryCreateRequest;
 import com.pluxity.domains.device.dto.NfluxCategoryResponse;
@@ -37,12 +39,15 @@ public class NfluxCategoryService {
         NfluxCategory category =
                 NfluxCategory.nfluxBuilder()
                         .name(name)
-                        .parent(null) // NfluxCategory는 MaxDepth가 1이므로 부모 카테고리는 null
+                        .parent(null)
                         .contextPath(request.contextPath())
                         .build();
 
+        DeviceCategory savedCategory = nfluxCategoryRepository.save(category);
+
         if (request.iconFileId() != null) {
-            category.updateIconFileId(request.iconFileId());
+            category.updateIconFileId(fileService
+                    .finalizeUpload(request.iconFileId(), savedCategory.getPrefix()).getId());
         }
 
         return nfluxCategoryRepository.save(category).getId();
@@ -78,7 +83,9 @@ public class NfluxCategoryService {
         }
 
         if (request.iconFileId() != null) {
-            category.updateIconFileId(request.iconFileId());
+            category.updateIconFileId(fileService
+                            .finalizeUpload(request.iconFileId(), category.getPrefix()).getId()
+            );
         }
 
         return toResponse(category);

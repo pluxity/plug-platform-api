@@ -27,6 +27,8 @@ public class DeviceCategory extends Category<DeviceCategory> {
     @Column(name = "DTYPE", insertable = true, updatable = false)
     private String dtype = "DEVICE_BASE";
 
+    private final String prefix = "device-categories/";
+
     @Builder
     public DeviceCategory(String name, DeviceCategory parent) {
         this.name = name;
@@ -63,5 +65,9 @@ public class DeviceCategory extends Category<DeviceCategory> {
             newParent.getChildren().add(this);
         }
         this.validateDepth();
+    }
+
+    public String getPrefix() {
+        return this.prefix + this.iconFileId + "/";
     }
 }
