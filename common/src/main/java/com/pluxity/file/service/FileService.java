@@ -1,6 +1,7 @@
 package com.pluxity.file.service;
 
-import static com.pluxity.global.constant.ErrorCode.*;
+import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
+import static com.pluxity.global.constant.ErrorCode.INVALID_FILE_STATUS;
 
 import com.pluxity.file.constant.FileStatus;
 import com.pluxity.file.dto.FileResponse;
@@ -173,8 +174,6 @@ public class FileService {
                 .originalFileName(fileEntity.getOriginalFileName())
                 .contentType(fileEntity.getContentType())
                 .fileStatus(fileEntity.getFileStatus().name())
-                .createdAt(fileEntity.getCreatedAt())
-                .updatedAt(fileEntity.getUpdatedAt())
                 .build();
     }
 }
