@@ -2,7 +2,6 @@ package com.pluxity.domains.station.dto;
 
 import com.pluxity.facility.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.floor.dto.FloorRequest;
-
 import java.util.List;
 
 public record SasangStationCreateRequest(
@@ -10,7 +9,4 @@ public record SasangStationCreateRequest(
         List<FloorRequest> floors,
         List<Long> lineIds,
         String route,
-        String externalCode
-) {
-
-}
+        String externalCode) {}

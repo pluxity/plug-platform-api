@@ -1,7 +1,12 @@
 package com.pluxity.domains.station.dto;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.pluxity.facility.station.dto.StationUpdateRequest;
+import java.util.List;
 
 public record SasangStationUpdateRequest(
-        @JsonUnwrapped StationUpdateRequest stationUpdateRequest, String externalCode) {}
+        String name,
+        String description,
+        Long drawingFileId,
+        Long thumbnailFileId,
+        List<Long> lineIds,
+        String route,
+        String externalCode) {}

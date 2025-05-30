@@ -15,6 +15,7 @@ import com.pluxity.facility.line.LineService;
 import com.pluxity.facility.station.StationService;
 import com.pluxity.facility.station.dto.StationResponse;
 import com.pluxity.facility.station.dto.StationResponseWithFeature;
+import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
@@ -40,14 +41,14 @@ public class SasangStationService {
     public Long save(SasangStationCreateRequest request) {
         SasangStation sasangStation =
                 SasangStation.sasangStationBuilder()
-                        .name(request.stationRequest().facility().name())
-                        .description(request.stationRequest().facility().description())
-                        .route(request.stationRequest().route())
+                        .name(request.facility().name())
+                        .description(request.facility().description())
+                        .route(request.route())
                         .externalCode(request.externalCode())
                         .build();
 
         // 파일 ID 설정
-        FacilityCreateRequest facilityRequest = request.stationRequest().facility();
+        FacilityCreateRequest facilityRequest = request.facility();
         sasangStation.updateDrawingFileId(facilityRequest.drawingFileId());
         sasangStation.updateThumbnailFileId(facilityRequest.thumbnailFileId());
 
@@ -55,16 +56,15 @@ public class SasangStationService {
         Facility saved = facilityService.save(sasangStation, facilityRequest);
 
         // 층 정보 저장
-        if (request.stationRequest().floors() != null) {
-            for (FloorRequest floorRequest : request.stationRequest().floors()) {
+        if (request.floors() != null) {
+            for (FloorRequest floorRequest : request.floors()) {
                 floorStrategy.save(saved, floorRequest);
             }
         }
 
         // 노선 정보 저장
-        if (request.stationRequest().lineIds() != null
-                && !request.stationRequest().lineIds().isEmpty()) {
-            for (Long lineId : request.stationRequest().lineIds()) {
+        if (request.lineIds() != null && !request.lineIds().isEmpty()) {
+            for (Long lineId : request.lineIds()) {
                 Line line = lineService.findLineById(lineId);
                 sasangStation.addLine(line);
             }
@@ -106,8 +106,16 @@ public class SasangStationService {
         SasangStation sasangStation = findSasangStationById(id);
 
         // 기본 Station 정보 업데이트
-        if (request.stationUpdateRequest() != null) {
-            stationService.update(id, request.stationUpdateRequest());
+        if (request != null) {
+            stationService.update(
+                    id,
+                    StationUpdateRequest.builder()
+                            .name(request.name())
+                            .description(request.description())
+                            .thumbnailFileId(request.thumbnailFileId())
+                            .lineIds(request.lineIds())
+                            .route(request.route())
+                            .build());
         }
 
         // SasangStation 고유 필드 업데이트
