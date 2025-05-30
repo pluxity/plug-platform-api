@@ -7,6 +7,7 @@ import com.pluxity.domains.device.dto.NfluxCategoryResponse;
 import com.pluxity.domains.device.dto.NfluxCategoryUpdateRequest;
 import com.pluxity.domains.device.entity.NfluxCategory;
 import com.pluxity.domains.device.repository.NfluxCategoryRepository;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -15,8 +16,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,18 +44,33 @@ class NfluxCategoryServiceTest {
 
     @Autowired
     private DeviceCategoryService deviceCategoryService;
+    
+    @Autowired
+    private FileService fileService;
 
     private NfluxCategory rootCategory; // 루트 카테고리 (depth=1)
     private NfluxCategoryCreateRequest createRequest; // 루트 카테고리 생성용
+    private Long iconFileId; // 아이콘 파일 ID
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         // 루트 카테고리 생성 (depth=1)
         rootCategory = NfluxCategory.nfluxBuilder()
                 .name("루트 카테고리")
                 .contextPath("/root")
                 .build();
         nfluxCategoryRepository.save(rootCategory);
+        
+        // 테스트 아이콘 이미지 파일 준비
+        ClassPathResource resource = new ClassPathResource("temp/temp.png");
+        byte[] fileContent = Files.readAllBytes(Path.of(resource.getURI()));
+        
+        // MockMultipartFile 생성
+        MultipartFile iconFile = new MockMultipartFile(
+                "icon.png", "icon.png", "image/png", fileContent);
+        
+        // 파일 업로드 초기화 및 아이콘 파일 ID 설정
+        iconFileId = fileService.initiateUpload(iconFile);
 
         // 생성 요청 준비
         createRequest = NfluxCategoryCreateRequest.of(
@@ -78,7 +100,6 @@ class NfluxCategoryServiceTest {
     @DisplayName("아이콘 ID를 포함한 요청으로 카테고리 생성 시 카테고리가 저장된다")
     void save_WithIconFileId_SavesCategory() {
         // given
-        Long iconFileId = 1L;
         NfluxCategoryCreateRequest requestWithIcon = NfluxCategoryCreateRequest.of(
                 "아이콘 포함 카테고리",
                 "/with-icon",
@@ -93,6 +114,7 @@ class NfluxCategoryServiceTest {
         assertThat(savedCategory).isNotNull();
         assertThat(savedCategory.name()).isEqualTo("아이콘 포함 카테고리");
         assertThat(savedCategory.iconFile()).isNotNull();
+        assertThat(savedCategory.iconFile().id()).isEqualTo(iconFileId);
     }
 
     @Test
@@ -199,15 +221,25 @@ class NfluxCategoryServiceTest {
     
     @Test
     @DisplayName("아이콘 ID를 포함한 업데이트 시 정보가 업데이트된다")
-    void update_WithIconFileId_UpdatesCategory() {
+    void update_WithIconFileId_UpdatesCategory() throws IOException {
         // given
         Long id = nfluxCategoryService.save(createRequest);
-        Long iconFileId = 2L;
+        
+        // 새 아이콘 파일 준비
+        ClassPathResource resource = new ClassPathResource("temp/temp.png");
+        byte[] fileContent = Files.readAllBytes(Path.of(resource.getURI()));
+        
+        // 새 MockMultipartFile 생성
+        MultipartFile newIconFile = new MockMultipartFile(
+                "new-icon.png", "new-icon.png", "image/png", fileContent);
+        
+        // 새 아이콘 파일 업로드
+        Long newIconFileId = fileService.initiateUpload(newIconFile);
         
         NfluxCategoryUpdateRequest updateRequest = NfluxCategoryUpdateRequest.of(
                 "아이콘 추가 카테고리",
                 null,
-                iconFileId
+                newIconFileId
         );
         
         // when
@@ -216,6 +248,7 @@ class NfluxCategoryServiceTest {
         // then
         assertThat(updatedCategory.name()).isEqualTo("아이콘 추가 카테고리");
         assertThat(updatedCategory.iconFile()).isNotNull();
+        assertThat(updatedCategory.iconFile().id()).isEqualTo(newIconFileId);
     }
 
     @Test

@@ -291,7 +291,7 @@ public class SasangStationController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @GetMapping("/{stationId}/features")
+    @GetMapping("/{stationId}/with-features")
     public ResponseEntity<DataResponseBody<StationResponseWithFeature>> getStationFeatures(
             @Parameter(description = "역 ID", required = true) @PathVariable Long stationId) {
         return ResponseEntity.ok(DataResponseBody.of(service.findStationWithFeatures(stationId)));

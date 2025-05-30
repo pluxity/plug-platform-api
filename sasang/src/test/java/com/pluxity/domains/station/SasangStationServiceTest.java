@@ -298,7 +298,7 @@ class SasangStationServiceTest {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.facility().features()).hasSize(3);
+        assertThat(response.features()).hasSize(3);
         assertThat(response.facility().id()).isEqualTo(stationId);
     }
 } 

@@ -13,7 +13,6 @@ public record FacilityResponseWithFeature(
         String code,
         String name,
         String description,
-        List<FeatureResponse> features,
         FileResponse drawing,
         FileResponse thumbnail,
         @JsonUnwrapped BaseResponse baseResponse) {
@@ -21,17 +20,17 @@ public record FacilityResponseWithFeature(
     public static FacilityResponseWithFeature from(
             Facility facility, FileResponse drawing, FileResponse thumbnail) {
 
-        List<FeatureResponse> featureResponses =
-                facility.getFeatures().stream().map(FeatureResponse::from).collect(Collectors.toList());
-
         return new FacilityResponseWithFeature(
                 facility.getId(),
                 facility.getCode(),
                 facility.getName(),
                 facility.getDescription(),
-                featureResponses,
                 drawing != null ? drawing : FileResponse.empty(),
                 thumbnail != null ? thumbnail : FileResponse.empty(),
                 BaseResponse.of(facility));
+    }
+
+    public static List<FeatureResponse> getFeatureResponses(Facility facility) {
+        return facility.getFeatures().stream().map(FeatureResponse::from).collect(Collectors.toList());
     }
 }

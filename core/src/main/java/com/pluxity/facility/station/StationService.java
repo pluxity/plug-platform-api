@@ -14,6 +14,7 @@ import com.pluxity.facility.station.dto.StationResponse;
 import com.pluxity.facility.station.dto.StationResponseWithFeature;
 import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.facility.strategy.FloorStrategy;
+import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import java.util.List;
@@ -72,6 +73,8 @@ public class StationService {
                                             .collect(Collectors.toList());
 
                             List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+                            List<FeatureResponse> features =
+                                    FacilityResponseWithFeature.getFeatureResponses(station);
 
                             return StationResponse.builder()
                                     .facility(
@@ -81,6 +84,7 @@ public class StationService {
                                                     fileService.getFileResponse(station.getThumbnailFileId())))
                                     .floors(floorResponse)
                                     .lineIds(lineIds)
+                                    .features(features)
                                     .route(station.getRoute())
                                     .build();
                         })
@@ -91,6 +95,7 @@ public class StationService {
     public StationResponse findById(Long id) {
         Station station = (Station) facilityService.findById(id);
         List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+        List<FeatureResponse> features = FacilityResponseWithFeature.getFeatureResponses(station);
 
         List<Long> lineIds =
                 station.getStationLines().stream()
@@ -105,6 +110,7 @@ public class StationService {
                                 fileService.getFileResponse(station.getThumbnailFileId())))
                 .floors(floorResponse)
                 .lineIds(lineIds)
+                .features(features)
                 .route(station.getRoute())
                 .build();
     }
@@ -208,10 +214,13 @@ public class StationService {
                         fileService.getFileResponse(station.getDrawingFileId()),
                         fileService.getFileResponse(station.getThumbnailFileId()));
 
+        List<FeatureResponse> features = FacilityResponseWithFeature.getFeatureResponses(station);
+
         return StationResponseWithFeature.builder()
                 .facility(facilityResponse)
                 .floors(floorResponse)
                 .lineIds(lineIds)
+                .features(features)
                 .route(station.getRoute())
                 .build();
     }
