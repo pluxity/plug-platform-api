@@ -1,20 +1,19 @@
 package com.pluxity.feature.dto;
 
-import com.pluxity.asset.dto.AssetResponse;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.Spatial;
 import com.pluxity.file.dto.FileResponse;
 
-public record FeatureResponse(
+public record FeatureResponseWithoutAsset(
         String id,
         Spatial position,
         Spatial rotation,
         Spatial scale,
-        AssetResponse asset,
+        Long assetId,
         String floorId,
         String deviceCode) {
 
-    public static FeatureResponse from(
+    public static FeatureResponseWithoutAsset from(
             Feature feature,
             FileResponse assetFile,
             FileResponse assetThumbnail,
@@ -27,31 +26,29 @@ public record FeatureResponse(
             deviceCode = feature.getDevice().getDeviceCode();
         }
 
-        return new FeatureResponse(
+        return new FeatureResponseWithoutAsset(
                 feature.getId(),
                 feature.getPosition(),
                 feature.getRotation(),
                 feature.getScale(),
-                feature.getAsset() != null
-                        ? AssetResponse.from(feature.getAsset(), assetFile, assetThumbnail)
-                        : null,
+                feature.getAsset() != null ? feature.getAsset().getId() : null,
                 feature.getFloorId(),
                 deviceCode);
     }
 
-    public static FeatureResponse from(Feature feature) {
+    public static FeatureResponseWithoutAsset from(Feature feature) {
         // Device에서 code 정보 가져오기
         String deviceCode = null;
         if (feature.getDevice() != null) {
             deviceCode = feature.getDevice().getDeviceCode();
         }
 
-        return new FeatureResponse(
+        return new FeatureResponseWithoutAsset(
                 feature.getId(),
                 feature.getPosition(),
                 feature.getRotation(),
                 feature.getScale(),
-                feature.getAsset() != null ? AssetResponse.from(feature.getAsset()) : null,
+                feature.getAsset() != null ? feature.getAsset().getId() : null,
                 feature.getFloorId(),
                 deviceCode);
     }

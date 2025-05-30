@@ -11,9 +11,7 @@ import com.pluxity.facility.line.Line;
 import com.pluxity.facility.line.LineRepository;
 import com.pluxity.facility.line.LineService;
 import com.pluxity.facility.station.StationService;
-import com.pluxity.facility.station.dto.StationCreateRequest;
 import com.pluxity.facility.station.dto.StationResponseWithFeature;
-import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.Spatial;
 import com.pluxity.feature.repository.FeatureRepository;
@@ -82,44 +80,40 @@ class SasangStationServiceTest {
         // 테스트 이미지 파일 준비
         ClassPathResource resource = new ClassPathResource("temp/temp.png");
         byte[] fileContent = Files.readAllBytes(Path.of(resource.getURI()));
-        
+
         // MockMultipartFile 생성
         MultipartFile drawingFile = new MockMultipartFile(
                 "drawing.png", "drawing.png", "image/png", fileContent);
         MultipartFile thumbnailFile = new MockMultipartFile(
                 "thumbnail.png", "thumbnail.png", "image/png", fileContent);
-        
+
         // 파일 업로드 초기화
         drawingFileId = fileService.initiateUpload(drawingFile);
         thumbnailFileId = fileService.initiateUpload(thumbnailFile);
-        
+
         // 테스트 데이터 준비
         FacilityCreateRequest facilityRequest = new FacilityCreateRequest(
-                "테스트 사상역", 
+                "테스트 사상역",
                 "ST001",
                 "테스트 사상역 설명",
-                drawingFileId, 
+                drawingFileId,
                 thumbnailFileId
         );
-        
+
         List<FloorRequest> floorRequests = new ArrayList<>();
         floorRequests.add(new FloorRequest(
-                "1층", 
+                "1층",
                 "1"
         ));
-        
-        StationCreateRequest stationRequest = new StationCreateRequest(
+
+        createRequest = new SasangStationCreateRequest(
                 facilityRequest,
                 floorRequests,
                 Collections.emptyList(),
-                "route"
-        );
-        
-        createRequest = new SasangStationCreateRequest(
-                stationRequest,
+                "route",
                 "EXT001"
         );
-        
+
         // 테스트 Line 생성
         testLine = Line.builder()
                 .name("테스트 호선")
@@ -136,14 +130,14 @@ class SasangStationServiceTest {
 
         // then
         assertThat(id).isNotNull();
-        
+
         // 저장된 사상역 확인
         SasangStationResponse savedStation = sasangStationService.findById(id);
         assertThat(savedStation).isNotNull();
-        assertThat(savedStation.stationResponse().facility().name()).isEqualTo("테스트 사상역");
-        assertThat(savedStation.stationResponse().facility().description()).isEqualTo("테스트 사상역 설명");
-        assertThat(savedStation.stationResponse().floors()).isNotEmpty();
-        assertThat(savedStation.stationResponse().lineIds()).isEmpty(); // Line 없이 생성했으므로 빈 리스트
+        assertThat(savedStation.facility().name()).isEqualTo("테스트 사상역");
+        assertThat(savedStation.facility().description()).isEqualTo("테스트 사상역 설명");
+        assertThat(savedStation.floors()).isNotEmpty();
+        assertThat(savedStation.lineIds()).isEmpty(); // Line 없이 생성했으므로 빈 리스트
         assertThat(savedStation.externalCode()).isEqualTo("EXT001");
     }
 
@@ -174,11 +168,11 @@ class SasangStationServiceTest {
     void findByExternalCode_WithExistingExternalCode_ReturnsSasangStationResponse() {
         // given
         Long id = sasangStationService.save(createRequest);
-        
+
         // 생성된 사상역의 외부 코드가 올바르게 설정되었는지 확인
         SasangStation createdStation = sasangStationRepository.findById(id).orElseThrow();
         assertThat(createdStation.getExternalCode()).isEqualTo("EXT001");
-        
+
         em.flush();
         em.clear();
 
@@ -187,7 +181,7 @@ class SasangStationServiceTest {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.stationResponse().facility().name()).isEqualTo("테스트 사상역");
+        assertThat(response.facility().name()).isEqualTo("테스트 사상역");
         assertThat(response.externalCode()).isEqualTo("EXT001");
     }
 
@@ -196,18 +190,14 @@ class SasangStationServiceTest {
     void update_WithValidRequest_UpdatesSasangStation() {
         // given
         Long id = sasangStationService.save(createRequest);
-        
-        StationUpdateRequest stationUpdateRequest = new StationUpdateRequest(
+
+        SasangStationUpdateRequest updateRequest = new SasangStationUpdateRequest(
                 "수정된 사상역",
                 "수정된 사상역 설명",
                 drawingFileId,
                 thumbnailFileId,
                 Collections.emptyList(),
-                "수정된 경로"
-        );
-        
-        SasangStationUpdateRequest updateRequest = new SasangStationUpdateRequest(
-                stationUpdateRequest,
+                "수정된 경로",
                 "EXT002"
         );
 
@@ -216,8 +206,8 @@ class SasangStationServiceTest {
 
         // then
         SasangStationResponse updatedStation = sasangStationService.findById(id);
-        assertThat(updatedStation.stationResponse().facility().name()).isEqualTo("수정된 사상역");
-        assertThat(updatedStation.stationResponse().facility().description()).isEqualTo("수정된 사상역 설명");
+        assertThat(updatedStation.facility().name()).isEqualTo("수정된 사상역");
+        assertThat(updatedStation.facility().description()).isEqualTo("수정된 사상역 설명");
         assertThat(updatedStation.externalCode()).isEqualTo("EXT002");
     }
 
@@ -237,7 +227,7 @@ class SasangStationServiceTest {
         // given
         Long stationId = sasangStationService.save(createRequest);
         SasangStation station = sasangStationRepository.findById(stationId).orElseThrow();
-        
+
         // Feature 생성
         Feature feature = Feature.builder()
                 .id(UUID.randomUUID().toString())
@@ -246,36 +236,36 @@ class SasangStationServiceTest {
                 .scale(new Spatial(1.0, 1.0, 1.0))
                 .floorId(UUID.randomUUID().toString())
                 .build();
-        
+
         // when
         // Feature에서 Station 설정 (양방향 연관관계 설정)
         feature.changeFacility(station);
         featureRepository.save(feature);
-        
+
         em.flush();
         em.clear();
-        
+
         // then
         // 다시 로드해서 연관관계 확인
         SasangStation foundStation = sasangStationRepository.findById(stationId).orElseThrow();
         Feature foundFeature = featureRepository.findById(feature.getId()).orElseThrow();
-        
+
         // Station에서 Feature로의 참조 확인
         assertThat(foundStation.getFeatures()).hasSize(1);
-        assertThat(foundStation.getFeatures().get(0).getId()).isEqualTo(feature.getId());
-        
+        assertThat(foundStation.getFeatures().getFirst().getId()).isEqualTo(feature.getId());
+
         // Feature에서 Station으로의 참조 확인
         assertThat(foundFeature.getFacility()).isNotNull();
         assertThat(foundFeature.getFacility().getId()).isEqualTo(stationId);
     }
-    
+
     @Test
     @DisplayName("스테이션의 피처 목록을 조회할 수 있다")
     void findStationWithFeatures_ReturnsStationWithFeatures() {
         // given
         Long stationId = sasangStationService.save(createRequest);
         SasangStation station = sasangStationRepository.findById(stationId).orElseThrow();
-        
+
         // 여러 Feature 생성 및 연결
         for (int i = 0; i < 3; i++) {
             Feature feature = Feature.builder()
@@ -285,14 +275,14 @@ class SasangStationServiceTest {
                     .scale(new Spatial(1.0, 1.0, 1.0))
                     .floorId(UUID.randomUUID().toString())
                     .build();
-            
+
             feature.changeFacility(station);
             featureRepository.save(feature);
         }
-        
+
         em.flush();
         em.clear();
-        
+
         // when
         StationResponseWithFeature response = sasangStationService.findStationWithFeatures(stationId);
 

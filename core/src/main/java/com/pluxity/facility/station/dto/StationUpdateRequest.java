@@ -1,8 +1,7 @@
 package com.pluxity.facility.station.dto;
 
-import lombok.Builder;
-
 import java.util.List;
+import lombok.Builder;
 
 @Builder
 public record StationUpdateRequest(
@@ -11,7 +10,4 @@ public record StationUpdateRequest(
         Long drawingFileId,
         Long thumbnailFileId,
         List<Long> lineIds,
-        String route
-) {
-
-}
+        String route) {}

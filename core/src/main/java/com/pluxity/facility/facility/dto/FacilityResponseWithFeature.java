@@ -2,7 +2,7 @@ package com.pluxity.facility.facility.dto;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.facility.Facility;
-import com.pluxity.feature.dto.FeatureResponse;
+import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.global.response.BaseResponse;
 import java.util.List;
@@ -30,7 +30,9 @@ public record FacilityResponseWithFeature(
                 BaseResponse.of(facility));
     }
 
-    public static List<FeatureResponse> getFeatureResponses(Facility facility) {
-        return facility.getFeatures().stream().map(FeatureResponse::from).collect(Collectors.toList());
+    public static List<FeatureResponseWithoutAsset> getFeatureResponses(Facility facility) {
+        return facility.getFeatures().stream()
+                .map(FeatureResponseWithoutAsset::from)
+                .collect(Collectors.toList());
     }
 }
