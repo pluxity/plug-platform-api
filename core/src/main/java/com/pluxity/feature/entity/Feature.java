@@ -52,7 +52,7 @@ public class Feature extends BaseEntity {
     private Facility facility;
 
     @Column(name = "floor_id")
-    private Long floorId;
+    private String floorId;
 
     @Builder
     public Feature(
@@ -62,7 +62,7 @@ public class Feature extends BaseEntity {
             Spatial scale,
             Asset asset,
             Facility facility,
-            Long floorId) {
+            String floorId) {
         this.id = id;
         this.position = position;
         this.rotation = rotation;

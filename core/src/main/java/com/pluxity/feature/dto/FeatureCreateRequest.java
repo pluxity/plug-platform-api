@@ -11,4 +11,4 @@ public record FeatureCreateRequest(
         Spatial scale,
         @NotNull Long assetId,
         @NotNull Long facilityId,
-        @NotNull Long floorId) {}
+        @NotNull String floorId) {}

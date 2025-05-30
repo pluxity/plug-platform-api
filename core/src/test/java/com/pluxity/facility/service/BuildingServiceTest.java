@@ -78,7 +78,7 @@ class BuildingServiceTest {
         List<FloorRequest> floorRequests = new ArrayList<>();
         floorRequests.add(new FloorRequest(
                 "1층", 
-                1
+                "1"
         ));
         
         createRequest = new BuildingCreateRequest(

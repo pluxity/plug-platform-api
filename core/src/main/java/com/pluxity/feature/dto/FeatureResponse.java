@@ -10,7 +10,7 @@ public record FeatureResponse(
         Spatial rotation,
         Spatial scale,
         Long assetId,
-        Long floorId,
+        String floorId,
         String deviceCode) {
 
     public static FeatureResponse from(

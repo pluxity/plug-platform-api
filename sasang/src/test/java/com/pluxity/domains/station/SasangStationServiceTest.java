@@ -105,7 +105,7 @@ class SasangStationServiceTest {
         List<FloorRequest> floorRequests = new ArrayList<>();
         floorRequests.add(new FloorRequest(
                 "1층", 
-                1
+                "1"
         ));
         
         StationCreateRequest stationRequest = new StationCreateRequest(
@@ -244,7 +244,7 @@ class SasangStationServiceTest {
                 .position(new Spatial(10.0, 20.0, 30.0))
                 .rotation(new Spatial(0.0, 0.0, 0.0))
                 .scale(new Spatial(1.0, 1.0, 1.0))
-                .floorId(1L)
+                .floorId(UUID.randomUUID().toString())
                 .build();
         
         // when
@@ -283,7 +283,7 @@ class SasangStationServiceTest {
                     .position(new Spatial(i * 10.0, i * 20.0, i * 30.0))
                     .rotation(new Spatial(0.0, 0.0, 0.0))
                     .scale(new Spatial(1.0, 1.0, 1.0))
-                    .floorId(1L)
+                    .floorId(UUID.randomUUID().toString())
                     .build();
             
             feature.changeFacility(station);

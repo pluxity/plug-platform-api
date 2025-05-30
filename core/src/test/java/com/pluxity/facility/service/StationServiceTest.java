@@ -95,7 +95,7 @@ class StationServiceTest {
         List<FloorRequest> floorRequests = new ArrayList<>();
         floorRequests.add(new FloorRequest(
                 "1층",
-                1
+                "1"
         ));
 
         createRequest = new StationCreateRequest(
@@ -137,7 +137,7 @@ class StationServiceTest {
         // given
         int floorCount = 5;
         List<FloorRequest> multipleFloors = IntStream.range(1, floorCount + 1)
-                .mapToObj(i -> new FloorRequest(i + "층", i))
+                .mapToObj(i -> new FloorRequest(i + "층", String.valueOf(i)))
                 .collect(Collectors.toList());
 
         StationCreateRequest requestWithMultipleFloors = new StationCreateRequest(
@@ -161,7 +161,7 @@ class StationServiceTest {
             assertThat(savedStation.floors().stream()
                     .anyMatch(floor ->
                             floor.name().equals(floorNumber + "층") &&
-                                    floor.floorId() == floorNumber))
+                                    floor.floorId().equals(String.valueOf(floorNumber))))
                     .isTrue();
         }
     }

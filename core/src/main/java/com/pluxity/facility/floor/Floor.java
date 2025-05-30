@@ -19,13 +19,13 @@ public class Floor {
     private Facility facility;
 
     @Column(name = "floor_id", nullable = false)
-    private Integer floorId;
+    private String floorId;
 
     @Column(name = "name", nullable = false)
     private String name;
 
     @Builder
-    public Floor(Facility facility, Integer floorId, String name) {
+    public Floor(Facility facility, String floorId, String name) {
         this.facility = facility;
         this.floorId = floorId;
         this.name = name;
