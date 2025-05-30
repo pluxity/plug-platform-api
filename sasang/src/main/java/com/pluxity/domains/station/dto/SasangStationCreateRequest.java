@@ -1,7 +1,16 @@
 package com.pluxity.domains.station.dto;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.pluxity.facility.station.dto.StationCreateRequest;
+import com.pluxity.facility.facility.dto.FacilityCreateRequest;
+import com.pluxity.facility.floor.dto.FloorRequest;
+
+import java.util.List;
 
 public record SasangStationCreateRequest(
-        @JsonUnwrapped StationCreateRequest stationRequest, String externalCode) {}
+        FacilityCreateRequest facility,
+        List<FloorRequest> floors,
+        List<Long> lineIds,
+        String route,
+        String externalCode
+) {
+
+}
