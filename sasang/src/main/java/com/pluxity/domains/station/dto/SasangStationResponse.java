@@ -3,9 +3,8 @@ package com.pluxity.domains.station.dto;
 import com.pluxity.facility.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.station.dto.StationResponse;
-import lombok.Builder;
-
 import java.util.List;
+import lombok.Builder;
 
 @Builder
 public record SasangStationResponse(

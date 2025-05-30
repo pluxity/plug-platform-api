@@ -259,10 +259,28 @@ class NfluxServiceTest {
     @DisplayName("디바이스에서 피처 제거 테스트")
     void removeFeatureFromNfluxTest() {
         // given
-        // createRequest를 통해 생성된 디바이스는 이미 Feature를 가지고 있음
+        // 디바이스 생성
         Long deviceId = nfluxService.save(createRequest);
         Nflux device = nfluxService.findById(deviceId);
-        assertThat(device.getFeature()).isNotNull(); // 초기 Feature 확인
+        
+        // Feature 직접 생성 및 저장
+        String featureId = UUID.randomUUID().toString();
+        Feature newFeature = Feature.builder()
+                .id(featureId)
+                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .asset(asset)
+                .build();
+        featureRepository.save(newFeature);
+        
+        // 생성한 Feature를 디바이스에 할당
+        nfluxService.assignFeatureToNflux(deviceId, featureId);
+        
+        // 할당 확인
+        device = nfluxService.findById(deviceId);
+        assertThat(device.getFeature()).isNotNull();
+        assertThat(device.getFeature().getId()).isEqualTo(featureId);
 
         // when
         NfluxResponse response = nfluxService.removeFeatureFromNflux(deviceId);
@@ -279,9 +297,29 @@ class NfluxServiceTest {
     @DisplayName("이미 다른 디바이스에 할당된 피처를 할당하려 할 때 예외 발생")
     void assignFeatureToNflux_FeatureAlreadyAssigned_ThrowsException() {
         // given
-        Long deviceId1 = nfluxService.save(createRequest); // 디바이스1 생성 (자체 Feature 보유)
+        // 디바이스1 생성
+        Long deviceId1 = nfluxService.save(createRequest);
         
-        // 디바이스2 생성 (자체 Feature 없이 생성)
+        // Feature 직접 생성 및 저장
+        String featureId = UUID.randomUUID().toString();
+        Feature newFeature = Feature.builder()
+                .id(featureId)
+                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .asset(asset)
+                .build();
+        featureRepository.save(newFeature);
+        
+        // 생성한 Feature를 디바이스1에 할당
+        nfluxService.assignFeatureToNflux(deviceId1, featureId);
+        
+        // 할당 확인
+        Nflux device1 = nfluxService.findById(deviceId1);
+        assertThat(device1.getFeature()).isNotNull();
+        assertThat(device1.getFeature().getId()).isEqualTo(featureId);
+        
+        // 디바이스2 생성
         NfluxCreateRequest createRequestForDevice2 = new NfluxCreateRequest(
                 category.getId(),
                 asset.getId(),
@@ -290,15 +328,11 @@ class NfluxServiceTest {
                 "두번째 테스트 디바이스"
         );
         Long deviceId2 = nfluxService.save(createRequestForDevice2);
-        
-        // 디바이스1의 Feature ID 가져오기
-        Nflux device1 = nfluxService.findById(deviceId1);
-        String featureIdOfDevice1 = device1.getFeature().getId();
 
         // when & then
         // 디바이스2에 디바이스1의 Feature를 할당하려고 시도
         assertThrows(CustomException.class, () -> {
-            nfluxService.assignFeatureToNflux(deviceId2, featureIdOfDevice1);
+            nfluxService.assignFeatureToNflux(deviceId2, featureId);
         });
     }
 
