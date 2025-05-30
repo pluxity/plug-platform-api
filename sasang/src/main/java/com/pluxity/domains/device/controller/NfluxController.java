@@ -1,5 +1,6 @@
 package com.pluxity.domains.device.controller;
 
+import com.pluxity.domains.device.dto.NfluxCategoryGroupResponse;
 import com.pluxity.domains.device.dto.NfluxCreateRequest;
 import com.pluxity.domains.device.dto.NfluxResponse;
 import com.pluxity.domains.device.dto.NfluxUpdateRequest;
@@ -244,6 +245,23 @@ public class NfluxController {
     public ResponseEntity<DataResponseBody<NfluxResponse>> removeFeatureFromDevice(
             @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId) {
         NfluxResponse response = service.removeFeatureFromNflux(deviceId);
+        return ResponseEntity.ok(DataResponseBody.of(response));
+    }
+
+    @Operation(
+            summary = "스테이션 ID로 디바이스 조회 및 카테고리별 그룹화",
+            description = "특정 스테이션에 연결된 디바이스를 조회하고 카테고리별로 그룹화합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "조회 성공"),
+                @ApiResponse(responseCode = "404", description = "스테이션을 찾을 수 없음"),
+                @ApiResponse(responseCode = "500", description = "서버 오류")
+            })
+    @GetMapping("/by-station/{stationId}/grouped")
+    public ResponseEntity<DataResponseBody<List<NfluxCategoryGroupResponse>>>
+            getDevicesByStationGroupedByCategory(
+                    @Parameter(description = "스테이션 ID", required = true) @PathVariable Long stationId) {
+        List<NfluxCategoryGroupResponse> response = service.findByStationIdGroupByCategory(stationId);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
 }

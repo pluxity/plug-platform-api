@@ -5,17 +5,24 @@ import com.pluxity.asset.service.AssetService;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.service.DeviceCategoryService;
+import com.pluxity.domains.device.dto.NfluxCategoryGroupResponse;
 import com.pluxity.domains.device.dto.NfluxCreateRequest;
 import com.pluxity.domains.device.dto.NfluxResponse;
 import com.pluxity.domains.device.dto.NfluxUpdateRequest;
 import com.pluxity.domains.device.entity.Nflux;
+import com.pluxity.domains.device.entity.NfluxCategory;
 import com.pluxity.domains.device.repository.NfluxRepository;
+import com.pluxity.facility.station.StationRepository;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.repository.FeatureRepository;
+import com.pluxity.file.dto.FileResponse;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.response.BaseResponse;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,6 +39,8 @@ public class NfluxService {
     private final DeviceCategoryService deviceCategoryService;
     private final AssetService assetService;
     private final FeatureRepository featureRepository;
+    private final StationRepository stationRepository;
+    private final FileService fileService;
 
     @Transactional(readOnly = true)
     public NfluxResponse findDeviceById(Long id) {
@@ -185,5 +194,53 @@ public class NfluxService {
 
         device.changeFeature(null);
         return createResponse(device);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NfluxCategoryGroupResponse> findByStationIdGroupByCategory(Long stationId) {
+        // 스테이션 존재 여부 확인 (없으면 예외 발생)
+        stationRepository
+                .findById(stationId)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "Station not found", HttpStatus.NOT_FOUND, "해당 스테이션을 찾을 수 없습니다: " + stationId));
+
+        // 단일 쿼리로 스테이션 ID에 연결된 디바이스 조회 (최적화됨)
+        List<Nflux> devices = repository.findByStationId(stationId);
+
+        // 카테고리별로 그룹화
+        Map<DeviceCategory, List<Nflux>> devicesByCategory =
+                devices.stream()
+                        .filter(nflux -> nflux.getCategory() != null)
+                        .collect(Collectors.groupingBy(Nflux::getCategory));
+
+        // 응답 객체 생성
+        return devicesByCategory.entrySet().stream()
+                .map(
+                        entry -> {
+                            DeviceCategory category = entry.getKey();
+                            List<Nflux> categoryDevices = entry.getValue();
+                            String contextPath = null;
+                            FileResponse iconFile = null;
+
+                            // NfluxCategory인 경우 contextPath 가져오기
+                            if (category instanceof NfluxCategory) {
+                                contextPath = ((NfluxCategory) category).getContextPath();
+                            }
+
+                            // 카테고리의 아이콘 파일 ID가 있으면 FileResponse 생성
+                            if (category.getIconFileId() != null) {
+                                iconFile = fileService.getFileResponse(category.getIconFileId());
+                            }
+
+                            return new NfluxCategoryGroupResponse(
+                                    category.getId(),
+                                    category.getName(),
+                                    contextPath,
+                                    iconFile,
+                                    categoryDevices.stream().map(this::createResponse).toList());
+                        })
+                .toList();
     }
 }
