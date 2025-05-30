@@ -3,6 +3,7 @@ package com.pluxity.feature.service;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.asset.service.AssetService;
+import com.pluxity.device.entity.Device;
 import com.pluxity.facility.facility.Facility;
 import com.pluxity.facility.facility.FacilityRepository;
 import com.pluxity.facility.facility.FacilityService;
@@ -14,6 +15,8 @@ import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -34,6 +37,7 @@ public class FeatureService {
     private final FacilityService facilityService;
     private final AssetService assetService;
     private final FileService fileService;
+    @PersistenceContext private EntityManager entityManager;
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
@@ -175,11 +179,20 @@ public class FeatureService {
                     "이미 다른 디바이스에 할당된 피처입니다: " + featureId);
         }
 
-        // 디바이스 조회 로직 - 디바이스 서비스를 통해 조회해야 하지만,
-        // 순환 참조 문제를 피하기 위해 여기서는 예외만 던집니다.
-        // 실제 구현은 NfluxService의 assignFeatureToNflux 메서드를 통해 수행
-        throw new CustomException(
-                "Operation not supported", HttpStatus.BAD_REQUEST, "디바이스에서 피처를 할당하는 API를 사용해주세요.");
+        // 디바이스 조회 - Device 타입으로 조회
+        Device device = entityManager.find(Device.class, deviceId);
+        if (device == null) {
+            throw new CustomException(
+                    "Device not found", HttpStatus.NOT_FOUND, "해당 디바이스를 찾을 수 없습니다: " + deviceId);
+        }
+
+        device.changeFeature(feature);
+
+        log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", deviceId, featureId);
+
+        // 업데이트된 피처 조회 및 반환
+        feature = findFeatureById(featureId);
+        return getFeatureResponse(feature);
     }
 
     @Transactional
