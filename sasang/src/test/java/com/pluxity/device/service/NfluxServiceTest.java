@@ -93,7 +93,6 @@ class NfluxServiceTest {
 
         // 디바이스 생성 요청
         createRequest = new NfluxCreateRequest(
-                featureRequestForDevice,
                 category.getId(),
                 asset.getId(),
                 "테스트 디바이스",
@@ -162,7 +161,6 @@ class NfluxServiceTest {
         );
         
         NfluxUpdateRequest updateRequest = new NfluxUpdateRequest(
-                featureUpdateRequest,
                 null, // 카테고리 변경 없음
                 null, // 에셋 변경 없음
                 "수정된 디바이스",
@@ -178,7 +176,6 @@ class NfluxServiceTest {
         assertThat(updatedDevice.name()).isEqualTo("수정된 디바이스");
         assertThat(updatedDevice.code()).isEqualTo("TEST002");
         assertThat(updatedDevice.description()).isEqualTo("수정된 디바이스 설명입니다.");
-        assertThat(updatedDevice.feature().position().getX()).isEqualTo(1.0);
     }
 
     @Test
@@ -209,7 +206,6 @@ class NfluxServiceTest {
     void createDeviceWithoutCategoryTest() {
         // given
         NfluxCreateRequest requestWithoutCategory = new NfluxCreateRequest(
-                createRequest.feature(),
                 null, // 카테고리 없음
                 asset.getId(),
                 createRequest.name(),
@@ -287,7 +283,6 @@ class NfluxServiceTest {
         
         // 디바이스2 생성 (자체 Feature 없이 생성)
         NfluxCreateRequest createRequestForDevice2 = new NfluxCreateRequest(
-                null, // Feature 없음
                 category.getId(),
                 asset.getId(),
                 "테스트 디바이스 2",
@@ -314,7 +309,6 @@ class NfluxServiceTest {
         NfluxCreateRequest requestWithoutFeature = new NfluxCreateRequest(
             null, // Feature 없음
             category.getId(),
-            asset.getId(),
             "피처 없는 디바이스",
             "TEST003",
             "피처가 없는 테스트용 디바이스입니다."

@@ -81,17 +81,7 @@ public class NfluxService {
 
         Asset asset = request.asset() != null ? findAssetById(request.asset()) : null;
 
-        Feature feature = null;
-        if (request.feature() != null) {
-            if (request.feature().id() == null || request.feature().id().isBlank()) {
-                throw new CustomException(
-                        "Feature ID is missing", HttpStatus.BAD_REQUEST, "Feature 생성 요청 시 ID(UUID)는 필수입니다.");
-            }
-            feature = Feature.create(request.feature(), request.feature().id());
-        }
-
-        return Nflux.create(
-                feature, category, asset, request.name(), request.code(), request.description());
+        return Nflux.create(category, asset, request.name(), request.code(), request.description());
     }
 
     @Transactional
@@ -108,17 +98,7 @@ public class NfluxService {
             asset = findAssetById(request.asset());
         }
 
-        if (request.feature() != null) {
-            device.getFeature().update(request.feature());
-        }
-
-        device.update(
-                categoryToUpdate,
-                asset,
-                request.name(),
-                request.code(),
-                request.description(),
-                request.feature());
+        device.update(categoryToUpdate, asset, request.name(), request.code(), request.description());
     }
 
     @Transactional

@@ -3,9 +3,11 @@ package com.pluxity.domains.device.entity;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
-import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,14 +36,8 @@ public class Nflux extends Device {
     }
 
     public static Nflux create(
-            Feature feature,
-            DeviceCategory category,
-            Asset asset,
-            String name,
-            String code,
-            String description) {
+            DeviceCategory category, Asset asset, String name, String code, String description) {
         return Nflux.builder()
-                .feature(feature)
                 .category(category)
                 .name(name)
                 .code(code)
@@ -54,11 +50,7 @@ public class Nflux extends Device {
             Asset newAsset,
             String newName,
             String newCode,
-            String newDescription,
-            FeatureUpdateRequest featureUpdateRequest) {
-        if (featureUpdateRequest != null) {
-            this.getFeature().update(featureUpdateRequest);
-        }
+            String newDescription) {
 
         if (newCategory != null) {
             updateCategory(newCategory);
