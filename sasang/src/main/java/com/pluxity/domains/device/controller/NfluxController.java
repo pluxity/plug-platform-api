@@ -257,7 +257,7 @@ public class NfluxController {
                 @ApiResponse(responseCode = "404", description = "스테이션을 찾을 수 없음"),
                 @ApiResponse(responseCode = "500", description = "서버 오류")
             })
-    @GetMapping("/by-station/{stationId}/grouped")
+    @GetMapping("/station/{stationId}/grouped")
     public ResponseEntity<DataResponseBody<List<NfluxCategoryGroupResponse>>>
             getDevicesByStationGroupedByCategory(
                     @Parameter(description = "스테이션 ID", required = true) @PathVariable Long stationId) {
