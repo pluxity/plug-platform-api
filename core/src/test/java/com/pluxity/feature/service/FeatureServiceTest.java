@@ -250,13 +250,13 @@ class FeatureServiceTest {
 //        featureRepository.saveAll(List.of(feature1, feature2));
 //
 //        // when
-//        List<FeatureResponse> features = featureService.getFeatures();
+//        List<FeatureResponse> featureIds = featureService.getFeatures();
 //
 //        // then
-//        assertFalse(features.isEmpty());
-//        assertEquals(2, features.size());
+//        assertFalse(featureIds.isEmpty());
+//        assertEquals(2, featureIds.size());
 //
-//        FeatureResponse firstResponse = features.get(0);
+//        FeatureResponse firstResponse = featureIds.get(0);
 //        assertEquals(featureId1, firstResponse.id());
 //        assertEquals(floorId, firstResponse.floorId());
     }
@@ -641,12 +641,12 @@ class FeatureServiceTest {
 //    @DisplayName("removeAssetFromFeature: 할당된 Asset 제거 성공")
 //    void removeAssetFromFeature_WhenAssetAssigned_RemovesAssetFromFeature() {
 //        // given
-//        String featureId = UUID.randomUUID().toString();
+//        String featureIds = UUID.randomUUID().toString();
 //        Station facility = createAndSaveTestFacility();
 //        Long floorId = 1L;
 //
 //        Feature feature = Feature.builder()
-//                .id(featureId)
+//                .id(featureIds)
 //                .facility(facility)
 //                .floorId(floorId)
 //                .build();
@@ -691,13 +691,13 @@ class FeatureServiceTest {
     @DisplayName("Asset이 할당되지 않은 Feature에 Asset 할당 제거 요청 시 예외 발생")
     void removeAssetFromFeature_WhenNoAssetAssigned_ThrowsBadRequestException() {
 //        // given
-//        String featureId = UUID.randomUUID().toString();
+//        String featureIds = UUID.randomUUID().toString();
 //        Station facility = createAndSaveTestFacility();
 //        String floorId = "1";
 //
 //        // Asset 없이 Feature 생성
 //        Feature feature = Feature.builder()
-//                .id(featureId)
+//                .id(featureIds)
 //                .position(new Spatial(1.0, 1.0, 1.0))
 //                .rotation(new Spatial(0.0, 0.0, 0.0))
 //                .scale(new Spatial(1.0, 1.0, 1.0))
@@ -709,7 +709,7 @@ class FeatureServiceTest {
 //
 //        // when & then
 //        CustomException exception = assertThrows(CustomException.class,
-//                () -> featureService.removeAssetFromFeature(featureId));
+//                () -> featureService.removeAssetFromFeature(featureIds));
 //
 //        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
     }

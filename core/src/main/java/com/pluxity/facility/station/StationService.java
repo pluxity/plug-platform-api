@@ -15,14 +15,16 @@ import com.pluxity.facility.station.dto.StationResponseWithFeature;
 import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
+import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -73,8 +75,8 @@ public class StationService {
                                             .collect(Collectors.toList());
 
                             List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
-                            List<FeatureResponseWithoutAsset> features =
-                                    FacilityResponseWithFeature.getFeatureResponses(station);
+                            List<String> featureIds = station.getFeatures().stream().map(Feature::getId).toList();
+                            FacilityResponseWithFeature.getFeatureResponses(station);
 
                             return StationResponse.builder()
                                     .facility(
@@ -84,7 +86,7 @@ public class StationService {
                                                     fileService.getFileResponse(station.getThumbnailFileId())))
                                     .floors(floorResponse)
                                     .lineIds(lineIds)
-                                    .features(features)
+                                    .featureIds(featureIds)
                                     .route(station.getRoute())
                                     .build();
                         })
@@ -95,8 +97,7 @@ public class StationService {
     public StationResponse findById(Long id) {
         Station station = (Station) facilityService.findById(id);
         List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
-        List<FeatureResponseWithoutAsset> features =
-                FacilityResponseWithFeature.getFeatureResponses(station);
+        List<String> featureIds = station.getFeatures().stream().map(Feature::getId).toList();
 
         List<Long> lineIds =
                 station.getStationLines().stream()
@@ -111,7 +112,7 @@ public class StationService {
                                 fileService.getFileResponse(station.getThumbnailFileId())))
                 .floors(floorResponse)
                 .lineIds(lineIds)
-                .features(features)
+                .featureIds(featureIds)
                 .route(station.getRoute())
                 .build();
     }
