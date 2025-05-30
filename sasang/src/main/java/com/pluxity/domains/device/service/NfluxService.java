@@ -12,6 +12,7 @@ import com.pluxity.domains.device.dto.NfluxUpdateRequest;
 import com.pluxity.domains.device.entity.Nflux;
 import com.pluxity.domains.device.entity.NfluxCategory;
 import com.pluxity.domains.device.repository.NfluxRepository;
+import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationRepository;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
@@ -198,16 +199,26 @@ public class NfluxService {
 
     @Transactional(readOnly = true)
     public List<NfluxCategoryGroupResponse> findByStationIdGroupByCategory(Long stationId) {
-        // 스테이션 존재 여부 확인 (없으면 예외 발생)
-        stationRepository
-                .findById(stationId)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "Station not found", HttpStatus.NOT_FOUND, "해당 스테이션을 찾을 수 없습니다: " + stationId));
+        Station station =
+                stationRepository
+                        .findById(stationId)
+                        .orElseThrow(
+                                () ->
+                                        new CustomException(
+                                                "Station not found",
+                                                HttpStatus.NOT_FOUND,
+                                                "해당 스테이션을 찾을 수 없습니다: " + stationId));
 
-        // 단일 쿼리로 스테이션 ID에 연결된 디바이스 조회 (최적화됨)
-        List<Nflux> devices = repository.findByStationId(stationId);
+        // 스테이션 ID와 관련된 Nflux 디바이스 찾기
+        List<Nflux> devices =
+                repository.findAll().stream()
+                        .filter(
+                                nflux ->
+                                        nflux.getFeature() != null
+                                                && nflux.getFeature().getFacility() != null
+                                                && nflux.getFeature().getFacility() instanceof Station
+                                                && nflux.getFeature().getFacility().getId().equals(stationId))
+                        .toList();
 
         // 카테고리별로 그룹화
         Map<DeviceCategory, List<Nflux>> devicesByCategory =
