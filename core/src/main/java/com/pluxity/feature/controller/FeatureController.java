@@ -1,5 +1,6 @@
 package com.pluxity.feature.controller;
 
+import com.pluxity.feature.dto.FeatureAssignDto;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
@@ -312,11 +313,12 @@ public class FeatureController {
                 @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스에 할당됨)"),
                 @ApiResponse(responseCode = "404", description = "피처 또는 디바이스를 찾을 수 없음")
             })
-    @PutMapping("/{featureId}/devices/{deviceId}")
+    @PutMapping("/{featureId}/devices")
     public ResponseEntity<FeatureResponse> assignDeviceToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
-            @Parameter(description = "디바이스 ID (Long)", required = true) @PathVariable Long deviceId) {
-        FeatureResponse response = featureService.assignDeviceToFeature(featureId, deviceId);
+            @Parameter(description = "디바이스 할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
+                    FeatureAssignDto assignDto) {
+        FeatureResponse response = featureService.assignDeviceToFeature(featureId, assignDto);
         return ResponseEntity.ok(response);
     }
 
@@ -332,8 +334,10 @@ public class FeatureController {
             })
     @DeleteMapping("/{featureId}/devices")
     public ResponseEntity<FeatureResponse> removeDeviceFromFeature(
-            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId) {
-        FeatureResponse response = featureService.removeDeviceFromFeature(featureId);
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
+            @Parameter(description = "제거할 디바이스 정보 (id 또는 code)", required = true) @Valid @RequestBody
+                    FeatureAssignDto assignDto) {
+        FeatureResponse response = featureService.removeDeviceFromFeature(featureId, assignDto);
         return ResponseEntity.ok(response);
     }
 }

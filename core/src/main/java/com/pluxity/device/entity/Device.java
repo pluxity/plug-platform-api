@@ -74,10 +74,8 @@ public abstract class Device extends BaseEntity {
         }
     }
 
-    // 디바이스 코드를 반환하는 메서드 (기본 구현은 null 반환)
-    public String getDeviceCode() {
-        return null;
-    }
+    // 자식 클래스에서 구현되는 디바이스 코드 조회 메서드
+    public abstract String getDeviceCode();
 
     public void clearAllRelations() {
         // Feature와의 연관관계 제거

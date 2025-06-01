@@ -29,7 +29,7 @@ public record NfluxResponse(
                         ? device.getFeature().getAsset().getName()
                         : null,
                 device.getName(),
-                device.getCode(),
+                device.getDeviceCode(),
                 device.getDescription(),
                 BaseResponse.of(device));
     }

@@ -1012,7 +1012,7 @@ class NfluxServiceTest {
         assertThat(device).isNotNull();
         assertThat(device.getId()).isEqualTo(deviceId);
         assertThat(device.getName()).isEqualTo(createRequest.name());
-        assertThat(device.getCode()).isEqualTo(createRequest.code());
+        assertThat(device.getDeviceCode()).isEqualTo(createRequest.code());
         assertThat(device.getDescription()).isEqualTo(createRequest.description());
     }
 
