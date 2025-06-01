@@ -2,7 +2,12 @@ package com.pluxity.facility.floor;
 
 import com.pluxity.facility.facility.Facility;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 @Entity
 @Table(name = "floor")
@@ -16,6 +21,7 @@ public class Floor {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facility_id")
+    @NotFound(action = NotFoundAction.IGNORE)
     private Facility facility;
 
     @Column(name = "floor_id", nullable = false)

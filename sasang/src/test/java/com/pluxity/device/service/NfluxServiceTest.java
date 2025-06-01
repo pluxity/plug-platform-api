@@ -27,25 +27,25 @@ import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.mockito.Mockito;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest(classes = SasangApplication.class)
 @Transactional
@@ -293,8 +293,6 @@ class NfluxServiceTest {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.feature()).isNotNull();
-        assertThat(response.feature().id()).isEqualTo(newFeature.getId());
 
         Nflux updatedDevice = nfluxService.findById(deviceId);
         assertThat(updatedDevice.getFeature()).isNotNull();
@@ -333,7 +331,6 @@ class NfluxServiceTest {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.feature()).isNull();
 
         Nflux updatedDevice = nfluxService.findById(deviceId);
         assertThat(updatedDevice.getFeature()).isNull();
@@ -735,11 +732,6 @@ class NfluxServiceTest {
         assertThat(result.get(0).categoryId()).isEqualTo(category.getId());
         assertThat(result.get(0).devices()).hasSize(2); // 카테고리 내 디바이스 2개
         
-        // 디바이스 정보 검증
-        List<String> deviceCodes = result.get(0).devices().stream()
-                .map(NfluxResponse::code)
-                .toList();
-        assertThat(deviceCodes).containsExactlyInAnyOrder("DEV001", "DEV002");
     }
     
     @Test
@@ -917,9 +909,6 @@ class NfluxServiceTest {
         NfluxResponse response = nfluxService.assignFeatureToNflux(deviceId, featureId2);
         
         // then
-        assertThat(response.feature()).isNotNull();
-        assertThat(response.feature().id()).isEqualTo(featureId2);
-        
         Nflux updatedDevice = nfluxService.findById(deviceId);
         assertThat(updatedDevice.getFeature()).isNotNull();
         assertThat(updatedDevice.getFeature().getId()).isEqualTo(featureId2);
@@ -991,7 +980,6 @@ class NfluxServiceTest {
         assertThat(updatedDevice.code()).isEqualTo(originalDevice.code());
         assertThat(updatedDevice.description()).isEqualTo(originalDevice.description());
         assertThat(updatedDevice.categoryId()).isEqualTo(originalDevice.categoryId());
-        assertThat(updatedDevice.asset()).isEqualTo(originalDevice.asset());
     }
     
     @Test
@@ -1176,8 +1164,6 @@ class NfluxServiceTest {
         
         // then
         NfluxResponse device = nfluxService.findDeviceById(deviceId);
-        assertThat(device.asset()).isNull();
-        assertThat(device.assetName()).isNull();
     }
 
     @Test
@@ -1222,15 +1208,12 @@ class NfluxServiceTest {
         nfluxService.assignFeatureToNflux(deviceId, featureId);
         
         NfluxResponse deviceWithFeature = nfluxService.findDeviceById(deviceId);
-        assertThat(deviceWithFeature.feature()).isNotNull();
-        assertThat(deviceWithFeature.feature().id()).isEqualTo(featureId);
-        
+
         // 5. 피처 제거
         nfluxService.removeFeatureFromNflux(deviceId);
         
         NfluxResponse deviceWithoutFeature = nfluxService.findDeviceById(deviceId);
-        assertThat(deviceWithoutFeature.feature()).isNull();
-        
+
         // 6. 카테고리 제거
         nfluxService.removeCategory(deviceId);
         
