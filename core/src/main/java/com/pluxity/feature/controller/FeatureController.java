@@ -14,12 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/features")
@@ -127,115 +128,10 @@ public class FeatureController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}/transform")
     public ResponseEntity<FeatureResponse> updateFeature(
             @Parameter(description = "피처 ID", required = true) @PathVariable String id,
             @Parameter(description = "피처 수정 정보", required = true) @Valid @RequestBody
-                    FeatureUpdateRequest request) {
-        FeatureResponse response = featureService.updateFeature(id, request);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "피처 위치 수정", description = "ID로 피처의 위치 정보를 수정합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "위치 수정 성공"),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "잘못된 요청",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "피처를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @PatchMapping("/{id}/position")
-    public ResponseEntity<FeatureResponse> updatePosition(
-            @Parameter(description = "피처 ID", required = true) @PathVariable String id,
-            @Parameter(description = "위치 수정 정보", required = true) @Valid @RequestBody
-                    FeatureUpdateRequest request) {
-        FeatureResponse response = featureService.updateFeature(id, request);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "피처 회전 수정", description = "ID로 피처의 회전 정보를 수정합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "회전 수정 성공"),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "잘못된 요청",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "피처를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @PatchMapping("/{id}/rotation")
-    public ResponseEntity<FeatureResponse> updateRotation(
-            @Parameter(description = "피처 ID", required = true) @PathVariable String id,
-            @Parameter(description = "회전 수정 정보", required = true) @Valid @RequestBody
-                    FeatureUpdateRequest request) {
-        FeatureResponse response = featureService.updateFeature(id, request);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "피처 크기 수정", description = "ID로 피처의 크기 정보를 수정합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "크기 수정 성공"),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "잘못된 요청",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "피처를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @PatchMapping("/{id}/scale")
-    public ResponseEntity<FeatureResponse> updateScale(
-            @Parameter(description = "피처 ID", required = true) @PathVariable String id,
-            @Parameter(description = "크기 수정 정보", required = true) @Valid @RequestBody
                     FeatureUpdateRequest request) {
         FeatureResponse response = featureService.updateFeature(id, request);
         return ResponseEntity.ok(response);

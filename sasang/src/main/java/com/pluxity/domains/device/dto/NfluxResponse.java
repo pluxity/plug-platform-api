@@ -2,12 +2,12 @@ package com.pluxity.domains.device.dto;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.domains.device.entity.Nflux;
-import com.pluxity.feature.dto.FeatureResponse;
+import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
 import com.pluxity.global.response.BaseResponse;
 
 public record NfluxResponse(
         Long id,
-        FeatureResponse feature,
+        FeatureResponseWithoutAsset feature,
         Long categoryId,
         String categoryName,
         Long asset,
@@ -19,7 +19,7 @@ public record NfluxResponse(
     public static NfluxResponse from(Nflux device) {
         return new NfluxResponse(
                 device.getId(),
-                device.getFeature() != null ? FeatureResponse.from(device.getFeature()) : null,
+                device.getFeature() != null ? FeatureResponseWithoutAsset.from(device.getFeature()) : null,
                 device.getCategory() != null ? device.getCategory().getId() : null,
                 device.getCategory() != null ? device.getCategory().getName() : null,
                 device.getFeature() != null && device.getFeature().getAsset() != null
