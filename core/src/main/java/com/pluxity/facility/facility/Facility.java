@@ -49,9 +49,6 @@ public abstract class Facility extends BaseEntity {
     @Column(name = "history_comment")
     private String historyComment;
 
-    @Column(name = "deleted")
-    private boolean deleted = false;
-
     @OneToMany(mappedBy = "facility")
     private final List<Feature> features = new ArrayList<>();
 
@@ -68,7 +65,6 @@ public abstract class Facility extends BaseEntity {
         this.name = name;
         this.drawingFileId = drawingFileId;
         this.thumbnailFileId = thumbnailFileId;
-        this.deleted = false;
     }
 
     protected Facility(String name, String code, String description, String historyComment) {
@@ -76,7 +72,6 @@ public abstract class Facility extends BaseEntity {
         this.name = name;
         this.description = description;
         this.historyComment = historyComment;
-        this.deleted = false;
     }
 
     public void updateDrawingFileId(FileEntity drawingFile) {
@@ -138,13 +133,5 @@ public abstract class Facility extends BaseEntity {
         if (facility.historyComment != null) {
             this.historyComment = facility.historyComment;
         }
-    }
-
-    public void softDelete() {
-        this.deleted = true;
-    }
-
-    public void restore() {
-        this.deleted = false;
     }
 }
