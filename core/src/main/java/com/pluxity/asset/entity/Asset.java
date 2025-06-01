@@ -142,12 +142,37 @@ public class Asset extends BaseEntity {
     public void addFeature(Feature feature) {
         if (feature != null && !this.features.contains(feature)) {
             this.features.add(feature);
+            if (feature.getAsset() != this) {
+                feature.changeAsset(this);
+            }
         }
     }
 
     public void removeFeature(Feature feature) {
-        if (feature != null) {
+        if (feature != null && this.features.contains(feature)) {
             this.features.remove(feature);
+            if (feature.getAsset() == this) {
+                feature.clearAssetOnly();
+            }
         }
+    }
+
+    public List<Feature> getAllFeatures() {
+        return new ArrayList<>(this.features);
+    }
+
+    public void clearFeatures() {
+        List<Feature> featuresToRemove = new ArrayList<>(this.features);
+        for (Feature feature : featuresToRemove) {
+            this.removeFeature(feature);
+        }
+    }
+
+    public void clearAllRelations() {
+        // 카테고리 연관관계 제거
+        this.updateCategory(null);
+
+        // 피처 연관관계 제거
+        this.clearFeatures();
     }
 }

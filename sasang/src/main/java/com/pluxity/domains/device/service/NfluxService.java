@@ -113,7 +113,16 @@ public class NfluxService {
 
     @Transactional
     public void delete(Long id) {
-        repository.delete(findById(id));
+        Nflux device = findById(id);
+
+        // 디바이스 삭제 전 연관관계 정리 로깅
+        log.info("Nflux 디바이스 [{}] 삭제 전 연관관계 정리 시작", id);
+
+        // 모든 연관관계 제거 (Feature, DeviceCategory)
+        device.clearAllRelations();
+
+        log.info("Nflux 디바이스 [{}]의 모든 연관관계 제거 완료, 삭제 진행", id);
+        repository.delete(device);
     }
 
     @Transactional

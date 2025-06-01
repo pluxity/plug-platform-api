@@ -98,7 +98,11 @@ public class NfluxCategoryService {
         }
 
         if (!category.getDevices().isEmpty()) {
-            throw new CustomException(ErrorCode.CATEGORY_HAS_DEVICES, "연결된 디바이스가 있어 삭제할 수 없습니다.");
+            log.info("카테고리 [{}] 삭제 전 연결된 디바이스 [{}]개와의 연관관계 제거 시작", id, category.getDevices().size());
+
+            category.clearAllDevices();
+
+            log.info("카테고리 [{}]와 모든 디바이스의 연관관계 제거 완료", id);
         }
 
         nfluxCategoryRepository.delete(category);

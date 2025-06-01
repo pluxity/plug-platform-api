@@ -3,6 +3,7 @@ package com.pluxity.feature.service;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.asset.service.AssetService;
+import com.pluxity.device.entity.Device;
 import com.pluxity.facility.facility.FacilityRepository;
 import com.pluxity.facility.facility.FacilityService;
 import com.pluxity.facility.station.Station;
@@ -16,9 +17,11 @@ import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -711,5 +714,160 @@ class FeatureServiceTest {
         CustomException exception = assertThrows(CustomException.class,
                 () -> featureService.removeAssetFromFeature(featureIds));
 
+    }
+
+    @Test
+    @DisplayName("피처의 모든 관계 제거 후 삭제 테스트")
+    void deleteFeature_WithAllRelations_RemovesAllRelationsBeforeDelete() {
+        // given
+        String featureId = UUID.randomUUID().toString();
+        Asset asset = createAndSaveTestAsset();
+        Station facility = createAndSaveTestFacility();
+        
+        // 1. 디바이스 생성 - 모킹을 통해 구현
+        Device device = Mockito.mock(Device.class);
+        
+        // 2. 피처 생성 및 Asset, Facility 관계 설정
+        Feature feature = Feature.builder()
+                .id(featureId)
+                .position(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .asset(asset)
+                .facility(facility)
+                .floorId("1")
+                .build();
+                
+        // 피처 저장
+        Feature savedFeature = featureRepository.save(feature);
+        
+        // 피처와 디바이스 간의 양방향 관계 설정
+        ReflectionTestUtils.setField(savedFeature, "device", device);
+        Mockito.when(device.getFeature()).thenReturn(savedFeature);
+        
+        // 관계가 모두 설정되었는지 확인
+        savedFeature = featureRepository.findById(featureId).orElseThrow();
+        assertNotNull(savedFeature.getAsset());
+        assertNotNull(savedFeature.getFacility());
+        assertNotNull(savedFeature.getDevice());
+        
+        // when
+        featureService.deleteFeature(featureId);
+        
+        // then
+        // 1. 피처가 삭제되었는지 확인
+        assertFalse(featureRepository.findById(featureId).isPresent());
+        
+        // 2. Asset에서 관계가 제거되었는지 확인
+        Asset updatedAsset = assetRepository.findById(asset.getId()).orElseThrow();
+        assertFalse(updatedAsset.getFeatures().stream()
+                .anyMatch(f -> f.getId().equals(featureId)));
+                
+        // 디바이스에서 피처 제거 호출 검증 (clearFeatureOnly 메서드 호출 검증)
+        Mockito.verify(device).clearFeatureOnly();
+    }
+    
+    @Test
+    @DisplayName("clearAllRelations 메소드 단위 테스트")
+    void clearAllRelations_RemovesAllRelationsFromFeature() {
+        // given
+        String featureId = UUID.randomUUID().toString();
+        Asset asset = createAndSaveTestAsset();
+        Station facility = createAndSaveTestFacility();
+        
+        // 1. 디바이스 생성 - 모킹을 통해 구현
+        Device device = Mockito.mock(Device.class);
+        
+        // 2. 피처 생성 및 관계 설정
+        Feature feature = Feature.builder()
+                .id(featureId)
+                .position(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .asset(asset)
+                .facility(facility)
+                .floorId("1")
+                .build();
+        
+        // 피처 저장
+        Feature savedFeature = featureRepository.save(feature);
+        
+        // 피처와 디바이스 간의 양방향 관계 설정
+        ReflectionTestUtils.setField(savedFeature, "device", device);
+        Mockito.when(device.getFeature()).thenReturn(savedFeature);
+        
+        // 관계가 모두 설정되었는지 확인
+        savedFeature = featureRepository.findById(featureId).orElseThrow();
+        assertNotNull(savedFeature.getAsset());
+        assertNotNull(savedFeature.getFacility());
+        assertNotNull(savedFeature.getDevice());
+        
+        // when
+        // clearAllRelations 메소드 직접 호출
+        savedFeature.clearAllRelations();
+        featureRepository.save(savedFeature);
+        
+        // then
+        // 모든 관계가 제거되었는지 확인
+        Feature updatedFeature = featureRepository.findById(featureId).orElseThrow();
+        assertNull(updatedFeature.getAsset());
+        assertNull(updatedFeature.getFacility());
+        assertNull(updatedFeature.getDevice());
+        
+        // 연관 엔티티들에서도 관계가 제거되었는지 확인
+        Asset updatedAsset = assetRepository.findById(asset.getId()).orElseThrow();
+        assertFalse(updatedAsset.getFeatures().stream()
+                .anyMatch(f -> f.getId().equals(featureId)));
+                
+        // 디바이스에서 피처 제거 호출 검증 (clearFeatureOnly 메서드 호출 검증)
+        Mockito.verify(device).clearFeatureOnly();
+    }
+
+    @Test
+    @DisplayName("삭제 시 하나의 관계라도 제거 실패하면 예외 발생")
+    void deleteFeature_ThrowsExceptionWhenRelationRemovalFails() {
+        // given
+        String featureId = UUID.randomUUID().toString();
+        Asset asset = createAndSaveTestAsset();
+        
+        // 실제 Feature 엔티티 생성 및 Asset 연결
+        Feature feature = Feature.builder()
+                .id(featureId)
+                .position(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .asset(asset)
+                .build();
+        
+        // 피처 저장
+        featureRepository.save(feature);
+        
+        // 관계가 설정되었는지 확인
+        Feature savedFeature = featureRepository.findById(featureId).orElseThrow();
+        assertNotNull(savedFeature.getAsset());
+        
+        // Feature를 스파이로 감싸서 clearAllRelations 호출 시 예외 발생하도록 설정
+        Feature spyFeature = Mockito.spy(savedFeature);
+        Mockito.doThrow(new RuntimeException("관계 제거 실패")).when(spyFeature).clearAllRelations();
+        
+        // FeatureRepository의 findById 메소드를 목으로 대체하여 스파이 객체 반환하도록 설정
+        FeatureRepository mockRepo = Mockito.mock(FeatureRepository.class);
+        Mockito.when(mockRepo.findById(featureId)).thenReturn(java.util.Optional.of(spyFeature));
+        
+        // 원본 repository 저장
+        FeatureRepository originalRepo = (FeatureRepository) ReflectionTestUtils.getField(
+                featureService, "featureRepository");
+        
+        // 목 주입
+        ReflectionTestUtils.setField(featureService, "featureRepository", mockRepo);
+        
+        try {
+            // when & then
+            assertThrows(RuntimeException.class, () -> featureService.deleteFeature(featureId));
+            
+        } finally {
+            // 원래 레포지토리 복원
+            ReflectionTestUtils.setField(featureService, "featureRepository", originalRepo);
+        }
     }
 }

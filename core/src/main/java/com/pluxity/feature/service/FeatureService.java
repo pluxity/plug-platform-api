@@ -106,12 +106,19 @@ public class FeatureService {
     public void deleteFeature(String id) {
         Feature feature = findFeatureById(id);
 
-        // Asset과의 양방향 관계 제거 - 엔티티의 편의 메서드 사용
-        if (feature.getAsset() != null) {
-            feature.changeAsset(null);
-        }
+        // 로깅 추가
+        log.info("피처 [{}] 삭제 전 연관관계 정리 시작", id);
 
+        // 모든 연관관계 제거
+        feature.clearAllRelations();
+
+        log.info("피처 [{}]의 모든 연관관계 제거 완료, 삭제 진행", id);
         featureRepository.delete(feature);
+    }
+
+    @Transactional
+    public void deleteFeatureWithRelations(String id) {
+        deleteFeature(id);
     }
 
     private Feature findFeatureById(String id) {
@@ -181,6 +188,7 @@ public class FeatureService {
 
         // 디바이스 조회 - Device 타입으로 조회
         Device device = entityManager.find(Device.class, deviceId);
+
         if (device == null) {
             throw new CustomException(
                     "Device not found", HttpStatus.NOT_FOUND, "해당 디바이스를 찾을 수 없습니다: " + deviceId);

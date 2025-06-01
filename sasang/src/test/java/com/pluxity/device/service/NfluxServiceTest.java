@@ -44,6 +44,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest(classes = SasangApplication.class)
 @Transactional
@@ -1240,5 +1242,147 @@ class NfluxServiceTest {
         
         // 8. 삭제 확인
         assertThrows(CustomException.class, () -> nfluxService.findById(deviceId));
+    }
+
+    @Test
+    @DisplayName("디바이스 삭제 시 모든 관계가 정리된 후 삭제되는지 테스트")
+    void delete_ClearsAllRelationsBeforeDelete() {
+        // given
+        // 1. 카테고리 생성
+        DeviceCategory category = deviceCategoryRepository.save(DeviceCategory.builder()
+                .name("관계 정리 테스트 카테고리")
+                .build());
+        
+        // 2. 피처 생성
+        String featureId = UUID.randomUUID().toString();
+        Feature feature = featureRepository.save(Feature.builder()
+                .id(featureId)
+                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .asset(asset)
+                .build());
+        
+        // 3. 디바이스 생성 및 관계 설정
+        Nflux device = Nflux.builder()
+                .name("관계 정리 테스트 디바이스")
+                .code("RELATION001")
+                .description("관계 정리 테스트 설명")
+                .category(category)
+                .build();
+        
+        Long deviceId = deviceRepository.save(device).getId();
+        
+        // 디바이스에 피처 할당
+        nfluxService.assignFeatureToNflux(deviceId, featureId);
+        
+        // 모든 관계가 설정되었는지 확인
+        Nflux savedDevice = deviceRepository.findById(deviceId).orElseThrow();
+        assertThat(savedDevice.getCategory()).isNotNull();
+        assertThat(savedDevice.getFeature()).isNotNull();
+        
+        // when
+        nfluxService.delete(deviceId);
+        
+        // then
+        // 1. 디바이스가 삭제되었는지 확인
+        assertThrows(CustomException.class, () -> nfluxService.findById(deviceId));
+        
+        // 2. 피처에서 디바이스 참조가 제거되었는지 확인
+        Feature updatedFeature = featureRepository.findById(featureId).orElseThrow();
+        assertThat(updatedFeature.getDevice()).isNull();
+    }
+    
+    @Test
+    @DisplayName("디바이스 clearAllRelations 메소드 단위 테스트")
+    void clearAllRelations_RemovesAllRelationsFromDevice() {
+        // given
+        // 1. 카테고리 생성
+        DeviceCategory category = deviceCategoryRepository.save(DeviceCategory.builder()
+                .name("clearAllRelations 테스트 카테고리")
+                .build());
+        
+        // 2. 피처 생성
+        String featureId = UUID.randomUUID().toString();
+        Feature feature = featureRepository.save(Feature.builder()
+                .id(featureId)
+                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .asset(asset)
+                .build());
+        
+        // 3. 디바이스 생성 및 관계 설정
+        Nflux device = Nflux.builder()
+                .name("clearAllRelations 테스트 디바이스")
+                .code("CLEAR001")
+                .description("clearAllRelations 테스트 설명")
+                .category(category)
+                .build();
+        
+        Long deviceId = deviceRepository.save(device).getId();
+        
+        // 디바이스에 피처 할당
+        nfluxService.assignFeatureToNflux(deviceId, featureId);
+        
+        // 모든 관계가 설정되었는지 확인
+        Nflux savedDevice = deviceRepository.findById(deviceId).orElseThrow();
+        assertThat(savedDevice.getCategory()).isNotNull();
+        assertThat(savedDevice.getFeature()).isNotNull();
+        
+        // when
+        // clearAllRelations 메소드 직접 호출
+        savedDevice.clearAllRelations();
+        deviceRepository.save(savedDevice);
+        
+        // then
+        // 디바이스에서 모든 관계가 제거되었는지 확인
+        Nflux updatedDevice = deviceRepository.findById(deviceId).orElseThrow();
+        assertThat(updatedDevice.getCategory()).isNull();
+        assertThat(updatedDevice.getFeature()).isNull();
+        
+        // 피처에서 디바이스 참조가 제거되었는지 확인
+        Feature updatedFeature = featureRepository.findById(featureId).orElseThrow();
+        assertThat(updatedFeature.getDevice()).isNull();
+    }
+    
+    @Test
+    @DisplayName("디바이스 삭제 시 관계 제거 실패하면 예외 발생")
+    void delete_ThrowsExceptionWhenRelationRemovalFails() {
+        // given
+        // 1. 디바이스 생성
+        Nflux device = Nflux.builder()
+                .name("예외 테스트 디바이스")
+                .code("EXCEPTION001")
+                .description("예외 테스트 설명")
+                .build();
+        
+        Long deviceId = deviceRepository.save(device).getId();
+        
+        // 디바이스 스파이 생성
+        Nflux spyDevice = Mockito.spy(device);
+        
+        // clearAllRelations 호출 시 예외 발생하도록 설정
+        Mockito.doThrow(new RuntimeException("관계 제거 실패")).when(spyDevice).clearAllRelations();
+        
+        // 목 레포지토리 설정
+        NfluxRepository mockRepo = Mockito.mock(NfluxRepository.class);
+        Mockito.when(mockRepo.findById(deviceId)).thenReturn(java.util.Optional.of(spyDevice));
+        
+        // 원본 레포지토리 저장
+        NfluxRepository originalRepo = (NfluxRepository) ReflectionTestUtils.getField(
+                nfluxService, "repository");
+        
+        // 목 주입
+        ReflectionTestUtils.setField(nfluxService, "repository", mockRepo);
+        
+        try {
+            // when & then
+            assertThrows(RuntimeException.class, () -> nfluxService.delete(deviceId));
+            
+        } finally {
+            // 원래 레포지토리 복원
+            ReflectionTestUtils.setField(nfluxService, "repository", originalRepo);
+        }
     }
 }

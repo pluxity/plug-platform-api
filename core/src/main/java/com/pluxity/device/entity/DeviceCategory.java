@@ -70,4 +70,16 @@ public class DeviceCategory extends Category<DeviceCategory> {
     public String getPrefix() {
         return this.prefix + this.iconFileId + "/";
     }
+
+    public void clearAllDevices() {
+        List<Device> devicesToRemove = new ArrayList<>(this.devices);
+
+        // 각 디바이스와의 연관관계 제거
+        for (Device device : devicesToRemove) {
+            device.updateCategory(null);
+        }
+
+        // 컬렉션 비우기 (이미 updateCategory에서 처리되지만 명시적으로 수행)
+        this.devices.clear();
+    }
 }

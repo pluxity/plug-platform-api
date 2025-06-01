@@ -130,48 +130,65 @@ public class Feature extends BaseEntity {
                 && rotation.getZ() == 0.0;
     }
 
-    public void changeDevice(Device newDevice) {
-        if (this.device != null
-                && this.device.getFeature() != null
-                && this.device.getFeature().equals(this)) {
+    public void changeDevice(Device device) {
+        if (this.device != null && this.device.getFeature() != null) {
             this.device.clearFeatureOnly();
         }
-        this.device = newDevice;
 
-        if (newDevice != null
-                && (newDevice.getFeature() == null || !newDevice.getFeature().equals(this))) {
-            newDevice.assignFeatureOnly(this);
+        this.device = device;
+
+        if (device != null && device.getFeature() != this) {
+            device.changeFeature(this);
         }
     }
 
-    public void changeAsset(Asset newAsset) {
+    public void changeAsset(Asset asset) {
         if (this.asset != null) {
-            this.asset.getFeatures().remove(this);
-        }
-        this.asset = newAsset;
-
-        if (newAsset != null && !newAsset.getFeatures().contains(this)) {
-            newAsset.addFeature(this);
-        }
-    }
-
-    public void changeFacility(Facility newFacility) {
-        if (this.facility != null) {
-            this.facility.getFeatures().remove(this);
+            this.asset.removeFeature(this);
         }
 
-        this.facility = newFacility;
+        this.asset = asset;
 
-        if (newFacility != null && !newFacility.getFeatures().contains(this)) {
-            newFacility.getFeatures().add(this);
+        if (asset != null) {
+            asset.addFeature(this);
         }
     }
 
+    public void changeFacility(Facility facility) {
+        if (this.facility != null) {}
+
+        this.facility = facility;
+
+        if (facility != null) {
+            // 필요한 경우 시설 측의 연관관계 설정 로직 추가
+        }
+    }
+
+    /** 디바이스 관계만 단방향으로 제거하는 메서드 (디바이스에서 피처 제거 시 사용) */
     public void clearDeviceOnly() {
         this.device = null;
     }
 
-    public void assignDeviceOnly(Device device) {
-        this.device = device;
+    /** 에셋 관계만 단방향으로 제거하는 메서드 (에셋에서 피처 제거 시 사용) */
+    public void clearAssetOnly() {
+        this.asset = null;
+    }
+
+    /** 모든 연관관계를 제거하는 메서드 */
+    public void clearAllRelations() {
+        // Asset 연관관계 제거
+        if (this.asset != null) {
+            this.changeAsset(null);
+        }
+
+        // Facility 연관관계 제거
+        if (this.facility != null) {
+            this.changeFacility(null);
+        }
+
+        // Device 연관관계 제거
+        if (this.device != null) {
+            this.changeDevice(null);
+        }
     }
 }

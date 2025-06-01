@@ -7,20 +7,22 @@ import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.asset.repository.AssetRepository;
+import com.pluxity.feature.entity.Feature;
+import com.pluxity.feature.service.FeatureService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import java.util.List;
 import java.util.function.Supplier;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class AssetService {
 
@@ -28,6 +30,23 @@ public class AssetService {
     private final AssetCategoryRepository assetCategoryRepository;
     private final FileService fileService;
     private final AssetCategoryService assetCategoryService;
+    private FeatureService featureService;
+
+    @Autowired
+    public void setFeatureService(@Lazy FeatureService featureService) {
+        this.featureService = featureService;
+    }
+
+    public AssetService(
+            AssetRepository assetRepository,
+            AssetCategoryRepository assetCategoryRepository,
+            FileService fileService,
+            AssetCategoryService assetCategoryService) {
+        this.assetRepository = assetRepository;
+        this.assetCategoryRepository = assetCategoryRepository;
+        this.fileService = fileService;
+        this.assetCategoryService = assetCategoryService;
+    }
 
     @Transactional(readOnly = true)
     public AssetResponse getAsset(Long id) {
@@ -151,6 +170,26 @@ public class AssetService {
     @Transactional
     public void deleteAsset(Long id) {
         Asset asset = findById(id);
+
+        List<String> featureIds = asset.getAllFeatures().stream().map(Feature::getId).toList();
+        int featureCount = featureIds.size();
+
+        log.info("에셋 [{}] 삭제 전 연관관계 정리 시작 (연결된 피처: {}개)", id, featureCount);
+
+        // 모든 연관관계 제거
+        asset.clearAllRelations();
+        log.info("에셋 [{}]의 모든 연관관계 제거 완료", id);
+
+        // Feature 삭제
+        if (!featureIds.isEmpty()) {
+            log.info("에셋 [{}]에 연결되었던 피처 [{}]개 삭제 시작", id, featureCount);
+            for (String featureId : featureIds) {
+                featureService.deleteFeature(featureId);
+            }
+            log.info("에셋 [{}]에 연결되었던 피처 모두 삭제 완료", id);
+        }
+
+        log.info("에셋 [{}] 삭제 진행", id);
         assetRepository.delete(asset);
     }
 

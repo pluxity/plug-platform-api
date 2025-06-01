@@ -2,10 +2,7 @@ package com.pluxity.domains.device.service;
 
 import com.pluxity.SasangApplication;
 import com.pluxity.device.service.DeviceCategoryService;
-import com.pluxity.domains.device.dto.NfluxCategoryCreateRequest;
-import com.pluxity.domains.device.dto.NfluxCategoryResponse;
-import com.pluxity.domains.device.dto.NfluxCategoryUpdateRequest;
-import com.pluxity.domains.device.dto.NfluxResponse;
+import com.pluxity.domains.device.dto.*;
 import com.pluxity.domains.device.entity.NfluxCategory;
 import com.pluxity.domains.device.repository.NfluxCategoryRepository;
 import com.pluxity.file.service.FileService;
@@ -15,11 +12,13 @@ import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -711,28 +710,41 @@ class NfluxCategoryServiceTest {
     }
 
     @Test
-    @DisplayName("디바이스가 있는 카테고리 삭제 시 예외가 발생한다")
-    void delete_WithDevices_ThrowsCustomException() {
+    @DisplayName("디바이스가 있는 카테고리 삭제 시 연관관계가 정리된 후 삭제된다")
+    void delete_WithDevices_ClearsRelationsBeforeDelete() {
         // given
         // 1. 카테고리 생성
-        Long categoryId = nfluxCategoryService.save(createRequest);
+        NfluxCategory category = NfluxCategory.nfluxBuilder()
+                .name("디바이스 테스트 카테고리")
+                .contextPath("/device-test")
+                .build();
+        Long categoryId = nfluxCategoryRepository.save(category).getId();
         
-        // 2. 카테고리 entity 조회
-        NfluxCategory category = nfluxCategoryRepository.findById(categoryId).orElseThrow();
+        // 2. 디바이스 생성 및 카테고리에 할당
+        NfluxCreateRequest request = new NfluxCreateRequest(
+                categoryId,   // deviceCategoryId
+                null,         // asset
+                "테스트 디바이스",  // name
+                "TEST-DEV",   // code
+                "테스트용 디바이스"  // description
+                );
+        Long deviceId = nfluxService.save(request);
         
-        // 3. 카테고리에 디바이스 연결 (NfluxService mock 또는 실제 디바이스 생성)
-        // 여기서는 직접 디바이스 목록에 추가하는 방식으로 테스트
-        // 실제로는 NfluxService를 통해 디바이스를 생성하고 할당하는 것이 좋음
-        category.getDevices().add(null); // null을 추가해도 목록에 항목이 있는 것으로 간주됨
-        nfluxCategoryRepository.save(category);
+        // when
+        // 디바이스가 있는 카테고리 삭제
+        nfluxCategoryService.delete(categoryId);
         
-        // when & then
-        // 디바이스가 있는 카테고리 삭제 시도 시 예외 발생
-        assertThrows(CustomException.class, () -> nfluxCategoryService.delete(categoryId));
+        // then
+        // 1. 카테고리가 삭제되었는지 확인
+        assertThrows(CustomException.class, () -> nfluxCategoryService.findById(categoryId));
+        
+        // 2. 디바이스의 카테고리 참조가 제거되었는지 확인
+        NfluxResponse device = nfluxService.findDeviceById(deviceId);
+        assertThat(device.categoryId()).isNull();
     }
 
     @Test
-    @DisplayName("NULL 이름으로 카테고리 생성 테스트")
+    @DisplayName("NULL 이름으로 카테고리 생성 시 저장된다")
     void save_WithNullName_ThrowsException() {
         // given
         NfluxCategoryCreateRequest nullNameRequest = NfluxCategoryCreateRequest.of(
@@ -957,5 +969,142 @@ class NfluxCategoryServiceTest {
         
         NfluxCategoryResponse category3 = nfluxCategoryService.findById(id3);
         assertThat(category3.contextPath()).isEqualTo("/ending-with-slash/");
+    }
+
+    @Test
+    @DisplayName("카테고리 clearAllDevices 메소드 단위 테스트")
+    void clearAllDevices_RemovesAllDevicesFromCategory() {
+        // given
+        // 1. 카테고리 생성
+        NfluxCategory category = NfluxCategory.nfluxBuilder()
+                .name("디바이스 제거 테스트 카테고리")
+                .contextPath("/test-clear-devices")
+                .build();
+        Long categoryId = nfluxCategoryRepository.save(category).getId();
+        
+        // 2. 디바이스 생성 및 카테고리에 할당
+        // NfluxCreateRequest로 변환하여 생성
+        NfluxCreateRequest request1 = new NfluxCreateRequest(
+                categoryId,   // deviceCategoryId
+                null,         // asset
+                "테스트 디바이스 1", // name
+                "TEST001",    // code
+                "첫 번째 테스트 디바이스" // description
+                );
+        Long device1Id = nfluxService.save(request1);
+        
+        NfluxCreateRequest request2 = new NfluxCreateRequest(
+                categoryId,   // deviceCategoryId
+                null,         // asset
+                "테스트 디바이스 2", // name
+                "TEST002",    // code
+                "두 번째 테스트 디바이스" // description
+                );
+        Long device2Id = nfluxService.save(request2);
+        
+        // 카테고리에 디바이스가 할당되었는지 확인
+        NfluxCategory savedCategory = nfluxCategoryRepository.findById(categoryId).orElseThrow();
+        assertThat(savedCategory.getDevices()).hasSize(2);
+        
+        // when
+        // clearAllDevices 메소드 직접 호출
+        savedCategory.clearAllDevices();
+        nfluxCategoryRepository.save(savedCategory);
+        
+        // then
+        // 1. 카테고리에서 디바이스 제거되었는지 확인
+        NfluxCategory updatedCategory = nfluxCategoryRepository.findById(categoryId).orElseThrow();
+        assertThat(updatedCategory.getDevices()).isEmpty();
+        
+        // 2. 각 디바이스에서 카테고리 참조가 제거되었는지 확인
+        NfluxResponse updatedDevice1 = nfluxService.findDeviceById(device1Id);
+        assertThat(updatedDevice1.categoryId()).isNull();
+        
+        NfluxResponse updatedDevice2 = nfluxService.findDeviceById(device2Id);
+        assertThat(updatedDevice2.categoryId()).isNull();
+    }
+    
+    @Test
+    @DisplayName("카테고리 삭제 시 디바이스 관계 제거 후 삭제 테스트")
+    void delete_RemovesDeviceRelationsBeforeDelete() {
+        // given
+        // 1. 카테고리 생성
+        NfluxCategory category = NfluxCategory.nfluxBuilder()
+                .name("삭제 테스트 카테고리")
+                .contextPath("/test-delete")
+                .build();
+        Long categoryId = nfluxCategoryRepository.save(category).getId();
+        
+        // 2. 디바이스 생성 및 카테고리에 할당
+        NfluxCreateRequest request = new NfluxCreateRequest(
+                categoryId,   // deviceCategoryId
+                null,         // asset
+                "삭제 테스트 디바이스", // name
+                "DELETE001",  // code
+                "카테고리 삭제 테스트용 디바이스" // description
+                );
+        Long deviceId = nfluxService.save(request);
+        
+        // 카테고리에 디바이스가 할당되었는지 확인
+        NfluxCategory savedCategory = nfluxCategoryRepository.findById(categoryId).orElseThrow();
+        assertThat(savedCategory.getDevices()).hasSize(1);
+        
+        // when
+        nfluxCategoryService.delete(categoryId);
+        
+        // then
+        // 1. 카테고리가 삭제되었는지 확인
+        assertThrows(CustomException.class, () -> nfluxCategoryService.findById(categoryId));
+        
+        // 2. 디바이스의 카테고리 참조가 제거되었는지 확인
+        NfluxResponse updatedDevice = nfluxService.findDeviceById(deviceId);
+        assertThat(updatedDevice.categoryId()).isNull();
+    }
+    
+    @Test
+    @DisplayName("카테고리 삭제 시 디바이스 관계 제거 실패하면 예외 발생")
+    void delete_ThrowsExceptionWhenDeviceRelationRemovalFails() {
+        // given
+        // 1. 실제 카테고리 생성
+        NfluxCategory category = NfluxCategory.nfluxBuilder()
+                .name("예외 테스트 카테고리")
+                .contextPath("/test-exception")
+                .build();
+        Long categoryId = nfluxCategoryRepository.save(category).getId();
+        
+        // 2. 디바이스 생성 및 할당
+        NfluxCreateRequest request = new NfluxCreateRequest(
+                categoryId,   // deviceCategoryId
+                null,         // asset
+                "예외 테스트 디바이스", // name
+                "EXCEPTION001", // code
+                "카테고리 삭제 예외 테스트용 디바이스" // description
+                );
+        nfluxService.save(request);
+        
+        // 카테고리 스파이 생성
+        NfluxCategory spyCategory = Mockito.spy(category);
+        
+        // clearAllDevices 호출 시 예외 발생하도록 설정
+        Mockito.doThrow(new RuntimeException("디바이스 관계 제거 실패")).when(spyCategory).clearAllDevices();
+        
+        // 목 레포지토리 설정
+        NfluxCategoryRepository mockRepo = Mockito.mock(NfluxCategoryRepository.class);
+        Mockito.when(mockRepo.findById(categoryId)).thenReturn(java.util.Optional.of(spyCategory));
+        
+        // 원본 레포지토리 저장
+        NfluxCategoryRepository originalRepo = nfluxCategoryRepository;
+        
+        // 목 주입
+        ReflectionTestUtils.setField(nfluxCategoryService, "nfluxCategoryRepository", mockRepo);
+        
+        try {
+            // when & then
+            assertThrows(RuntimeException.class, () -> nfluxCategoryService.delete(categoryId));
+            
+        } finally {
+            // 원래 레포지토리 복원
+            ReflectionTestUtils.setField(nfluxCategoryService, "nfluxCategoryRepository", originalRepo);
+        }
     }
 } 

@@ -4,17 +4,22 @@ import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCreateRequest;
 import com.pluxity.asset.dto.AssetResponse;
 import com.pluxity.asset.dto.AssetUpdateRequest;
+import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
+import com.pluxity.feature.repository.FeatureRepository;
+import com.pluxity.feature.service.FeatureService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,6 +46,12 @@ class AssetServiceTest {
 
     @Autowired
     private FileService fileService;
+
+    @Autowired
+    private FeatureService featureService;
+
+    @Autowired
+    private FeatureRepository featureRepository;
 
     private Long assetFileId;
     private Long thumbnailFileId;
@@ -655,5 +666,111 @@ class AssetServiceTest {
 
         // when & then
         assertThrows(CustomException.class, () -> assetService.getAssetByCode(nonExistingCode));
+    }
+
+//    @Test
+//    @DisplayName("에셋 삭제 시 연관된 모든 피처가 함께 삭제된다")
+//    TODO: 이 테스트는 FeatureService와의 연관관계가 필요합니다.
+//    void deleteAsset_RemovesAllRelatedFeatures() throws IOException {
+//        // given
+//        // 1. 에셋 생성
+//        Long newAssetFileId = createNewFileId();
+//        Long newThumbnailFileId = createNewFileId();
+//
+//        AssetCreateRequest request = new AssetCreateRequest(
+//                "피처 테스트 에셋",
+//                "FTR",
+//                newAssetFileId,
+//                newThumbnailFileId,
+//                createRequest.categoryId()
+//        );
+//
+//        Long assetId = assetService.createAsset(request);
+//        Asset asset = assetRepository.findById(assetId).orElseThrow();
+//
+//        // 2. 피처 생성 및 에셋에 연결
+//        String featureId1 = UUID.randomUUID().toString();
+//        String featureId2 = UUID.randomUUID().toString();
+//
+//        // 피처 직접 생성하여 저장
+//        Feature feature1 = Feature.builder()
+//                .id(featureId1)
+//                .position(new Spatial(1.0, 1.0, 1.0))
+//                .rotation(new Spatial(0.0, 0.0, 0.0))
+//                .scale(new Spatial(1.0, 1.0, 1.0))
+//                .asset(asset)
+//                .build();
+//
+//        Feature feature2 = Feature.builder()
+//                .id(featureId2)
+//                .position(new Spatial(2.0, 2.0, 2.0))
+//                .rotation(new Spatial(0.0, 0.0, 0.0))
+//                .scale(new Spatial(1.0, 1.0, 1.0))
+//                .asset(asset)
+//                .build();
+//
+//        featureRepository.save(feature1);
+//        featureRepository.save(feature2);
+//
+//        // 피처가 에셋에 연결되었는지 확인
+//        asset = assetRepository.findById(assetId).orElseThrow(); // 다시 로드하여 확인
+//        assertEquals(2, asset.getFeatures().size());
+//
+//        // when
+//        assetService.deleteAsset(assetId);
+//
+//        // then
+//        // 1. 에셋이 삭제되었는지 확인
+//        assertThrows(CustomException.class, () -> assetService.findById(assetId));
+//
+//        // 2. 연결되었던 피처들도 모두 삭제되었는지 확인
+//        assertFalse(featureRepository.findById(featureId1).isPresent());
+//        assertFalse(featureRepository.findById(featureId2).isPresent());
+//    }
+
+    @Test
+    @DisplayName("에셋 삭제 시 연관관계 제거 실패하면 예외 발생")
+    void deleteAsset_ThrowsExceptionWhenRelationRemovalFails() throws IOException {
+        // given
+        // 1. 에셋 생성
+        Long newAssetFileId = createNewFileId();
+        Long newThumbnailFileId = createNewFileId();
+        
+        AssetCreateRequest request = new AssetCreateRequest(
+                "예외 테스트 에셋",
+                "EXC",
+                newAssetFileId,
+                newThumbnailFileId,
+                createRequest.categoryId()
+        );
+        
+        Long assetId = assetService.createAsset(request);
+        
+        // 에셋 스파이 생성
+        Asset asset = assetRepository.findById(assetId).orElseThrow();
+        Asset spyAsset = Mockito.spy(asset);
+        
+        // clearAllRelations 호출 시 예외 발생하도록 설정
+        Mockito.doThrow(new RuntimeException("관계 제거 실패")).when(spyAsset).clearAllRelations();
+        
+        // 목 레포지토리 설정
+        AssetRepository mockRepo = Mockito.mock(AssetRepository.class);
+        Mockito.when(mockRepo.findById(assetId)).thenReturn(java.util.Optional.of(spyAsset));
+        
+        // 원본 레포지토리 저장
+        AssetRepository originalRepo = (AssetRepository) ReflectionTestUtils.getField(
+                assetService, "assetRepository");
+        
+        // 목 주입
+        ReflectionTestUtils.setField(assetService, "assetRepository", mockRepo);
+        
+        try {
+            // when & then
+            assertThrows(RuntimeException.class, () -> assetService.deleteAsset(assetId));
+            
+        } finally {
+            // 원래 레포지토리 복원
+            ReflectionTestUtils.setField(assetService, "assetRepository", originalRepo);
+        }
     }
 }

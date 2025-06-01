@@ -45,22 +45,19 @@ public abstract class Device extends BaseEntity {
         this.name = name;
     }
 
-    public void changeFeature(Feature newFeature) {
-        if (this.feature != null
-                && this.feature.getDevice() != null
-                && this.feature.getDevice().equals(this)) {
-            this.feature.clearDeviceOnly();
+    public void changeFeature(Feature feature) {
+        // 기존 피처가 있고, 새 피처와 다르면 기존 피처에서 디바이스 참조 제거
+        if (this.feature != null && this.feature != feature) {
+            this.feature.changeDevice(null);
         }
-        this.feature = newFeature;
 
-        if (newFeature != null
-                && (newFeature.getDevice() == null || !newFeature.getDevice().equals(this))) {
-            newFeature.assignDeviceOnly(this);
-        }
-    }
-
-    public void assignFeatureOnly(Feature feature) {
+        // 새 피처 설정
         this.feature = feature;
+
+        // 새 피처가 있고, 새 피처의 디바이스가 현재 디바이스가 아니면 양방향 연관관계 설정
+        if (feature != null && feature.getDevice() != this) {
+            feature.changeDevice(this);
+        }
     }
 
     public void clearFeatureOnly() {
@@ -80,5 +77,17 @@ public abstract class Device extends BaseEntity {
     // 디바이스 코드를 반환하는 메서드 (기본 구현은 null 반환)
     public String getDeviceCode() {
         return null;
+    }
+
+    public void clearAllRelations() {
+        // Feature와의 연관관계 제거
+        if (this.feature != null) {
+            this.changeFeature(null);
+        }
+
+        // DeviceCategory와의 연관관계 제거
+        if (this.category != null) {
+            this.updateCategory(null);
+        }
     }
 }
