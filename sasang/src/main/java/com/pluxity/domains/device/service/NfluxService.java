@@ -5,16 +5,12 @@ import com.pluxity.asset.service.AssetService;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.service.DeviceCategoryService;
-import com.pluxity.domains.device.dto.NfluxCategoryGroupResponse;
-import com.pluxity.domains.device.dto.NfluxCreateRequest;
-import com.pluxity.domains.device.dto.NfluxResponse;
-import com.pluxity.domains.device.dto.NfluxUpdateRequest;
+import com.pluxity.domains.device.dto.*;
 import com.pluxity.domains.device.entity.Nflux;
 import com.pluxity.domains.device.entity.NfluxCategory;
 import com.pluxity.domains.device.repository.NfluxRepository;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationRepository;
-import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.file.dto.FileResponse;
@@ -62,15 +58,8 @@ public class NfluxService {
     private NfluxResponse createResponse(Nflux device) {
         return new NfluxResponse(
                 device.getId(),
-                device.getFeature() != null ? FeatureResponse.from(device.getFeature()) : null,
                 device.getCategory() != null ? device.getCategory().getId() : null,
                 device.getCategory() != null ? device.getCategory().getName() : null,
-                device.getFeature() != null && device.getFeature().getAsset() != null
-                        ? device.getFeature().getAsset().getId()
-                        : null,
-                device.getFeature() != null && device.getFeature().getAsset() != null
-                        ? device.getFeature().getAsset().getName()
-                        : null,
                 device.getName(),
                 device.getDeviceCode(),
                 device.getDescription(),
@@ -259,7 +248,7 @@ public class NfluxService {
                                     category.getName(),
                                     contextPath,
                                     iconFile,
-                                    categoryDevices.stream().map(this::createResponse).toList());
+                                    categoryDevices.stream().map(NfluxDetailResponse::from).toList());
                         })
                 .toList();
     }

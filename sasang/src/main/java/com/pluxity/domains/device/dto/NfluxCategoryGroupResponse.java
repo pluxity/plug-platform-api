@@ -8,4 +8,4 @@ public record NfluxCategoryGroupResponse(
         String categoryName,
         String contextPath,
         FileResponse iconFile,
-        List<NfluxResponse> devices) {}
+        List<NfluxDetailResponse> devices) {}
