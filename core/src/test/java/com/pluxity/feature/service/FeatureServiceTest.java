@@ -636,7 +636,7 @@ class FeatureServiceTest {
         assertTrue(retrievedNewAsset.getFeatures().stream().anyMatch(f -> f.getId().equals(feature.getId())), "New asset should contain the feature");
     }
 
-    // removeAssetFromFeature 테스트 케이스들
+//     removeAssetFromFeature 테스트 케이스들
 //    @Test
 //    @DisplayName("removeAssetFromFeature: 할당된 Asset 제거 성공")
 //    void removeAssetFromFeature_WhenAssetAssigned_RemovesAssetFromFeature() {
@@ -690,27 +690,26 @@ class FeatureServiceTest {
     @Test
     @DisplayName("Asset이 할당되지 않은 Feature에 Asset 할당 제거 요청 시 예외 발생")
     void removeAssetFromFeature_WhenNoAssetAssigned_ThrowsBadRequestException() {
-//        // given
-//        String featureIds = UUID.randomUUID().toString();
-//        Station facility = createAndSaveTestFacility();
-//        String floorId = "1";
-//
-//        // Asset 없이 Feature 생성
-//        Feature feature = Feature.builder()
-//                .id(featureIds)
-//                .position(new Spatial(1.0, 1.0, 1.0))
-//                .rotation(new Spatial(0.0, 0.0, 0.0))
-//                .scale(new Spatial(1.0, 1.0, 1.0))
-//                .facility(facility)
-//                .floorId(floorId)
-//                .build();
-//
-//        featureRepository.save(feature);
-//
-//        // when & then
-//        CustomException exception = assertThrows(CustomException.class,
-//                () -> featureService.removeAssetFromFeature(featureIds));
-//
-//        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        // given
+        String featureIds = UUID.randomUUID().toString();
+        Station facility = createAndSaveTestFacility();
+        String floorId = "1";
+
+        // Asset 없이 Feature 생성
+        Feature feature = Feature.builder()
+                .id(featureIds)
+                .position(new Spatial(1.0, 1.0, 1.0))
+                .rotation(new Spatial(0.0, 0.0, 0.0))
+                .scale(new Spatial(1.0, 1.0, 1.0))
+                .facility(facility)
+                .floorId(floorId)
+                .build();
+
+        featureRepository.save(feature);
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class,
+                () -> featureService.removeAssetFromFeature(featureIds));
+
     }
 }

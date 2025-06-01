@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -73,5 +74,23 @@ public class CustomExceptionHandler {
 
         return new ResponseEntity<>(
                 ErrorResponseBody.of(HttpStatus.BAD_REQUEST, errorMessage), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponseBody> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex) {
+        LOGGER.error("HttpMessageNotReadableException: {}", ex.getMessage());
+
+        String detailMessage = "필수 요청 본문이 누락되었거나 형식이 잘못되었습니다.";
+        if (ex.getMessage() != null && ex.getMessage().contains("Required request body is missing")) {
+            detailMessage = "필수 요청 본문(Request Body)이 누락되었습니다.";
+        }
+
+        ErrorResponseBody errorResponseBody =
+                ErrorResponseBody.of(
+                        HttpStatus.BAD_REQUEST, // HTTP 상태 코드
+                        detailMessage // 클라이언트에게 보여줄 메시지
+                        );
+        return new ResponseEntity<>(errorResponseBody, HttpStatus.BAD_REQUEST);
     }
 }
