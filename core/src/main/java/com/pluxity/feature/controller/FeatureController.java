@@ -14,12 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/features")
@@ -208,7 +209,7 @@ public class FeatureController {
                 @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스에 할당됨)"),
                 @ApiResponse(responseCode = "404", description = "피처 또는 디바이스를 찾을 수 없음")
             })
-    @PutMapping("/{featureId}/devices")
+    @PutMapping("/{featureId}/assign-device")
     public ResponseEntity<FeatureResponse> assignDeviceToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "디바이스 할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
@@ -227,7 +228,7 @@ public class FeatureController {
                 @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처에 디바이스가 할당되지 않음)"),
                 @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
             })
-    @DeleteMapping("/{featureId}/devices")
+    @DeleteMapping("/{featureId}/revoke-device")
     public ResponseEntity<FeatureResponse> removeDeviceFromFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "제거할 디바이스 정보 (id 또는 code)", required = true) @Valid @RequestBody
