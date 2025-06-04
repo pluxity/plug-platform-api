@@ -68,6 +68,8 @@ public class NfluxService {
 
     @Transactional
     public Long save(NfluxCreateRequest request) {
+        validateCodeUniqueness(request.code(), null);
+
         Nflux nflux = createSasangDevice(request);
 
         Nflux saved = repository.save(nflux);
@@ -86,6 +88,10 @@ public class NfluxService {
     @Transactional
     public void update(Long id, NfluxUpdateRequest request) {
         Nflux device = findById(id);
+
+        if (request.code() != null) {
+            validateCodeUniqueness(request.code(), id);
+        }
 
         DeviceCategory categoryToUpdate = null;
         if (request.deviceCategoryId() != null) {
@@ -161,6 +167,9 @@ public class NfluxService {
     @Transactional
     public NfluxResponse assignFeatureToNflux(Long deviceId, String featureId) {
         Nflux device = findById(deviceId);
+
+        device.validateCodeExists();
+
         Feature feature =
                 featureRepository
                         .findById(featureId)
@@ -251,5 +260,22 @@ public class NfluxService {
                                     categoryDevices.stream().map(NfluxDetailResponse::from).toList());
                         })
                 .toList();
+    }
+
+    private void validateCodeUniqueness(String code, Long excludeId) {
+        if (code == null || code.trim().isEmpty()) {
+            throw new CustomException("Code Required", HttpStatus.BAD_REQUEST, "디바이스 코드는 필수입니다");
+        }
+
+        repository
+                .findByCode(code.trim())
+                .filter(existingDevice -> excludeId == null || !existingDevice.getId().equals(excludeId))
+                .ifPresent(
+                        existingDevice -> {
+                            throw new CustomException(
+                                    "Code Already Exists",
+                                    HttpStatus.CONFLICT,
+                                    String.format("디바이스 코드 '%s'는 이미 사용 중입니다 (ID: %d)", code, existingDevice.getId()));
+                        });
     }
 }

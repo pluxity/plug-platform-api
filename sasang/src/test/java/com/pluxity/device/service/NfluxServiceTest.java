@@ -787,13 +787,7 @@ class NfluxServiceTest {
         );
         
         // when
-        Long secondDeviceId = nfluxService.save(duplicateRequest);
-        NfluxResponse secondDevice = nfluxService.findDeviceById(secondDeviceId);
-        
-        // then
-        // 코드 중복 검사가 없다면 두 디바이스의 코드가 동일할 것
-        assertThat(secondDevice.code()).isEqualTo(firstDevice.code());
-        assertThat(secondDeviceId).isNotEqualTo(firstDeviceId);
+        assertThrows(CustomException.class, () -> nfluxService.save(duplicateRequest));
     }
     
     @Test

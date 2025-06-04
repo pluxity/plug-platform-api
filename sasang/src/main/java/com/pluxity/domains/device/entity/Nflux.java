@@ -4,6 +4,7 @@ import com.pluxity.asset.entity.Asset;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -12,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 @Entity
 @Table(name = "nflux")
@@ -20,7 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Nflux extends Device {
 
-    @Column(name = "code")
+    @Column(name = "code", unique = true)
     private String code;
 
     @Column(name = "description")
@@ -73,6 +75,16 @@ public class Nflux extends Device {
 
     public void updateDescription(String description) {
         this.description = description;
+    }
+
+    public boolean hasCode() {
+        return this.code != null && !this.code.trim().isEmpty();
+    }
+
+    public void validateCodeExists() {
+        if (!hasCode()) {
+            throw new CustomException("Device code is required", HttpStatus.BAD_REQUEST, "장치 코드는 필수입니다.");
+        }
     }
 
     @Override
