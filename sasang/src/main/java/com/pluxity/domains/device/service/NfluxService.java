@@ -17,6 +17,7 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.response.BaseResponse;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -214,7 +215,6 @@ public class NfluxService {
                                                 HttpStatus.NOT_FOUND,
                                                 "해당 스테이션을 찾을 수 없습니다: " + stationId));
 
-        // 스테이션 ID와 관련된 Nflux 디바이스 찾기
         List<Nflux> devices =
                 repository.findAll().stream()
                         .filter(
@@ -231,8 +231,10 @@ public class NfluxService {
                         .filter(nflux -> nflux.getCategory() != null)
                         .collect(Collectors.groupingBy(Nflux::getCategory));
 
-        // 응답 객체 생성
+        // 응답 객체 생성 및 정렬
         return devicesByCategory.entrySet().stream()
+                // 1. 카테고리 ID 오름차순 정렬
+                .sorted(Comparator.comparing(entry -> entry.getKey().getId()))
                 .map(
                         entry -> {
                             DeviceCategory category = entry.getKey();
@@ -240,22 +242,22 @@ public class NfluxService {
                             String contextPath = null;
                             FileResponse iconFile = null;
 
-                            // NfluxCategory인 경우 contextPath 가져오기
-                            if (category instanceof NfluxCategory) {
-                                contextPath = ((NfluxCategory) category).getContextPath();
+                            if (category instanceof NfluxCategory nfluxCategory) {
+                                contextPath = nfluxCategory.getContextPath();
                             }
 
-                            // 카테고리의 아이콘 파일 ID가 있으면 FileResponse 생성
                             if (category.getIconFileId() != null) {
                                 iconFile = fileService.getFileResponse(category.getIconFileId());
                             }
 
+                            List<NfluxDetailResponse> sortedDeviceDetails =
+                                    categoryDevices.stream()
+                                            .sorted(Comparator.comparing(Nflux::getId))
+                                            .map(NfluxDetailResponse::from)
+                                            .toList();
+
                             return new NfluxCategoryGroupResponse(
-                                    category.getId(),
-                                    category.getName(),
-                                    contextPath,
-                                    iconFile,
-                                    categoryDevices.stream().map(NfluxDetailResponse::from).toList());
+                                    category.getId(), category.getName(), contextPath, iconFile, sortedDeviceDetails);
                         })
                 .toList();
     }
