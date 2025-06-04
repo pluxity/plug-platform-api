@@ -168,8 +168,6 @@ public class NfluxService {
     public NfluxResponse assignFeatureToNflux(Long deviceId, String featureId) {
         Nflux device = findById(deviceId);
 
-        device.validateCodeExists();
-
         Feature feature =
                 featureRepository
                         .findById(featureId)

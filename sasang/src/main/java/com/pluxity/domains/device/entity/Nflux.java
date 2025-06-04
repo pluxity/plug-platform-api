@@ -22,7 +22,7 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Nflux extends Device {
 
-    @Column(name = "code", unique = true)
+    @Column(name = "code", unique = true, nullable = false)
     private String code;
 
     @Column(name = "description")
