@@ -25,6 +25,7 @@ public class S3ClientConfig {
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
                                 AwsBasicCredentials.create(s3Config.getAccessKey(), s3Config.getSecretKey())))
+                .forcePathStyle(true)
                 .build();
     }
 }
