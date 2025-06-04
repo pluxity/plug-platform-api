@@ -3,9 +3,8 @@ package com.pluxity.facility.station.dto;
 import com.pluxity.facility.facility.dto.FacilityResponseWithFeature;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
-import lombok.Builder;
-
 import java.util.List;
+import lombok.Builder;
 
 public record StationResponseWithFeature(
         FacilityResponseWithFeature facility,

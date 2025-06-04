@@ -31,7 +31,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -470,7 +469,7 @@ class NfluxServiceTest {
         nfluxService.assignFeatureToNflux(deviceId2, featureId2);
         
         // when
-        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationIdGroupByCategory(station.getId());
+        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationCodeGroupByCategory(station.getCode());
         
         // then
         assertThat(result).hasSize(2);  // 두 개의 다른 카테고리
@@ -656,7 +655,7 @@ class NfluxServiceTest {
         // when
         // then
         // 스테이션이 존재하지 않으므로 예외가 발생해야 함
-        assertThrows(CustomException.class, () -> nfluxService.findByStationIdGroupByCategory(9999L));
+        assertThrows(CustomException.class, () -> nfluxService.findByStationCodeGroupByCategory("^^^^^"));
     }
     
     @Test
@@ -670,7 +669,7 @@ class NfluxServiceTest {
                 .build());
         
         // when
-        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationIdGroupByCategory(emptyStation.getId());
+        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationCodeGroupByCategory(emptyStation.getCode());
         
         // then
         assertThat(result).isEmpty();
@@ -725,7 +724,7 @@ class NfluxServiceTest {
         nfluxService.assignFeatureToNflux(deviceId2, featureId2);
         
         // when
-        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationIdGroupByCategory(station.getId());
+        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationCodeGroupByCategory(station.getCode());
         
         // then
         assertThat(result).hasSize(1); // 하나의 카테고리만 사용했으므로
@@ -766,8 +765,7 @@ class NfluxServiceTest {
         nfluxService.assignFeatureToNflux(deviceId, featureId);
         
         // when
-        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationIdGroupByCategory(station.getId());
-        
+        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationCodeGroupByCategory(station.getCode());
         // then
         assertThat(result).isEmpty(); // 카테고리가 없는 디바이스는 그룹화 결과에 포함되지 않음
     }
@@ -1038,8 +1036,8 @@ class NfluxServiceTest {
     @DisplayName("스테이션 ID가 NULL인 경우 findByStationIdGroupByCategory 테스트")
     void findByNullStationIdTest() {
         // when & then
-        assertThrows(InvalidDataAccessApiUsageException.class, () ->
-            nfluxService.findByStationIdGroupByCategory(null)
+        assertThrows(CustomException.class, () ->
+            nfluxService.findByStationCodeGroupByCategory(null)
         );
     }
     
@@ -1082,7 +1080,7 @@ class NfluxServiceTest {
         nfluxService.assignFeatureToNflux(deviceId, featureId);
         
         // when
-        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationIdGroupByCategory(station.getId());
+        List<NfluxCategoryGroupResponse> result = nfluxService.findByStationCodeGroupByCategory(station.getCode());
         
         // then
         assertThat(result).hasSize(1);
