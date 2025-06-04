@@ -4,25 +4,30 @@ import com.pluxity.facility.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.station.dto.StationResponse;
 import java.util.List;
-import lombok.Builder;
 
-@Builder
 public record SasangStationResponse(
         FacilityResponse facility,
         List<FloorResponse> floors,
         List<Long> lineIds,
         List<String> featureIds,
         String route,
-        String externalCode) {
+        String externalCode,
+        AdjacentStationResponse precedingStation,
+        AdjacentStationResponse followingStation) {
 
-    public static SasangStationResponse of(StationResponse stationResponse, String externalCode) {
-        return SasangStationResponse.builder()
-                .facility(stationResponse.facility())
-                .floors(stationResponse.floors())
-                .lineIds(stationResponse.lineIds())
-                .featureIds(stationResponse.featureIds())
-                .route(stationResponse.route())
-                .externalCode(externalCode)
-                .build();
+    public static SasangStationResponse of(
+            StationResponse stationResponse,
+            String externalCode,
+            AdjacentStationResponse precedingStation,
+            AdjacentStationResponse followingStation) {
+        return new SasangStationResponse(
+                stationResponse.facility(),
+                stationResponse.floors(),
+                stationResponse.lineIds(),
+                stationResponse.featureIds(),
+                stationResponse.route(),
+                externalCode,
+                precedingStation,
+                followingStation);
     }
 }

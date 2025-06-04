@@ -1,5 +1,6 @@
 package com.pluxity.domains.station;
 
+import com.pluxity.domains.station.dto.BusanSubwayStationResponse;
 import com.pluxity.domains.station.dto.SasangStationCreateRequest;
 import com.pluxity.domains.station.dto.SasangStationResponse;
 import com.pluxity.domains.station.dto.SasangStationUpdateRequest;
@@ -295,5 +296,23 @@ public class SasangStationController {
     public ResponseEntity<DataResponseBody<StationResponseWithFeature>> getStationFeatures(
             @Parameter(description = "역 ID", required = true) @PathVariable Long stationId) {
         return ResponseEntity.ok(DataResponseBody.of(service.findStationWithFeatures(stationId)));
+    }
+
+    @Operation(summary = "부산 지하철 역 전체 조회", description = "부산 지하철 1-4호선의 모든 역 정보를 조회합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "부산 지하철 역 목록 조회 성공"),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/busan-subway")
+    public ResponseEntity<DataResponseBody<List<BusanSubwayStationResponse>>>
+            getAllBusanSubwayStations() {
+        return ResponseEntity.ok(DataResponseBody.of(service.findAllBusanSubwayStations()));
     }
 }

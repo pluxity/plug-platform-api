@@ -1,8 +1,7 @@
 package com.pluxity.domains.station;
 
-import com.pluxity.domains.station.dto.SasangStationCreateRequest;
-import com.pluxity.domains.station.dto.SasangStationResponse;
-import com.pluxity.domains.station.dto.SasangStationUpdateRequest;
+import com.pluxity.domains.station.dto.*;
+import com.pluxity.domains.station.enums.BusanSubwayStation;
 import com.pluxity.facility.facility.Facility;
 import com.pluxity.facility.facility.FacilityService;
 import com.pluxity.facility.facility.dto.FacilityCreateRequest;
@@ -20,6 +19,7 @@ import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -109,13 +109,12 @@ public class SasangStationService {
         if (request != null) {
             stationService.update(
                     id,
-                    StationUpdateRequest.builder()
-                            .name(request.name())
-                            .description(request.description())
-                            .thumbnailFileId(request.thumbnailFileId())
-                            .lineIds(request.lineIds())
-                            .route(request.route())
-                            .build());
+                    StationUpdateRequest.of(
+                            request.name(),
+                            request.description(),
+                            request.thumbnailFileId(),
+                            request.lineIds(),
+                            request.route()));
         }
 
         // SasangStation 고유 필드 업데이트
@@ -154,6 +153,13 @@ public class SasangStationService {
         return stationService.findStationWithFeatures(id);
     }
 
+    @Transactional(readOnly = true)
+    public List<BusanSubwayStationResponse> findAllBusanSubwayStations() {
+        return BusanSubwayStation.findAll().stream()
+                .map(BusanSubwayStationResponse::from)
+                .collect(Collectors.toList());
+    }
+
     private SasangStation findSasangStationById(Long id) {
         return sasangStationRepository
                 .findById(id)
@@ -166,7 +172,45 @@ public class SasangStationService {
     private SasangStationResponse convertToResponse(SasangStation sasangStation) {
         StationResponse stationResponse = convertToStationResponse(sasangStation);
 
-        return SasangStationResponse.of(stationResponse, sasangStation.getExternalCode());
+        AdjacentStationResponse precedingStation = findPrecedingStation(sasangStation);
+        AdjacentStationResponse followingStation = findFollowingStation(sasangStation);
+
+        return SasangStationResponse.of(
+                stationResponse, sasangStation.getExternalCode(), precedingStation, followingStation);
+    }
+
+    private AdjacentStationResponse findPrecedingStation(SasangStation sasangStation) {
+        if (sasangStation.getCode() == null) {
+            return null;
+        }
+
+        Optional<BusanSubwayStation> currentStation =
+                BusanSubwayStation.findByCode(sasangStation.getCode());
+        if (currentStation.isEmpty()) {
+            return null;
+        }
+
+        Optional<BusanSubwayStation> precedingStation = currentStation.get().getPrecedingStation();
+        return precedingStation
+                .map(station -> AdjacentStationResponse.of(station.getCode(), station.getName()))
+                .orElse(null);
+    }
+
+    private AdjacentStationResponse findFollowingStation(SasangStation sasangStation) {
+        if (sasangStation.getCode() == null) {
+            return null;
+        }
+
+        Optional<BusanSubwayStation> currentStation =
+                BusanSubwayStation.findByCode(sasangStation.getCode());
+        if (currentStation.isEmpty()) {
+            return null;
+        }
+
+        Optional<BusanSubwayStation> followingStation = currentStation.get().getFollowingStation();
+        return followingStation
+                .map(station -> AdjacentStationResponse.of(station.getCode(), station.getName()))
+                .orElse(null);
     }
 
     private StationResponse convertToStationResponse(SasangStation station) {
