@@ -11,23 +11,15 @@ public record SasangStationResponse(
         List<Long> lineIds,
         List<String> featureIds,
         String route,
-        String externalCode,
-        AdjacentStationResponse precedingStation,
-        AdjacentStationResponse followingStation) {
+        String externalCode) {
 
-    public static SasangStationResponse of(
-            StationResponse stationResponse,
-            String externalCode,
-            AdjacentStationResponse precedingStation,
-            AdjacentStationResponse followingStation) {
+    public static SasangStationResponse of(StationResponse stationResponse, String externalCode) {
         return new SasangStationResponse(
                 stationResponse.facility(),
                 stationResponse.floors(),
                 stationResponse.lineIds(),
                 stationResponse.featureIds(),
                 stationResponse.route(),
-                externalCode,
-                precedingStation,
-                followingStation);
+                externalCode);
     }
 }

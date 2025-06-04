@@ -1,6 +1,9 @@
 package com.pluxity.domains.station;
 
-import com.pluxity.domains.station.dto.*;
+import com.pluxity.domains.station.dto.BusanSubwayStationResponse;
+import com.pluxity.domains.station.dto.SasangStationCreateRequest;
+import com.pluxity.domains.station.dto.SasangStationResponse;
+import com.pluxity.domains.station.dto.SasangStationUpdateRequest;
 import com.pluxity.domains.station.enums.BusanSubwayStation;
 import com.pluxity.facility.facility.Facility;
 import com.pluxity.facility.facility.FacilityService;
@@ -149,8 +152,23 @@ public class SasangStationService {
 
     @Transactional(readOnly = true)
     public StationResponseWithFeature findStationWithFeatures(Long id) {
-        findSasangStationById(id);
-        return stationService.findStationWithFeatures(id);
+        SasangStation sasangStation = findSasangStationById(id);
+        StationResponseWithFeature baseResponse = stationService.findStationWithFeatures(id);
+
+        StationResponseWithFeature.AdjacentStationInfo precedingStation =
+                findPrecedingStationInfo(sasangStation);
+        StationResponseWithFeature.AdjacentStationInfo followingStation =
+                findFollowingStationInfo(sasangStation);
+
+        return StationResponseWithFeature.builder()
+                .facility(baseResponse.facility())
+                .floors(baseResponse.floors())
+                .lineIds(baseResponse.lineIds())
+                .features(baseResponse.features())
+                .route(baseResponse.route())
+                .precedingStation(precedingStation)
+                .followingStation(followingStation)
+                .build();
     }
 
     @Transactional(readOnly = true)
@@ -171,15 +189,11 @@ public class SasangStationService {
 
     private SasangStationResponse convertToResponse(SasangStation sasangStation) {
         StationResponse stationResponse = convertToStationResponse(sasangStation);
-
-        AdjacentStationResponse precedingStation = findPrecedingStation(sasangStation);
-        AdjacentStationResponse followingStation = findFollowingStation(sasangStation);
-
-        return SasangStationResponse.of(
-                stationResponse, sasangStation.getExternalCode(), precedingStation, followingStation);
+        return SasangStationResponse.of(stationResponse, sasangStation.getExternalCode());
     }
 
-    private AdjacentStationResponse findPrecedingStation(SasangStation sasangStation) {
+    private StationResponseWithFeature.AdjacentStationInfo findPrecedingStationInfo(
+            SasangStation sasangStation) {
         if (sasangStation.getCode() == null) {
             return null;
         }
@@ -192,11 +206,15 @@ public class SasangStationService {
 
         Optional<BusanSubwayStation> precedingStation = currentStation.get().getPrecedingStation();
         return precedingStation
-                .map(station -> AdjacentStationResponse.of(station.getCode(), station.getName()))
+                .map(
+                        station ->
+                                StationResponseWithFeature.AdjacentStationInfo.of(
+                                        station.getCode(), station.getName()))
                 .orElse(null);
     }
 
-    private AdjacentStationResponse findFollowingStation(SasangStation sasangStation) {
+    private StationResponseWithFeature.AdjacentStationInfo findFollowingStationInfo(
+            SasangStation sasangStation) {
         if (sasangStation.getCode() == null) {
             return null;
         }
@@ -209,7 +227,10 @@ public class SasangStationService {
 
         Optional<BusanSubwayStation> followingStation = currentStation.get().getFollowingStation();
         return followingStation
-                .map(station -> AdjacentStationResponse.of(station.getCode(), station.getName()))
+                .map(
+                        station ->
+                                StationResponseWithFeature.AdjacentStationInfo.of(
+                                        station.getCode(), station.getName()))
                 .orElse(null);
     }
 
