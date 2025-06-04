@@ -3,8 +3,9 @@ package com.pluxity.facility.station.dto;
 import com.pluxity.facility.facility.dto.FacilityResponseWithFeature;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
-import java.util.List;
 import lombok.Builder;
+
+import java.util.List;
 
 public record StationResponseWithFeature(
         FacilityResponseWithFeature facility,
@@ -12,6 +13,7 @@ public record StationResponseWithFeature(
         List<Long> lineIds,
         List<FeatureResponseWithoutAsset> features,
         String route,
+        String externalCode,
         AdjacentStationInfo precedingStation,
         AdjacentStationInfo followingStation) {
 
@@ -22,6 +24,7 @@ public record StationResponseWithFeature(
             List<Long> lineIds,
             List<FeatureResponseWithoutAsset> features,
             String route,
+            String externalCode,
             AdjacentStationInfo precedingStation,
             AdjacentStationInfo followingStation) {
         this.facility = facility;
@@ -29,6 +32,7 @@ public record StationResponseWithFeature(
         this.lineIds = lineIds != null ? lineIds : List.of();
         this.features = features != null ? features : List.of();
         this.route = route;
+        this.externalCode = externalCode;
         this.precedingStation = precedingStation;
         this.followingStation = followingStation;
     }

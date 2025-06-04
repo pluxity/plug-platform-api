@@ -21,13 +21,14 @@ import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -153,7 +154,7 @@ public class SasangStationService {
     @Transactional(readOnly = true)
     public StationResponseWithFeature findStationWithFeatures(Long id) {
         SasangStation sasangStation = findSasangStationById(id);
-        StationResponseWithFeature baseResponse = stationService.findStationWithFeatures(id);
+        StationResponseWithFeature stationResponse = stationService.findStationWithFeatures(id);
 
         StationResponseWithFeature.AdjacentStationInfo precedingStation =
                 findPrecedingStationInfo(sasangStation);
@@ -161,11 +162,12 @@ public class SasangStationService {
                 findFollowingStationInfo(sasangStation);
 
         return StationResponseWithFeature.builder()
-                .facility(baseResponse.facility())
-                .floors(baseResponse.floors())
-                .lineIds(baseResponse.lineIds())
-                .features(baseResponse.features())
-                .route(baseResponse.route())
+                .facility(stationResponse.facility())
+                .floors(stationResponse.floors())
+                .lineIds(stationResponse.lineIds())
+                .features(stationResponse.features())
+                .route(stationResponse.route())
+                .externalCode(sasangStation.getExternalCode())
                 .precedingStation(precedingStation)
                 .followingStation(followingStation)
                 .build();
