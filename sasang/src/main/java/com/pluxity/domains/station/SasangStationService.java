@@ -90,12 +90,6 @@ public class SasangStationService {
     }
 
     @Transactional(readOnly = true)
-    public SasangStationResponse findByCode(String code) {
-        SasangStation sasangStation = findSasangStationByCode(code);
-        return convertToResponse(sasangStation);
-    }
-
-    @Transactional(readOnly = true)
     public SasangStationResponse findByExternalCode(String externalCode) {
         SasangStation sasangStation =
                 sasangStationRepository
@@ -161,6 +155,19 @@ public class SasangStationService {
         SasangStation sasangStation = findSasangStationById(id);
         StationResponseWithFeature stationResponse = stationService.findStationWithFeatures(id);
 
+        return getStationResponseWithFeature(sasangStation, stationResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public StationResponseWithFeature findByCode(String code) {
+        SasangStation sasangStation = findSasangStationByCode(code);
+        StationResponseWithFeature response =
+                stationService.findStationWithFeatures(sasangStation.getId());
+        return getStationResponseWithFeature(sasangStation, response);
+    }
+
+    private StationResponseWithFeature getStationResponseWithFeature(
+            SasangStation sasangStation, StationResponseWithFeature stationResponse) {
         StationResponseWithFeature.AdjacentStationInfo precedingStation =
                 findPrecedingStationInfo(sasangStation);
         StationResponseWithFeature.AdjacentStationInfo followingStation =

@@ -17,10 +17,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/stations")
@@ -122,7 +123,7 @@ public class SasangStationController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping("/by-code/{code}")
-    public ResponseEntity<DataResponseBody<SasangStationResponse>> getByCode(
+    public ResponseEntity<DataResponseBody<StationResponseWithFeature>> getByCode(
             @Parameter(description = "역 ID", required = true) @PathVariable String code) {
         return ResponseEntity.ok(DataResponseBody.of(service.findByCode(code)));
     }
