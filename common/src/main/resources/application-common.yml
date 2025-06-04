@@ -41,3 +41,10 @@ springdoc:
   packages-to-scan: com.pluxity
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+
+tcp:
+  server1: 101.254.21.100
+  server2: 101.254.21.100:4002
+  server3: 101.254.21.100:4003
+  server4: 101.254.21.100:4004
+  port1: 4001

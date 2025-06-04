@@ -1,6 +1,8 @@
 package com.pluxity.domains.ttc;
 
 import com.pluxity.domains.sse.SseService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -14,17 +16,20 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/ttc")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "ttc Controller", description = "TTC와 관련된건데 정의된게 거의 없어서 추상적으로 적음.")
 public class TtcController {
 
     private final TtcService ttcDataService;
     private final SseService sseService;
 
+    @Operation(summary = "sse 연결", description = "sse 연결합니다")
     @GetMapping(path = "/connect-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter connectTtcStream() {
         log.info("New client requesting SSE connection for TTC data.");
         return sseService.createEmitter();
     }
 
+    @Operation(summary = "ttc 더미 데이터 생성", description = "ttc 더미 데이터를 생성하고 SSE 클라이언트에 푸시합니다.")
     @GetMapping("/get-ttc-dummy")
     public ResponseEntity<String> pushTtcDataToClients() {
         log.info("Request received to push TTC data to all SSE clients.");
@@ -36,8 +41,13 @@ public class TtcController {
             return ResponseEntity.status(500).body("Error in parsing data, not broadcasting.");
         }
 
-        sseService.broadcast(jsonData, "ttc-update");
-
         return ResponseEntity.ok("TTC data push triggered to SSE clients.");
+    }
+
+    @GetMapping("/tcp")
+    @Operation(summary = "TCP 연결 테스트", description = "TCP 연결을 테스트합니다.")
+    public ResponseEntity<String> testTcpConnection() {
+        String response = ttcDataService.fetchAndBroadcastTtcData();
+        return ResponseEntity.ok(response);
     }
 }

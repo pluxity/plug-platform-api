@@ -34,11 +34,7 @@ file:
 domain:
   name: ${DOMAIN_NAME:localhost}
 
-tcp:
-  server1: 101.254.21.100:4001
-  server2: 101.254.21.100:4002
-  server3: 101.254.21.100:4003
-  server4: 101.254.21.100:4004
+
 
 logging:
   level:
