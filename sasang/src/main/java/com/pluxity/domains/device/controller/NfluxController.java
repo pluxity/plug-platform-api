@@ -16,10 +16,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/devices")
@@ -257,11 +258,12 @@ public class NfluxController {
                 @ApiResponse(responseCode = "404", description = "스테이션을 찾을 수 없음"),
                 @ApiResponse(responseCode = "500", description = "서버 오류")
             })
-    @GetMapping("/station/{stationId}/grouped")
+    @GetMapping("/station/{stationCode}/grouped")
     public ResponseEntity<DataResponseBody<List<NfluxCategoryGroupResponse>>>
             getDevicesByStationGroupedByCategory(
-                    @Parameter(description = "스테이션 ID", required = true) @PathVariable Long stationId) {
-        List<NfluxCategoryGroupResponse> response = service.findByStationIdGroupByCategory(stationId);
+                    @Parameter(description = "스테이션 ID", required = true) @PathVariable String stationCode) {
+        List<NfluxCategoryGroupResponse> response =
+                service.findByStationCodeGroupByCategory(stationCode);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
 }

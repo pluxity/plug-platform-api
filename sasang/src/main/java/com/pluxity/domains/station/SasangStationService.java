@@ -21,14 +21,13 @@ import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +86,12 @@ public class SasangStationService {
     @Transactional(readOnly = true)
     public SasangStationResponse findById(Long id) {
         SasangStation sasangStation = findSasangStationById(id);
+        return convertToResponse(sasangStation);
+    }
+
+    @Transactional(readOnly = true)
+    public SasangStationResponse findByCode(String code) {
+        SasangStation sasangStation = findSasangStationByCode(code);
         return convertToResponse(sasangStation);
     }
 
@@ -187,6 +192,15 @@ public class SasangStationService {
                         () ->
                                 new CustomException(
                                         "SasangStation not found", HttpStatus.NOT_FOUND, "해당 ID의 역을 찾을 수 없습니다."));
+    }
+
+    private SasangStation findSasangStationByCode(String code) {
+        return sasangStationRepository
+                .findByCode(code)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "SasangStation not found", HttpStatus.NOT_FOUND, "해당 코드의 역을 찾을 수 없습니다."));
     }
 
     private SasangStationResponse convertToResponse(SasangStation sasangStation) {

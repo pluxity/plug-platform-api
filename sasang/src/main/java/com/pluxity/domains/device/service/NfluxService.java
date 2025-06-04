@@ -204,17 +204,21 @@ public class NfluxService {
     }
 
     @Transactional(readOnly = true)
-    public List<NfluxCategoryGroupResponse> findByStationIdGroupByCategory(Long stationId) {
+    public List<NfluxCategoryGroupResponse> findByStationCodeGroupByCategory(String stationCode) {
         Station station =
                 stationRepository
-                        .findById(stationId)
+                        .findByCode(stationCode)
                         .orElseThrow(
                                 () ->
                                         new CustomException(
                                                 "Station not found",
                                                 HttpStatus.NOT_FOUND,
-                                                "해당 스테이션을 찾을 수 없습니다: " + stationId));
+                                                "해당 스테이션을 찾을 수 없습니다: " + stationCode));
 
+        return getNfluxCategoryGroupResponses(station.getId());
+    }
+
+    private List<NfluxCategoryGroupResponse> getNfluxCategoryGroupResponses(Long stationId) {
         List<Nflux> devices =
                 repository.findAll().stream()
                         .filter(

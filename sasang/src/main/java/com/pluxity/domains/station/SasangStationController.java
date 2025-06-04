@@ -17,10 +17,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/stations")
@@ -50,7 +51,7 @@ public class SasangStationController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated(path = "/sasang/stations/{id}")
+    @ResponseCreated(path = "/stations/{id}")
     public ResponseEntity<Long> create(
             @Parameter(description = "역 생성 정보", required = true) @Valid @RequestBody
                     SasangStationCreateRequest request) {
@@ -100,6 +101,31 @@ public class SasangStationController {
     public ResponseEntity<DataResponseBody<SasangStationResponse>> get(
             @Parameter(description = "역 ID", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(DataResponseBody.of(service.findById(id)));
+    }
+
+    @Operation(summary = "역 상세 조회", description = "ID로 특정 역의 상세 정보를 조회합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "역 조회 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "역을 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/by-code/{code}")
+    public ResponseEntity<DataResponseBody<SasangStationResponse>> getByCode(
+            @Parameter(description = "역 ID", required = true) @PathVariable String code) {
+        return ResponseEntity.ok(DataResponseBody.of(service.findByCode(code)));
     }
 
     @Operation(summary = "외부 코드로 역 조회", description = "외부 코드로 특정 역의 상세 정보를 조회합니다")
