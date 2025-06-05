@@ -83,10 +83,6 @@ public abstract class Device extends BaseEntity implements Persistable<String> {
         }
     }
 
-    public String getDeviceCode() {
-        return this.id;
-    }
-
     public void clearAllRelations() {
         if (this.feature != null) {
             this.changeFeature(null);

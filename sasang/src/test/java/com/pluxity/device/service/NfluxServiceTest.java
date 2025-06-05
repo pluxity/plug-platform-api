@@ -1100,7 +1100,7 @@ class NfluxServiceTest {
         assertThat(device).isNotNull();
         assertThat(device.getId()).isEqualTo(deviceId);
         assertThat(device.getName()).isEqualTo(testRequest.name());
-        assertThat(device.getDeviceCode()).isEqualTo(deviceId); // code는 이제 id와 동일
+        assertThat(device.getId()).isEqualTo(deviceId); // code는 이제 id와 동일
     }
 
     @Test

@@ -12,7 +12,7 @@ public record FeatureResponse(
         Spatial scale,
         AssetResponse asset,
         String floorId,
-        String deviceCode) {
+        String deviceId) {
 
     public static FeatureResponse from(
             Feature feature,
@@ -20,13 +20,6 @@ public record FeatureResponse(
             FileResponse assetThumbnail,
             FileResponse facilityDrawing,
             FileResponse facilityThumbnail) {
-
-        // Device에서 code 정보 가져오기
-        String deviceCode = null;
-        if (feature.getDevice() != null) {
-            deviceCode = feature.getDevice().getDeviceCode();
-        }
-
         return new FeatureResponse(
                 feature.getId(),
                 feature.getPosition(),
@@ -36,16 +29,10 @@ public record FeatureResponse(
                         ? AssetResponse.from(feature.getAsset(), assetFile, assetThumbnail)
                         : null,
                 feature.getFloorId(),
-                deviceCode);
+                feature.getDevice() != null ? feature.getDevice().getId() : null);
     }
 
     public static FeatureResponse from(Feature feature) {
-        // Device에서 code 정보 가져오기
-        String deviceCode = null;
-        if (feature.getDevice() != null) {
-            deviceCode = feature.getDevice().getDeviceCode();
-        }
-
         return new FeatureResponse(
                 feature.getId(),
                 feature.getPosition(),
@@ -53,6 +40,6 @@ public record FeatureResponse(
                 feature.getScale(),
                 feature.getAsset() != null ? AssetResponse.from(feature.getAsset()) : null,
                 feature.getFloorId(),
-                deviceCode);
+                feature.getDevice() != null ? feature.getDevice().getId() : null);
     }
 }
