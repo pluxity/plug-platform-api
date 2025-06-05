@@ -7,6 +7,7 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -29,7 +30,7 @@ public class FacilityService {
     private final FacilityRevisionRepository facilityRevisionRepository;
 
     @Transactional
-    public Facility save(Facility facility, FacilityCreateRequest request) {
+    public Facility save(Facility facility, @Valid FacilityCreateRequest request) {
         try {
             // 코드 중복 검사
             if (request.code() != null && !request.code().isEmpty()) {
@@ -97,7 +98,7 @@ public class FacilityService {
     }
 
     @Transactional
-    public void update(Long id, FacilityUpdateRequest request) {
+    public void update(Long id, @Valid FacilityUpdateRequest request) {
         Facility facility = findById(id);
 
         // 코드 변경 요청이 있고, 기존 코드와 다른 경우에만 중복 검사

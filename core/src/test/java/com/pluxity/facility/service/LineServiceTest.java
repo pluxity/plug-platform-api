@@ -1,9 +1,10 @@
 package com.pluxity.facility.service;
 
 import com.pluxity.facility.line.LineService;
-import com.pluxity.facility.line.dto.LineRequest;
+import com.pluxity.facility.line.dto.LineCreateRequest;
 import com.pluxity.facility.line.dto.LineResponse;
 import com.pluxity.facility.line.Line;
+import com.pluxity.facility.line.dto.LineUpdateRequest;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.line.LineRepository;
 import com.pluxity.facility.station.StationRepository;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -39,13 +41,13 @@ class LineServiceTest {
     @Autowired
     private StationService stationService;
 
-    private LineRequest lineRequest;
+    private LineCreateRequest lineCreateRequest;
     private Station testStation;
 
     @BeforeEach
     void setUp() {
         // 테스트용 LineRequest 생성
-        lineRequest = new LineRequest("테스트 노선", "#FF0000");
+        lineCreateRequest = new LineCreateRequest("테스트 노선", "#FF0000");
         
         // 테스트용 Station 생성 - 실제 저장은 필요한 테스트에서만 수행
         testStation = Station.builder()
@@ -59,7 +61,7 @@ class LineServiceTest {
     @DisplayName("유효한 요청으로 호선 생성 시 호선이 저장된다")
     void save_WithValidRequest_SavesLine() {
         // when
-        Long id = lineService.save(lineRequest);
+        Long id = lineService.save(lineCreateRequest);
 
         // then
         assertThat(id).isNotNull();
@@ -81,7 +83,7 @@ class LineServiceTest {
         
         // when
         for (int i = 0; i < count; i++) {
-            LineRequest request = new LineRequest("테스트 노선 " + i, "#" + i + "00000");
+            LineCreateRequest request = new LineCreateRequest("테스트 노선 " + i, "#" + i + "00000");
             Long id = lineService.save(request);
             lineIds.add(id);
         }
@@ -102,28 +104,29 @@ class LineServiceTest {
     @DisplayName("동일한 이름의 호선 생성 시 중복 검증을 통과한다 (구현에 따라 다를 수 있음)")
     void save_WithDuplicateName_BehaviorAsExpected() {
         // given
-        Long id1 = lineService.save(lineRequest);
-        LineRequest duplicateNameRequest = new LineRequest(lineRequest.name(), "#00FF00");
+        Long id1 = lineService.save(lineCreateRequest);
+        LineCreateRequest duplicateNameRequest = new LineCreateRequest(lineCreateRequest.name(), "#00FF00");
         
         // when & then
         // 현재 구현에서는 중복 검사가 없으므로 성공해야 함
-        Long id2 = lineService.save(duplicateNameRequest);
-        assertThat(id2).isNotNull();
-        assertThat(id2).isNotEqualTo(id1);
-        
-        // 두 노선 모두 조회 가능해야 함
-        LineResponse line1 = lineService.findById(id1);
-        LineResponse line2 = lineService.findById(id2);
-        
-        assertThat(line1.name()).isEqualTo(line2.name());
-        assertThat(line1.color()).isNotEqualTo(line2.color());
+        assertThrows(DataIntegrityViolationException.class, () -> lineService.save(duplicateNameRequest));
+//        Long id2 = lineService.save(duplicateNameRequest);
+//        assertThat(id2).isNotNull();
+//        assertThat(id2).isNotEqualTo(id1);
+//
+//        // 두 노선 모두 조회 가능해야 함
+//        LineResponse line1 = lineService.findById(id1);
+//        LineResponse line2 = lineService.findById(id2);
+//
+//        assertThat(line1.name()).isEqualTo(line2.name());
+//        assertThat(line1.color()).isNotEqualTo(line2.color());
     }
 
     @Test
     @DisplayName("모든 호선 조회 시 호선 목록이 반환된다")
     void findAll_ReturnsListOfLineResponses() {
         // given
-        Long id = lineService.save(lineRequest);
+        Long id = lineService.save(lineCreateRequest);
         
         // when
         List<LineResponse> responses = lineService.findAll();
@@ -137,7 +140,7 @@ class LineServiceTest {
     @DisplayName("ID로 호선 조회 시 호선 정보가 반환된다")
     void findById_WithExistingId_ReturnsLineResponse() {
         // given
-        Long id = lineService.save(lineRequest);
+        Long id = lineService.save(lineCreateRequest);
 
         // when
         LineResponse response = lineService.findById(id);
@@ -162,8 +165,8 @@ class LineServiceTest {
     @DisplayName("유효한 요청으로 호선 정보 수정 시 호선 정보가 업데이트된다")
     void update_WithValidRequest_UpdatesLine() {
         // given
-        Long id = lineService.save(lineRequest);
-        LineRequest updateRequest = new LineRequest("수정된 노선", "#00FFFF");
+        Long id = lineService.save(lineCreateRequest);
+        LineUpdateRequest updateRequest = new LineUpdateRequest("수정된 노선", "#00FFFF");
 
         // when
         lineService.update(id, updateRequest);
@@ -178,7 +181,7 @@ class LineServiceTest {
     @DisplayName("호선 삭제 시 데이터가 삭제된다")
     void delete_WithExistingId_DeletesLine() {
         // given
-        Long id = lineService.save(lineRequest);
+        Long id = lineService.save(lineCreateRequest);
         
         // when
         LineResponse response = lineService.findById(id);
@@ -195,7 +198,7 @@ class LineServiceTest {
     @DisplayName("역을 호선에 추가하면 관계가 설정된다")
     void addStationToLine_SetsRelationship() {
         // given
-        Long lineId = lineService.save(lineRequest);
+        Long lineId = lineService.save(lineCreateRequest);
         Station savedStation = stationRepository.save(testStation);
         
         // when
@@ -220,7 +223,7 @@ class LineServiceTest {
     @DisplayName("여러 역을 호선에 추가하면 모든 관계가 설정된다")
     void addMultipleStationsToLine_SetsAllRelationships() {
         // given
-        Long lineId = lineService.save(lineRequest);
+        Long lineId = lineService.save(lineCreateRequest);
         
         // 여러 개의 테스트 스테이션 생성
         int stationCount = 5;
@@ -262,7 +265,7 @@ class LineServiceTest {
     @DisplayName("역을 호선에서 제거하면 관계가 해제된다")
     void removeStationFromLine_RemovesRelationship() {
         // given
-        Long lineId = lineService.save(lineRequest);
+        Long lineId = lineService.save(lineCreateRequest);
         Station savedStation = stationRepository.save(testStation);
         lineService.addStationToLine(lineId, savedStation.getId());
         
@@ -294,7 +297,7 @@ class LineServiceTest {
     @DisplayName("호선을 삭제하면 연결된 역의 관계도 해제된다")
     void deleteLine_RelatedStationsRelationshipUpdated() {
         // given
-        Long lineId = lineService.save(lineRequest);
+        Long lineId = lineService.save(lineCreateRequest);
         Station savedStation = stationRepository.save(testStation);
         lineService.addStationToLine(lineId, savedStation.getId());
         
@@ -334,7 +337,7 @@ class LineServiceTest {
     @DisplayName("존재하지 않는 역 ID로 호선에 추가 시 예외가 발생한다")
     void addStationToLine_WithNonExistingStationId_ThrowsCustomException() {
         // given
-        Long lineId = lineService.save(lineRequest);
+        Long lineId = lineService.save(lineCreateRequest);
         Long nonExistingStationId = 9999L;
         
         // when & then

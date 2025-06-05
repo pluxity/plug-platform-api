@@ -29,10 +29,10 @@ public class Asset extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
+    @Column(name = "name", unique = true, nullable = false, length = 50)
     private String name;
 
-    @Column(name = "code", unique = true, length = 10)
+    @Column(name = "code", unique = true, nullable = false, length = 10)
     private String code;
 
     @Column(name = "file_id")

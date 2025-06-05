@@ -1,7 +1,8 @@
 package com.pluxity.facility.line;
 
-import com.pluxity.facility.line.dto.LineRequest;
+import com.pluxity.facility.line.dto.LineCreateRequest;
 import com.pluxity.facility.line.dto.LineResponse;
+import com.pluxity.facility.line.dto.LineUpdateRequest;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationService;
 import com.pluxity.global.exception.CustomException;
@@ -30,7 +31,7 @@ public class LineService {
     }
 
     @Transactional
-    public Long save(LineRequest request) {
+    public Long save(LineCreateRequest request) {
         Line line = Line.builder().name(request.name()).color(request.color()).build();
         return lineRepository.save(line).getId();
     }
@@ -58,7 +59,7 @@ public class LineService {
     }
 
     @Transactional
-    public void update(Long id, LineRequest request) {
+    public void update(Long id, LineUpdateRequest request) {
         Line line = findLineById(id);
         line.update(Line.builder().name(request.name()).color(request.color()).build());
     }

@@ -42,7 +42,7 @@ public abstract class Facility extends BaseEntity {
     @Column(name = "thumbnail_file_id")
     private Long thumbnailFileId;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", unique = true, nullable = false, length = 50)
     private String name;
 
     @Column(name = "description")

@@ -13,6 +13,7 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +95,7 @@ public class AssetService {
     }
 
     @Transactional
-    public Long createAsset(AssetCreateRequest request) {
+    public Long createAsset(@Valid AssetCreateRequest request) {
         Asset asset = Asset.create(request);
 
         if (request.categoryId() != null) {
@@ -129,7 +130,7 @@ public class AssetService {
     }
 
     @Transactional
-    public void updateAsset(Long id, AssetUpdateRequest request) {
+    public void updateAsset(Long id, @Valid AssetUpdateRequest request) {
         Asset asset = findById(id);
 
         if (assetRepository.existsByCodeAndIdNot(request.code(), asset.getId())) {

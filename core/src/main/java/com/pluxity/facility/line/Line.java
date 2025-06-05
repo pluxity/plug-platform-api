@@ -23,7 +23,7 @@ public class Line extends BaseEntity {
     @OneToMany(mappedBy = "line", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<StationLine> stationLines = new ArrayList<>();
 
-    @Column(name = "name")
+    @Column(name = "name", unique = true, nullable = false, length = 50)
     private String name;
 
     @Column(name = "color")

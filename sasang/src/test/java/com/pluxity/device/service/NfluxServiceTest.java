@@ -83,6 +83,8 @@ class NfluxServiceTest {
         
         // 에셋 생성
         asset = assetRepository.save(Asset.builder()
+                        .code("TEST-ASSET")
+                        .name("테스트 에셋")
                 .build());
         
         // 피처 생성

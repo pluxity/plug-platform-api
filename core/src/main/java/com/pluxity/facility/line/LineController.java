@@ -1,7 +1,8 @@
 package com.pluxity.facility.line;
 
-import com.pluxity.facility.line.dto.LineRequest;
+import com.pluxity.facility.line.dto.LineCreateRequest;
 import com.pluxity.facility.line.dto.LineResponse;
+import com.pluxity.facility.line.dto.LineUpdateRequest;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -49,7 +50,7 @@ public class LineController {
     @ResponseCreated
     public ResponseEntity<Long> create(
             @Parameter(description = "호선 생성 정보", required = true) @Valid @RequestBody
-                    LineRequest request) {
+                    LineCreateRequest request) {
 
         Long id = service.save(request);
 
@@ -153,7 +154,7 @@ public class LineController {
     public ResponseEntity<Void> update(
             @Parameter(description = "호선 ID", required = true) @PathVariable Long id,
             @Parameter(description = "호선 수정 정보", required = true) @Valid @RequestBody
-                    LineRequest request) {
+                    LineUpdateRequest request) {
         service.update(id, request);
         return ResponseEntity.noContent().build();
     }
