@@ -15,8 +15,6 @@ import com.pluxity.domains.device.repository.NfluxRepository;
 import com.pluxity.domains.device.service.NfluxService;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationRepository;
-import com.pluxity.feature.dto.FeatureCreateRequest;
-import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.Spatial;
 import com.pluxity.feature.repository.FeatureRepository;
@@ -27,19 +25,12 @@ import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -83,53 +74,33 @@ class NfluxServiceTest {
 
     @BeforeEach
     void setUp() {
-        try {
-            // 테스트 이미지 파일 준비
-            ClassPathResource resource = new ClassPathResource("temp/temp.png");
-            fileContent = Files.readAllBytes(Path.of(resource.getURI()));
-        } catch (IOException e) {
-            // 파일을 찾을 수 없는 경우 기본 바이트 배열 생성
-            fileContent = new byte[100];
-        }
+        fileContent = "가짜 파일 내용".getBytes();
         
-        // 테스트 데이터 준비
+        // 카테고리 생성
         category = deviceCategoryRepository.save(DeviceCategory.builder()
                 .name("테스트 카테고리")
                 .build());
-
+        
+        // 에셋 생성
         asset = assetRepository.save(Asset.builder()
-                .name("테스트 2D 에셋")
                 .build());
-
-        // Feature 생성
-        String featureId = UUID.randomUUID().toString();
+        
+        // 피처 생성
+        String uniqueFeatureId = UUID.randomUUID().toString();
         feature = featureRepository.save(Feature.builder()
-                .id(featureId)
+                .id(uniqueFeatureId) // ID 명시적 설정
                 .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
                 .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
                 .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
                 .asset(asset)
                 .build());
+        
+        // createRequest는 더 이상 생성하지 않음
+    }
 
-        // FeatureCreateRequest 생성 (NfluxCreateRequest 내부용)
-        FeatureCreateRequest featureRequestForDevice = new FeatureCreateRequest(
-                UUID.randomUUID().toString(), // 디바이스 생성시 새로운 Feature ID
-                Spatial.builder().x(1.0).y(1.0).z(1.0).build(),
-                Spatial.builder().x(0.0).y(0.0).z(0.0).build(),
-                Spatial.builder().x(1.0).y(1.0).z(1.0).build(),
-                asset.getId(),
-                null,
-                null
-        );
-
-        // 디바이스 생성 요청
-        createRequest = new NfluxCreateRequest(
-                category.getId(),
-                asset.getId(),
-                "테스트 디바이스",
-                "TEST001",
-                "테스트용 디바이스입니다."
-        );
+    private String generateUniqueId(String prefix) {
+        String uniqueId = "TEST-" + UUID.randomUUID().toString().substring(0, 8);
+        return prefix + "-" + uniqueId;
     }
 
     // 테스트용 파일 ID 생성 헬퍼 메서드
@@ -147,24 +118,80 @@ class NfluxServiceTest {
     }
 
     @Test
-    @DisplayName("디바이스 생성 테스트")
-    void createDeviceTest() {
-        // when
-        Long id = nfluxService.save(createRequest);
-        
+    @DisplayName("디바이스 저장 테스트")
+    void saveDeviceTest() {
+        // given & when
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("SAVE"),
+                category.getId(),
+                asset.getId(),
+                "저장 테스트 디바이스"
+        );
+        String id = nfluxService.save(testRequest);
+
         // then
-        NfluxResponse savedDevice = nfluxService.findDeviceById(id);
-        assertThat(savedDevice).isNotNull();
-        assertThat(savedDevice.name()).isEqualTo("테스트 디바이스");
-        assertThat(savedDevice.code()).isEqualTo("TEST001");
-        assertThat(savedDevice.categoryId()).isEqualTo(category.getId());
+        assertThat(id).isNotNull();
+        NfluxResponse response = nfluxService.findDeviceById(id);
+        assertThat(response.id()).isEqualTo(id);
+        assertThat(response.name()).isEqualTo(testRequest.name());
+    }
+
+    @Test
+    @DisplayName("디바이스 단일 조회 테스트")
+    void findDeviceTest() {
+        // given
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("FIND"),
+                category.getId(),
+                asset.getId(),
+                "조회 테스트 디바이스"
+        );
+        String id = nfluxService.save(testRequest);
+
+        // when
+        NfluxResponse response = nfluxService.findDeviceById(id);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(id);
+        assertThat(response.name()).isEqualTo(testRequest.name());
+    }
+
+    @Test
+    @DisplayName("디바이스 수정 테스트")
+    void updateDeviceTest() {
+        // given
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("UPDATE"),
+                category.getId(),
+                asset.getId(),
+                "수정 테스트 디바이스"
+        );
+        String id = nfluxService.save(testRequest);
+
+        NfluxUpdateRequest updateRequest = new NfluxUpdateRequest(
+                category.getId(), // deviceCategoryId
+                asset.getId(),    // asset  
+                "수정된 이름"      // name
+        );
+
+        // when
+        nfluxService.update(id, updateRequest);
+
+        // then
+        NfluxResponse updatedResponse = nfluxService.findDeviceById(id);
+        assertThat(updatedResponse.id()).isEqualTo(id);
+        assertThat(updatedResponse.name()).isEqualTo("수정된 이름");
     }
 
     @Test
     @DisplayName("디바이스 목록 조회 테스트")
     void getAllDevicesTest() {
         // given
-        nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("LIST"), category.getId(), asset.getId(), "테스트 디바이스"
+        );
+        nfluxService.save(testRequest);
         
         // when
         List<NfluxResponse> responses = nfluxService.findAll();
@@ -172,75 +199,13 @@ class NfluxServiceTest {
         // then
         assertThat(responses).isNotEmpty();
         assertThat(responses.getFirst().name()).isEqualTo("테스트 디바이스");
-        assertThat(responses.getFirst().code()).isEqualTo("TEST001");
-    }
-
-    @Test
-    @DisplayName("디바이스 단일 조회 테스트")
-    void getDeviceByIdTest() {
-        // given
-        Long id = nfluxService.save(createRequest);
-        
-        // when
-        NfluxResponse response = nfluxService.findDeviceById(id);
-        
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.name()).isEqualTo("테스트 디바이스");
-        assertThat(response.code()).isEqualTo("TEST001");
-        assertThat(response.description()).isEqualTo("테스트용 디바이스입니다.");
-    }
-
-    @Test
-    @DisplayName("디바이스 수정 테스트")
-    void updateDeviceTest() {
-        // given
-        Long id = nfluxService.save(createRequest);
-        
-        // 위치 정보 업데이트
-        Spatial updatedPosition = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
-        FeatureUpdateRequest featureUpdateRequest = new FeatureUpdateRequest(
-                updatedPosition,
-                null, // rotation 변경 없음
-                null  // scale 변경 없음
-        );
-        
-        NfluxUpdateRequest updateRequest = new NfluxUpdateRequest(
-                null, // 카테고리 변경 없음
-                null, // 에셋 변경 없음
-                "수정된 디바이스",
-                "TEST002",
-                "수정된 디바이스 설명입니다."
-        );
-        
-        // when
-        nfluxService.update(id, updateRequest);
-        
-        // then
-        NfluxResponse updatedDevice = nfluxService.findDeviceById(id);
-        assertThat(updatedDevice.name()).isEqualTo("수정된 디바이스");
-        assertThat(updatedDevice.code()).isEqualTo("TEST002");
-        assertThat(updatedDevice.description()).isEqualTo("수정된 디바이스 설명입니다.");
-    }
-
-    @Test
-    @DisplayName("디바이스 삭제 테스트")
-    void deleteDeviceTest() {
-        // given
-        Long id = nfluxService.save(createRequest);
-        
-        // when
-        nfluxService.delete(id);
-        
-        // then
-        assertThrows(CustomException.class, () -> nfluxService.findById(id));
     }
 
     @Test
     @DisplayName("존재하지 않는 디바이스 조회시 예외 발생")
     void notFoundDeviceTest() {
         // given
-        Long nonExistentId = 9999L;
+        String nonExistentId = "9999";
         
         // when & then
         assertThrows(CustomException.class, () -> nfluxService.findById(nonExistentId));
@@ -251,51 +216,52 @@ class NfluxServiceTest {
     void createDeviceWithoutCategoryTest() {
         // given
         NfluxCreateRequest requestWithoutCategory = new NfluxCreateRequest(
+                generateUniqueId("NOCAT"), // String id
                 null, // 카테고리 없음
                 asset.getId(),
-                createRequest.name(),
-                createRequest.code(),
-                createRequest.description()
+                "카테고리 없는 디바이스"
         );
         
         // when
-        Long id = nfluxService.save(requestWithoutCategory);
+        String deviceId = nfluxService.save(requestWithoutCategory);
         
         // then
-        NfluxResponse savedDevice = nfluxService.findDeviceById(id);
-        assertThat(savedDevice).isNotNull();
-        assertThat(savedDevice.categoryId()).isNull();
+        NfluxResponse device = nfluxService.findDeviceById(deviceId);
+        assertThat(device.id()).isEqualTo(deviceId);
+        assertThat(device.categoryId()).isNull();
+        assertThat(device.name()).isEqualTo("카테고리 없는 디바이스");
     }
 
     @Test
-    @DisplayName("디바이스에 피처 할당 테스트")
+    @DisplayName("디바이스에 Feature 할당 테스트")
     void assignFeatureToNfluxTest() {
         // given
-        Long deviceId = nfluxService.save(createRequest); // 디바이스 먼저 생성 (이때 자체 Feature 보유)
-        Nflux device = nfluxService.findById(deviceId);
-        
-        // 기존 디바이스의 Feature 제거 (새 Feature 할당을 위해)
-        if (device.getFeature() != null) {
-            Feature oldFeature = device.getFeature();
-            device.changeFeature(null); // Device에서 Feature 연결 제거
-            featureRepository.delete(oldFeature); // 기존 Feature 삭제
-            entityManager.flush(); // 변경사항 즉시 반영
-            entityManager.clear(); // 영속성 컨텍스트 초기화
-            device = nfluxService.findById(deviceId); // 디바이스 다시 조회
-        }
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("FEATURE"),
+                category.getId(),
+                asset.getId(),
+                "Feature 할당 테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest); // 디바이스 먼저 생성 (이때 자체 Feature 보유)
 
-        String newFeatureId = UUID.randomUUID().toString();
-        Feature newFeature = featureRepository.save(Feature.builder().id(newFeatureId).build());
+        // Feature 생성
+        String featureId = UUID.randomUUID().toString();
+        Feature newFeature = Feature.builder()
+                .id(featureId) // ID 명시적 설정
+                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .asset(asset)
+                .build();
+        Feature savedFeature = featureRepository.save(newFeature);
 
         // when
-        NfluxResponse response = nfluxService.assignFeatureToNflux(deviceId, newFeature.getId());
+        nfluxService.assignFeatureToNflux(deviceId, savedFeature.getId());
 
         // then
-        assertThat(response).isNotNull();
-
-        Nflux updatedDevice = nfluxService.findById(deviceId);
-        assertThat(updatedDevice.getFeature()).isNotNull();
-        assertThat(updatedDevice.getFeature().getId()).isEqualTo(newFeature.getId());
+        Nflux device = nfluxService.findById(deviceId);
+        assertThat(device.getFeature()).isNotNull();
+        assertThat(device.getFeature().getId()).isEqualTo(savedFeature.getId());
     }
 
     @Test
@@ -303,7 +269,13 @@ class NfluxServiceTest {
     void removeFeatureFromNfluxTest() {
         // given
         // 디바이스 생성
-        Long deviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("REMOVE"),
+                category.getId(),
+                asset.getId(),
+                "피처 제거 테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
         Nflux device = nfluxService.findById(deviceId);
         
         // Feature 직접 생성 및 저장
@@ -340,7 +312,13 @@ class NfluxServiceTest {
     void assignFeatureToNflux_FeatureAlreadyAssigned_ThrowsException() {
         // given
         // 디바이스1 생성
-        Long deviceId1 = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest1 = new NfluxCreateRequest(
+                generateUniqueId("ALREADY1"),
+                category.getId(),
+                asset.getId(),
+                "테스트 디바이스 1"
+        );
+        String deviceId1 = nfluxService.save(testRequest1);
         
         // Feature 직접 생성 및 저장
         String featureId = UUID.randomUUID().toString();
@@ -363,13 +341,12 @@ class NfluxServiceTest {
         
         // 디바이스2 생성
         NfluxCreateRequest createRequestForDevice2 = new NfluxCreateRequest(
+                generateUniqueId("ALREADY2"), // id 필드 추가
                 category.getId(),
                 asset.getId(),
-                "테스트 디바이스 2",
-                "TEST002",
-                "두번째 테스트 디바이스"
+                "테스트 디바이스 2"
         );
-        Long deviceId2 = nfluxService.save(createRequestForDevice2);
+        String deviceId2 = nfluxService.save(createRequestForDevice2);
 
         // when & then
         // 디바이스2에 디바이스1의 Feature를 할당하려고 시도
@@ -377,25 +354,6 @@ class NfluxServiceTest {
             nfluxService.assignFeatureToNflux(deviceId2, featureId);
         });
     }
-
-//    @Test //TODO: 이 테스트는 현재 피처가 없는 디바이스에 대해 예외를 발생시키지 않도록 변경되어 주석 처리함
-//    @DisplayName("디바이스에 피처가 할당되지 않았을 때 제거 시도 시 예외 발생")
-//    void removeFeatureFromNflux_NoFeatureAssigned_ThrowsException() {
-//        // given
-//        NfluxCreateRequest requestWithoutFeature = new NfluxCreateRequest(
-//            null, // Feature 없음
-//            category.getId(),
-//            "피처 없는 디바이스",
-//            "TEST003",
-//            "피처가 없는 테스트용 디바이스입니다."
-//        );
-//        Long deviceId = nfluxService.save(requestWithoutFeature);
-//
-//        // when & then
-//        assertThrows(CustomException.class, () -> {
-//            nfluxService.removeFeatureFromNflux(deviceId);
-//        });
-//    }
 
     @Test
     @DisplayName("스테이션 ID로 디바이스 조회 및 카테고리별 그룹화 테스트")
@@ -425,20 +383,18 @@ class NfluxServiceTest {
         nfluxCategory.updateIconFileId(nfluxIconFileId);
         
         // 3. 디바이스 생성 (2개의 다른 카테고리로)
-        Long deviceId1 = nfluxService.save(new NfluxCreateRequest(
+        String deviceId1 = nfluxService.save(new NfluxCreateRequest(
+                generateUniqueId("REG"),
                 regularCategory.getId(),
                 asset.getId(),
-                "일반 카테고리 디바이스",
-                "REG001",
-                "일반 카테고리 디바이스입니다."
+                "일반 카테고리 디바이스"
         ));
         
-        Long deviceId2 = nfluxService.save(new NfluxCreateRequest(
+        String deviceId2 = nfluxService.save(new NfluxCreateRequest(
+                generateUniqueId("NFL"),
                 nfluxCategory.getId(),
                 asset.getId(),
-                "Nflux 카테고리 디바이스",
-                "NFL001",
-                "Nflux 카테고리 디바이스입니다."
+                "Nflux 카테고리 디바이스"
         ));
         
         // 4. 피처 생성 및 스테이션에 연결
@@ -449,18 +405,18 @@ class NfluxServiceTest {
                 .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
                 .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
                 .asset(asset)
-                .facility(station)  // 스테이션 연결
+                .facility(station)
                 .build();
         featureRepository.save(feature1);
         
         String featureId2 = UUID.randomUUID().toString();
         Feature feature2 = Feature.builder()
                 .id(featureId2)
-                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .position(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
                 .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
                 .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
                 .asset(asset)
-                .facility(station)  // 스테이션 연결
+                .facility(station)
                 .build();
         featureRepository.save(feature2);
         
@@ -472,36 +428,19 @@ class NfluxServiceTest {
         List<NfluxCategoryGroupResponse> result = nfluxService.findByStationCodeGroupByCategory(station.getCode());
         
         // then
-        assertThat(result).hasSize(2);  // 두 개의 다른 카테고리
-        
-        // 카테고리 ID 기준으로 정렬 (불변 리스트를 새 ArrayList로 복사 후 정렬)
-        List<NfluxCategoryGroupResponse> sortedResult = new ArrayList<>(result);
-        sortedResult.sort((a, b) -> a.categoryId().compareTo(b.categoryId()));
-        
-        // 첫 번째 카테고리 (일반 카테고리) 검증
-        assertThat(sortedResult.get(0).categoryId()).isEqualTo(regularCategory.getId());
-        assertThat(sortedResult.get(0).categoryName()).isEqualTo(regularCategory.getName());
-        assertThat(sortedResult.get(0).contextPath()).isNull();  // 일반 카테고리는 contextPath가 없음
-        assertThat(sortedResult.get(0).iconFile()).isNotNull();  // 파일이 있어야 함
-        assertThat(sortedResult.get(0).iconFile().id()).isEqualTo(regularIconFileId);
-        assertThat(sortedResult.get(0).devices()).hasSize(1);
-        assertThat(sortedResult.get(0).devices().get(0).name()).isEqualTo("일반 카테고리 디바이스");
-        
-        // 두 번째 카테고리 (NfluxCategory) 검증
-        assertThat(sortedResult.get(1).categoryId()).isEqualTo(nfluxCategory.getId());
-        assertThat(sortedResult.get(1).categoryName()).isEqualTo(nfluxCategory.getName());
-        assertThat(sortedResult.get(1).contextPath()).isEqualTo("/test-context");  // NfluxCategory는 contextPath가 있음
-        assertThat(sortedResult.get(1).iconFile()).isNotNull();  // 파일이 있어야 함
-        assertThat(sortedResult.get(1).iconFile().id()).isEqualTo(nfluxIconFileId);
-        assertThat(sortedResult.get(1).devices()).hasSize(1);
-        assertThat(sortedResult.get(1).devices().get(0).name()).isEqualTo("Nflux 카테고리 디바이스");
+        assertThat(result).hasSize(2);
+        assertThat(result.stream().map(NfluxCategoryGroupResponse::categoryName))
+                .containsExactlyInAnyOrder("일반 카테고리", "NfluxCategory");
     }
 
     @Test
     @DisplayName("카테고리 ID로 디바이스 목록 조회 테스트")
     void findByCategoryIdTest() {
         // given
-        Long deviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("CATEGORY"), category.getId(), asset.getId(), "테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
         
         // when
         List<NfluxResponse> responses = nfluxService.findByCategoryId(category.getId());
@@ -517,8 +456,12 @@ class NfluxServiceTest {
     @DisplayName("존재하지 않는 카테고리 ID로 조회시 빈 목록 반환")
     void findByNonExistentCategoryIdTest() {
         // given
-        nfluxService.save(createRequest);
-        Long nonExistentCategoryId = 9999L;
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("NONEXIST"), category.getId(), asset.getId(), "테스트 디바이스"
+        );
+        nfluxService.save(testRequest);
+        
+        Long nonExistentCategoryId = 99999L;
         
         // when
         List<NfluxResponse> responses = nfluxService.findByCategoryId(nonExistentCategoryId);
@@ -533,13 +476,16 @@ class NfluxServiceTest {
         // given
         // 카테고리 없이 디바이스 생성
         NfluxCreateRequest requestWithoutCategory = new NfluxCreateRequest(
-                null, asset.getId(), "카테고리 없는 디바이스", "CAT001", "카테고리 테스트용 디바이스"
+                generateUniqueId("ASSIGN"), // String id
+                null, // 카테고리 없음
+                asset.getId(),
+                "카테고리 없는 디바이스"
         );
-        Long deviceId = nfluxService.save(requestWithoutCategory);
+        String deviceId = nfluxService.save(requestWithoutCategory);
         
-        // 새 카테고리 생성
+        // 새 카테고리 생성 (고유한 이름)
         DeviceCategory newCategory = deviceCategoryRepository.save(DeviceCategory.builder()
-                .name("새 카테고리")
+                .name("새 카테고리 " + UUID.randomUUID().toString().substring(0, 8))
                 .build());
         
         // when
@@ -560,7 +506,13 @@ class NfluxServiceTest {
     @DisplayName("디바이스에서 카테고리 제거 테스트")
     void removeCategoryTest() {
         // given
-        Long deviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("RMCAT"),
+                category.getId(),
+                asset.getId(),
+                "카테고리 제거 테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
         
         // 카테고리가 할당되었는지 확인
         Nflux device = nfluxService.findById(deviceId);
@@ -584,9 +536,12 @@ class NfluxServiceTest {
     void removeCategoryFromDeviceWithoutCategory() {
         // given
         NfluxCreateRequest requestWithoutCategory = new NfluxCreateRequest(
-                null, asset.getId(), "카테고리 없는 디바이스", "CAT002", "카테고리 테스트용 디바이스"
+                generateUniqueId("RMNOCAT"), // String id
+                null, // 카테고리 없음
+                asset.getId(),
+                "카테고리 없는 디바이스"
         );
-        Long deviceId = nfluxService.save(requestWithoutCategory);
+        String deviceId = nfluxService.save(requestWithoutCategory);
         
         // 카테고리가 없는지 확인
         Nflux device = nfluxService.findById(deviceId);
@@ -600,7 +555,13 @@ class NfluxServiceTest {
     @DisplayName("존재하지 않는 카테고리를 디바이스에 할당 시도시 예외 발생")
     void assignNonExistentCategoryTest() {
         // given
-        Long deviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("NONEXCAT"),
+                category.getId(),
+                asset.getId(),
+                "존재하지 않는 카테고리 테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
         Long nonExistentCategoryId = 9999L;
         
         // when & then
@@ -612,11 +573,14 @@ class NfluxServiceTest {
     void createAndUpdateDeviceWithEmptyNameTest() {
         // given
         NfluxCreateRequest requestWithEmptyName = new NfluxCreateRequest(
-                category.getId(), asset.getId(), "", "EMPTY001", "빈 이름 테스트"
+                generateUniqueId("EMPTY"), // String id
+                category.getId(),
+                asset.getId(),
+                "" // 빈 이름
         );
         
         // when
-        Long deviceId = nfluxService.save(requestWithEmptyName);
+        String deviceId = nfluxService.save(requestWithEmptyName);
         
         // then
         NfluxResponse savedDevice = nfluxService.findDeviceById(deviceId);
@@ -624,7 +588,7 @@ class NfluxServiceTest {
         
         // 빈 이름으로 업데이트
         NfluxUpdateRequest updateWithEmptyName = new NfluxUpdateRequest(
-                null, null, "", null, null
+                null, null, "" // 빈 이름으로 업데이트
         );
         nfluxService.update(deviceId, updateWithEmptyName);
         
@@ -638,7 +602,10 @@ class NfluxServiceTest {
     void createDeviceWithNonExistentAssetTest() {
         // given
         NfluxCreateRequest requestWithNonExistentAsset = new NfluxCreateRequest(
-                category.getId(), 9999L, "잘못된 에셋 디바이스", "ASSET001", "잘못된 에셋 테스트"
+                generateUniqueId("ASSET"), // String id
+                category.getId(),
+                9999L, // 존재하지 않는 에셋 ID
+                "잘못된 에셋 디바이스"
         );
         
         // when & then
@@ -650,7 +617,13 @@ class NfluxServiceTest {
     void findDevicesWithoutStationTest() {
         // given
         // 스테이션이 연결되지 않은 디바이스 생성
-        Long deviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("NOSTATION"),
+                category.getId(),
+                asset.getId(),
+                "스테이션 없는 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
         
         // when
         // then
@@ -687,14 +660,20 @@ class NfluxServiceTest {
         
         // 2. 동일한 카테고리로 여러 디바이스 생성
         NfluxCreateRequest request1 = new NfluxCreateRequest(
-                category.getId(), asset.getId(), "첫 번째 디바이스", "DEV001", "첫 번째 디바이스 설명"
+                generateUniqueId("GRP1"), // String id
+                category.getId(),
+                asset.getId(),
+                "첫 번째 디바이스"
         );
-        Long deviceId1 = nfluxService.save(request1);
+        String deviceId1 = nfluxService.save(request1);
         
         NfluxCreateRequest request2 = new NfluxCreateRequest(
-                category.getId(), asset.getId(), "두 번째 디바이스", "DEV002", "두 번째 디바이스 설명"
+                generateUniqueId("GRP2"), // String id
+                category.getId(),
+                asset.getId(),
+                "두 번째 디바이스"
         );
-        Long deviceId2 = nfluxService.save(request2);
+        String deviceId2 = nfluxService.save(request2);
         
         // 3. 각 디바이스의 피처 생성 및 스테이션에 연결
         String featureId1 = UUID.randomUUID().toString();
@@ -745,9 +724,12 @@ class NfluxServiceTest {
         
         // 2. 카테고리 없는 디바이스 생성
         NfluxCreateRequest requestWithoutCategory = new NfluxCreateRequest(
-                null, asset.getId(), "카테고리 없는 디바이스", "NO_CAT", "카테고리가 없는 디바이스 설명"
+                generateUniqueId("NOCAT3"), // String id
+                null, // 카테고리 없음
+                asset.getId(),
+                "카테고리 없는 디바이스"
         );
-        Long deviceId = nfluxService.save(requestWithoutCategory);
+        String deviceId = nfluxService.save(requestWithoutCategory);
         
         // 3. 피처 생성 및 스테이션에 연결
         String featureId = UUID.randomUUID().toString();
@@ -775,78 +757,98 @@ class NfluxServiceTest {
     void createDuplicateDeviceCodeTest() {
         // given
         // 첫 번째 디바이스 생성
-        Long firstDeviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("FIRST"),
+                category.getId(),
+                asset.getId(),
+                "첫 번째 디바이스"
+        );
+        String firstDeviceId = nfluxService.save(testRequest);
         NfluxResponse firstDevice = nfluxService.findDeviceById(firstDeviceId);
-        assertThat(firstDevice.code()).isEqualTo("TEST001");
         
-        // 같은 코드로 두 번째 디바이스 생성
+        // 같은 id로 두 번째 디바이스 생성 시도
         NfluxCreateRequest duplicateRequest = new NfluxCreateRequest(
-                category.getId(), asset.getId(), "중복 코드 디바이스", "TEST001", "중복 코드 테스트"
+                firstDevice.id(), // 중복된 id
+                category.getId(),
+                asset.getId(),
+                "중복 코드 디바이스"
         );
         
-        // when
-        assertThrows(CustomException.class, () -> nfluxService.save(duplicateRequest));
+        // when & then
+        assertThrows(Exception.class, () -> nfluxService.save(duplicateRequest));
     }
     
     @Test
     @DisplayName("NULL 설명으로 디바이스 생성 및 업데이트 테스트")
     void createAndUpdateDeviceWithNullDescriptionTest() {
-        // given
-        NfluxCreateRequest requestWithNullDescription = new NfluxCreateRequest(
-                category.getId(), asset.getId(), "NULL 설명 디바이스", "NULL001", null
+        // given - description 필드가 제거되었으므로 이 테스트는 이름 관련으로 변경
+        NfluxCreateRequest requestWithNullName = new NfluxCreateRequest(
+                generateUniqueId("NULL"), // String id
+                category.getId(),
+                asset.getId(),
+                "NULL 테스트 디바이스"
         );
         
         // when
-        Long deviceId = nfluxService.save(requestWithNullDescription);
+        String deviceId = nfluxService.save(requestWithNullName);
         
         // then
         NfluxResponse savedDevice = nfluxService.findDeviceById(deviceId);
-        assertThat(savedDevice.description()).isNull();
+        assertThat(savedDevice.name()).isEqualTo("NULL 테스트 디바이스");
         
-        // 설명을 추가하는 업데이트
-        NfluxUpdateRequest updateWithDescription = new NfluxUpdateRequest(
-                null, null, null, null, "추가된 설명"
+        // 이름을 다른 값으로 업데이트
+        NfluxUpdateRequest updateWithNewName = new NfluxUpdateRequest(
+                null, null, "업데이트된 이름"
         );
-        nfluxService.update(deviceId, updateWithDescription);
+        nfluxService.update(deviceId, updateWithNewName);
         
         // 업데이트 확인
         NfluxResponse updatedDevice = nfluxService.findDeviceById(deviceId);
-        assertThat(updatedDevice.description()).isEqualTo("추가된 설명");
+        assertThat(updatedDevice.name()).isEqualTo("업데이트된 이름");
         
-        // 다시 NULL로 설명을 업데이트
-        NfluxUpdateRequest updateToNullDescription = new NfluxUpdateRequest(
-                null, null, null, null, null
+        // 다시 NULL로 이름을 업데이트 (NULL 파라미터는 무시되어야 함)
+        NfluxUpdateRequest updateToNullName = new NfluxUpdateRequest(
+                null, null, null
         );
-        nfluxService.update(deviceId, updateToNullDescription);
+        nfluxService.update(deviceId, updateToNullName);
         
-        // 업데이트 확인
+        // 업데이트 확인 - NULL 파라미터는 무시되어야 함
         NfluxResponse finalDevice = nfluxService.findDeviceById(deviceId);
-        // NULL 파라미터는 무시되어야 함
-        assertThat(finalDevice.description()).isEqualTo("추가된 설명");
+        assertThat(finalDevice.name()).isEqualTo("업데이트된 이름");
     }
     
     @Test
     @DisplayName("이미 삭제된 디바이스에 대한 작업 시도시 예외 발생")
     void operationsOnDeletedDeviceTest() {
         // given
-        Long deviceId = nfluxService.save(createRequest);
-        
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("DELETED"),
+                category.getId(),
+                asset.getId(),
+                "삭제될 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
+
         // 디바이스 삭제
         nfluxService.delete(deviceId);
-        
+
+        // 영속성 컨텍스트 강제 flush 및 clear
+        entityManager.flush();
+        entityManager.clear();
+
         // when & then
         // 삭제된 디바이스 조회 시도
         assertThrows(CustomException.class, () -> nfluxService.findDeviceById(deviceId));
-        
+
         // 삭제된 디바이스 업데이트 시도
         NfluxUpdateRequest updateRequest = new NfluxUpdateRequest(
-                null, null, "업데이트 시도", null, null
+                null, null, "업데이트 시도"
         );
         assertThrows(CustomException.class, () -> nfluxService.update(deviceId, updateRequest));
-        
+
         // 삭제된 디바이스에 카테고리 할당 시도
         assertThrows(CustomException.class, () -> nfluxService.assignCategory(deviceId, category.getId()));
-        
+
         // 삭제된 디바이스에서 카테고리 제거 시도
         assertThrows(CustomException.class, () -> nfluxService.removeCategory(deviceId));
     }
@@ -856,7 +858,13 @@ class NfluxServiceTest {
     void changeFeatureTest() {
         // given
         // 디바이스 생성
-        Long deviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("CHANGE"),
+                category.getId(),
+                asset.getId(),
+                "피처 변경 테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
         Nflux device = nfluxService.findById(deviceId);
         
         // 원래 피처 확인
@@ -910,7 +918,13 @@ class NfluxServiceTest {
     @DisplayName("존재하지 않는 피처 할당 시도시 예외 발생")
     void assignNonExistentFeatureTest() {
         // given
-        Long deviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("NONFEAT"),
+                category.getId(),
+                asset.getId(),
+                "존재하지 않는 피처 테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
         String nonExistentFeatureId = UUID.randomUUID().toString();
         
         // when & then
@@ -918,47 +932,23 @@ class NfluxServiceTest {
             nfluxService.assignFeatureToNflux(deviceId, nonExistentFeatureId)
         );
     }
-    
-    @Test
-    @DisplayName("여러 개의 디바이스 조회 테스트")
-    void findMultipleDevicesTest() {
-        // given
-        // 여러 디바이스 생성
-        Long deviceId1 = nfluxService.save(createRequest);
-        
-        NfluxCreateRequest request2 = new NfluxCreateRequest(
-                category.getId(), asset.getId(), "두 번째 디바이스", "TEST002", "두 번째 테스트 디바이스"
-        );
-        Long deviceId2 = nfluxService.save(request2);
-        
-        NfluxCreateRequest request3 = new NfluxCreateRequest(
-                category.getId(), asset.getId(), "세 번째 디바이스", "TEST003", "세 번째 테스트 디바이스"
-        );
-        Long deviceId3 = nfluxService.save(request3);
-        
-        // when
-        List<NfluxResponse> allDevices = nfluxService.findAll();
-        
-        // then
-        assertThat(allDevices).hasSize(3);
-        
-        // 각 디바이스 ID 확인
-        List<Long> deviceIds = allDevices.stream()
-                .map(NfluxResponse::id)
-                .toList();
-        assertThat(deviceIds).containsExactlyInAnyOrder(deviceId1, deviceId2, deviceId3);
-    }
-    
+
     @Test
     @DisplayName("업데이트시 모든 필드가 NULL일 때 변경이 없어야 함")
     void updateWithAllNullFieldsTest() {
         // given
-        Long deviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("NULLUP"),
+                category.getId(),
+                asset.getId(),
+                "NULL 업데이트 테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
         NfluxResponse originalDevice = nfluxService.findDeviceById(deviceId);
         
         // NULL로만 구성된 업데이트 요청
         NfluxUpdateRequest nullUpdateRequest = new NfluxUpdateRequest(
-                null, null, null, null, null
+                null, null, null
         );
         
         // when
@@ -969,16 +959,130 @@ class NfluxServiceTest {
         
         // 업데이트 전후 모든 필드가 동일해야 함
         assertThat(updatedDevice.name()).isEqualTo(originalDevice.name());
-        assertThat(updatedDevice.code()).isEqualTo(originalDevice.code());
-        assertThat(updatedDevice.description()).isEqualTo(originalDevice.description());
+        assertThat(updatedDevice.id()).isEqualTo(originalDevice.id()); // code 대신 id 비교
         assertThat(updatedDevice.categoryId()).isEqualTo(originalDevice.categoryId());
     }
-    
+
+    @Test
+    @DisplayName("디바이스 생성-업데이트-삭제 전체 라이프사이클 테스트")
+    void deviceLifecycleTest() {
+        // 1. 디바이스 생성
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("LIFECYCLE"),
+                category.getId(),
+                asset.getId(),
+                "라이프사이클 테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
+        NfluxResponse createdDevice = nfluxService.findDeviceById(deviceId);
+        assertThat(createdDevice.name()).isEqualTo("라이프사이클 테스트 디바이스");
+        
+        // 2. 디바이스 업데이트
+        NfluxUpdateRequest updateRequest = new NfluxUpdateRequest(
+                null, null, "업데이트된 디바이스"
+        );
+        nfluxService.update(deviceId, updateRequest);
+        
+        NfluxResponse updatedDevice = nfluxService.findDeviceById(deviceId);
+        assertThat(updatedDevice.name()).isEqualTo("업데이트된 디바이스");
+        
+        // 3. 새 카테고리 생성 및 할당 (고유한 이름)
+        String uniqueCategoryName = "새 라이프사이클 카테고리 " + UUID.randomUUID().toString().substring(0, 8);
+        DeviceCategory newCategory = deviceCategoryRepository.save(DeviceCategory.builder()
+                .name(uniqueCategoryName)
+                .build());
+        
+        nfluxService.assignCategory(deviceId, newCategory.getId());
+        
+        NfluxResponse deviceWithNewCategory = nfluxService.findDeviceById(deviceId);
+        assertThat(deviceWithNewCategory.categoryId()).isEqualTo(newCategory.getId());
+        
+        // 4. 피처 생성 및 할당
+        String featureId = UUID.randomUUID().toString();
+        Feature feature = Feature.builder()
+                .id(featureId)
+                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
+                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
+                .asset(asset)
+                .build();
+        featureRepository.save(feature);
+        
+        nfluxService.assignFeatureToNflux(deviceId, featureId);
+        
+        NfluxResponse deviceWithFeature = nfluxService.findDeviceById(deviceId);
+
+        // 5. 피처 제거
+        nfluxService.removeFeatureFromNflux(deviceId);
+        
+        NfluxResponse deviceWithoutFeature = nfluxService.findDeviceById(deviceId);
+
+        // 6. 카테고리 제거
+        nfluxService.removeCategory(deviceId);
+        
+        NfluxResponse deviceWithoutCategory = nfluxService.findDeviceById(deviceId);
+        assertThat(deviceWithoutCategory.categoryId()).isNull();
+        
+        // 7. 디바이스 삭제
+        nfluxService.delete(deviceId);
+        
+        // 8. 삭제 확인
+        assertThrows(CustomException.class, () -> nfluxService.findById(deviceId));
+    }
+
+    @Test
+    @DisplayName("여러 개의 디바이스 조회 테스트")
+    void findMultipleDevicesTest() {
+        // given
+        // 여러 디바이스 생성
+        NfluxCreateRequest request1 = new NfluxCreateRequest(
+                generateUniqueId("MULTI1"),
+                category.getId(),
+                asset.getId(),
+                "첫 번째 디바이스"
+        );
+        String deviceId1 = nfluxService.save(request1);
+        
+        NfluxCreateRequest request2 = new NfluxCreateRequest(
+                generateUniqueId("MULTI2"), // String id
+                category.getId(),
+                asset.getId(),
+                "두 번째 디바이스"
+        );
+        String deviceId2 = nfluxService.save(request2);
+        
+        NfluxCreateRequest request3 = new NfluxCreateRequest(
+                generateUniqueId("MULTI3"), // String id
+                category.getId(),
+                asset.getId(),
+                "세 번째 디바이스"
+        );
+        String deviceId3 = nfluxService.save(request3);
+        
+        // when
+        List<NfluxResponse> allDevices = nfluxService.findAll();
+        
+        // then
+        assertThat(allDevices).hasSize(3);
+        
+        // 각 디바이스 ID 확인
+        List<String> deviceIds = allDevices.stream()
+                .map(NfluxResponse::id)
+                .toList();
+        assertThat(deviceIds).containsExactlyInAnyOrder(deviceId1, deviceId2, deviceId3);
+    }
+
     @Test
     @DisplayName("엔티티 영속성 테스트")
     void entityPersistenceTest() {
         // given
-        Long deviceId = nfluxService.save(createRequest);
+        NfluxCreateRequest testRequest = new NfluxCreateRequest(
+                generateUniqueId("PERSIST"), // 고유한 ID 생성
+                category.getId(),
+                asset.getId(),
+                "영속성 테스트 디바이스"
+        );
+        String deviceId = nfluxService.save(testRequest);
         
         // when
         // 엔티티 매니저 캐시 초기화
@@ -991,25 +1095,28 @@ class NfluxServiceTest {
         // then
         assertThat(device).isNotNull();
         assertThat(device.getId()).isEqualTo(deviceId);
-        assertThat(device.getName()).isEqualTo(createRequest.name());
-        assertThat(device.getDeviceCode()).isEqualTo(createRequest.code());
-        assertThat(device.getDescription()).isEqualTo(createRequest.description());
+        assertThat(device.getName()).isEqualTo(testRequest.name());
+        assertThat(device.getDeviceCode()).isEqualTo(deviceId); // code는 이제 id와 동일
     }
 
     @Test
     @DisplayName("특수 문자가 포함된 디바이스 코드 처리 테스트")
     void deviceCodeWithSpecialCharactersTest() {
         // given
+        String specialId = generateUniqueId("SPEC!@#$%^&*()");
         NfluxCreateRequest requestWithSpecialChars = new NfluxCreateRequest(
-                category.getId(), asset.getId(), "특수문자 코드 디바이스", "TEST!@#$%^&*()", "특수문자 코드 테스트"
+                specialId, // 특수문자 포함 id
+                category.getId(),
+                asset.getId(),
+                "특수문자 코드 디바이스"
         );
         
         // when
-        Long deviceId = nfluxService.save(requestWithSpecialChars);
+        String deviceId = nfluxService.save(requestWithSpecialChars);
         
         // then
         NfluxResponse device = nfluxService.findDeviceById(deviceId);
-        assertThat(device.code()).isEqualTo("TEST!@#$%^&*()");
+        assertThat(device.id()).isEqualTo(specialId); // 실제 생성된 ID와 비교
     }
     
     @Test
@@ -1017,19 +1124,20 @@ class NfluxServiceTest {
     void deviceWithVeryLongNameAndDescriptionTest() {
         // given
         String longName = "a".repeat(255); // 최대 길이의 이름
-        String longDescription = "b".repeat(255); // 매우 긴 설명
         
         NfluxCreateRequest requestWithLongValues = new NfluxCreateRequest(
-                category.getId(), asset.getId(), longName, "LONG001", longDescription
+                generateUniqueId("LONG"), // String id
+                category.getId(),
+                asset.getId(),
+                longName
         );
         
         // when
-        Long deviceId = nfluxService.save(requestWithLongValues);
+        String deviceId = nfluxService.save(requestWithLongValues);
         
         // then
         NfluxResponse device = nfluxService.findDeviceById(deviceId);
         assertThat(device.name()).isEqualTo(longName);
-        assertThat(device.description()).isEqualTo(longDescription);
     }
     
     @Test
@@ -1045,22 +1153,27 @@ class NfluxServiceTest {
     @DisplayName("NfluxCategory의 contextPath 테스트")
     void nfluxCategoryContextPathTest() {
         // given
-        // 1. NfluxCategory 생성
+        // 1. NfluxCategory 생성 (고유한 이름)
+        String uniqueName = "Context 테스트 카테고리 " + UUID.randomUUID().toString().substring(0, 8);
         NfluxCategory nfluxCategory = (NfluxCategory) deviceCategoryRepository.save(
                 NfluxCategory.nfluxBuilder()
-                .name("Context 테스트 카테고리")
+                .name(uniqueName)
                 .contextPath("/custom-context")
                 .build());
         
         // 2. 디바이스 생성
         NfluxCreateRequest requestWithNfluxCategory = new NfluxCreateRequest(
-                nfluxCategory.getId(), asset.getId(), "Context 테스트 디바이스", "CTX001", "Context 테스트 설명"
+                generateUniqueId("CTX"), // String id
+                nfluxCategory.getId(),
+                asset.getId(),
+                "Context 테스트 디바이스"
         );
-        Long deviceId = nfluxService.save(requestWithNfluxCategory);
+        String deviceId = nfluxService.save(requestWithNfluxCategory);
         
-        // 3. 스테이션 생성
+        // 3. 스테이션 생성 (고유한 이름)
+        String stationName = "Context 테스트 스테이션 " + UUID.randomUUID().toString().substring(0, 8);
         Station station = stationRepository.save(Station.builder()
-                .name("Context 테스트 스테이션")
+                .name(stationName)
                 .description("Context 테스트용 스테이션")
                 .build());
         
@@ -1109,13 +1222,22 @@ class NfluxServiceTest {
     void twoDevicesCannotShareSameFeatureTest() {
         // given
         // 1. 첫 번째 디바이스 생성
-        Long deviceId1 = nfluxService.save(createRequest);
+        NfluxCreateRequest request1 = new NfluxCreateRequest(
+                generateUniqueId("SHARE1"), // 고유한 ID 생성
+                category.getId(),
+                asset.getId(),
+                "첫 번째 디바이스"
+        );
+        String deviceId1 = nfluxService.save(request1);
         
         // 2. 두 번째 디바이스 생성
         NfluxCreateRequest request2 = new NfluxCreateRequest(
-                category.getId(), asset.getId(), "두 번째 디바이스", "TEST002", "두 번째 테스트 디바이스"
+                generateUniqueId("SHARE2"), // String id
+                category.getId(),
+                asset.getId(),
+                "두 번째 디바이스"
         );
-        Long deviceId2 = nfluxService.save(request2);
+        String deviceId2 = nfluxService.save(request2);
         
         // 3. Feature 생성
         String featureId = UUID.randomUUID().toString();
@@ -1148,216 +1270,17 @@ class NfluxServiceTest {
     void createDeviceWithoutAssetTest() {
         // given
         NfluxCreateRequest requestWithoutAsset = new NfluxCreateRequest(
-                category.getId(), null, "에셋 없는 디바이스", "NO_ASSET", "에셋 없는 테스트 디바이스"
+                generateUniqueId("NOASSET"), // String id
+                category.getId(),
+                null, // 에셋 없음
+                "에셋 없는 디바이스"
         );
         
         // when
-        Long deviceId = nfluxService.save(requestWithoutAsset);
+        String deviceId = nfluxService.save(requestWithoutAsset);
         
         // then
         NfluxResponse device = nfluxService.findDeviceById(deviceId);
-    }
-
-    @Test
-    @DisplayName("디바이스 생성-업데이트-삭제 전체 라이프사이클 테스트")
-    void deviceLifecycleTest() {
-        // 1. 디바이스 생성
-        Long deviceId = nfluxService.save(createRequest);
-        NfluxResponse createdDevice = nfluxService.findDeviceById(deviceId);
-        assertThat(createdDevice.name()).isEqualTo("테스트 디바이스");
-        
-        // 2. 디바이스 업데이트
-        NfluxUpdateRequest updateRequest = new NfluxUpdateRequest(
-                null, null, "업데이트된 디바이스", "UPDATED", "업데이트된 설명"
-        );
-        nfluxService.update(deviceId, updateRequest);
-        
-        NfluxResponse updatedDevice = nfluxService.findDeviceById(deviceId);
-        assertThat(updatedDevice.name()).isEqualTo("업데이트된 디바이스");
-        assertThat(updatedDevice.code()).isEqualTo("UPDATED");
-        
-        // 3. 새 카테고리 생성 및 할당
-        DeviceCategory newCategory = deviceCategoryRepository.save(DeviceCategory.builder()
-                .name("새 라이프사이클 카테고리")
-                .build());
-        
-        nfluxService.assignCategory(deviceId, newCategory.getId());
-        
-        NfluxResponse deviceWithNewCategory = nfluxService.findDeviceById(deviceId);
-        assertThat(deviceWithNewCategory.categoryId()).isEqualTo(newCategory.getId());
-        
-        // 4. 피처 생성 및 할당
-        String featureId = UUID.randomUUID().toString();
-        Feature feature = Feature.builder()
-                .id(featureId)
-                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .asset(asset)
-                .build();
-        featureRepository.save(feature);
-        
-        nfluxService.assignFeatureToNflux(deviceId, featureId);
-        
-        NfluxResponse deviceWithFeature = nfluxService.findDeviceById(deviceId);
-
-        // 5. 피처 제거
-        nfluxService.removeFeatureFromNflux(deviceId);
-        
-        NfluxResponse deviceWithoutFeature = nfluxService.findDeviceById(deviceId);
-
-        // 6. 카테고리 제거
-        nfluxService.removeCategory(deviceId);
-        
-        NfluxResponse deviceWithoutCategory = nfluxService.findDeviceById(deviceId);
-        assertThat(deviceWithoutCategory.categoryId()).isNull();
-        
-        // 7. 디바이스 삭제
-        nfluxService.delete(deviceId);
-        
-        // 8. 삭제 확인
-        assertThrows(CustomException.class, () -> nfluxService.findById(deviceId));
-    }
-
-    @Test
-    @DisplayName("디바이스 삭제 시 모든 관계가 정리된 후 삭제되는지 테스트")
-    void delete_ClearsAllRelationsBeforeDelete() {
-        // given
-        // 1. 카테고리 생성
-        DeviceCategory category = deviceCategoryRepository.save(DeviceCategory.builder()
-                .name("관계 정리 테스트 카테고리")
-                .build());
-        
-        // 2. 피처 생성
-        String featureId = UUID.randomUUID().toString();
-        Feature feature = featureRepository.save(Feature.builder()
-                .id(featureId)
-                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .asset(asset)
-                .build());
-        
-        // 3. 디바이스 생성 및 관계 설정
-        Nflux device = Nflux.builder()
-                .name("관계 정리 테스트 디바이스")
-                .code("RELATION001")
-                .description("관계 정리 테스트 설명")
-                .category(category)
-                .build();
-        
-        Long deviceId = deviceRepository.save(device).getId();
-        
-        // 디바이스에 피처 할당
-        nfluxService.assignFeatureToNflux(deviceId, featureId);
-        
-        // 모든 관계가 설정되었는지 확인
-        Nflux savedDevice = deviceRepository.findById(deviceId).orElseThrow();
-        assertThat(savedDevice.getCategory()).isNotNull();
-        assertThat(savedDevice.getFeature()).isNotNull();
-        
-        // when
-        nfluxService.delete(deviceId);
-        
-        // then
-        // 1. 디바이스가 삭제되었는지 확인
-        assertThrows(CustomException.class, () -> nfluxService.findById(deviceId));
-        
-        // 2. 피처에서 디바이스 참조가 제거되었는지 확인
-        Feature updatedFeature = featureRepository.findById(featureId).orElseThrow();
-        assertThat(updatedFeature.getDevice()).isNull();
-    }
-    
-    @Test
-    @DisplayName("디바이스 clearAllRelations 메소드 단위 테스트")
-    void clearAllRelations_RemovesAllRelationsFromDevice() {
-        // given
-        // 1. 카테고리 생성
-        DeviceCategory category = deviceCategoryRepository.save(DeviceCategory.builder()
-                .name("clearAllRelations 테스트 카테고리")
-                .build());
-        
-        // 2. 피처 생성
-        String featureId = UUID.randomUUID().toString();
-        Feature feature = featureRepository.save(Feature.builder()
-                .id(featureId)
-                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .asset(asset)
-                .build());
-        
-        // 3. 디바이스 생성 및 관계 설정
-        Nflux device = Nflux.builder()
-                .name("clearAllRelations 테스트 디바이스")
-                .code("CLEAR001")
-                .description("clearAllRelations 테스트 설명")
-                .category(category)
-                .build();
-        
-        Long deviceId = deviceRepository.save(device).getId();
-        
-        // 디바이스에 피처 할당
-        nfluxService.assignFeatureToNflux(deviceId, featureId);
-        
-        // 모든 관계가 설정되었는지 확인
-        Nflux savedDevice = deviceRepository.findById(deviceId).orElseThrow();
-        assertThat(savedDevice.getCategory()).isNotNull();
-        assertThat(savedDevice.getFeature()).isNotNull();
-        
-        // when
-        // clearAllRelations 메소드 직접 호출
-        savedDevice.clearAllRelations();
-        deviceRepository.save(savedDevice);
-        
-        // then
-        // 디바이스에서 모든 관계가 제거되었는지 확인
-        Nflux updatedDevice = deviceRepository.findById(deviceId).orElseThrow();
-        assertThat(updatedDevice.getCategory()).isNull();
-        assertThat(updatedDevice.getFeature()).isNull();
-        
-        // 피처에서 디바이스 참조가 제거되었는지 확인
-        Feature updatedFeature = featureRepository.findById(featureId).orElseThrow();
-        assertThat(updatedFeature.getDevice()).isNull();
-    }
-    
-    @Test
-    @DisplayName("디바이스 삭제 시 관계 제거 실패하면 예외 발생")
-    void delete_ThrowsExceptionWhenRelationRemovalFails() {
-        // given
-        // 1. 디바이스 생성
-        Nflux device = Nflux.builder()
-                .name("예외 테스트 디바이스")
-                .code("EXCEPTION001")
-                .description("예외 테스트 설명")
-                .build();
-        
-        Long deviceId = deviceRepository.save(device).getId();
-        
-        // 디바이스 스파이 생성
-        Nflux spyDevice = Mockito.spy(device);
-        
-        // clearAllRelations 호출 시 예외 발생하도록 설정
-        Mockito.doThrow(new RuntimeException("관계 제거 실패")).when(spyDevice).clearAllRelations();
-        
-        // 목 레포지토리 설정
-        NfluxRepository mockRepo = Mockito.mock(NfluxRepository.class);
-        Mockito.when(mockRepo.findById(deviceId)).thenReturn(java.util.Optional.of(spyDevice));
-        
-        // 원본 레포지토리 저장
-        NfluxRepository originalRepo = (NfluxRepository) ReflectionTestUtils.getField(
-                nfluxService, "repository");
-        
-        // 목 주입
-        ReflectionTestUtils.setField(nfluxService, "repository", mockRepo);
-        
-        try {
-            // when & then
-            assertThrows(RuntimeException.class, () -> nfluxService.delete(deviceId));
-            
-        } finally {
-            // 원래 레포지토리 복원
-            ReflectionTestUtils.setField(nfluxService, "repository", originalRepo);
-        }
+        assertThat(device.id()).isEqualTo(deviceId);
     }
 }

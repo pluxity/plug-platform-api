@@ -17,15 +17,16 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.response.BaseResponse;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +42,7 @@ public class NfluxService {
     private final FileService fileService;
 
     @Transactional(readOnly = true)
-    public NfluxResponse findDeviceById(Long id) {
+    public NfluxResponse findDeviceById(String id) {
         Nflux device = findById(id);
         return createResponse(device);
     }
@@ -62,14 +63,12 @@ public class NfluxService {
                 device.getCategory() != null ? device.getCategory().getId() : null,
                 device.getCategory() != null ? device.getCategory().getName() : null,
                 device.getName(),
-                device.getDeviceCode(),
-                device.getDescription(),
                 BaseResponse.of(device));
     }
 
     @Transactional
-    public Long save(NfluxCreateRequest request) {
-        validateCodeUniqueness(request.code(), null);
+    public String save(NfluxCreateRequest request) {
+        validateIdUniqueness(request.id(), null);
 
         Nflux nflux = createSasangDevice(request);
 
@@ -83,16 +82,12 @@ public class NfluxService {
 
         Asset asset = request.asset() != null ? findAssetById(request.asset()) : null;
 
-        return Nflux.create(category, asset, request.name(), request.code(), request.description());
+        return Nflux.create(request.id(), category, asset, request.name());
     }
 
     @Transactional
-    public void update(Long id, NfluxUpdateRequest request) {
+    public void update(String id, NfluxUpdateRequest request) {
         Nflux device = findById(id);
-
-        if (request.code() != null) {
-            validateCodeUniqueness(request.code(), id);
-        }
 
         DeviceCategory categoryToUpdate = null;
         if (request.deviceCategoryId() != null) {
@@ -104,11 +99,11 @@ public class NfluxService {
             asset = findAssetById(request.asset());
         }
 
-        device.update(categoryToUpdate, asset, request.name(), request.code(), request.description());
+        device.update(categoryToUpdate, asset, request.name());
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(String id) {
         Nflux device = findById(id);
 
         // 디바이스 삭제 전 연관관계 정리 로깅
@@ -119,10 +114,11 @@ public class NfluxService {
 
         log.info("Nflux 디바이스 [{}]의 모든 연관관계 제거 완료, 삭제 진행", id);
         repository.delete(device);
+        repository.flush();
     }
 
-    @Transactional
-    public Nflux findById(Long id) {
+    @Transactional(readOnly = true)
+    public Nflux findById(String id) {
         return repository
                 .findById(id)
                 .orElseThrow(
@@ -140,7 +136,7 @@ public class NfluxService {
     }
 
     @Transactional
-    public NfluxResponse assignCategory(Long deviceId, Long categoryId) {
+    public NfluxResponse assignCategory(String deviceId, Long categoryId) {
         Nflux device = findById(deviceId);
         DeviceCategory category = findCategoryById(categoryId);
 
@@ -150,14 +146,14 @@ public class NfluxService {
     }
 
     @Transactional
-    public NfluxResponse removeCategory(Long deviceId) {
+    public NfluxResponse removeCategory(String deviceId) {
         Nflux device = findById(deviceId);
 
         if (device.getCategory() == null) {
             throw new CustomException(
                     "No Category Assigned",
                     HttpStatus.BAD_REQUEST,
-                    String.format("DeviceCategory [%d]에 할당된 카테고리가 없습니다", deviceId));
+                    String.format("DeviceCategory [%s]에 할당된 카테고리가 없습니다", deviceId));
         }
 
         device.updateCategory(null);
@@ -166,7 +162,7 @@ public class NfluxService {
     }
 
     @Transactional
-    public NfluxResponse assignFeatureToNflux(Long deviceId, String featureId) {
+    public NfluxResponse assignFeatureToNflux(String deviceId, String featureId) {
         Nflux device = findById(deviceId);
 
         Feature feature =
@@ -189,14 +185,14 @@ public class NfluxService {
     }
 
     @Transactional
-    public NfluxResponse removeFeatureFromNflux(Long deviceId) {
+    public NfluxResponse removeFeatureFromNflux(String deviceId) {
         Nflux device = findById(deviceId);
 
         if (device.getFeature() == null) {
             throw new CustomException(
                     "No Feature Assigned",
                     HttpStatus.BAD_REQUEST,
-                    String.format("디바이스 ID [%d]에 할당된 피처가 없습니다", deviceId));
+                    String.format("디바이스 ID [%s]에 할당된 피처가 없습니다", deviceId));
         }
 
         device.changeFeature(null);
@@ -266,20 +262,20 @@ public class NfluxService {
                 .toList();
     }
 
-    private void validateCodeUniqueness(String code, Long excludeId) {
-        if (code == null || code.trim().isEmpty()) {
-            throw new CustomException("Code Required", HttpStatus.BAD_REQUEST, "디바이스 코드는 필수입니다");
+    private void validateIdUniqueness(String id, String excludeId) {
+        if (id == null || id.trim().isEmpty()) {
+            throw new CustomException("ID Required", HttpStatus.BAD_REQUEST, "디바이스 ID는 필수입니다");
         }
 
         repository
-                .findByCode(code.trim())
+                .findById(id.trim())
                 .filter(existingDevice -> excludeId == null || !existingDevice.getId().equals(excludeId))
                 .ifPresent(
                         existingDevice -> {
                             throw new CustomException(
-                                    "Code Already Exists",
+                                    "ID Already Exists",
                                     HttpStatus.CONFLICT,
-                                    String.format("디바이스 코드 '%s'는 이미 사용 중입니다 (ID: %d)", code, existingDevice.getId()));
+                                    String.format("디바이스 ID '%s'는 이미 사용 중입니다 (ID: %s)", id, existingDevice.getId()));
                         });
     }
 }

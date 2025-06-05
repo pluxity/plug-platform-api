@@ -4,7 +4,6 @@ import com.pluxity.asset.entity.Asset;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.feature.entity.Feature;
-import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -13,7 +12,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.http.HttpStatus;
 
 @Entity
 @Table(name = "nflux")
@@ -22,73 +20,34 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Nflux extends Device {
 
-    @Column(name = "code", unique = true, nullable = false)
-    private String code;
-
-    @Column(name = "description")
-    private String description;
+    @Column(name = "name")
+    private String name;
 
     @Builder
-    public Nflux(
-            Feature feature, DeviceCategory category, String name, String code, String description) {
-        super(feature, category);
-        updateName(name);
-        this.code = code;
-        this.description = description;
+    public Nflux(String id, Feature feature, DeviceCategory category, String name) {
+        super(id, feature, category);
+        this.name = name;
     }
 
-    public static Nflux create(
-            DeviceCategory category, Asset asset, String name, String code, String description) {
+    public static Nflux create(String id, DeviceCategory category, Asset asset, String name) {
         return Nflux.builder()
+                .id(id)
                 .category(category)
                 .name(name)
-                .code(code)
-                .description(description)
                 .build();
     }
 
-    public void update(
-            DeviceCategory newCategory,
-            Asset newAsset,
-            String newName,
-            String newCode,
-            String newDescription) {
-
+    public void update(DeviceCategory newCategory, Asset newAsset, String newName) {
         if (newCategory != null) {
             updateCategory(newCategory);
         }
 
         if (newName != null) {
-            updateName(newName);
-        }
-        if (newCode != null) {
-            this.code = newCode;
-        }
-        if (newDescription != null) {
-            this.description = newDescription;
+            this.name = newName;
         }
     }
 
-    public void updateCode(String code) {
-        this.code = code;
-    }
-
-    public void updateDescription(String description) {
-        this.description = description;
-    }
-
-    public boolean hasCode() {
-        return this.code != null && !this.code.trim().isEmpty();
-    }
-
-    public void validateCodeExists() {
-        if (!hasCode()) {
-            throw new CustomException("Device code is required", HttpStatus.BAD_REQUEST, "장치 코드는 필수입니다.");
-        }
-    }
-
-    @Override
-    public String getDeviceCode() {
-        return this.code;
+    public void updateName(String name) {
+        this.name = name;
     }
 }

@@ -17,17 +17,16 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -179,15 +178,7 @@ public class FeatureService {
 
         // 이미 할당된 디바이스가 있는지 확인
         if (feature.getDevice() != null) {
-            boolean isSameDevice = false;
-
-            if (assignDto.id() != null
-                    && feature.getDevice().getId().equals(Long.parseLong(assignDto.id()))) {
-                isSameDevice = true;
-            } else if (assignDto.code() != null
-                    && assignDto.code().equals(feature.getDevice().getDeviceCode())) {
-                isSameDevice = true;
-            }
+            boolean isSameDevice = assignDto.id().equals(feature.getDevice().getId());
 
             if (isSameDevice) {
                 log.debug("이미 해당 디바이스가 할당되어 있습니다: featureId={}, assignDto={}", featureId, assignDto);
@@ -200,8 +191,8 @@ public class FeatureService {
                     "이미 다른 디바이스에 할당된 피처입니다: " + featureId);
         }
 
-        // 디바이스 조회 - id 또는 code로 조회
-        Device device = findDeviceByIdOrCode(assignDto);
+        // 디바이스 조회 - id로 조회
+        Device device = findDeviceById(assignDto.id());
 
         device.changeFeature(feature);
 
@@ -212,57 +203,17 @@ public class FeatureService {
         return getFeatureResponse(feature);
     }
 
-    private Device findDeviceByIdOrCode(FeatureAssignDto assignDto) {
-        Device device = null;
+    private Device findDeviceById(String deviceId) {
+        Device device = entityManager.find(Device.class, deviceId);
 
-        if (assignDto.id() != null) {
-            try {
-                Long deviceId = Long.parseLong(assignDto.id());
-                device = entityManager.find(Device.class, deviceId);
-
-                if (device == null) {
-                    throw new CustomException(
-                            "Device not found",
-                            HttpStatus.NOT_FOUND,
-                            "해당 디바이스를 찾을 수 없습니다. ID: " + assignDto.id());
-                }
-            } catch (NumberFormatException e) {
-                throw new CustomException(
-                        "Invalid device ID format",
-                        HttpStatus.BAD_REQUEST,
-                        "디바이스 ID 형식이 올바르지 않습니다: " + assignDto.id());
-            }
-        } else if (assignDto.code() != null) {
-            // 여러 타입의 Device를 하나씩 시도하여 코드로 조회
-            device = findDeviceByCode(assignDto.code());
-
-            if (device == null) {
-                throw new CustomException(
-                        "Device not found",
-                        HttpStatus.NOT_FOUND,
-                        "해당 디바이스를 찾을 수 없습니다. 코드: " + assignDto.code());
-            }
+        if (device == null) {
+            throw new CustomException(
+                    "Device not found",
+                    HttpStatus.NOT_FOUND,
+                    "해당 디바이스를 찾을 수 없습니다. ID: " + deviceId);
         }
 
         return device;
-    }
-
-    private Device findDeviceByCode(String code) {
-        try {
-            // Nflux 타입으로 먼저 조회 시도
-            TypedQuery<Device> query =
-                    entityManager.createQuery("SELECT d FROM Nflux d WHERE d.code = :code", Device.class);
-            query.setParameter("code", code);
-            return query.getSingleResult();
-        } catch (NoResultException nre) {
-            // 다른 디바이스 타입에 대한 시도를 추가할 수 있음
-            log.debug("Nflux 타입으로 조회된 디바이스가 없어 다른 타입 검사 중: code={}", code);
-            return null;
-        } catch (Exception e) {
-            log.error("디바이스 코드 조회 중 오류 발생: {}", e.getMessage());
-            throw new CustomException(
-                    "Error retrieving device", HttpStatus.INTERNAL_SERVER_ERROR, "디바이스 조회 중 오류가 발생했습니다");
-        }
     }
 
     @Transactional
@@ -276,25 +227,8 @@ public class FeatureService {
                     String.format("피처 ID [%s]에 할당된 디바이스가 없습니다", featureId));
         }
 
-        // 특정 디바이스 ID나 코드로 검증
-        boolean isMatchingDevice = false;
-
-        // ID로 검증
-        if (assignDto.id() != null) {
-            try {
-                Long deviceId = Long.parseLong(assignDto.id());
-                isMatchingDevice = feature.getDevice().getId().equals(deviceId);
-            } catch (NumberFormatException e) {
-                throw new CustomException(
-                        "Invalid device ID format",
-                        HttpStatus.BAD_REQUEST,
-                        "디바이스 ID 형식이 올바르지 않습니다: " + assignDto.id());
-            }
-        }
-        // 코드로 검증
-        else if (assignDto.code() != null) {
-            isMatchingDevice = assignDto.code().equals(feature.getDevice().getDeviceCode());
-        }
+        // 특정 디바이스 ID로 검증
+        boolean isMatchingDevice = assignDto.id().equals(feature.getDevice().getId());
 
         // 일치하는 디바이스가 아닌 경우 예외 발생
         if (!isMatchingDevice) {
@@ -302,7 +236,7 @@ public class FeatureService {
                     "Device mismatch", HttpStatus.BAD_REQUEST, "요청한 디바이스가 현재 피처에 할당된 디바이스와 일치하지 않습니다");
         }
 
-        Long deviceId = feature.getDevice().getId();
+        String deviceId = feature.getDevice().getId();
         feature.changeDevice(null);
         log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, deviceId);
 
@@ -321,7 +255,7 @@ public class FeatureService {
                     String.format("피처 ID [%s]에 할당된 디바이스가 없습니다", featureId));
         }
 
-        Long deviceId = feature.getDevice().getId();
+        String deviceId = feature.getDevice().getId();
         feature.changeDevice(null);
         log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, deviceId);
 

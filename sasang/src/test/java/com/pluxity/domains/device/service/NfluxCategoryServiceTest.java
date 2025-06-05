@@ -721,14 +721,21 @@ class NfluxCategoryServiceTest {
         Long categoryId = nfluxCategoryRepository.save(category).getId();
         
         // 2. 디바이스 생성 및 카테고리에 할당
-        NfluxCreateRequest request = new NfluxCreateRequest(
-                categoryId,   // deviceCategoryId
-                null,         // asset
-                "테스트 디바이스",  // name
-                "TEST-DEV",   // code
-                "테스트용 디바이스"  // description
-                );
-        Long deviceId = nfluxService.save(request);
+        NfluxCreateRequest request1 = new NfluxCreateRequest(
+                "TEST001",    // String id
+                categoryId,   // Long categoryId
+                null,         // Long assetId
+                "테스트 디바이스 1" // String name
+        );
+        String device1Id = nfluxService.save(request1);
+        
+        NfluxCreateRequest request2 = new NfluxCreateRequest(
+                "TEST002",    // String id
+                categoryId,   // Long categoryId
+                null,         // Long assetId
+                "테스트 디바이스 2" // String name
+        );
+        String device2Id = nfluxService.save(request2);
         
         // when
         // 디바이스가 있는 카테고리 삭제
@@ -739,8 +746,11 @@ class NfluxCategoryServiceTest {
         assertThrows(CustomException.class, () -> nfluxCategoryService.findById(categoryId));
         
         // 2. 디바이스의 카테고리 참조가 제거되었는지 확인
-        NfluxResponse device = nfluxService.findDeviceById(deviceId);
-        assertThat(device.categoryId()).isNull();
+        NfluxResponse device1 = nfluxService.findDeviceById(device1Id);
+        assertThat(device1.categoryId()).isNull();
+        
+        NfluxResponse device2 = nfluxService.findDeviceById(device2Id);
+        assertThat(device2.categoryId()).isNull();
     }
 
     @Test
@@ -985,22 +995,20 @@ class NfluxCategoryServiceTest {
         // 2. 디바이스 생성 및 카테고리에 할당
         // NfluxCreateRequest로 변환하여 생성
         NfluxCreateRequest request1 = new NfluxCreateRequest(
-                categoryId,   // deviceCategoryId
-                null,         // asset
-                "테스트 디바이스 1", // name
-                "TEST001",    // code
-                "첫 번째 테스트 디바이스" // description
-                );
-        Long device1Id = nfluxService.save(request1);
+                "TEST001",    // String id
+                categoryId,   // Long categoryId
+                null,         // Long assetId
+                "테스트 디바이스 1" // String name
+        );
+        String device1Id = nfluxService.save(request1);
         
         NfluxCreateRequest request2 = new NfluxCreateRequest(
-                categoryId,   // deviceCategoryId
-                null,         // asset
-                "테스트 디바이스 2", // name
-                "TEST002",    // code
-                "두 번째 테스트 디바이스" // description
-                );
-        Long device2Id = nfluxService.save(request2);
+                "TEST002",    // String id
+                categoryId,   // Long categoryId
+                null,         // Long assetId
+                "테스트 디바이스 2" // String name
+        );
+        String device2Id = nfluxService.save(request2);
         
         // 카테고리에 디바이스가 할당되었는지 확인
         NfluxCategory savedCategory = nfluxCategoryRepository.findById(categoryId).orElseThrow();
@@ -1037,13 +1045,12 @@ class NfluxCategoryServiceTest {
         
         // 2. 디바이스 생성 및 카테고리에 할당
         NfluxCreateRequest request = new NfluxCreateRequest(
-                categoryId,   // deviceCategoryId
-                null,         // asset
-                "삭제 테스트 디바이스", // name
-                "DELETE001",  // code
-                "카테고리 삭제 테스트용 디바이스" // description
-                );
-        Long deviceId = nfluxService.save(request);
+                "DELETE001",  // String id
+                categoryId,   // Long categoryId
+                null,         // Long assetId
+                "삭제 테스트 디바이스" // String name
+        );
+        String deviceId = nfluxService.save(request);
         
         // 카테고리에 디바이스가 할당되었는지 확인
         NfluxCategory savedCategory = nfluxCategoryRepository.findById(categoryId).orElseThrow();
@@ -1074,12 +1081,11 @@ class NfluxCategoryServiceTest {
         
         // 2. 디바이스 생성 및 할당
         NfluxCreateRequest request = new NfluxCreateRequest(
-                categoryId,   // deviceCategoryId
-                null,         // asset
-                "예외 테스트 디바이스", // name
-                "EXCEPTION001", // code
-                "카테고리 삭제 예외 테스트용 디바이스" // description
-                );
+                "EXCEPTION001", // String id
+                categoryId,   // Long categoryId
+                null,         // Long assetId
+                "예외 테스트 디바이스" // String name
+        );
         nfluxService.save(request);
         
         // 카테고리 스파이 생성

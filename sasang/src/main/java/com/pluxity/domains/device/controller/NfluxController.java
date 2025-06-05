@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,11 +51,11 @@ public class NfluxController {
             })
     @PostMapping
     @ResponseCreated
-    public ResponseEntity<Long> create(
+    public ResponseEntity<String> create(
             @Parameter(description = "디바이스 생성 정보", required = true) @Valid @RequestBody
                     NfluxCreateRequest request) {
 
-        Long id = service.save(request);
+        String id = service.save(request);
 
         return ResponseEntity.ok(id);
     }
@@ -97,7 +98,7 @@ public class NfluxController {
             })
     @GetMapping("/{id}")
     public ResponseEntity<DataResponseBody<NfluxResponse>> get(
-            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String id) {
         return ResponseEntity.ok(DataResponseBody.of(service.findDeviceById(id)));
     }
 
@@ -127,16 +128,18 @@ public class NfluxController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping("/{id}")
-    public ResponseEntity<Void> patch(
-            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long id,
+    @PutMapping("/{id}")
+    public ResponseEntity<DataResponseBody<NfluxResponse>> update(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String id,
             @Parameter(description = "디바이스 수정 정보", required = true) @Valid @RequestBody
                     NfluxUpdateRequest request) {
+
         service.update(id, request);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity.ok(DataResponseBody.of(service.findDeviceById(id)));
     }
 
-    @Operation(summary = "디바이스 삭제", description = "ID로 디바이스를 삭제합니다")
+    @Operation(summary = "디바이스 삭제", description = "ID로 특정 디바이스를 삭제합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "204", description = "디바이스 삭제 성공"),
@@ -156,13 +159,14 @@ public class NfluxController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> delete(
-            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long id) {
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "디바이스에 카테고리 할당", description = "디바이스에 특정 카테고리를 할당합니다")
+    @Operation(summary = "디바이스에 카테고리 할당", description = "디바이스에 카테고리를 할당합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "카테고리 할당 성공"),
@@ -181,19 +185,25 @@ public class NfluxController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/{deviceId}/categories/{categoryId}")
-    public ResponseEntity<DataResponseBody<NfluxResponse>> assignCategory(
-            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId,
+    @PutMapping("/{deviceId}/category/{categoryId}")
+    public ResponseEntity<DataResponseBody<NfluxResponse>> assignCategoryToDevice(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String deviceId,
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long categoryId) {
-
         NfluxResponse response = service.assignCategory(deviceId, categoryId);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
 
-    @Operation(summary = "디바이스에서 카테고리 제거", description = "디바이스에서 할당된 카테고리를 제거합니다")
+    @Operation(summary = "디바이스에서 카테고리 연결 해제", description = "디바이스에 할당된 카테고리와의 연결을 해제합니다")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "200", description = "카테고리 제거 성공"),
+                @ApiResponse(responseCode = "200", description = "카테고리 연결 해제 성공"),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "잘못된 요청 (예: 디바이스에 카테고리가 할당되지 않음)",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
                 @ApiResponse(
                         responseCode = "404",
                         description = "디바이스를 찾을 수 없음",
@@ -209,15 +219,13 @@ public class NfluxController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @DeleteMapping("/{deviceId}/categories")
-    public ResponseEntity<DataResponseBody<NfluxResponse>> removeCategory(
-            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId) {
-
+    @DeleteMapping("/{deviceId}/category")
+    public ResponseEntity<DataResponseBody<NfluxResponse>> removeCategoryFromDevice(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String deviceId) {
         NfluxResponse response = service.removeCategory(deviceId);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
 
-    // Feature 할당 API
     @Operation(summary = "디바이스에 피처 할당", description = "디바이스에 특정 피처를 할당합니다.")
     @ApiResponses(
             value = {
@@ -227,7 +235,7 @@ public class NfluxController {
             })
     @PutMapping("/{deviceId}/features/{featureId}")
     public ResponseEntity<DataResponseBody<NfluxResponse>> assignFeatureToDevice(
-            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId,
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String deviceId,
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId) {
         NfluxResponse response = service.assignFeatureToNflux(deviceId, featureId);
         return ResponseEntity.ok(DataResponseBody.of(response));
@@ -243,7 +251,7 @@ public class NfluxController {
             })
     @DeleteMapping("/{deviceId}/features")
     public ResponseEntity<DataResponseBody<NfluxResponse>> removeFeatureFromDevice(
-            @Parameter(description = "디바이스 ID", required = true) @PathVariable Long deviceId) {
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String deviceId) {
         NfluxResponse response = service.removeFeatureFromNflux(deviceId);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }

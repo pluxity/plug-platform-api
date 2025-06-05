@@ -8,12 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface NfluxRepository extends JpaRepository<Nflux, Long> {
+public interface NfluxRepository extends JpaRepository<Nflux, String> {
     List<Nflux> findByCategoryId(Long categoryId);
 
     @Override
     @EntityGraph(attributePaths = {"feature", "feature.device", "category"})
     List<Nflux> findAll();
-
-    Optional<Nflux> findByCode(String code);
 }

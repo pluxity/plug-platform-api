@@ -6,15 +6,13 @@ import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
 import com.pluxity.global.response.BaseResponse;
 
 public record NfluxDetailResponse(
-        Long id,
+        String id,
         FeatureResponseWithoutAsset feature,
         Long categoryId,
         String categoryName,
         Long asset,
         String assetName,
         String name,
-        String code,
-        String description,
         @JsonUnwrapped BaseResponse baseResponse) {
     public static NfluxDetailResponse from(Nflux device) {
         return new NfluxDetailResponse(
@@ -29,8 +27,6 @@ public record NfluxDetailResponse(
                         ? device.getFeature().getAsset().getName()
                         : null,
                 device.getName(),
-                device.getDeviceCode(),
-                device.getDescription(),
                 BaseResponse.of(device));
     }
 }
