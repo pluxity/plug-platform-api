@@ -17,16 +17,15 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.response.BaseResponse;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -114,7 +113,6 @@ public class NfluxService {
 
         log.info("Nflux 디바이스 [{}]의 모든 연관관계 제거 완료, 삭제 진행", id);
         repository.delete(device);
-        repository.flush();
     }
 
     @Transactional(readOnly = true)

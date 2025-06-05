@@ -18,15 +18,14 @@ import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -208,9 +207,7 @@ public class FeatureService {
 
         if (device == null) {
             throw new CustomException(
-                    "Device not found",
-                    HttpStatus.NOT_FOUND,
-                    "해당 디바이스를 찾을 수 없습니다. ID: " + deviceId);
+                    "Device not found", HttpStatus.NOT_FOUND, "해당 디바이스를 찾을 수 없습니다. ID: " + deviceId);
         }
 
         return device;

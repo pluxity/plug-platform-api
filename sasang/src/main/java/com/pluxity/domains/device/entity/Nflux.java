@@ -30,11 +30,7 @@ public class Nflux extends Device {
     }
 
     public static Nflux create(String id, DeviceCategory category, Asset asset, String name) {
-        return Nflux.builder()
-                .id(id)
-                .category(category)
-                .name(name)
-                .build();
+        return Nflux.builder().id(id).category(category).name(name).build();
     }
 
     public void update(DeviceCategory newCategory, Asset newAsset, String newName) {

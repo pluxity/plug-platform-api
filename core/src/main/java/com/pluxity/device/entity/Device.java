@@ -16,8 +16,7 @@ import org.springframework.data.domain.Persistable;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Device extends BaseEntity implements Persistable<String> {
 
-    @Id
-    private String id;
+    @Id private String id;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "feature_id")
@@ -27,8 +26,7 @@ public abstract class Device extends BaseEntity implements Persistable<String> {
     @JoinColumn(name = "category_id")
     private DeviceCategory category;
 
-    @Transient
-    private boolean isNew = true;
+    @Transient private boolean isNew = true;
 
     protected Device(String id, Feature feature, DeviceCategory category) {
         this.id = id;
