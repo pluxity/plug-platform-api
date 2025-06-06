@@ -1,6 +1,7 @@
 package com.pluxity.domains.ttc;
 
 import com.pluxity.domains.station.enums.BusanSubwayStation;
+
 import java.util.*;
 import java.util.function.Function;
 
@@ -141,7 +142,7 @@ public class TtcParser {
     }
 
     private static final List<FieldDefinition> FIELD_DEFINITIONS =
-            List.of(
+            Arrays.asList(
                     new FieldDefinition("데이터 시작 (STX)", "stx", 0, 1, val -> val, "HEX 값 그대로 가져오기"),
                     new FieldDefinition(
                             "데이터 길이",
@@ -166,6 +167,12 @@ public class TtcParser {
                             "분 (Minute)", "minute", 10, 1, TtcParser::hexToDecimalString, "HEX 값을 DEC 값으로 변환"),
                     new FieldDefinition(
                             "초 (Second)", "second", 11, 1, TtcParser::hexToDecimalString, "HEX 값을 DEC 값으로 변환"),
+                    new FieldDefinition(
+                            "타임스탬프 (Timestamp)",
+                            "timestamp",
+                            "year",
+                            val -> "", // 실제 처리는 별도 로직에서
+                            "년월일시분초를 통합한 시간 정보"),
                     new FieldDefinition(
                             "도착역번호 (Arrival Station No)",
                             "arrivalStationCode",
@@ -241,7 +248,7 @@ public class TtcParser {
                     new FieldDefinition("CRC High", "crcHigh", 24, 1, val -> val, "HEX 값 그대로 가져오기"),
                     new FieldDefinition("데이터 끝 (ETX)", "etx", 25, 1, val -> val, "HEX 값 그대로 가져오기"));
 
-    public static List<ParsedMessage> parse(String hexStream) {
+    public static List<ParsedMessage> parse(String hexStream, String line) {
         List<ParsedMessage> allMessages = new ArrayList<>();
         String cleanedHexStream = hexStream.replaceAll("\\s+", "").toUpperCase();
         int streamPointer = 0;
@@ -263,7 +270,7 @@ public class TtcParser {
                 break;
             }
             String stx = cleanedHexStream.substring(streamPointer, streamPointer + 2);
-            currentParsedMessage.addField(FIELD_DEFINITIONS.getFirst(), stx, stx);
+            currentParsedMessage.addField(FIELD_DEFINITIONS.get(0), stx, stx);
             streamPointer += 2;
 
             // Data Length
@@ -350,22 +357,28 @@ public class TtcParser {
             // 파생 필드(역명 등) 처리
             for (FieldDefinition def : FIELD_DEFINITIONS) {
                 if (def.isDerived) {
-                    ParsedField sourceField = currentParsedMessage.getFields().get(def.sourceFieldKey);
-                    if (sourceField != null
-                            && sourceField.originalHex != null
-                            && !sourceField.originalHex.equals("-")) {
-                        try {
-                            String derivedValue =
-                                    def.parser.apply(sourceField.originalHex); // 파서는 원본 HEX를 받도록 수정됨
-                            currentParsedMessage.addField(
-                                    def, sourceField.originalHex, derivedValue); // 원본은 참조값, 파싱은 파생값
-                        } catch (Exception e) {
-                            currentParsedMessage.addField(
-                                    def, sourceField.originalHex, "파생오류: " + e.getMessage());
-                            currentParsedMessage.addError(def.koreanName + " 파생 오류: " + e.getMessage());
-                        }
+                    if (def.englishKey.equals("timestamp")) {
+                        // 시간 정보 통합 처리
+                        String timestamp = buildTimestamp(currentParsedMessage);
+                        currentParsedMessage.addField(def, "DERIVED", timestamp);
                     } else {
-                        currentParsedMessage.addNullField(def); // 소스 필드가 없거나 "-" 이면 파생 필드도 null 처리
+                        ParsedField sourceField = currentParsedMessage.getFields().get(def.sourceFieldKey);
+                        if (sourceField != null
+                                && sourceField.originalHex != null
+                                && !sourceField.originalHex.equals("-")) {
+                            try {
+                                String derivedValue =
+                                        def.parser.apply(sourceField.originalHex); // 파서는 원본 HEX를 받도록 수정됨
+                                currentParsedMessage.addField(
+                                        def, sourceField.originalHex, derivedValue); // 원본은 참조값, 파싱은 파생값
+                            } catch (Exception e) {
+                                currentParsedMessage.addField(
+                                        def, sourceField.originalHex, "파생오류: " + e.getMessage());
+                                currentParsedMessage.addError(def.koreanName + " 파생 오류: " + e.getMessage());
+                            }
+                        } else {
+                            currentParsedMessage.addNullField(def); // 소스 필드가 없거나 "-" 이면 파생 필드도 null 처리
+                        }
                     }
                 }
             }
@@ -418,7 +431,16 @@ public class TtcParser {
                 currentParsedMessage.addField(def, fieldHex, parsedValue);
                 streamPointer += def.length * 2;
             }
+            
+            // line 정보 추가 (별도의 FieldDefinition 없이 직접 추가)
+            currentParsedMessage.addField(
+                new FieldDefinition("라인 정보", "line", -1, 0, val -> val, "라인 정보"),
+                line, 
+                line
+            );
+            
             allMessages.add(currentParsedMessage);
+
         }
         return allMessages;
     }
@@ -471,7 +493,7 @@ public class TtcParser {
         public String toJson() {
             StringBuilder sb = new StringBuilder();
             sb.append("{\n");
-            sb.append("  \"messageNumber\": ").append(this.messageNumber); // 마지막이 아니므로 쉼표 추가
+            sb.append("  \"messageNumber\": ").append(this.messageNumber);
 
             if (hasErrors()) {
                 sb.append(",\n  \"errors\": [");
@@ -482,28 +504,41 @@ public class TtcParser {
                 sb.append("]");
             }
 
+            List<String> fieldsToInclude = List.of(
+                    "opCode",
+                    "arrivalStationCode",
+                    "arrivalStationName",
+                    "trainDirection",
+                    "thisTrainNumber",
+                    "nextTrainNumber",
+                    "timestamp",
+                    "line"
+            );
+
             String opCodeHex =
                     Optional.ofNullable(this.fields.get("opCode"))
                             .map(pf -> pf.originalHex)
                             .orElse("")
                             .toUpperCase();
 
-            for (FieldDefinition def : FIELD_DEFINITIONS) {
-                ParsedField pf = this.fields.get(def.englishKey);
-                sb.append(",\n"); // 각 필드 앞에 쉼표 추가
+            for (String fieldKey : fieldsToInclude) {
+                ParsedField pf = this.fields.get(fieldKey);
+                sb.append(",\n");
+
                 if (pf != null) {
-                    if (def.englishKey.equals("stopTime") && !"B2".equals(opCodeHex)) {
-                        sb.append("  \"").append(def.englishKey).append("\": null");
+                    if (fieldKey.equals("stopTime") && !"B2".equals(opCodeHex)) {
+                        sb.append("  \"").append(fieldKey).append("\": null");
                     } else {
                         String valueStr =
                                 (pf.parsedValue == null) ? "null" : "\"" + escapeJsonString(pf.parsedValue) + "\"";
-                        sb.append("  \"").append(def.englishKey).append("\": ").append(valueStr);
+                        sb.append("  \"").append(fieldKey).append("\": ").append(valueStr);
                     }
-                } else if (def.englishKey.equals("stopTime") && !"B2".equals(opCodeHex)) {
-                    sb.append("  \"").append(def.englishKey).append("\": null");
                 } else {
-                    // 필드가 아예 파싱되지 않은 경우 (오류 등으로 누락)
-                    sb.append("  \"").append(def.englishKey).append("\": null");
+                    if (fieldKey.equals("stopTime") && !"B2".equals(opCodeHex)) {
+                        sb.append("  \"").append(fieldKey).append("\": null");
+                    } else {
+                        sb.append("  \"").append(fieldKey).append("\": null");
+                    }
                 }
             }
             sb.append("\n}");
@@ -535,13 +570,53 @@ public class TtcParser {
         }
     }
 
+    private static String buildTimestamp(ParsedMessage message) {
+        try {
+            ParsedField yearField = message.getFields().get("year");
+            ParsedField monthField = message.getFields().get("month");
+            ParsedField dayField = message.getFields().get("day");
+            ParsedField hourField = message.getFields().get("hour");
+            ParsedField minuteField = message.getFields().get("minute");
+            ParsedField secondField = message.getFields().get("second");
+
+            if (yearField == null || monthField == null || dayField == null || 
+                hourField == null || minuteField == null || secondField == null) {
+                return null;
+            }
+
+            String year = yearField.parsedValue;
+            String month = monthField.parsedValue;
+            String day = dayField.parsedValue;
+            String hour = hourField.parsedValue;
+            String minute = minuteField.parsedValue;
+            String second = secondField.parsedValue;
+
+            // 2자리 년도를 4자리로 변환 (20XX 년도로 가정)
+            if (year != null && year.length() <= 2) {
+                int yearInt = Integer.parseInt(year);
+                year = String.valueOf(2000 + yearInt);
+            }
+
+            return String.format("%s-%02d-%02d %02d:%02d:%02d",
+                year,
+                Integer.parseInt(month),
+                Integer.parseInt(day),
+                Integer.parseInt(hour),
+                Integer.parseInt(minute),
+                Integer.parseInt(second)
+            );
+        } catch (Exception e) {
+            return "타임스탬프 생성 오류: " + e.getMessage();
+        }
+    }
+
     public static void main(String[] args) {
         String hexStream =
                 "02 00 13 D4 B3 00 17 04 1A 0E 29 15 77 02 86 86 21 66 21 68 01 01 47 FD 03"
                         + "02 00 13 3E B3 00 19 06 02 0E 02 09 77 02 86 86 21 54 21 56 01 01 22 73 03"
                         + "02 00 14 3F B2 00 19 06 02 0E 02 0A 7C 01 5F 5F 11 67 11 69 01 01 14 17 D0 03";
 
-        List<ParsedMessage> parsedMessages = parse(hexStream);
+        List<ParsedMessage> parsedMessages = parse(hexStream, "1");
 
         System.out.println("[");
         for (int i = 0; i < parsedMessages.size(); i++) {

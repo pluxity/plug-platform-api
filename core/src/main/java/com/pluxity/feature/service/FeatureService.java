@@ -18,14 +18,15 @@ import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -177,17 +178,13 @@ public class FeatureService {
 
         // 이미 할당된 디바이스가 있는지 확인
         if (feature.getDevice() != null) {
-            boolean isSameDevice = assignDto.id().equals(feature.getDevice().getId());
 
-            if (isSameDevice) {
-                log.debug("이미 해당 디바이스가 할당되어 있습니다: featureId={}, assignDto={}", featureId, assignDto);
-                return getFeatureResponse(feature);
+            if (assignDto.id().equals(feature.getDevice().getId())) {
+                throw new CustomException(
+                        "Feature already assigned to another device",
+                        HttpStatus.BAD_REQUEST,
+                        "이미 다른 디바이스가 할당된 피처입니다: " + featureId);
             }
-
-            throw new CustomException(
-                    "Feature already assigned to another device",
-                    HttpStatus.BAD_REQUEST,
-                    "이미 다른 디바이스에 할당된 피처입니다: " + featureId);
         }
 
         // 디바이스 조회 - id로 조회
