@@ -48,30 +48,3 @@ tcp:
   server3: 101.254.21.100:4003
   server4: 101.254.21.100:4004
   port1: 4001
-
-cloud:
-  aws:
-    s3:
-      endpoint: ${S3_INTERNAL_ENDPOINT_URL:http://minio:9000} # API 서버 -> MinIO 서버 내부 통신용
-      credentials:
-        access-key: ${S3_ACCESS_KEY:pluxity}
-        secret-key: ${S3_SECRET_KEY:pluxity0304}
-      region:
-        static: ${S3_REGION:ap-northeast-2} # MinIO는 리전이 중요하지 않으나 SDK는 요구
-      path-style-access-enabled: true      # MinIO 사용 시 true 권장
-
-
-file:
-  storage-strategy: ${FILE_STORAGE_STRATEGY:s3}
-  local:
-    path: ${FILE_LOCAL_PATH:/app/upload}
-  s3:
-    # 이전에 여기에 있던 endpoint-url은 spring.cloud.aws.s3.endpoint 로 이동
-    bucket: ${S3_BUCKET:plug-platform}
-    # region, access-key, secret-key도 spring.cloud.aws.s3 쪽으로 통합 가능 (중복 제거)
-    pre-signed-url-expiration: ${S3_PRESIGNED_URL_EXPIRATION:600} # 환경변수명 일치시키는 것이 좋음
-    # 클라이언트 파일 접근 URL 생성 시 사용할 기본 경로
-    external-url-prefix: ${MINIO_EXTERNAL_FILE_URL_PREFIX:http://localhost/files}
-    region: ${S3_REGION:ap-northeast-2}
-    access-key: ${S3_ACCESS_KEY:pluxity}
-    secret-key: ${S3_SECRET_KEY:pluxity0304}

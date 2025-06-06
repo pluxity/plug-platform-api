@@ -1,7 +1,6 @@
 package com.pluxity.domains.ttc;
 
 import com.pluxity.domains.station.enums.BusanSubwayStation;
-
 import java.util.*;
 import java.util.function.Function;
 
@@ -431,16 +430,12 @@ public class TtcParser {
                 currentParsedMessage.addField(def, fieldHex, parsedValue);
                 streamPointer += def.length * 2;
             }
-            
+
             // line 정보 추가 (별도의 FieldDefinition 없이 직접 추가)
             currentParsedMessage.addField(
-                new FieldDefinition("라인 정보", "line", -1, 0, val -> val, "라인 정보"),
-                line, 
-                line
-            );
-            
-            allMessages.add(currentParsedMessage);
+                    new FieldDefinition("라인 정보", "line", -1, 0, val -> val, "라인 정보"), line, line);
 
+            allMessages.add(currentParsedMessage);
         }
         return allMessages;
     }
@@ -504,16 +499,16 @@ public class TtcParser {
                 sb.append("]");
             }
 
-            List<String> fieldsToInclude = List.of(
-                    "opCode",
-                    "arrivalStationCode",
-                    "arrivalStationName",
-                    "trainDirection",
-                    "thisTrainNumber",
-                    "nextTrainNumber",
-                    "timestamp",
-                    "line"
-            );
+            List<String> fieldsToInclude =
+                    List.of(
+                            "opCode",
+                            "arrivalStationCode",
+                            "arrivalStationName",
+                            "trainDirection",
+                            "thisTrainNumber",
+                            "nextTrainNumber",
+                            "timestamp",
+                            "line");
 
             String opCodeHex =
                     Optional.ofNullable(this.fields.get("opCode"))
@@ -579,8 +574,12 @@ public class TtcParser {
             ParsedField minuteField = message.getFields().get("minute");
             ParsedField secondField = message.getFields().get("second");
 
-            if (yearField == null || monthField == null || dayField == null || 
-                hourField == null || minuteField == null || secondField == null) {
+            if (yearField == null
+                    || monthField == null
+                    || dayField == null
+                    || hourField == null
+                    || minuteField == null
+                    || secondField == null) {
                 return null;
             }
 
@@ -597,14 +596,14 @@ public class TtcParser {
                 year = String.valueOf(2000 + yearInt);
             }
 
-            return String.format("%s-%02d-%02d %02d:%02d:%02d",
-                year,
-                Integer.parseInt(month),
-                Integer.parseInt(day),
-                Integer.parseInt(hour),
-                Integer.parseInt(minute),
-                Integer.parseInt(second)
-            );
+            return String.format(
+                    "%s-%02d-%02d %02d:%02d:%02d",
+                    year,
+                    Integer.parseInt(month),
+                    Integer.parseInt(day),
+                    Integer.parseInt(hour),
+                    Integer.parseInt(minute),
+                    Integer.parseInt(second));
         } catch (Exception e) {
             return "타임스탬프 생성 오류: " + e.getMessage();
         }

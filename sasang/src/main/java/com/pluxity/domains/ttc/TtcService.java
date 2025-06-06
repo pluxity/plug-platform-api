@@ -1,24 +1,23 @@
 package com.pluxity.domains.ttc;
 
 import com.pluxity.domains.sse.SseService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class TtcService {
 
-    public static final String LINE_NUMBER = "1"; //TODO: ttcServer에 맞춰서 parse에 해당 라인 정보를 넘겨야함.
+    public static final String LINE_NUMBER = "1"; // TODO: ttcServer에 맞춰서 parse에 해당 라인 정보를 넘겨야함.
     private final SseService sseService;
 
     @Value("${tcp.server1}")
@@ -35,7 +34,8 @@ public class TtcService {
     public String getParsedTtcDataAsJson() {
         log.debug("Fetching and parsing TTC data...");
         try {
-            List<TtcParser.ParsedMessage> parsedMessages = TtcParser.parse(currentHexDataStream, LINE_NUMBER);
+            List<TtcParser.ParsedMessage> parsedMessages =
+                    TtcParser.parse(currentHexDataStream, LINE_NUMBER);
 
             String jsonData =
                     parsedMessages.stream()

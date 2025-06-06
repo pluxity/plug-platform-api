@@ -179,7 +179,7 @@ public class FeatureService {
         // 디바이스 조회 - id로 조회
         Device device = findDeviceById(assignDto.id());
 
-        if( device.getFeature() != null) {
+        if (device.getFeature() != null) {
             throw new CustomException(
                     "Device already assigned to another feature",
                     HttpStatus.BAD_REQUEST,
