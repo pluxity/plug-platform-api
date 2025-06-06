@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/open/events")
+@RequestMapping("/open")
 @RequiredArgsConstructor
-public class EventController {
+public class OpenController {
     private final EventService eventService;
 
     @Operation(summary = "event 생성", description = "event를 생성하고 SSE 클라이언트에 푸시합니다.")
-    @PostMapping
+    @PostMapping("/events")
     public ResponseEntity<String> pushTtcDataToClients(@RequestBody EventDto eventDto) {
         eventService.makeEvent(eventDto);
 

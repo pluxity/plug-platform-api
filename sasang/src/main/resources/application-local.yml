@@ -27,7 +27,6 @@ file:
   local:
     path: C:/Dev/Upload/
   s3:
-    #    endpoint-url: http://127.0.0.1:9000
     external-url-prefix: http://192.168.4.29:9000
     bucket: plug-platform
     region: ap-northeast-2
