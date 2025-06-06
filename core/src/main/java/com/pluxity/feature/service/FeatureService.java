@@ -178,13 +178,10 @@ public class FeatureService {
 
         // 이미 할당된 디바이스가 있는지 확인
         if (feature.getDevice() != null) {
-
-            if (assignDto.id().equals(feature.getDevice().getId())) {
-                throw new CustomException(
-                        "Feature already assigned to another device",
-                        HttpStatus.BAD_REQUEST,
-                        "이미 다른 디바이스가 할당된 피처입니다: " + featureId);
-            }
+            throw new CustomException(
+                    "Feature already assigned to another device",
+                    HttpStatus.BAD_REQUEST,
+                    "이미 다른 디바이스가 할당된 피처입니다: " + featureId);
         }
 
         // 디바이스 조회 - id로 조회
