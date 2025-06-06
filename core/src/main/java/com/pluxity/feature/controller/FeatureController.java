@@ -14,12 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/features")
@@ -173,11 +174,11 @@ public class FeatureController {
                 @ApiResponse(responseCode = "404", description = "피처 또는 에셋을 찾을 수 없음")
             })
     @PutMapping("/{featureId}/assets/{assetId}")
-    public ResponseEntity<FeatureResponse> assignAssetToFeature(
+    public ResponseEntity<Void> assignAssetToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "에셋 ID (Long)", required = true) @PathVariable Long assetId) {
         FeatureResponse response = featureService.assignAssetToFeature(featureId, assetId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 
     // Feature에서 Asset 연결 해제 API
@@ -192,10 +193,10 @@ public class FeatureController {
                 @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
             })
     @DeleteMapping("/{featureId}/assets")
-    public ResponseEntity<FeatureResponse> removeAssetFromFeature(
+    public ResponseEntity<Void> removeAssetFromFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId) {
         FeatureResponse response = featureService.removeAssetFromFeature(featureId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "피처에 디바이스 할당", description = "특정 피처에 디바이스를 할당(연결)합니다.")
@@ -209,12 +210,12 @@ public class FeatureController {
                 @ApiResponse(responseCode = "404", description = "피처 또는 디바이스를 찾을 수 없음")
             })
     @PutMapping("/{featureId}/assign-device")
-    public ResponseEntity<FeatureResponse> assignDeviceToFeature(
+    public ResponseEntity<Void> assignDeviceToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "디바이스 할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
                     FeatureAssignDto assignDto) {
         FeatureResponse response = featureService.assignDeviceToFeature(featureId, assignDto);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "피처에서 디바이스 연결 해제", description = "특정 피처에 할당된 디바이스와의 연결을 해제합니다.")
@@ -228,11 +229,11 @@ public class FeatureController {
                 @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
             })
     @DeleteMapping("/{featureId}/revoke-device")
-    public ResponseEntity<FeatureResponse> removeDeviceFromFeature(
+    public ResponseEntity<Void> removeDeviceFromFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "제거할 디바이스 정보 (id 또는 code)", required = true) @Valid @RequestBody
                     FeatureAssignDto assignDto) {
         FeatureResponse response = featureService.removeDeviceFromFeature(featureId, assignDto);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.noContent().build();
     }
 }
