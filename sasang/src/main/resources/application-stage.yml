@@ -22,18 +22,6 @@ spring:
   flyway:
     enabled: false
 
-file:
-  storage-strategy: ${FILE_STORAGE_STRATEGY:s3}
-  local:
-    path: ${FILE_LOCAL_PATH:/app/upload}
-  s3:
-    endpoint-url: ${S3_ENDPOINT_URL:http://192.168.4.29:9000}
-    bucket: ${S3_BUCKET:plug-platform}
-    region: ${S3_REGION:ap-northeast-2}
-    access-key: ${S3_ACCESS_KEY:pluxity}
-    secret-key: ${S3_SECRET_KEY:pluxity0304}
-    pre-signed-url-expiration: 600
-
 logging:
   level:
     org: INFO
