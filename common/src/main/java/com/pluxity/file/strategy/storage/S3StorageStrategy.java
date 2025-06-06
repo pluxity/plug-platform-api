@@ -1,21 +1,10 @@
 package com.pluxity.file.strategy.storage;
 
-import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
-import static com.pluxity.global.constant.ErrorCode.FAILED_TO_ZIP_FILE;
-
 import com.pluxity.global.config.S3Config;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.FileUtils;
 import com.pluxity.global.utils.UUIDUtils;
 import com.pluxity.global.utils.ZipUtils;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.UUID;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -24,6 +13,18 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
+import static com.pluxity.global.constant.ErrorCode.FAILED_TO_ZIP_FILE;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -34,7 +35,6 @@ public class S3StorageStrategy implements StorageStrategy {
 
     @Override
     public String save(FileProcessingContext context) throws Exception {
-
         String s3Key =
                 "temp/"
                         + UUID.randomUUID()
