@@ -5,12 +5,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/ttc")
@@ -21,13 +19,6 @@ public class TtcController {
 
     private final TtcService ttcDataService;
     private final SseService sseService;
-
-    @Operation(summary = "sse 연결", description = "sse 연결합니다")
-    @GetMapping(path = "/connect-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter connectTtcStream() {
-        log.info("New client requesting SSE connection for TTC data.");
-        return sseService.createEmitter();
-    }
 
     @Operation(summary = "ttc 더미 데이터 생성", description = "ttc 더미 데이터를 생성하고 SSE 클라이언트에 푸시합니다.")
     @GetMapping("/get-ttc-dummy")
