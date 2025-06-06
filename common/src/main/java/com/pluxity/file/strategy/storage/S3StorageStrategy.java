@@ -1,19 +1,13 @@
 package com.pluxity.file.strategy.storage;
 
+import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
+import static com.pluxity.global.constant.ErrorCode.FAILED_TO_ZIP_FILE;
+
 import com.pluxity.global.config.S3Config;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.FileUtils;
 import com.pluxity.global.utils.UUIDUtils;
 import com.pluxity.global.utils.ZipUtils;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,9 +16,14 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.UUID;
 import java.util.stream.Stream;
-
-import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
-import static com.pluxity.global.constant.ErrorCode.FAILED_TO_ZIP_FILE;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @RequiredArgsConstructor
 @Slf4j
