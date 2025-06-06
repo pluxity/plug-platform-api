@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -93,7 +94,7 @@ public class AssetController {
     @PostMapping
     @ResponseCreated(path = "/assets/{id}")
     public ResponseEntity<Long> createAsset(
-            @Parameter(description = "에셋 생성 정보", required = true) @RequestBody
+            @Parameter(description = "에셋 생성 정보", required = true) @RequestBody @Valid
                     AssetCreateRequest request) {
         return ResponseEntity.ok(service.createAsset(request));
     }
@@ -127,7 +128,7 @@ public class AssetController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateAsset(
             @Parameter(description = "에셋 ID", required = true) @PathVariable Long id,
-            @Parameter(description = "에셋 수정 정보", required = true) @RequestBody
+            @Parameter(description = "에셋 수정 정보", required = true) @RequestBody @Valid
                     AssetUpdateRequest request) {
         service.updateAsset(id, request);
         return ResponseEntity.noContent().build();

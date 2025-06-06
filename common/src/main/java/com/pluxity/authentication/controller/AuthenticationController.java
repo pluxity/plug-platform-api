@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,7 +61,7 @@ public class AuthenticationController {
     @ResponseCreated(path = "/users/me")
     @PostMapping("/sign-up")
     public ResponseEntity<Long> signUp(
-            @Parameter(description = "회원가입 정보", required = true) @RequestBody SignUpRequest dto) {
+            @Parameter(description = "회원가입 정보", required = true) @RequestBody @Valid SignUpRequest dto) {
         return ResponseEntity.ok(authenticationService.signUp(dto));
     }
 
@@ -93,7 +94,7 @@ public class AuthenticationController {
     @PostMapping(value = "/sign-in", produces = "application/json")
     @ResponseCreated(path = "/users/me")
     public ResponseEntity<Void> signIn(
-            @Parameter(description = "로그인 정보", required = true) @RequestBody
+            @Parameter(description = "로그인 정보", required = true) @RequestBody @Valid
                     SignInRequest signInRequestDto,
             HttpServletRequest request,
             HttpServletResponse response) {

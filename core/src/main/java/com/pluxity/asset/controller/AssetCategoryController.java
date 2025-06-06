@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -135,7 +136,7 @@ public class AssetCategoryController {
     @PostMapping
     @ResponseCreated(path = "/asset-categories/{id}")
     public ResponseEntity<Long> createAssetCategory(
-            @Parameter(description = "카테고리 생성 정보", required = true) @RequestBody
+            @Parameter(description = "카테고리 생성 정보", required = true) @RequestBody @Valid
                     AssetCategoryCreateRequest request) {
         return ResponseEntity.ok(service.createAssetCategory(request));
     }
@@ -169,7 +170,7 @@ public class AssetCategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateAssetCategory(
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id,
-            @Parameter(description = "카테고리 수정 정보", required = true) @RequestBody
+            @Parameter(description = "카테고리 수정 정보", required = true) @RequestBody @Valid
                     AssetCategoryUpdateRequest request) {
         service.updateAssetCategory(id, request);
         return ResponseEntity.noContent().build();

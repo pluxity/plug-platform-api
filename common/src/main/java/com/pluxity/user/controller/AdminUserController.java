@@ -225,7 +225,7 @@ public class AdminUserController {
     @ResponseCreated(path = "/admin/roles/{id}")
     public ResponseEntity<Long> assignRolesToUser(
             @Parameter(description = "사용자 ID", required = true) @PathVariable("userId") Long userId,
-            @Parameter(description = "할당할 역할 정보", required = true) @RequestBody
+            @Parameter(description = "할당할 역할 정보", required = true) @RequestBody @Valid
                     UserRoleAssignRequest request) {
         return ResponseEntity.ok(service.assignRolesToUser(userId, request).id());
     }
@@ -273,7 +273,8 @@ public class AdminUserController {
     @PatchMapping(value = "/{id}")
     public ResponseEntity<Void> updateUser(
             @Parameter(description = "사용자 ID", required = true) @PathVariable("id") Long id,
-            @Parameter(description = "사용자 수정 정보", required = true) @RequestBody UserUpdateRequest dto) {
+            @Parameter(description = "사용자 수정 정보", required = true) @RequestBody @Valid
+                    UserUpdateRequest dto) {
         service.update(id, dto);
         return ResponseEntity.noContent().build();
     }

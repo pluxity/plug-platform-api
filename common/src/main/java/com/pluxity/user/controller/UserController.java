@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -79,7 +80,8 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<Void> updateUser(
             Authentication authentication,
-            @Parameter(description = "사용자 수정 정보", required = true) @RequestBody UserUpdateRequest dto) {
+            @Parameter(description = "사용자 수정 정보", required = true) @RequestBody @Valid
+                    UserUpdateRequest dto) {
         Long id = service.findByUsername(authentication.getName()).id();
         service.update(id, dto);
         return ResponseEntity.noContent().build();
