@@ -45,6 +45,7 @@ cloud:
         static: ${S3_REGION:ap-northeast-2} # MinIO는 리전이 중요하지 않으나 SDK는 요구
       path-style-access-enabled: true      # MinIO 사용 시 true 권장
 
+
 logging:
   level:
     org: INFO
