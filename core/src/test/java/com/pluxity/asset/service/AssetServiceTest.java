@@ -17,7 +17,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -411,7 +410,7 @@ class AssetServiceTest {
         );
 
         // when & then
-        assertThrows(DataIntegrityViolationException.class, () -> assetService.createAsset(duplicateRequest));
+        assertThrows(CustomException.class, () -> assetService.createAsset(duplicateRequest));
     }
 
     @Test

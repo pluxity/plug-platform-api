@@ -98,6 +98,8 @@ public class AssetService {
 
     @Transactional
     public Long createAsset(@Valid AssetCreateRequest request) {
+        createValidation(request);
+
         Asset asset = Asset.create(request);
 
         if (request.categoryId() != null) {
@@ -131,16 +133,32 @@ public class AssetService {
         return savedAsset.getId();
     }
 
+    private void createValidation(AssetCreateRequest request) {
+        assetRepository
+                .findByName(request.name())
+                .ifPresent(
+                        asset -> {
+                            throw new CustomException(
+                                    "Asset Already Exists",
+                                    HttpStatus.BAD_REQUEST,
+                                    String.format("이름이 %s인 에셋이 이미 존재합니다", request.name()));
+                        });
+        assetRepository
+                .findByCode(request.code())
+                .ifPresent(
+                        asset -> {
+                            throw new CustomException(
+                                    "Code Already Exists",
+                                    HttpStatus.BAD_REQUEST,
+                                    String.format("코드가 %s인 에셋이 이미 존재합니다", request.code()));
+                        });
+    }
+
     @Transactional
     public void updateAsset(Long id, @Valid AssetUpdateRequest request) {
-        Asset asset = findById(id);
 
-        if (assetRepository.existsByCodeAndIdNot(request.code(), asset.getId())) {
-            throw new CustomException(
-                    "Code Already Exists",
-                    HttpStatus.BAD_REQUEST,
-                    String.format("코드가 %s인 에셋이 이미 존재합니다", request.code()));
-        }
+        updateValidation(id, request);
+        Asset asset = findById(id);
 
         asset.update(request);
 
@@ -168,6 +186,27 @@ public class AssetService {
                     fileService.finalizeUpload(request.thumbnailFileId(), asset.getThumbnailFilePath());
             asset.updateThumbnailFileEntity(thumbnailEntity);
         }
+    }
+
+    private void updateValidation(Long id, AssetUpdateRequest request) {
+        assetRepository
+                .findByNameAndIdNot(request.name(), id)
+                .ifPresent(
+                        asset -> {
+                            throw new CustomException(
+                                    "Asset Already Exists",
+                                    HttpStatus.BAD_REQUEST,
+                                    String.format("이름이 %s인 에셋이 이미 존재합니다", request.name()));
+                        });
+        assetRepository
+                .findByCodeAndIdNot(request.code(), id)
+                .ifPresent(
+                        asset -> {
+                            throw new CustomException(
+                                    "Code Already Exists",
+                                    HttpStatus.BAD_REQUEST,
+                                    String.format("코드가 %s인 에셋이 이미 존재합니다", request.code()));
+                        });
     }
 
     @Transactional

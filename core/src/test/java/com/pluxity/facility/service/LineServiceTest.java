@@ -1,12 +1,12 @@
 package com.pluxity.facility.service;
 
+import com.pluxity.facility.line.Line;
+import com.pluxity.facility.line.LineRepository;
 import com.pluxity.facility.line.LineService;
 import com.pluxity.facility.line.dto.LineCreateRequest;
 import com.pluxity.facility.line.dto.LineResponse;
-import com.pluxity.facility.line.Line;
 import com.pluxity.facility.line.dto.LineUpdateRequest;
 import com.pluxity.facility.station.Station;
-import com.pluxity.facility.line.LineRepository;
 import com.pluxity.facility.station.StationRepository;
 import com.pluxity.facility.station.StationService;
 import com.pluxity.global.exception.CustomException;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -109,7 +108,7 @@ class LineServiceTest {
         
         // when & then
         // 현재 구현에서는 중복 검사가 없으므로 성공해야 함
-        assertThrows(DataIntegrityViolationException.class, () -> lineService.save(duplicateNameRequest));
+        assertThrows(CustomException.class, () -> lineService.save(duplicateNameRequest));
 //        Long id2 = lineService.save(duplicateNameRequest);
 //        assertThat(id2).isNotNull();
 //        assertThat(id2).isNotEqualTo(id1);

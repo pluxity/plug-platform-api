@@ -14,4 +14,10 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
     Optional<Asset> findByCode(String code);
 
     boolean existsByCodeAndIdNot(String code, Long id);
+
+    Optional<Asset> findByName(String name);
+
+    Optional<Asset> findByNameAndIdNot(String name, Long id);
+
+    Optional<Asset> findByCodeAndIdNot(String code, Long id);
 }

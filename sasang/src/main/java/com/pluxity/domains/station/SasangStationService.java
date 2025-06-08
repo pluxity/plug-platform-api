@@ -42,6 +42,8 @@ public class SasangStationService {
 
     @Transactional
     public Long save(SasangStationCreateRequest request) {
+        createValidation(request);
+
         SasangStation sasangStation =
                 SasangStation.sasangStationBuilder()
                         .name(request.facility().name())
@@ -76,6 +78,27 @@ public class SasangStationService {
         return saved.getId();
     }
 
+    private void createValidation(SasangStationCreateRequest request) {
+        sasangStationRepository
+                .findByCode(request.facility().code())
+                .ifPresent(
+                        station -> {
+                            throw new CustomException(
+                                    "Station Name Already Exists",
+                                    HttpStatus.BAD_REQUEST,
+                                    String.format("이름이 %s인 역사가 이미 존재합니다", request.facility().name()));
+                        });
+        sasangStationRepository
+                .findByName(request.facility().name())
+                .ifPresent(
+                        station -> {
+                            throw new CustomException(
+                                    "Station Code Already Exists",
+                                    HttpStatus.BAD_REQUEST,
+                                    String.format("코드가 %s인 역사가 이미 존재합니다", request.facility().code()));
+                        });
+    }
+
     @Transactional(readOnly = true)
     public List<SasangStationResponse> findAll() {
         return sasangStationRepository.findAll().stream()
@@ -106,6 +129,7 @@ public class SasangStationService {
 
     @Transactional
     public void update(Long id, SasangStationUpdateRequest request) {
+        updateValidation(id, request);
         SasangStation sasangStation = findSasangStationById(id);
 
         // 기본 Station 정보 업데이트
@@ -124,6 +148,27 @@ public class SasangStationService {
         if (request.externalCode() != null) {
             sasangStation.updateExternalCode(request.externalCode());
         }
+    }
+
+    private void updateValidation(Long id, SasangStationUpdateRequest request) {
+        sasangStationRepository
+                .findByNameAndIdNot(request.name(), id)
+                .ifPresent(
+                        station -> {
+                            throw new CustomException(
+                                    "Station Name Already Exists",
+                                    HttpStatus.BAD_REQUEST,
+                                    String.format("이름이 %s인 역사가 이미 존재합니다", request.name()));
+                        });
+        // FIXME: request 바꾸고 진행
+        //        sasangStationRepository.findByCodeAndIdNot(request.code(), id)
+        //                .ifPresent(
+        //                        station -> {
+        //                            throw new CustomException(
+        //                                    "Station Code Already Exists",
+        //                                    HttpStatus.BAD_REQUEST,
+        //                                    String.format("코드가 %s인 역사가 이미 존재합니다", request.code()));
+        //                        });
     }
 
     @Transactional

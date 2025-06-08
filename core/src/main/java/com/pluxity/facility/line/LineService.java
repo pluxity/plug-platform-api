@@ -32,6 +32,13 @@ public class LineService {
 
     @Transactional
     public Long save(LineCreateRequest request) {
+        lineRepository
+                .findByName(request.name())
+                .ifPresent(
+                        line -> {
+                            throw new CustomException(
+                                    "Line already exists", HttpStatus.BAD_REQUEST, "이미 존재하는 호선입니다.");
+                        });
         Line line = Line.builder().name(request.name()).color(request.color()).build();
         return lineRepository.save(line).getId();
     }

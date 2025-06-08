@@ -9,4 +9,10 @@ public interface SasangStationRepository extends JpaRepository<SasangStation, Lo
     Optional<SasangStation> findByExternalCode(String externalCode);
 
     Optional<SasangStation> findByCode(String code);
+
+    Optional<SasangStation> findByName(String name);
+
+    Optional<SasangStation> findByNameAndIdNot(String name, Long id);
+
+    Optional<SasangStation> findByCodeAndIdNot(String code, Long id);
 }
