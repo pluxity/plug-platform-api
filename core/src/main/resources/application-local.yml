@@ -31,12 +31,14 @@ file:
     path: C:/Dev/Upload/
   s3:
 #    endpoint-url: http://127.0.0.1:9000
-    external-url-prefix: ${S3_ENDPOINT_URL:http://192.168.4.29:9000}
+    endpoint-url: ${S3_ENDPOINT_URL:http://192.168.4.29:9000}
+    public-url: ${S3_PUBLIC_URL:http://192.168.4.29:9000}
     bucket: plug-platform
     region: ap-northeast-2
     access-key: pluxity
     secret-key: pluxity0304
     pre-signed-url-expiration: 600
+
 
 logging:
   level:

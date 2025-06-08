@@ -27,24 +27,13 @@ file:
   local:
     path: ${FILE_LOCAL_PATH:/app/upload}
   s3:
-    external-url-prefix: http://192.168.4.29:9000
+    endpoint-url: http://192.168.4.29:9000
+    public-url: http://plug-platform.com:9000
     bucket: ${S3_BUCKET:plug-platform}
     region: ${S3_REGION:ap-northeast-2}
     access-key: ${S3_ACCESS_KEY:pluxity}
     secret-key: ${S3_SECRET_KEY:pluxity0304}
     pre-signed-url-expiration: 600
-
-cloud:
-  aws:
-    s3:
-      endpoint: http://192.168.4.29:9000
-      credentials:
-        access-key: ${S3_ACCESS_KEY:pluxity}
-        secret-key: ${S3_SECRET_KEY:pluxity0304}
-      region:
-        static: ${S3_REGION:ap-northeast-2} # MinIO는 리전이 중요하지 않으나 SDK는 요구
-      path-style-access-enabled: true      # MinIO 사용 시 true 권장
-
 
 logging:
   level:

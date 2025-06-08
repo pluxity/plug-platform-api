@@ -46,8 +46,8 @@ public class FileService {
     @Value("${file.s3.bucket}")
     private String bucket;
 
-    @Value("${file.s3.external-url-prefix}")
-    private String externalFileUrlPrefix;
+    @Value("${file.s3.public-url}")
+    private String publicUrl;
 
     // TODO: PreSigned URL 생성 시 추가 로직 필요 (예: Drawing / ID 등)
     public String generatePreSignedUrl(String s3Key) {
@@ -165,8 +165,7 @@ public class FileService {
         String url =
                 "local".equals(storageStrategyType)
                         ? "/files/" + fileEntity.getFilePath()
-                        //                        : this.generatePreSignedUrl(fileEntity.getFilePath());
-                        : externalFileUrlPrefix + "/" + bucket + "/" + fileEntity.getFilePath();
+                        : publicUrl + "/" + bucket + "/" + fileEntity.getFilePath();
 
         return FileResponse.builder()
                 .id(fileEntity.getId())
