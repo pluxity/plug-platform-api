@@ -22,10 +22,10 @@ public class Station extends Facility {
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<StationLine> stationLines = new ArrayList<>();
 
-    @Column(name = "route")
+    @Column(name = "route", columnDefinition = "text")
     private String route;
 
-    @Column(name = "subway")
+    @Column(name = "subway", columnDefinition = "text")
     private String subway;
 
     @Builder

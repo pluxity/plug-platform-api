@@ -40,4 +40,9 @@ logging:
     org: INFO
     com: INFO
     root: INFO
+    # SQL 쿼리를 보여주는 로거
+    org.hibernate.SQL: DEBUG
+    # 바인딩되는 파라미터(?에 들어가는 값)를 보여주는 로거
+    org.hibernate.orm.jdbc.bind: TRACE
+
 
