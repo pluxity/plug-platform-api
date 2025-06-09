@@ -8,5 +8,4 @@ public record SasangStationCreateRequest(
         FacilityCreateRequest facility,
         List<FloorRequest> floors,
         List<Long> lineIds,
-        String route,
         String externalCode) {}

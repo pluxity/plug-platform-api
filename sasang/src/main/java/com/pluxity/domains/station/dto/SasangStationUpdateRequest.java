@@ -8,5 +8,4 @@ public record SasangStationUpdateRequest(
         FacilityUpdateRequest facility,
         List<FloorRequest> floors,
         List<Long> lineIds,
-        String route,
         String externalCode) {}

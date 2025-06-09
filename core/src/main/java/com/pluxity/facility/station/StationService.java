@@ -42,7 +42,6 @@ public class StationService {
                 Station.builder()
                         .name(request.facility().name())
                         .description(request.facility().description())
-                        .route(request.route())
                         .build();
 
         Facility saved = facilityService.save(station, request.facility());
@@ -140,10 +139,6 @@ public class StationService {
         facilityService.update(id, request.facility());
 
         // 추가 정보 업데이트
-        if (request.route() != null) {
-            station.updateRoute(request.route());
-        }
-
         if (request.floors() != null) {
             floorStrategy.delete(station);
             for (FloorRequest floorRequest : request.floors()) {

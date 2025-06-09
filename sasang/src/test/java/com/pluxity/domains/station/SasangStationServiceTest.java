@@ -114,7 +114,6 @@ class SasangStationServiceTest {
                 facilityRequest,
                 floorRequests,
                 Collections.emptyList(),
-                "{\"name\": \"route\"}",
                 "EXT001"
         );
 
@@ -208,7 +207,6 @@ class SasangStationServiceTest {
                 ),
                 Collections.singletonList(new FloorRequest("수정된 층", "1")),
                 Collections.emptyList(),
-                "{\"name\": \"수정된 경로\"}",
                 "EXT002"
         );
 
@@ -335,7 +333,6 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "{\"name\": \"route2\"}",
                     "EXT002"
             );
             Long station2Id = sasangStationService.save(request2);
@@ -430,7 +427,6 @@ class SasangStationServiceTest {
                 createRequest.facility(),
                 createRequest.floors(),
                 lineIds,
-                createRequest.route(),
                 "EXT003"
         );
         
@@ -459,7 +455,6 @@ class SasangStationServiceTest {
                 facilityRequestWithDrawingOnly,
                 createRequest.floors(),
                 Collections.emptyList(),
-                createRequest.route(),
                 "EXT004"
         );
         
@@ -488,7 +483,6 @@ class SasangStationServiceTest {
                 facilityRequestWithThumbnailOnly,
                 createRequest.floors(),
                 Collections.emptyList(),
-                createRequest.route(),
                 "EXT005"
         );
         
@@ -517,7 +511,6 @@ class SasangStationServiceTest {
                 facilityRequestWithoutFiles,
                 createRequest.floors(),
                 Collections.emptyList(),
-                createRequest.route(),
                 "EXT006"
         );
         
@@ -548,7 +541,6 @@ class SasangStationServiceTest {
                 facilityRequestWithInvalidFiles,
                 createRequest.floors(),
                 Collections.emptyList(),
-                createRequest.route(),
                 "EXT007"
         );
         
@@ -579,7 +571,6 @@ class SasangStationServiceTest {
                 createRequest.facility(),
                 multipleFloors,
                 Collections.emptyList(),
-                createRequest.route(),
                 "EXT008"
         );
         
@@ -601,7 +592,6 @@ class SasangStationServiceTest {
                 createRequest.facility(),
                 null,
                 Collections.emptyList(),
-                createRequest.route(),
                 "EXT009"
         );
         
@@ -621,7 +611,6 @@ class SasangStationServiceTest {
                 createRequest.facility(),
                 createRequest.floors(),
                 Collections.emptyList(),
-                createRequest.route(),
                 null
         );
         
@@ -641,7 +630,6 @@ class SasangStationServiceTest {
                 createRequest.facility(),
                 createRequest.floors(),
                 Collections.emptyList(),
-                createRequest.route(),
                 ""
         );
         
@@ -661,7 +649,6 @@ class SasangStationServiceTest {
                 createRequest.facility(),
                 createRequest.floors(),
                 Collections.emptyList(),
-                null,
                 "EXT010"
         );
         
@@ -691,7 +678,6 @@ class SasangStationServiceTest {
                 ),
                 Collections.singletonList(new FloorRequest("업데이트 층", "1")),
                 Collections.emptyList(),
-                "{\"name\": \"updated-route\"}",
                 "EXT011"
         );
         
@@ -756,7 +742,6 @@ class SasangStationServiceTest {
                 ),
                 createRequest.floors(),
                 Collections.emptyList(),
-                createRequest.route(),
                 duplicateExternalCode
         );
         Long station1Id = sasangStationService.save(request1);
@@ -772,7 +757,6 @@ class SasangStationServiceTest {
                 ),
                 createRequest.floors(),
                 Collections.emptyList(),
-                createRequest.route(),
                 duplicateExternalCode
         );
         
@@ -818,8 +802,7 @@ class SasangStationServiceTest {
                 ),
                 floorRequests, // 기존 층 유지
                 originalResponse.lineIds(), // 기존 노선 유지
-                originalResponse.route(), // 기존 경로 유지
-                originalResponse.externalCode() // 기존 외부 코드 유지
+                originalResponse.route() // 기존 경로 유지
         );
         
         // when
@@ -856,7 +839,6 @@ class SasangStationServiceTest {
                 ),
                 floorRequests, // 기존 층 유지
                 originalResponse.lineIds(), // 기존 노선 유지
-                originalResponse.route(), // 기존 경로 유지
                 originalResponse.externalCode() // 기존 외부 코드 유지
         );
         
@@ -894,7 +876,6 @@ class SasangStationServiceTest {
                 ),
                 floorRequests, // 기존 층 유지
                 originalResponse.lineIds(), // 기존 노선 유지
-                originalResponse.route(), // 기존 경로 유지
                 "UPDATED_EXT"
         );
         
@@ -947,7 +928,6 @@ class SasangStationServiceTest {
                 ),
                 floorRequests,
                 createdStation.lineIds(),
-                createdStation.route(),
                 createdStation.externalCode()
         );
         sasangStationService.update(stationId, nameUpdateRequest);
@@ -972,7 +952,6 @@ class SasangStationServiceTest {
                 ),
                 floorRequests2,
                 nameUpdatedStation.lineIds(),
-                nameUpdatedStation.route(),
                 nameUpdatedStation.externalCode()
         );
         sasangStationService.update(stationId, descriptionUpdateRequest);
@@ -997,7 +976,6 @@ class SasangStationServiceTest {
                 ),
                 floorRequests3,
                 descriptionUpdatedStation.lineIds(),
-                descriptionUpdatedStation.route(),
                 "LIFECYCLE_EXT"
         );
         sasangStationService.update(stationId, externalCodeUpdateRequest);
@@ -1046,7 +1024,6 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "{\"name\": \"child-route\"}",
                     "CHILD_EXT001"
             );
             
@@ -1212,7 +1189,6 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "{\"name\": \"root1-route\"}",
                     "ROOT_EXT001"
             );
             Long rootId1 = sasangStationService.save(rootRequest1);
@@ -1230,7 +1206,6 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "{\"name\": \"root2-route\"}",
                     "ROOT_EXT002"
             );
             Long rootId2 = sasangStationService.save(rootRequest2);
@@ -1248,7 +1223,6 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "{\"name\": \"child1-route\"}",
                     "CHILD_EXT003"
             );
             Long childId1 = sasangStationService.save(childRequest1);
@@ -1266,7 +1240,6 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "{\"name\": \"child2-route\"}",
                     "CHILD_EXT004"
             );
             Long childId2 = sasangStationService.save(childRequest2);
@@ -1340,7 +1313,6 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "{\"name\": \"child-route\"}",
                     "CHILD_EXT005"
             );
             

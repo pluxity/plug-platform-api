@@ -48,7 +48,6 @@ public class SasangStationService {
                 SasangStation.sasangStationBuilder()
                         .name(request.facility().name())
                         .description(request.facility().description())
-                        .route(request.route())
                         .externalCode(request.externalCode())
                         .build();
 
@@ -135,9 +134,7 @@ public class SasangStationService {
         // 기본 Station 정보 업데이트
         if (request != null) {
             stationService.update(
-                    id,
-                    new StationUpdateRequest(
-                            request.facility(), request.floors(), request.lineIds(), request.route()));
+                    id, new StationUpdateRequest(request.facility(), request.floors(), request.lineIds()));
         }
 
         // SasangStation 고유 필드 업데이트
