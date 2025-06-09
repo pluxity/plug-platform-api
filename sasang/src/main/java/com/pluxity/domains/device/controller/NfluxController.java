@@ -128,7 +128,7 @@ public class NfluxController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<DataResponseBody<NfluxResponse>> update(
             @Parameter(description = "디바이스 ID", required = true) @PathVariable String id,
             @Parameter(description = "디바이스 수정 정보", required = true) @Valid @RequestBody
