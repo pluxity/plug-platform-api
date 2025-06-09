@@ -29,7 +29,7 @@ public class Station extends Facility {
     private String route;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "subway", columnDefinition = "subway")
+    @Column(name = "subway", columnDefinition = "jsonb")
     private String subway;
 
     @Builder

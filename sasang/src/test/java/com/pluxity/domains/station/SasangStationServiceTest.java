@@ -114,7 +114,7 @@ class SasangStationServiceTest {
                 facilityRequest,
                 floorRequests,
                 Collections.emptyList(),
-                "route",
+                "{\"name\": \"route\"}",
                 "EXT001"
         );
 
@@ -208,7 +208,7 @@ class SasangStationServiceTest {
                 ),
                 Collections.singletonList(new FloorRequest("수정된 층", "1")),
                 Collections.emptyList(),
-                "수정된 경로",
+                "{\"name\": \"수정된 경로\"}",
                 "EXT002"
         );
 
@@ -335,7 +335,7 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "route2",
+                    "{\"name\": \"route2\"}",
                     "EXT002"
             );
             Long station2Id = sasangStationService.save(request2);
@@ -691,7 +691,7 @@ class SasangStationServiceTest {
                 ),
                 Collections.singletonList(new FloorRequest("업데이트 층", "1")),
                 Collections.emptyList(),
-                "updated-route",
+                "{\"name\": \"updated-route\"}",
                 "EXT011"
         );
         
@@ -1046,7 +1046,7 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "child-route",
+                    "{\"name\": \"child-route\"}",
                     "CHILD_EXT001"
             );
             
@@ -1212,7 +1212,7 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "root1-route",
+                    "{\"name\": \"root1-route\"}",
                     "ROOT_EXT001"
             );
             Long rootId1 = sasangStationService.save(rootRequest1);
@@ -1230,7 +1230,7 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "root2-route",
+                    "{\"name\": \"root2-route\"}",
                     "ROOT_EXT002"
             );
             Long rootId2 = sasangStationService.save(rootRequest2);
@@ -1248,7 +1248,7 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "child1-route",
+                    "{\"name\": \"child1-route\"}",
                     "CHILD_EXT003"
             );
             Long childId1 = sasangStationService.save(childRequest1);
@@ -1266,7 +1266,7 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "child2-route",
+                    "{\"name\": \"child2-route\"}",
                     "CHILD_EXT004"
             );
             Long childId2 = sasangStationService.save(childRequest2);
@@ -1340,7 +1340,7 @@ class SasangStationServiceTest {
                     ),
                     Collections.singletonList(new FloorRequest("1층", "1")),
                     Collections.emptyList(),
-                    "child-route",
+                    "{\"name\": \"child-route\"}",
                     "CHILD_EXT005"
             );
             
