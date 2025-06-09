@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.domain.Persistable;
 
 @Entity
 @Table(name = "device")
@@ -14,7 +13,7 @@ import org.springframework.data.domain.Persistable;
 @DiscriminatorColumn(name = "device_type")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class Device extends BaseEntity implements Persistable<String> {
+public abstract class Device extends BaseEntity {
 
     @Id private String id;
 
@@ -36,16 +35,6 @@ public abstract class Device extends BaseEntity implements Persistable<String> {
         if (this.category != null) {
             this.category.addDevice(this);
         }
-    }
-
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public boolean isNew() {
-        return getCreatedAt() == null;
     }
 
     public void changeFeature(Feature feature) {
