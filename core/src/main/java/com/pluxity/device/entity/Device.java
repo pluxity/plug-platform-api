@@ -26,8 +26,6 @@ public abstract class Device extends BaseEntity implements Persistable<String> {
     @JoinColumn(name = "category_id")
     private DeviceCategory category;
 
-    @Transient private boolean isNew = true;
-
     protected Device(String id, Feature feature, DeviceCategory category) {
         this.id = id;
         this.feature = feature;
@@ -38,7 +36,6 @@ public abstract class Device extends BaseEntity implements Persistable<String> {
         if (this.category != null) {
             this.category.addDevice(this);
         }
-        this.isNew = true;
     }
 
     @Override
@@ -48,13 +45,7 @@ public abstract class Device extends BaseEntity implements Persistable<String> {
 
     @Override
     public boolean isNew() {
-        return this.isNew;
-    }
-
-    @PostPersist
-    @PostLoad
-    void markNotNew() {
-        this.isNew = false;
+        return getCreatedAt() == null;
     }
 
     public void changeFeature(Feature feature) {
