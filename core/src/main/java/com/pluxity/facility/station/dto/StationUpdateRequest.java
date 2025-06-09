@@ -1,17 +1,8 @@
 package com.pluxity.facility.station.dto;
 
+import com.pluxity.facility.facility.dto.FacilityUpdateRequest;
+import com.pluxity.facility.floor.dto.FloorRequest;
 import java.util.List;
 
 public record StationUpdateRequest(
-        String name,
-        String description,
-        Long drawingFileId,
-        Long thumbnailFileId,
-        List<Long> lineIds,
-        String route) {
-
-    public static StationUpdateRequest of(
-            String name, String description, Long thumbnailFileId, List<Long> lineIds, String route) {
-        return new StationUpdateRequest(name, description, null, thumbnailFileId, lineIds, route);
-    }
-}
+        FacilityUpdateRequest facility, List<FloorRequest> floors, List<Long> lineIds, String route) {}

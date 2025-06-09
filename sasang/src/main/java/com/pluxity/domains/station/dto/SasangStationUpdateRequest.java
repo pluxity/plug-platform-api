@@ -1,12 +1,12 @@
 package com.pluxity.domains.station.dto;
 
+import com.pluxity.facility.facility.dto.FacilityUpdateRequest;
+import com.pluxity.facility.floor.dto.FloorRequest;
 import java.util.List;
 
 public record SasangStationUpdateRequest(
-        String name,
-        String description,
-        Long drawingFileId,
-        Long thumbnailFileId,
+        FacilityUpdateRequest facility,
+        List<FloorRequest> floors,
         List<Long> lineIds,
         String route,
         String externalCode) {}

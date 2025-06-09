@@ -7,6 +7,7 @@ import com.pluxity.domains.station.dto.SasangStationUpdateRequest;
 import com.pluxity.facility.facility.FacilityService;
 import com.pluxity.facility.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.facility.dto.FacilityUpdateRequest;
 import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.line.Line;
 import com.pluxity.facility.line.LineRepository;
@@ -190,15 +191,22 @@ class SasangStationServiceTest {
 
     @Test
     @DisplayName("유효한 요청으로 사상역 정보 수정 시 사상역 정보가 업데이트된다")
-    void update_WithValidRequest_UpdatesSasangStation() {
+    void update_WithValidRequest_UpdatesSasangStation() throws IOException {
         // given
         Long id = sasangStationService.save(createRequest);
+        SasangStationResponse originalResponse = sasangStationService.findById(id);
 
+        // 새로운 파일 ID 생성
+        Pair<Long, Long> newFileIds = createNewFileIds("update-valid");
+        
         SasangStationUpdateRequest updateRequest = new SasangStationUpdateRequest(
-                "수정된 사상역",
-                "수정된 사상역 설명",
-                drawingFileId,
-                thumbnailFileId,
+                new FacilityUpdateRequest(
+                        "수정된 사상역",  // 다른 이름 사용
+                        "ST001U", // 다른 코드 사용 (10자 이내)  
+                        "수정된 사상역 설명",
+                        newFileIds.getSecond() // 새로운 썸네일 파일 ID 사용
+                ),
+                Collections.singletonList(new FloorRequest("수정된 층", "1")),
                 Collections.emptyList(),
                 "수정된 경로",
                 "EXT002"
@@ -666,33 +674,22 @@ class SasangStationServiceTest {
     }
     
     @Test
-    @DisplayName("NULL 요청으로 사상역 업데이트 테스트")
-    void update_WithNullRequest_UpdatesSasangStation() {
-        // given
-        Long stationId = sasangStationService.save(createRequest);
-        SasangStationResponse originalResponse = sasangStationService.findById(stationId);
-        
-        // when
-        assertThrows(NullPointerException.class, () -> sasangStationService.update(stationId, null));
-        
-        // then
-//        SasangStationResponse updatedResponse = sasangStationService.findById(stationId);
-        // NULL 요청으로 업데이트하면 아무 것도 변경되지 않아야 함
-//        assertThat(updatedResponse.facility().name()).isEqualTo(originalResponse.facility().name());
-//        assertThat(updatedResponse.facility().description()).isEqualTo(originalResponse.facility().description());
-//        assertThat(updatedResponse.externalCode()).isEqualTo(originalResponse.externalCode());
-    }
-    
-    @Test
     @DisplayName("존재하지 않는 ID로 사상역 업데이트 시 예외가 발생한다")
-    void update_WithNonExistingId_ThrowsCustomException() {
+    void update_WithNonExistingId_ThrowsCustomException() throws IOException {
         // given
         Long nonExistingId = 9999L;
+        
+        // 새로운 파일 ID 생성
+        Pair<Long, Long> newFileIds = createNewFileIds("update-nonexisting");
+        
         SasangStationUpdateRequest updateRequest = new SasangStationUpdateRequest(
-                "업데이트 사상역",
-                "업데이트 사상역 설명",
-                drawingFileId,
-                thumbnailFileId,
+                new FacilityUpdateRequest(
+                        "업데이트 사상역",
+                        "ST999",
+                        "업데이트 사상역 설명",
+                        newFileIds.getSecond()
+                ),
+                Collections.singletonList(new FloorRequest("업데이트 층", "1")),
                 Collections.emptyList(),
                 "updated-route",
                 "EXT011"
@@ -799,19 +796,30 @@ class SasangStationServiceTest {
     
     @Test
     @DisplayName("부분 업데이트 테스트 - 이름만 변경")
-    void update_WithNameOnly_UpdatesOnlyName() {
+    void update_WithNameOnly_UpdatesOnlyName() throws IOException {
         // given
         Long stationId = sasangStationService.save(createRequest);
         SasangStationResponse originalResponse = sasangStationService.findById(stationId);
         
+        // FloorResponse를 FloorRequest로 변환
+        List<FloorRequest> floorRequests = originalResponse.floors().stream()
+                .map(floor -> new FloorRequest(floor.name(), floor.floorId()))
+                .toList();
+        
+        // 새로운 파일 ID 생성
+        Pair<Long, Long> newFileIds = createNewFileIds("update-name");
+        
         SasangStationUpdateRequest nameOnlyRequest = new SasangStationUpdateRequest(
-                "이름만 변경된 사상역",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                new FacilityUpdateRequest(
+                        "이름만 변경된 사상역",
+                        originalResponse.facility().code(), // 기존 코드 유지
+                        originalResponse.facility().description(), // 기존 설명 유지
+                        newFileIds.getSecond() // 새로운 썸네일 파일 ID 사용
+                ),
+                floorRequests, // 기존 층 유지
+                originalResponse.lineIds(), // 기존 노선 유지
+                originalResponse.route(), // 기존 경로 유지
+                originalResponse.externalCode() // 기존 외부 코드 유지
         );
         
         // when
@@ -826,19 +834,30 @@ class SasangStationServiceTest {
     
     @Test
     @DisplayName("부분 업데이트 테스트 - 설명만 변경")
-    void update_WithDescriptionOnly_UpdatesOnlyDescription() {
+    void update_WithDescriptionOnly_UpdatesOnlyDescription() throws IOException {
         // given
         Long stationId = sasangStationService.save(createRequest);
         SasangStationResponse originalResponse = sasangStationService.findById(stationId);
         
+        // FloorResponse를 FloorRequest로 변환
+        List<FloorRequest> floorRequests = originalResponse.floors().stream()
+                .map(floor -> new FloorRequest(floor.name(), floor.floorId()))
+                .toList();
+        
+        // 새로운 파일 ID 생성
+        Pair<Long, Long> newFileIds = createNewFileIds("update-desc");
+        
         SasangStationUpdateRequest descriptionOnlyRequest = new SasangStationUpdateRequest(
-                null,
-                "설명만 변경된 사상역 설명",
-                null,
-                null,
-                null,
-                null,
-                null
+                new FacilityUpdateRequest(
+                        originalResponse.facility().name(), // 기존 이름 유지
+                        originalResponse.facility().code(), // 기존 코드 유지
+                        "설명만 변경된 사상역 설명",
+                        newFileIds.getSecond() // 새로운 썸네일 파일 ID 사용
+                ),
+                floorRequests, // 기존 층 유지
+                originalResponse.lineIds(), // 기존 노선 유지
+                originalResponse.route(), // 기존 경로 유지
+                originalResponse.externalCode() // 기존 외부 코드 유지
         );
         
         // when
@@ -853,18 +872,29 @@ class SasangStationServiceTest {
     
     @Test
     @DisplayName("부분 업데이트 테스트 - 외부 코드만 변경")
-    void update_WithExternalCodeOnly_UpdatesOnlyExternalCode() {
+    void update_WithExternalCodeOnly_UpdatesOnlyExternalCode() throws IOException {
         // given
         Long stationId = sasangStationService.save(createRequest);
         SasangStationResponse originalResponse = sasangStationService.findById(stationId);
         
+        // FloorResponse를 FloorRequest로 변환
+        List<FloorRequest> floorRequests = originalResponse.floors().stream()
+                .map(floor -> new FloorRequest(floor.name(), floor.floorId()))
+                .toList();
+        
+        // 새로운 파일 ID 생성
+        Pair<Long, Long> newFileIds = createNewFileIds("update-external");
+        
         SasangStationUpdateRequest externalCodeOnlyRequest = new SasangStationUpdateRequest(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
+                new FacilityUpdateRequest(
+                        originalResponse.facility().name(), // 기존 이름 유지
+                        originalResponse.facility().code(), // 기존 코드 유지
+                        originalResponse.facility().description(), // 기존 설명 유지
+                        newFileIds.getSecond() // 새로운 썸네일 파일 ID 사용
+                ),
+                floorRequests, // 기존 층 유지
+                originalResponse.lineIds(), // 기존 노선 유지
+                originalResponse.route(), // 기존 경로 유지
                 "UPDATED_EXT"
         );
         
@@ -894,21 +924,31 @@ class SasangStationServiceTest {
     
     @Test
     @DisplayName("사상역 생성-업데이트-삭제 전체 라이프사이클 테스트")
-    void stationLifecycleTest() {
+    void stationLifecycleTest() throws IOException {
         // 1. 사상역 생성
         Long stationId = sasangStationService.save(createRequest);
         SasangStationResponse createdStation = sasangStationService.findById(stationId);
         assertThat(createdStation.facility().name()).isEqualTo("테스트 사상역");
         
         // 2. 사상역 업데이트 - 이름만
+        List<FloorRequest> floorRequests = createdStation.floors().stream()
+                .map(floor -> new FloorRequest(floor.name(), floor.floorId()))
+                .toList();
+        
+        // 새로운 파일 ID 생성
+        Pair<Long, Long> newFileIds1 = createNewFileIds("lifecycle-name");
+        
         SasangStationUpdateRequest nameUpdateRequest = new SasangStationUpdateRequest(
-                "이름 변경",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                new FacilityUpdateRequest(
+                        "이름 변경",
+                        createdStation.facility().code(),
+                        createdStation.facility().description(),
+                        newFileIds1.getSecond()
+                ),
+                floorRequests,
+                createdStation.lineIds(),
+                createdStation.route(),
+                createdStation.externalCode()
         );
         sasangStationService.update(stationId, nameUpdateRequest);
         
@@ -916,14 +956,24 @@ class SasangStationServiceTest {
         assertThat(nameUpdatedStation.facility().name()).isEqualTo("이름 변경");
         
         // 3. 사상역 업데이트 - 설명만
+        List<FloorRequest> floorRequests2 = nameUpdatedStation.floors().stream()
+                .map(floor -> new FloorRequest(floor.name(), floor.floorId()))
+                .toList();
+        
+        // 새로운 파일 ID 생성
+        Pair<Long, Long> newFileIds2 = createNewFileIds("lifecycle-desc");
+        
         SasangStationUpdateRequest descriptionUpdateRequest = new SasangStationUpdateRequest(
-                null,
-                "설명 변경",
-                null,
-                null,
-                null,
-                null,
-                null
+                new FacilityUpdateRequest(
+                        nameUpdatedStation.facility().name(),
+                        nameUpdatedStation.facility().code(),
+                        "설명 변경",
+                        newFileIds2.getSecond()
+                ),
+                floorRequests2,
+                nameUpdatedStation.lineIds(),
+                nameUpdatedStation.route(),
+                nameUpdatedStation.externalCode()
         );
         sasangStationService.update(stationId, descriptionUpdateRequest);
         
@@ -931,13 +981,23 @@ class SasangStationServiceTest {
         assertThat(descriptionUpdatedStation.facility().description()).isEqualTo("설명 변경");
         
         // 4. 사상역 업데이트 - 외부 코드만
+        List<FloorRequest> floorRequests3 = descriptionUpdatedStation.floors().stream()
+                .map(floor -> new FloorRequest(floor.name(), floor.floorId()))
+                .toList();
+        
+        // 새로운 파일 ID 생성
+        Pair<Long, Long> newFileIds3 = createNewFileIds("lifecycle-external");
+        
         SasangStationUpdateRequest externalCodeUpdateRequest = new SasangStationUpdateRequest(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
+                new FacilityUpdateRequest(
+                        descriptionUpdatedStation.facility().name(),
+                        descriptionUpdatedStation.facility().code(),
+                        descriptionUpdatedStation.facility().description(),
+                        newFileIds3.getSecond()
+                ),
+                floorRequests3,
+                descriptionUpdatedStation.lineIds(),
+                descriptionUpdatedStation.route(),
                 "LIFECYCLE_EXT"
         );
         sasangStationService.update(stationId, externalCodeUpdateRequest);

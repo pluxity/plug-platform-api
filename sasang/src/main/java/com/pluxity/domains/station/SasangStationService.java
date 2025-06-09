@@ -136,12 +136,8 @@ public class SasangStationService {
         if (request != null) {
             stationService.update(
                     id,
-                    StationUpdateRequest.of(
-                            request.name(),
-                            request.description(),
-                            request.thumbnailFileId(),
-                            request.lineIds(),
-                            request.route()));
+                    new StationUpdateRequest(
+                            request.facility(), request.floors(), request.lineIds(), request.route()));
         }
 
         // SasangStation 고유 필드 업데이트
@@ -152,23 +148,23 @@ public class SasangStationService {
 
     private void updateValidation(Long id, SasangStationUpdateRequest request) {
         sasangStationRepository
-                .findByNameAndIdNot(request.name(), id)
+                .findByNameAndIdNot(request.facility().name(), id)
                 .ifPresent(
                         station -> {
                             throw new CustomException(
                                     "Station Name Already Exists",
                                     HttpStatus.BAD_REQUEST,
-                                    String.format("이름이 %s인 역사가 이미 존재합니다", request.name()));
+                                    String.format("이름이 %s인 역사가 이미 존재합니다", request.facility().name()));
                         });
-        // FIXME: request 바꾸고 진행
-        //        sasangStationRepository.findByCodeAndIdNot(request.code(), id)
-        //                .ifPresent(
-        //                        station -> {
-        //                            throw new CustomException(
-        //                                    "Station Code Already Exists",
-        //                                    HttpStatus.BAD_REQUEST,
-        //                                    String.format("코드가 %s인 역사가 이미 존재합니다", request.code()));
-        //                        });
+        sasangStationRepository
+                .findByCodeAndIdNot(request.facility().code(), id)
+                .ifPresent(
+                        station -> {
+                            throw new CustomException(
+                                    "Station Code Already Exists",
+                                    HttpStatus.BAD_REQUEST,
+                                    String.format("코드가 %s인 역사가 이미 존재합니다", request.facility().code()));
+                        });
     }
 
     @Transactional

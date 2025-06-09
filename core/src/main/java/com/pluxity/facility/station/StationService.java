@@ -135,35 +135,25 @@ public class StationService {
         // 먼저 스테이션을 조회
         Station station = findStationById(id);
 
-        // 기본 정보 업데이트
-        facilityService.update(
-                id, Station.builder().name(request.name()).description(request.description()).build());
+        facilityService.update(id, request.facility());
 
         // 추가 정보 업데이트
         if (request.route() != null) {
             station.updateRoute(request.route());
         }
 
-        // drawingFileId와 thumbnailFileId 직접 설정
-        if (request.drawingFileId() != null) {
-            station.updateDrawingFileId(request.drawingFileId());
+        if (request.floors() != null) {
+            floorStrategy.delete(station);
+            for (FloorRequest floorRequest : request.floors()) {
+                floorStrategy.save(station, floorRequest);
+            }
         }
 
-        if (request.thumbnailFileId() != null) {
-            station.updateThumbnailFileId(request.thumbnailFileId());
-        }
-
-        if (request.lineIds() != null && !request.lineIds().isEmpty()) {
+        if (request.lineIds() != null) {
+            station.getStationLines().clear();
             for (Long lineId : request.lineIds()) {
-                // 기존 노선이 있는지 확인하고 없으면 추가
                 Line line = lineService.findLineById(lineId);
-
-                boolean lineExists =
-                        station.getStationLines().stream().anyMatch(sl -> sl.getLine().getId().equals(lineId));
-
-                if (!lineExists) {
-                    station.addLine(line);
-                }
+                station.addLine(line);
             }
         }
     }
