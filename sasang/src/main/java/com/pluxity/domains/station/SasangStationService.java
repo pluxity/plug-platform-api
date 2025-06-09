@@ -86,7 +86,7 @@ public class SasangStationService {
                             throw new CustomException(
                                     "Station Name Already Exists",
                                     HttpStatus.BAD_REQUEST,
-                                    String.format("이름이 %s인 역사가 이미 존재합니다", request.facility().name()));
+                                    String.format("코드가 %s인 역사가 이미 존재합니다", request.facility().name()));
                         });
         sasangStationRepository
                 .findByName(request.facility().name())
@@ -95,7 +95,7 @@ public class SasangStationService {
                             throw new CustomException(
                                     "Station Code Already Exists",
                                     HttpStatus.BAD_REQUEST,
-                                    String.format("코드가 %s인 역사가 이미 존재합니다", request.facility().code()));
+                                    String.format("이름이 %s인 역사가 이미 존재합니다", request.facility().code()));
                         });
     }
 
