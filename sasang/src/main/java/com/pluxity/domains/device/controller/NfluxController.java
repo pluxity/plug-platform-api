@@ -16,11 +16,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/devices")
@@ -129,14 +130,14 @@ public class NfluxController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PatchMapping("/{id}")
-    public ResponseEntity<DataResponseBody<NfluxResponse>> update(
+    public ResponseEntity<Void> update(
             @Parameter(description = "디바이스 ID", required = true) @PathVariable String id,
             @Parameter(description = "디바이스 수정 정보", required = true) @Valid @RequestBody
                     NfluxUpdateRequest request) {
 
         service.update(id, request);
 
-        return ResponseEntity.ok(DataResponseBody.of(service.findDeviceById(id)));
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "디바이스 삭제", description = "ID로 특정 디바이스를 삭제합니다")
