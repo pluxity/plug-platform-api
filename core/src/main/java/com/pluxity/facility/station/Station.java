@@ -9,6 +9,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @Entity
@@ -22,8 +24,13 @@ public class Station extends Facility {
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<StationLine> stationLines = new ArrayList<>();
 
-    @Column(name = "route")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "route", columnDefinition = "jsonb")
     private String route;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "subway", columnDefinition = "subway")
+    private String subway;
 
     @Builder
     public Station(String name, String description, String route) {
