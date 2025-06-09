@@ -87,6 +87,7 @@ public class StationService {
                                     .lineIds(lineIds)
                                     .featureIds(featureIds)
                                     .route(station.getRoute())
+                                    .subway(station.getSubway())
                                     .build();
                         })
                 .toList();
@@ -113,6 +114,7 @@ public class StationService {
                 .lineIds(lineIds)
                 .featureIds(featureIds)
                 .route(station.getRoute())
+                .subway(station.getSubway())
                 .build();
     }
 

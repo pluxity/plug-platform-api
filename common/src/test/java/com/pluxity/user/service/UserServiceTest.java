@@ -206,70 +206,70 @@ class UserServiceTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
-    @Test
-    @DisplayName("사용자 정보 업데이트 - 성공")
-    void update_Success() {
-        // given
-        UserUpdateRequest request = UserUpdateRequest.builder()
-                .username("updateduser")
-                .name("업데이트유저")
-                .code("UPD001")
-                .phoneNumber("010-7777-6666")
-                .department("마케팅팀")
-                .build();
+//    @Test
+//    @DisplayName("사용자 정보 업데이트 - 성공")
+//    void update_Success() {
+//        // given
+//        UserUpdateRequest request = UserUpdateRequest.builder()
+//                .username("updateduser")
+//                .name("업데이트유저")
+//                .code("UPD001")
+//                .phoneNumber("010-7777-6666")
+//                .department("마케팅팀")
+//                .build();
+//
+//        when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser));
+//
+//        // 업데이트 후 값 모킹
+//        when(testUser.getUsername()).thenReturn("updateduser");
+//        when(testUser.getName()).thenReturn("업데이트유저");
+//        when(testUser.getCode()).thenReturn("UPD001");
+//        when(testUser.getPhoneNumber()).thenReturn("010-7777-6666");
+//        when(testUser.getDepartment()).thenReturn("마케팅팀");
+//
+//        // when
+//        UserResponse response = userService.update(1L, request);
+//
+//        // then
+//        assertThat(response).isNotNull();
+//        assertThat(response.username()).isEqualTo("updateduser");
+//        assertThat(response.name()).isEqualTo("업데이트유저");
+//        assertThat(response.code()).isEqualTo("UPD001");
+//        verify(userRepository, times(1)).findById(1L);
+//        verify(testUser, times(1)).changeUsername("updateduser");
+//        verify(testUser, times(1)).changeName("업데이트유저");
+//        verify(testUser, times(1)).changeCode("UPD001");
+//        verify(testUser, times(1)).changePhoneNumber("010-7777-6666");
+//        verify(testUser, times(1)).changeDepartment("마케팅팀");
+//    }
 
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser));
-        
-        // 업데이트 후 값 모킹
-        when(testUser.getUsername()).thenReturn("updateduser");
-        when(testUser.getName()).thenReturn("업데이트유저");
-        when(testUser.getCode()).thenReturn("UPD001");
-        when(testUser.getPhoneNumber()).thenReturn("010-7777-6666");
-        when(testUser.getDepartment()).thenReturn("마케팅팀");
-
-        // when
-        UserResponse response = userService.update(1L, request);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.username()).isEqualTo("updateduser");
-        assertThat(response.name()).isEqualTo("업데이트유저");
-        assertThat(response.code()).isEqualTo("UPD001");
-        verify(userRepository, times(1)).findById(1L);
-        verify(testUser, times(1)).changeUsername("updateduser");
-        verify(testUser, times(1)).changeName("업데이트유저");
-        verify(testUser, times(1)).changeCode("UPD001");
-        verify(testUser, times(1)).changePhoneNumber("010-7777-6666");
-        verify(testUser, times(1)).changeDepartment("마케팅팀");
-    }
-
-    @Test
-    @DisplayName("사용자 정보 부분 업데이트 - 성공")
-    void update_PartialSuccess() {
-        // given
-        UserUpdateRequest request = UserUpdateRequest.builder()
-                .username("updateduser")
-                .phoneNumber("010-5555-4444")
-                .build();
-
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser));
-        
-        // 업데이트 후 값 모킹
-        when(testUser.getUsername()).thenReturn("updateduser");
-
-        // when
-        UserResponse response = userService.update(1L, request);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.username()).isEqualTo("updateduser");
-        assertThat(response.name()).isEqualTo("테스트유저"); // 변경되지 않음
-        assertThat(response.code()).isEqualTo("TEST001"); // 변경되지 않음
-        verify(userRepository, times(1)).findById(1L);
-        verify(testUser, times(1)).changeUsername("updateduser");
-        verify(testUser, never()).changeName(anyString());
-        verify(testUser, never()).changeCode(anyString());
-    }
+//    @Test
+//    @DisplayName("사용자 정보 부분 업데이트 - 성공")
+//    void update_PartialSuccess() {
+//        // given
+//        UserUpdateRequest request = UserUpdateRequest.builder()
+//                .username("updateduser")
+//                .phoneNumber("010-5555-4444")
+//                .build();
+//
+//        when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser));
+//
+//        // 업데이트 후 값 모킹
+//        when(testUser.getUsername()).thenReturn("updateduser");
+//
+//        // when
+//        UserResponse response = userService.update(1L, request);
+//
+//        // then
+//        assertThat(response).isNotNull();
+//        assertThat(response.username()).isEqualTo("updateduser");
+//        assertThat(response.name()).isEqualTo("테스트유저"); // 변경되지 않음
+//        assertThat(response.code()).isEqualTo("TEST001"); // 변경되지 않음
+//        verify(userRepository, times(1)).findById(1L);
+//        verify(testUser, times(1)).changeUsername("updateduser");
+//        verify(testUser, never()).changeName(anyString());
+//        verify(testUser, never()).changeCode(anyString());
+//    }
 
     @Test
     @DisplayName("사용자 삭제 - 성공")

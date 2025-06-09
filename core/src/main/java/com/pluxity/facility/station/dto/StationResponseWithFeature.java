@@ -13,6 +13,7 @@ public record StationResponseWithFeature(
         List<FeatureResponseWithoutAsset> features,
         String route,
         String externalCode,
+        String subway,
         AdjacentStationInfo precedingStation,
         AdjacentStationInfo followingStation) {
 
@@ -24,6 +25,7 @@ public record StationResponseWithFeature(
             List<FeatureResponseWithoutAsset> features,
             String route,
             String externalCode,
+            String subway,
             AdjacentStationInfo precedingStation,
             AdjacentStationInfo followingStation) {
         this.facility = facility;
@@ -32,6 +34,7 @@ public record StationResponseWithFeature(
         this.features = features != null ? features : List.of();
         this.route = route;
         this.externalCode = externalCode;
+        this.subway = subway;
         this.precedingStation = precedingStation;
         this.followingStation = followingStation;
     }
