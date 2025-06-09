@@ -115,7 +115,8 @@ public class FacilityService {
             facility.updateDescription(request.description());
         }
 
-        if (request.thumbnailFileId() != null) {
+        if (request.thumbnailFileId() != null
+                && !request.thumbnailFileId().equals(facility.getThumbnailFileId())) {
             String filePath = PREFIX + facility.getId() + "/";
             facility.updateThumbnailFileId(
                     fileService.finalizeUpload(request.thumbnailFileId(), filePath));
