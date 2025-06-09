@@ -9,13 +9,14 @@ import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -131,9 +132,6 @@ public class UserService {
     }
 
     private void updateUserFields(User user, UserUpdateRequest request) {
-        if (request.username() != null && !request.username().isBlank()) {
-            user.changeUsername(request.username());
-        }
         if (request.name() != null && !request.name().isBlank()) {
             user.changeName(request.name());
         }
