@@ -54,7 +54,7 @@ public class SseService {
     }
 
     // 6. broadcast 메소드 단순화 및 안전성 확보
-    public void broadcast(String eventName, String jsonData) {
+    public void broadcast(String jsonData, String eventName) {
         if (jsonData == null || jsonData.isEmpty()) {
             log.warn("No data to broadcast for event: {}", eventName);
             return;
