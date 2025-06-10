@@ -1,118 +1,99 @@
 package com.pluxity.domains.sse;
 
 import jakarta.annotation.PreDestroy;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-
 @Service
 @Slf4j
 public class SseService {
-    private static final Long SSE_EMITTER_TIMEOUT = 60 * 60 * 1000L;
 
-    private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
-    private final AtomicInteger eventIdCounter = new AtomicInteger(0);
+    // 1. 타임아웃을 적절히 설정 (너무 길면 죽은 커넥션이 오래 남을 수 있음)
+    private static final Long DEFAULT_TIMEOUT = 30 * 60 * 1000L; // 30분
 
-    private final ExecutorService sseMvcExecutor =
-            Executors.newCachedThreadPool(
-                    r -> {
-                        Thread t = new Thread(r);
-                        t.setName("sse-emitter-sender-" + t.threadId());
-                        t.setDaemon(true);
-                        return t;
-                    });
+    // 2. Emitter를 ID 기반으로 관리하여 확장성 확보. 동시성 이슈를 위해 ConcurrentHashMap 사용.
+    private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final AtomicLong eventIdCounter = new AtomicLong();
 
     public SseEmitter createEmitter() {
-        SseEmitter emitter = new SseEmitter(SSE_EMITTER_TIMEOUT);
-        String emitterId = UUID.randomUUID().toString();
+        String clientId = UUID.randomUUID().toString();
+        SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
 
+        // 4. Emitter 제거 로직을 콜백에 완전히 위임. 이것이 가장 안전한 방법.
+        // onCompletion, onTimeout, onError 콜백은 Spring이 관리하는 스레드에서 안전하게 실행됨.
         Runnable removeEmitter =
                 () -> {
-                    log.info("Emitter {} removed.", emitterId);
-                    this.emitters.remove(emitter);
+                    log.info("Emitter for client {} has completed. Removing from map.", clientId);
+                    this.emitters.remove(clientId);
                 };
 
         emitter.onCompletion(removeEmitter);
         emitter.onTimeout(removeEmitter);
         emitter.onError(
                 throwable -> {
-                    log.error("Emitter {} error: {}", emitterId, throwable.getMessage());
+                    log.error(
+                            "Emitter for client {} encountered an error: {}", clientId, throwable.getMessage());
+                    // onError 콜백은 자동으로 complete를 호출하지 않으므로, 여기서 명시적으로 제거 로직을 실행.
                     removeEmitter.run();
                 });
 
-        this.emitters.add(emitter);
-        log.info("New Emitter {} added. Total emitters: {}", emitterId, this.emitters.size());
+        this.emitters.put(clientId, emitter);
+        log.info(
+                "New Emitter created for client {}. Total emitters: {}", clientId, this.emitters.size());
 
-        try {
-            emitter.send(
-                    SseEmitter.event().name("connection").data("SSE connection established").id(emitterId));
-        } catch (IOException e) {
-            log.error(
-                    "Error sending initial connection event to emitter {}: {}", emitterId, e.getMessage());
-            emitter.completeWithError(e);
-        }
+        // 5. 최초 연결 시, 클라이언트 식별을 위한 더미 이벤트 전송
+        sendToClient(clientId, "connect", "Connection established. Client ID: " + clientId);
 
         return emitter;
     }
 
-    public void broadcast(String jsonData, String eventName) {
+    // 6. broadcast 메소드 단순화 및 안전성 확보
+    public void broadcast(String eventName, String jsonData) {
         if (jsonData == null || jsonData.isEmpty()) {
             log.warn("No data to broadcast for event: {}", eventName);
             return;
         }
 
-        String currentEventId = String.valueOf(eventIdCounter.getAndIncrement());
-        log.info(
-                "Broadcasting event '{}' with ID {} to {} emitters.",
-                eventName,
-                currentEventId,
-                emitters.size());
+        log.info("Broadcasting event '{}' to {} emitters.", eventName, emitters.size());
 
-        List<SseEmitter> deadEmitters = new ArrayList<>();
+        // Map의 모든 Emitter에 대해 sendToClient를 호출
+        emitters.forEach((clientId, emitter) -> sendToClient(clientId, eventName, jsonData));
+    }
 
-        this.emitters.forEach(
-                emitter ->
-                        sseMvcExecutor.execute(
-                                () -> {
-                                    try {
-                                        emitter.send(
-                                                SseEmitter.event()
-                                                        .id(currentEventId)
-                                                        .name(eventName)
-                                                        .data(jsonData, MediaType.APPLICATION_JSON)
-                                                // .reconnectTime(10000L) // 클라이언트가 재연결 시도 전 대기 시간(ms)
-                                        );
-                                        log.debug("Successfully sent event {} to an emitter.", currentEventId);
-                                    } catch (Exception e) {
-                                        log.warn(
-                                                "Error sending event {} to an emitter: {}. Removing emitter.",
-                                                currentEventId,
-                                                e.getMessage());
-                                        deadEmitters.add(emitter);
-                                    }
-                                }));
+    public void sendToClient(String clientId, String eventName, String data) {
+        SseEmitter emitter = emitters.get(clientId);
+        if (emitter == null) {
+            log.warn("No emitter found for client ID: {}", clientId);
+            return;
+        }
 
-        if (!deadEmitters.isEmpty()) {
-            this.emitters.removeAll(deadEmitters);
-            log.info("Removed {} dead emitters after broadcast attempt.", deadEmitters.size());
+        try {
+            // SseEmitter.send는 내부적으로 비동기 처리됨. 별도의 스레드 풀은 불필요.
+            emitter.send(
+                    SseEmitter.event()
+                            .id(String.valueOf(eventIdCounter.getAndIncrement()))
+                            .name(eventName)
+                            .data(data, MediaType.APPLICATION_JSON));
+            log.debug("Successfully sent event '{}' to client {}", eventName, clientId);
+        } catch (Exception e) {
+            // send 도중 예외 발생 시(네트워크 단절 등), onError 콜백이 트리거됨.
+            // 따라서 여기서 직접 Emitter를 제거할 필요 없이, 콜백에 맡기는 것이 일관성 있음.
+            log.warn("Failed to send event to client {}: {}", clientId, e.getMessage());
+            // emitter.completeWithError(e); // onError 콜백을 직접 트리거하고 싶다면 호출 가능.
         }
     }
 
     @PreDestroy
-    public void shutdownExecutor() {
-        if (!sseMvcExecutor.isShutdown()) {
-            log.info("Shutting down SSE sender executor service.");
-            sseMvcExecutor.shutdown();
-        }
+    public void shutdown() {
+        log.info("Shutting down SSE service...");
+        // 모든 연결을 종료
+        emitters.forEach((id, emitter) -> emitter.complete());
+        emitters.clear();
     }
 }

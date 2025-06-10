@@ -44,6 +44,11 @@ public class SasangJwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        if (requestURI.startsWith("/open")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             Optional.of(request)
                     .filter(this::authenticationRequired)
@@ -85,6 +90,11 @@ public class SasangJwtAuthenticationFilter extends OncePerRequestFilter {
     private boolean authenticationRequired(HttpServletRequest request) {
         String contextPath = request.getContextPath();
         String path = request.getRequestURI().substring(contextPath.length());
+
+        // /open으로 시작하는 경로는 인증 불필요
+        if (path.startsWith("/open")) {
+            return false;
+        }
 
         // GET 요청이면서 /users/me 경로인 경우에는 인증 필요
         if (HttpMethod.GET.matches(request.getMethod()) && path.endsWith("/users/me")) {

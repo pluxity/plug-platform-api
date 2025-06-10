@@ -46,4 +46,9 @@ public class Nflux extends Device {
     public void updateName(String name) {
         this.name = name;
     }
+
+    @Override
+    public String getName() {
+        return this.name;
+    }
 }

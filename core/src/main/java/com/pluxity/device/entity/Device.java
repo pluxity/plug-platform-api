@@ -72,4 +72,6 @@ public abstract class Device extends BaseEntity {
             this.updateCategory(null);
         }
     }
+
+    public abstract String getName();
 }

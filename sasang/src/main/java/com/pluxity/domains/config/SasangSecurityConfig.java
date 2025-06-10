@@ -76,7 +76,8 @@ public class SasangSecurityConfig {
                                                 new AntPathRequestMatcher("/swagger-ui.html"),
                                                 new AntPathRequestMatcher("/api-docs/**"),
                                                 new AntPathRequestMatcher("/swagger-config/**"),
-                                                new AntPathRequestMatcher("/docs/**"))
+                                                new AntPathRequestMatcher("/docs/**"),
+                                                new AntPathRequestMatcher("/open/**"))
                                         .permitAll()
                                         .requestMatchers(new AntPathRequestMatcher("/auth/**"))
                                         .permitAll()

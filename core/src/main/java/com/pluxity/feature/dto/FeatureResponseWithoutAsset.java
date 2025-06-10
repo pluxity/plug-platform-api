@@ -11,7 +11,8 @@ public record FeatureResponseWithoutAsset(
         Spatial scale,
         Long assetId,
         String floorId,
-        String deviceId) {
+        String deviceId,
+        String deviceName) {
 
     public static FeatureResponseWithoutAsset from(
             Feature feature,
@@ -27,11 +28,11 @@ public record FeatureResponseWithoutAsset(
                 feature.getScale(),
                 feature.getAsset() != null ? feature.getAsset().getId() : null,
                 feature.getFloorId(),
-                feature.getDevice() != null ? feature.getDevice().getId() : null);
+                feature.getDevice() != null ? feature.getDevice().getId() : null,
+                feature.getDevice() != null ? feature.getDevice().getName() : null);
     }
 
     public static FeatureResponseWithoutAsset from(Feature feature) {
-
         return new FeatureResponseWithoutAsset(
                 feature.getId(),
                 feature.getPosition(),
@@ -39,6 +40,7 @@ public record FeatureResponseWithoutAsset(
                 feature.getScale(),
                 feature.getAsset() != null ? feature.getAsset().getId() : null,
                 feature.getFloorId(),
-                feature.getDevice() != null ? feature.getDevice().getId() : null);
+                feature.getDevice() != null ? feature.getDevice().getId() : null,
+                feature.getDevice() != null ? feature.getDevice().getName() : null);
     }
 }
