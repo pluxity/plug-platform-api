@@ -1,16 +1,17 @@
 package com.pluxity.domains.ttc;
 
 import com.pluxity.domains.sse.SseService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -120,5 +121,46 @@ public class TtcService {
             return String.format(
                     "{\"error\": \"Failed to process TTC data: %s\"}", e.getMessage().replace("\"", "\\\""));
         }
+    }
+
+    public String createTtcData(Long id) {
+        if (id == null || id < 1 || id > 6) {
+            String errorMessage = "{\"error\": \"Invalid id. Must be between 1 and 6\"}";
+            log.warn("Invalid TTC data creation request with id: {}", id);
+            return errorMessage;
+        }
+
+        String hexData = getHexDataById(id);
+        log.debug("Creating TTC data for id: {} with hex length: {}", id, hexData.length());
+        
+        try {
+            List<TtcParser.ParsedMessage> parsedMessages = TtcParser.parse(hexData, LINE_NUMBER);
+            
+            String jsonData = parsedMessages.stream()
+                    .map(TtcParser.ParsedMessage::toJson)
+                    .collect(Collectors.joining(",", "[", "]"));
+            
+            log.info("Successfully created TTC data for id: {}. Broadcasting to SSE clients...", id);
+            sseService.broadcast(jsonData, "ttc-data");
+            return jsonData;
+            
+        } catch (Exception e) {
+            log.error("Error creating TTC data for id {}: {}", id, e.getMessage(), e);
+            return String.format(
+                    "{\"error\": \"Failed to create TTC data for id %d: %s\"}", 
+                    id, e.getMessage().replace("\"", "\\\""));
+        }
+    }
+
+    private String getHexDataById(Long id) {
+        return switch (id.intValue()) {
+            case 1 -> "020013" + "01B1" + "0018050A0B0C0D77018686216621680101AABB03";
+            case 2 -> "020013" + "02B1" + "0018050A0B0C0E78028787216721690101CCDD03";
+            case 3 -> "020014" + "03B2" + "0018050A0B0C0F790188882168216A01010EEEFF03";
+            case 4 -> "020014" + "04B2" + "0018050A0B0C107A0289892169216B01011FA1B203";
+            case 5 -> "020013" + "05B3" + "0018050A0B0C117B018A8A216A216C0101C3D403";
+            case 6 -> "020013" + "06B3" + "0018050A0B0C127C028B8B216B216D0101E5F603";
+            default -> throw new IllegalArgumentException("Invalid id: " + id);
+        };
     }
 }

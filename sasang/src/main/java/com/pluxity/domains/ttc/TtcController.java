@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,6 +34,12 @@ public class TtcController {
         }
 
         return ResponseEntity.ok("TTC data push triggered to SSE clients.");
+    }
+
+    @GetMapping("/make-ttc/{id}")
+    public ResponseEntity<String> makeTtcData(@PathVariable Long id) {
+        String response = ttcDataService.createTtcData(id);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/tcp")
