@@ -145,7 +145,7 @@ public class TtcService {
             return jsonData;
 
         } catch (Exception e) {
-            log.error("Error creating TTC data for id {}: {}", id, e.getMessage(), e);
+            log.error("Error creating TTC data fㅜor id {}: {}", id, e.getMessage(), e);
             return String.format(
                     "{\"error\": \"Failed to create TTC data for id %d: %s\"}",
                     id, e.getMessage().replace("\"", "\\\""));
