@@ -13,6 +13,8 @@ import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.response.BaseResponse;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,8 @@ public class NfluxCategoryService {
     private final DeviceCategoryService deviceCategoryService;
     private final FileService fileService;
     private final NfluxService nfluxService;
+
+    @PersistenceContext private EntityManager entityManager;
 
     @Transactional
     public Long save(NfluxCategoryCreateRequest request) {
