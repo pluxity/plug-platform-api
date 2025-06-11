@@ -17,4 +17,5 @@ public record FacilityUpdateRequest(
                 @Size(max = 20, message = "코드는 최대 10자까지 입력 가능합니다.")
                 String code,
         String description,
-        Long thumbnailFileId) {}
+        Long thumbnailFileId,
+        Long drawingFileId) {}

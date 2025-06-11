@@ -122,6 +122,12 @@ public class FacilityService {
                     fileService.finalizeUpload(request.thumbnailFileId(), filePath));
         }
 
+        if (request.drawingFileId() != null
+                && !request.drawingFileId().equals(facility.getDrawingFileId())) {
+            String filePath = PREFIX + facility.getId() + "/";
+            facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
+        }
+
         facilityRepository.save(facility);
     }
 
