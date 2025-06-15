@@ -1,11 +1,15 @@
 # Stage 1: Build the project
 FROM eclipse-temurin:21-jdk-alpine AS builder
 
+RUN apk add --no-cache dos2unix
+
 # Set the working directory inside the container
 WORKDIR /app
 
 # Copy the entire project to the container
 COPY ../ .
+
+RUN dos2unix ./gradlew
 
 # Grant execution permission to the Gradle wrapper
 RUN chmod +x ./gradlew
