@@ -31,7 +31,7 @@ jobs:
           # deploy.sh 스크립트가 위치할 것으로 예상되는 경로이자, tar 파일을 생성할 경로
           # 이 경로는 deploy.sh 스크립트의 working-directory와 일치해야 함
           # 또한, deploy.sh 스크립트 내부에서 이 tar 파일을 참조할 수 있어야 함
-          DEPLOY_BASE_PATH="/home/pluxity/docker/plug-platform-api" # deploy.sh가 있는 서버 경로
+          DEPLOY_BASE_PATH="/home/pluxity/docker/busan_sasang" # deploy.sh가 있는 서버 경로
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "TAR_FILE_NAME=${TAR_FILE_NAME}" >> $GITHUB_OUTPUT
           echo "TAR_FILE_PATH=${DEPLOY_BASE_PATH}/${TAR_FILE_NAME}" >> $GITHUB_OUTPUT
