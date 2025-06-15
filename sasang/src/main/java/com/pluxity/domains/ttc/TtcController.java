@@ -41,11 +41,4 @@ public class TtcController {
         String response = ttcDataService.createTtcData(id);
         return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/tcp")
-    @Operation(summary = "TCP 연결 테스트", description = "TCP 연결을 테스트합니다.")
-    public ResponseEntity<String> testTcpConnection() {
-        String response = ttcDataService.fetchAndBroadcastTtcData();
-        return ResponseEntity.ok(response);
-    }
 }
