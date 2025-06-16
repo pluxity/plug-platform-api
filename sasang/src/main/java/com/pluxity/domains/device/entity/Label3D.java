@@ -9,12 +9,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "space_text")
+@Table(name = "label_3d")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SpaceText extends BaseEntity {
+public class Label3D extends BaseEntity {
 
-    @Id private String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "feature_id")
@@ -24,7 +26,7 @@ public class SpaceText extends BaseEntity {
     private String textContent;
 
     @Builder
-    public SpaceText(String id, Feature feature, String textContent) {
+    public Label3D(Long id, Feature feature, String textContent) {
         this.id = id;
         this.feature = feature;
         if (this.feature != null) {
@@ -33,13 +35,13 @@ public class SpaceText extends BaseEntity {
         this.textContent = textContent;
     }
 
-    public static SpaceText create(String id, String textContent) {
-        return SpaceText.builder().id(id).textContent(textContent).build();
+    public static Label3D create(String textContent) {
+        return Label3D.builder().textContent(textContent).build();
     }
 
-    public void update(String TextContent) {
-        if (TextContent != null) {
-            this.textContent = TextContent;
+    public void update(String textContent) {
+        if (textContent != null) {
+            this.textContent = textContent;
         }
     }
 

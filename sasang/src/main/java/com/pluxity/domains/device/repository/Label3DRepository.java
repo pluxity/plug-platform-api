@@ -1,0 +1,19 @@
+package com.pluxity.domains.device.repository;
+
+import com.pluxity.domains.device.entity.Label3D;
+import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface Label3DRepository extends JpaRepository<Label3D, Long> {
+
+    @EntityGraph(attributePaths = {"feature.facility"})
+    @Query("SELECT l FROM Label3D l WHERE l.feature.facility.id = :facilityId")
+    List<Label3D> findAllByFacilityId(String facilityId);
+
+    @EntityGraph(attributePaths = {"feature.asset"})
+    List<Label3D> findAll();
+}
