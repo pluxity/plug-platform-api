@@ -267,4 +267,9 @@ public class FeatureService {
                 facilityDrawingFileResponse,
                 facilityThumbnailFileResponse);
     }
+
+    @Transactional
+    public Feature saveFeature(Feature feature) {
+        return featureRepository.save(feature);
+    }
 }

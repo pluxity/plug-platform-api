@@ -1,4 +1,4 @@
-package com.pluxity.domains.device.entity;
+package com.pluxity.label3d;
 
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.entity.BaseEntity;

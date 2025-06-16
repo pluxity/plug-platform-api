@@ -1,34 +1,28 @@
 package com.pluxity.domains.device.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.pluxity.SasangApplication;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
-import com.pluxity.domains.device.dto.Label3DCreateRequest;
-import com.pluxity.domains.device.dto.Label3DResponse;
-import com.pluxity.domains.device.dto.Label3DUpdateRequest;
-import com.pluxity.domains.device.repository.Label3DRepository;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationRepository;
-import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.Spatial;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.feature.service.FeatureService;
-import com.pluxity.global.exception.CustomException;
+import com.pluxity.label3d.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(classes = SasangApplication.class)
 @Transactional
@@ -56,8 +50,10 @@ class Label3DServiceTest {
     StationRepository stationRepository;
 
     private Asset asset;
-    private Feature feature;
     private Station station;
+    private Spatial defaultPosition;
+    private Spatial defaultRotation;
+    private Spatial defaultScale;
 
     @BeforeEach
     void setUp() {
@@ -73,38 +69,47 @@ class Label3DServiceTest {
                 .description("테스트용 스테이션입니다.")
                 .build());
 
-        // 피처 생성
-        String uniqueFeatureId = UUID.randomUUID().toString();
-        feature = featureRepository.save(Feature.builder()
-                .id(uniqueFeatureId)
-                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .asset(asset)
-                .facility(station)
-                .build());
+        // 기본 Spatial 값들
+        defaultPosition = Spatial.builder().x(0.0).y(0.0).z(0.0).build();
+        defaultRotation = Spatial.builder().x(0.0).y(0.0).z(0.0).build();
+        defaultScale = Spatial.builder().x(1.0).y(1.0).z(1.0).build();
     }
 
-    private Feature createUniqueFeature() {
-        String uniqueFeatureId = UUID.randomUUID().toString();
-        return featureRepository.save(Feature.builder()
-                .id(uniqueFeatureId)
-                .position(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .asset(asset)
-                .facility(station)
-                .build());
+    private Label3DCreateRequest createDefaultRequest(String displayText) {
+        return new Label3DCreateRequest(
+                UUID.randomUUID().toString(),
+                displayText,
+                station.getId(),
+                "FLOOR-01",
+                defaultPosition,
+                defaultRotation,
+                defaultScale
+        );
+    }
+
+    private Label3DCreateRequest createRequestWithSpatial(String displayText, Spatial position, Spatial rotation, Spatial scale) {
+        return new Label3DCreateRequest(
+                UUID.randomUUID().toString(),
+                displayText,
+                station.getId(),
+                "FLOOR-01",
+                position,
+                rotation,
+                scale
+        );
+    }
+
+    private void assertSpatialEquals(Spatial actual, Spatial expected) {
+        assertThat(actual.getX()).isEqualTo(expected.getX());
+        assertThat(actual.getY()).isEqualTo(expected.getY());
+        assertThat(actual.getZ()).isEqualTo(expected.getZ());
     }
 
     @Test
     @DisplayName("Label3D 저장 테스트")
     void saveLabel3DTest() {
         // given
-        Label3DCreateRequest request = new Label3DCreateRequest(
-                "테스트 텍스트 내용",
-                feature.getId()
-        );
+        Label3DCreateRequest request = createDefaultRequest("테스트 텍스트 내용");
 
         // when
         Label3DResponse response = label3DService.createLabel3D(request);
@@ -113,36 +118,19 @@ class Label3DServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.id()).isNotNull();
         assertThat(response.displayText()).isEqualTo("테스트 텍스트 내용");
-        assertThat(response.featureId()).isEqualTo(feature.getId());
-    }
-
-    @Test
-    @DisplayName("Feature 없이 Label3D 생성 테스트")
-    void createLabel3DWithoutFeatureTest() {
-        // given
-        Label3DCreateRequest request = new Label3DCreateRequest(
-                "Feature 없는 텍스트",
-                null
-        );
-
-        // when
-        Label3DResponse response = label3DService.createLabel3D(request);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.id()).isNotNull();
-        assertThat(response.displayText()).isEqualTo("Feature 없는 텍스트");
-        assertThat(response.featureId()).isNull();
+        assertThat(response.floorId()).isEqualTo("FLOOR-01");
+        
+        // Spatial 객체는 각 필드를 개별적으로 비교
+        assertSpatialEquals(response.position(), defaultPosition);
+        assertSpatialEquals(response.rotation(), defaultRotation);
+        assertSpatialEquals(response.scale(), defaultScale);
     }
 
     @Test
     @DisplayName("Label3D 단일 조회 테스트")
     void findLabel3DTest() {
         // given
-        Label3DCreateRequest request = new Label3DCreateRequest(
-                "조회 테스트 텍스트",
-                feature.getId()
-        );
+        Label3DCreateRequest request = createDefaultRequest("조회 테스트 텍스트");
         Label3DResponse savedResponse = label3DService.createLabel3D(request);
 
         // when
@@ -152,7 +140,7 @@ class Label3DServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(savedResponse.id());
         assertThat(response.displayText()).isEqualTo("조회 테스트 텍스트");
-        assertThat(response.featureId()).isEqualTo(feature.getId());
+        assertThat(response.floorId()).isEqualTo("FLOOR-01");
     }
 
     @Test
@@ -171,55 +159,57 @@ class Label3DServiceTest {
     @DisplayName("Label3D 수정 테스트")
     void updateLabel3DTest() {
         // given
-        Label3DCreateRequest createRequest = new Label3DCreateRequest(
-                "원본 텍스트",
-                feature.getId()
-        );
+        Label3DCreateRequest createRequest = createDefaultRequest("원본 텍스트");
         Label3DResponse savedResponse = label3DService.createLabel3D(createRequest);
 
-        Label3DUpdateRequest updateRequest = new Label3DUpdateRequest("수정된 텍스트");
+        Spatial newPosition = Spatial.builder().x(10.0).y(20.0).z(30.0).build();
+        Spatial newRotation = Spatial.builder().x(45.0).y(90.0).z(180.0).build();
+        Spatial newScale = Spatial.builder().x(2.0).y(2.0).z(2.0).build();
+        
+        Label3DUpdateRequest updateRequest = new Label3DUpdateRequest(
+                newPosition, newRotation, newScale
+        );
 
         // when
         Label3DResponse updatedResponse = label3DService.updateLabel3D(savedResponse.id(), updateRequest);
 
         // then
         assertThat(updatedResponse.id()).isEqualTo(savedResponse.id());
-        assertThat(updatedResponse.displayText()).isEqualTo("수정된 텍스트");
-        assertThat(updatedResponse.featureId()).isNotNull();
+        assertThat(updatedResponse.displayText()).isEqualTo("원본 텍스트"); // displayText는 변경되지 않음
+        
+        // Spatial 객체는 각 필드를 개별적으로 비교
+        assertSpatialEquals(updatedResponse.position(), newPosition);
+        assertSpatialEquals(updatedResponse.rotation(), newRotation);
+        assertSpatialEquals(updatedResponse.scale(), newScale);
     }
 
     @Test
-    @DisplayName("NULL로 Label3D 수정 시 변경되지 않음")
+    @DisplayName("NULL Spatial로 Label3D 수정 시 변경되지 않음")
     void updateLabel3DWithNullTest() {
         // given
-        Label3DCreateRequest createRequest = new Label3DCreateRequest(
-                "원본 텍스트",
-                feature.getId()
-        );
+        Label3DCreateRequest createRequest = createDefaultRequest("원본 텍스트");
         Label3DResponse savedResponse = label3DService.createLabel3D(createRequest);
 
-        Label3DUpdateRequest updateRequest = new Label3DUpdateRequest(null);
+        Label3DUpdateRequest updateRequest = new Label3DUpdateRequest(null, null, null);
 
         // when
         Label3DResponse updatedResponse = label3DService.updateLabel3D(savedResponse.id(), updateRequest);
 
         // then
-        assertThat(updatedResponse.displayText()).isEqualTo("원본 텍스트"); // 변경되지 않음
+        assertThat(updatedResponse.displayText()).isEqualTo("원본 텍스트");
+        
+        // Spatial 객체는 각 필드를 개별적으로 비교 - 변경되지 않음
+        assertSpatialEquals(updatedResponse.position(), defaultPosition);
+        assertSpatialEquals(updatedResponse.rotation(), defaultRotation);
+        assertSpatialEquals(updatedResponse.scale(), defaultScale);
     }
 
     @Test
     @DisplayName("Label3D 목록 조회 테스트")
     void getAllLabel3DsTest() {
         // given
-        Feature feature1 = createUniqueFeature();
-        Feature feature2 = createUniqueFeature();
-        
-        Label3DCreateRequest request1 = new Label3DCreateRequest(
-                "첫 번째 텍스트", feature1.getId()
-        );
-        Label3DCreateRequest request2 = new Label3DCreateRequest(
-                "두 번째 텍스트", feature2.getId()
-        );
+        Label3DCreateRequest request1 = createDefaultRequest("첫 번째 텍스트");
+        Label3DCreateRequest request2 = createDefaultRequest("두 번째 텍스트");
         
         label3DService.createLabel3D(request1);
         label3DService.createLabel3D(request2);
@@ -237,30 +227,23 @@ class Label3DServiceTest {
     @DisplayName("Facility ID로 Label3D 조회 테스트")
     void getLabel3DsByFacilityIdTest() {
         // given
-        Feature feature1 = createUniqueFeature();
-        Label3DCreateRequest request1 = new Label3DCreateRequest(
-                "스테이션 텍스트", feature1.getId()
-        );
+        Label3DCreateRequest request1 = createDefaultRequest("스테이션 텍스트");
         label3DService.createLabel3D(request1);
 
-        // 다른 스테이션의 Feature
+        // 다른 스테이션 생성
         Station otherStation = stationRepository.save(Station.builder()
                 .name("다른 스테이션")
                 .description("다른 테스트 스테이션")
                 .build());
 
-        String otherFeatureId = UUID.randomUUID().toString();
-        Feature otherFeature = featureRepository.save(Feature.builder()
-                .id(otherFeatureId)
-                .position(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .asset(asset)
-                .facility(otherStation)
-                .build());
-
         Label3DCreateRequest request2 = new Label3DCreateRequest(
-                "다른 스테이션 텍스트", otherFeature.getId()
+                UUID.randomUUID().toString(),
+                "다른 스테이션 텍스트",
+                otherStation.getId(),
+                "FLOOR-02",
+                defaultPosition,
+                defaultRotation,
+                defaultScale
         );
         label3DService.createLabel3D(request2);
 
@@ -270,7 +253,7 @@ class Label3DServiceTest {
         // then
         assertThat(responses).hasSize(1);
         assertThat(responses.getFirst().displayText()).isEqualTo("스테이션 텍스트");
-        assertThat(responses.getFirst().featureId()).isEqualTo(feature1.getId());
+        assertThat(responses.getFirst().floorId()).isEqualTo("FLOOR-01");
     }
 
     @Test
@@ -290,9 +273,7 @@ class Label3DServiceTest {
     @DisplayName("Label3D 삭제 테스트")
     void deleteLabel3DTest() {
         // given
-        Label3DCreateRequest request = new Label3DCreateRequest(
-                "삭제될 텍스트", feature.getId()
-        );
+        Label3DCreateRequest request = createDefaultRequest("삭제될 텍스트");
         Label3DResponse savedResponse = label3DService.createLabel3D(request);
 
         // when
@@ -305,16 +286,21 @@ class Label3DServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 Feature ID로 Label3D 생성시 예외 발생")
-    void createLabel3DWithNonExistentFeatureTest() {
+    @DisplayName("존재하지 않는 Facility ID로 Label3D 생성시 예외 발생")
+    void createLabel3DWithNonExistentFacilityTest() {
         // given
-        String nonExistentFeatureId = "non-existent-feature";
         Label3DCreateRequest request = new Label3DCreateRequest(
-                "잘못된 Feature 텍스트", nonExistentFeatureId
+                UUID.randomUUID().toString(),
+                "잘못된 Facility 텍스트",
+                999999L, // 존재하지 않는 facilityId
+                "FLOOR-01",
+                defaultPosition,
+                defaultRotation,
+                defaultScale
         );
 
         // when & then
-        assertThrows(CustomException.class, () ->
+        assertThrows(Exception.class, () ->
             label3DService.createLabel3D(request)
         );
     }
@@ -323,20 +309,21 @@ class Label3DServiceTest {
     @DisplayName("Label3D 생성-수정-삭제 전체 라이프사이클 테스트")
     void label3DLifecycleTest() {
         // 1. Label3D 생성
-        Feature uniqueFeature = createUniqueFeature();
-        Label3DCreateRequest createRequest = new Label3DCreateRequest(
-                "라이프사이클 테스트", uniqueFeature.getId()
-        );
+        Label3DCreateRequest createRequest = createDefaultRequest("라이프사이클 테스트");
         Label3DResponse createdResponse = label3DService.createLabel3D(createRequest);
         assertThat(createdResponse.displayText()).isEqualTo("라이프사이클 테스트");
 
-        // 2. Label3D 수정
-        Label3DUpdateRequest updateRequest = new Label3DUpdateRequest("수정된 라이프사이클 테스트");
+        // 2. Label3D 수정 (Spatial 정보 변경)
+        Spatial newPosition = Spatial.builder().x(100.0).y(200.0).z(300.0).build();
+        Label3DUpdateRequest updateRequest = new Label3DUpdateRequest(
+                newPosition, defaultRotation, defaultScale
+        );
         Label3DResponse updatedResponse = label3DService.updateLabel3D(createdResponse.id(), updateRequest);
-        assertThat(updatedResponse.displayText()).isEqualTo("수정된 라이프사이클 테스트");
+        assertSpatialEquals(updatedResponse.position(), newPosition);
 
-        // 3. Feature와의 연관관계 확인
-        assertThat(updatedResponse.featureId()).isEqualTo(uniqueFeature.getId());
+        // 3. 기본 정보 확인
+        assertThat(updatedResponse.displayText()).isEqualTo("라이프사이클 테스트");
+        assertThat(updatedResponse.floorId()).isEqualTo("FLOOR-01");
 
         // 4. Label3D 삭제
         label3DService.deleteLabel3D(createdResponse.id());
@@ -351,19 +338,9 @@ class Label3DServiceTest {
     @DisplayName("여러 개의 Label3D 조회 테스트")
     void findMultipleLabel3DsTest() {
         // given
-        Feature feature1 = createUniqueFeature();
-        Feature feature2 = createUniqueFeature();
-        Feature feature3 = createUniqueFeature();
-        
-        Label3DCreateRequest request1 = new Label3DCreateRequest(
-                "첫 번째 멀티 텍스트", feature1.getId()
-        );
-        Label3DCreateRequest request2 = new Label3DCreateRequest(
-                "두 번째 멀티 텍스트", feature2.getId()
-        );
-        Label3DCreateRequest request3 = new Label3DCreateRequest(
-                "세 번째 멀티 텍스트", feature3.getId()
-        );
+        Label3DCreateRequest request1 = createDefaultRequest("첫 번째 멀티 텍스트");
+        Label3DCreateRequest request2 = createDefaultRequest("두 번째 멀티 텍스트");
+        Label3DCreateRequest request3 = createDefaultRequest("세 번째 멀티 텍스트");
 
         Label3DResponse response1 = label3DService.createLabel3D(request1);
         Label3DResponse response2 = label3DService.createLabel3D(request2);
@@ -384,32 +361,39 @@ class Label3DServiceTest {
     }
 
     @Test
-    @DisplayName("동일한 Feature를 가진 여러 Label3D 생성 불가 테스트")
-    void multipleLabel3DsCannotShareSameFeatureTest() {
+    @DisplayName("다양한 Spatial 값으로 Label3D 생성 테스트")
+    void createLabel3DWithVariousSpatialValuesTest() {
         // given
-        Feature uniqueFeature = createUniqueFeature();
-        Label3DCreateRequest request1 = new Label3DCreateRequest(
-                "첫 번째 텍스트", uniqueFeature.getId()
-        );
-        label3DService.createLabel3D(request1);
-
-        Label3DCreateRequest request2 = new Label3DCreateRequest(
-                "두 번째 텍스트", uniqueFeature.getId()
+        Spatial customPosition = Spatial.builder().x(100.0).y(-50.0).z(200.0).build();
+        Spatial customRotation = Spatial.builder().x(45.0).y(90.0).z(180.0).build();
+        Spatial customScale = Spatial.builder().x(0.5).y(2.0).z(1.5).build();
+        
+        Label3DCreateRequest request = createRequestWithSpatial(
+                "다양한 Spatial 값 테스트", customPosition, customRotation, customScale
         );
 
-        // when & then
-        // 같은 Feature를 사용하려고 하면 unique constraint 에러가 발생
-        assertThrows(Exception.class, () -> 
-            label3DService.createLabel3D(request2)
-        );
+        // when
+        Label3DResponse response = label3DService.createLabel3D(request);
+
+        // then
+        assertThat(response.displayText()).isEqualTo("다양한 Spatial 값 테스트");
+        
+        // Spatial 객체는 각 필드를 개별적으로 비교
+        assertSpatialEquals(response.position(), customPosition);
+        assertSpatialEquals(response.rotation(), customRotation);
+        assertSpatialEquals(response.scale(), customScale);
     }
 
     @Test
     @DisplayName("Response 필드 검증 테스트")
     void responseFieldValidationTest() {
         // given
-        Label3DCreateRequest request = new Label3DCreateRequest(
-                "필드 검증 테스트", feature.getId()
+        Spatial customPosition = Spatial.builder().x(10.0).y(20.0).z(30.0).build();
+        Spatial customRotation = Spatial.builder().x(45.0).y(90.0).z(135.0).build();
+        Spatial customScale = Spatial.builder().x(1.5).y(2.0).z(0.8).build();
+        
+        Label3DCreateRequest request = createRequestWithSpatial(
+                "필드 검증 테스트", customPosition, customRotation, customScale
         );
 
         // when
@@ -418,10 +402,11 @@ class Label3DServiceTest {
         // then
         assertThat(response.id()).isNotNull();
         assertThat(response.displayText()).isEqualTo("필드 검증 테스트");
-        assertThat(response.featureId()).isEqualTo(feature.getId());
-        assertThat(response.floorId()).isEqualTo(feature.getFloorId());
-        assertThat(response.position()).isEqualTo(feature.getPosition());
-        assertThat(response.rotation()).isEqualTo(feature.getRotation());
-        assertThat(response.scale()).isEqualTo(feature.getScale());
+        assertThat(response.floorId()).isEqualTo("FLOOR-01");
+        
+        // Spatial 객체는 각 필드를 개별적으로 비교
+        assertSpatialEquals(response.position(), customPosition);
+        assertSpatialEquals(response.rotation(), customRotation);
+        assertSpatialEquals(response.scale(), customScale);
     }
 }

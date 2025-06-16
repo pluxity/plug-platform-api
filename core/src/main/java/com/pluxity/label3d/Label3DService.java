@@ -1,10 +1,8 @@
-package com.pluxity.domains.device.service;
+package com.pluxity.label3d;
 
-import com.pluxity.domains.device.dto.Label3DCreateRequest;
-import com.pluxity.domains.device.dto.Label3DResponse;
-import com.pluxity.domains.device.dto.Label3DUpdateRequest;
-import com.pluxity.domains.device.entity.Label3D;
-import com.pluxity.domains.device.repository.Label3DRepository;
+import com.pluxity.facility.facility.FacilityService;
+import com.pluxity.feature.dto.FeatureUpdateRequest;
+import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.service.FeatureService;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -18,14 +16,24 @@ public class Label3DService {
 
     private final Label3DRepository label3DRepository;
     private final FeatureService featureService;
+    private final FacilityService facilityService;
 
     @Transactional
     public Label3DResponse createLabel3D(Label3DCreateRequest request) {
         Label3D label3D = Label3D.create(request.displayText());
 
-        if (request.featureId() != null) {
-            label3D.changeFeature(featureService.findFeatureById(request.featureId()));
-        }
+        Feature feature =
+                featureService.saveFeature(
+                        Feature.builder()
+                                .id(request.id())
+                                .facility(facilityService.findById(request.facilityId()))
+                                .floorId(request.floorId())
+                                .position(request.position())
+                                .rotation(request.rotation())
+                                .scale(request.scale())
+                                .build());
+
+        label3D.changeFeature(feature);
 
         Label3D savedLabel3D = label3DRepository.save(label3D);
         return Label3DResponse.from(savedLabel3D);
@@ -53,7 +61,9 @@ public class Label3DService {
     public Label3DResponse updateLabel3D(Long id, Label3DUpdateRequest request) {
         Label3D label3D = findLabel3DById(id);
 
-        label3D.update(request.displayText());
+        FeatureUpdateRequest featureUpdateRequest =
+                new FeatureUpdateRequest(request.position(), request.rotation(), request.scale());
+        label3D.getFeature().update(featureUpdateRequest);
 
         return Label3DResponse.from(label3D);
     }

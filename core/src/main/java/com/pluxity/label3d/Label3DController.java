@@ -1,9 +1,5 @@
-package com.pluxity.domains.device.controller;
+package com.pluxity.label3d;
 
-import com.pluxity.domains.device.dto.Label3DCreateRequest;
-import com.pluxity.domains.device.dto.Label3DResponse;
-import com.pluxity.domains.device.dto.Label3DUpdateRequest;
-import com.pluxity.domains.device.service.Label3DService;
 import com.pluxity.global.response.DataResponseBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
