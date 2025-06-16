@@ -18,6 +18,7 @@ import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.label3d.Label3DRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class StationService {
     private final FloorStrategy floorStrategy;
     private final StationRepository stationRepository;
     private final LineService lineService;
+    private final Label3DRepository label3DRepository;
 
     @Transactional
     public Long save(StationCreateRequest request) {
@@ -202,8 +204,13 @@ public class StationService {
                         fileService.getFileResponse(station.getDrawingFileId()),
                         fileService.getFileResponse(station.getThumbnailFileId()));
 
+        List<String> label3DFeatureIds =
+                label3DRepository.findAllByFacilityId(id.toString()).stream()
+                        .map(label3D -> label3D.getFeature().getId())
+                        .collect(Collectors.toList());
+
         List<FeatureResponseWithoutAsset> features =
-                FacilityResponseWithFeature.getFeatureResponses(station);
+                FacilityResponseWithFeature.getFeatureResponsesExcludingLabel3D(station, label3DFeatureIds);
 
         return StationResponseWithFeature.builder()
                 .facility(facilityResponse)

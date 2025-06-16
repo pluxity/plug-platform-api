@@ -147,7 +147,7 @@ class Label3DServiceTest {
     @DisplayName("존재하지 않는 Label3D 조회시 예외 발생")
     void notFoundLabel3DTest() {
         // given
-        Long nonExistentId = 999999L;
+        String nonExistentId = UUID.randomUUID().toString();
 
         // when & then
         assertThrows(EntityNotFoundException.class, () -> 
@@ -352,7 +352,7 @@ class Label3DServiceTest {
         // then
         assertThat(allLabel3Ds).hasSizeGreaterThanOrEqualTo(3);
 
-        List<Long> label3DIds = allLabel3Ds.stream()
+        List<String> label3DIds = allLabel3Ds.stream()
                 .map(Label3DResponse::id)
                 .toList();
         assertThat(label3DIds).contains(

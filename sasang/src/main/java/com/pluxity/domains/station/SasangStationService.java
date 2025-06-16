@@ -21,6 +21,8 @@ import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.label3d.Label3DResponse;
+import com.pluxity.label3d.Label3DService;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,6 +41,7 @@ public class SasangStationService {
     private final FileService fileService;
     private final FloorStrategy floorStrategy;
     private final LineService lineService;
+    private final Label3DService label3DService;
 
     @Transactional
     public Long save(SasangStationCreateRequest request) {
@@ -211,11 +214,15 @@ public class SasangStationService {
         StationResponseWithFeature.AdjacentStationInfo followingStation =
                 findFollowingStationInfo(sasangStation);
 
+        List<Label3DResponse> label3Ds =
+                label3DService.getLabel3DsByFacilityId(sasangStation.getId().toString());
+
         return StationResponseWithFeature.builder()
                 .facility(stationResponse.facility())
                 .floors(stationResponse.floors())
                 .lineIds(stationResponse.lineIds())
                 .features(stationResponse.features())
+                .label3Ds(label3Ds)
                 .route(stationResponse.route())
                 .externalCode(sasangStation.getExternalCode())
                 .subway(sasangStation.getSubway())

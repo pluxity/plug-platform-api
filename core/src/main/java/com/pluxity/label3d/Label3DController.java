@@ -57,7 +57,7 @@ public class Label3DController {
                 @ApiResponse(responseCode = "404", description = "Label3D를 찾을 수 없음")
             })
     public ResponseEntity<DataResponseBody<Label3DResponse>> get(
-            @Parameter(description = "Label3D ID") @PathVariable Long id) {
+            @Parameter(description = "Label3D ID") @PathVariable String id) {
         Label3DResponse response = label3DService.getLabel3DById(id);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
@@ -82,7 +82,7 @@ public class Label3DController {
                 @ApiResponse(responseCode = "404", description = "Label3D를 찾을 수 없음")
             })
     public ResponseEntity<DataResponseBody<Label3DResponse>> update(
-            @Parameter(description = "Label3D ID") @PathVariable Long id,
+            @Parameter(description = "Label3D ID") @PathVariable String id,
             @Valid @RequestBody Label3DUpdateRequest request) {
         Label3DResponse response = label3DService.updateLabel3D(id, request);
         return ResponseEntity.ok(DataResponseBody.of(response));
@@ -95,7 +95,8 @@ public class Label3DController {
                 @ApiResponse(responseCode = "204", description = "삭제 성공"),
                 @ApiResponse(responseCode = "404", description = "Label3D를 찾을 수 없음")
             })
-    public ResponseEntity<Void> delete(@Parameter(description = "Label3D ID") @PathVariable Long id) {
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "Label3D ID") @PathVariable String id) {
         label3DService.deleteLabel3D(id);
         return ResponseEntity.noContent().build();
     }

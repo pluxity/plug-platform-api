@@ -35,4 +35,12 @@ public record FacilityResponseWithFeature(
                 .map(FeatureResponseWithoutAsset::from)
                 .collect(Collectors.toList());
     }
+
+    public static List<FeatureResponseWithoutAsset> getFeatureResponsesExcludingLabel3D(
+            Facility facility, List<String> label3DFeatureIds) {
+        return facility.getFeatures().stream()
+                .filter(feature -> !label3DFeatureIds.contains(feature.getId()))
+                .map(FeatureResponseWithoutAsset::from)
+                .collect(Collectors.toList());
+    }
 }

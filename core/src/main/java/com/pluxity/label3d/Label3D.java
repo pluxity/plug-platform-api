@@ -14,34 +14,36 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Label3D extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id private String id;
 
+    @MapsId
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "feature_id")
     private Feature feature;
 
     @Column(name = "text_content")
-    private String textContent;
+    private String displayText;
 
     @Builder
-    public Label3D(Long id, Feature feature, String textContent) {
-        this.id = id;
+    public Label3D(Feature feature, String displayText) {
         this.feature = feature;
+        this.displayText = displayText;
         if (this.feature != null) {
             this.feature.changeDevice(null);
         }
-        this.textContent = textContent;
     }
 
-    public static Label3D create(String textContent) {
-        return Label3D.builder().textContent(textContent).build();
+    public static Label3D create(String displayText) {
+        return Label3D.builder().displayText(displayText).build();
     }
 
-    public void update(String textContent) {
-        if (textContent != null) {
-            this.textContent = textContent;
+    public static Label3D createWithFeature(Feature feature, String displayText) {
+        return Label3D.builder().feature(feature).displayText(displayText).build();
+    }
+
+    public void update(String displayText) {
+        if (displayText != null) {
+            this.displayText = displayText;
         }
     }
 

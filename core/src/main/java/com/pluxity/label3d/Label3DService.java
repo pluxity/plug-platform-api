@@ -20,8 +20,6 @@ public class Label3DService {
 
     @Transactional
     public Label3DResponse createLabel3D(Label3DCreateRequest request) {
-        Label3D label3D = Label3D.create(request.displayText());
-
         Feature feature =
                 featureService.saveFeature(
                         Feature.builder()
@@ -33,14 +31,14 @@ public class Label3DService {
                                 .scale(request.scale())
                                 .build());
 
-        label3D.changeFeature(feature);
+        Label3D label3D = Label3D.createWithFeature(feature, request.displayText());
 
         Label3D savedLabel3D = label3DRepository.save(label3D);
         return Label3DResponse.from(savedLabel3D);
     }
 
     @Transactional(readOnly = true)
-    public Label3DResponse getLabel3DById(Long id) {
+    public Label3DResponse getLabel3DById(String id) {
         Label3D label3D = findLabel3DById(id);
         return Label3DResponse.from(label3D);
     }
@@ -58,7 +56,7 @@ public class Label3DService {
     }
 
     @Transactional
-    public Label3DResponse updateLabel3D(Long id, Label3DUpdateRequest request) {
+    public Label3DResponse updateLabel3D(String id, Label3DUpdateRequest request) {
         Label3D label3D = findLabel3DById(id);
 
         FeatureUpdateRequest featureUpdateRequest =
@@ -69,14 +67,14 @@ public class Label3DService {
     }
 
     @Transactional
-    public void deleteLabel3D(Long id) {
+    public void deleteLabel3D(String id) {
         Label3D label3D = findLabel3DById(id);
         label3D.clearAllRelations();
         label3DRepository.delete(label3D);
     }
 
     @Transactional(readOnly = true)
-    public Label3D findLabel3DById(Long id) {
+    public Label3D findLabel3DById(String id) {
         return label3DRepository
                 .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Label3D not found with id: " + id));
