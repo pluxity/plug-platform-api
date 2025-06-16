@@ -122,7 +122,8 @@ public class FeatureService {
         deleteFeature(id);
     }
 
-    private Feature findFeatureById(String id) {
+    @Transactional(readOnly = true)
+    public Feature findFeatureById(String id) {
         return featureRepository.findById(id).orElseThrow(featureNotFound());
     }
 
