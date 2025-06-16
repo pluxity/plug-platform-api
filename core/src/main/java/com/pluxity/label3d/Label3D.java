@@ -21,7 +21,7 @@ public class Label3D extends BaseEntity {
     @JoinColumn(name = "feature_id")
     private Feature feature;
 
-    @Column(name = "text_content")
+    @Column(name = "display_text")
     private String displayText;
 
     @Builder
