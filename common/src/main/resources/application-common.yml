@@ -22,6 +22,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  mvc:
+    async:
+      request-timeout: 1800000
 
 jwt:
   access-token:
