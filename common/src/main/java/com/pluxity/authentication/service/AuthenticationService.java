@@ -165,12 +165,20 @@ public class AuthenticationService {
                 RefreshToken.of(user.getUsername(), newRefreshToken, refreshExpiration));
     }
 
+    // private helper to get domain without port
+    private String getCookieDomain() {
+        if (domainName != null && domainName.contains(":")) {
+            return domainName.split(":")[0];
+        }
+        return domainName;
+    }
+
     private void createAuthCookie(
             String name, String value, int expiry, String path, HttpServletResponse response) {
 
         String cookie =
                 ResponseCookie.from(name, value)
-                        .domain(domainName)
+                        .domain(getCookieDomain()) // 수정된 로직 사용
                         .secure(false)
                         .httpOnly(true)
                         .sameSite("Lax")
@@ -187,36 +195,23 @@ public class AuthenticationService {
 
         Cookie cookie = WebUtils.getCookie(request, name);
         if (cookie != null) {
-
             cookie.setValue(null);
             cookie.setMaxAge(0);
-            cookie.setDomain(domainName);
+            cookie.setDomain(getCookieDomain()); // ★★★ 여기도 수정! ★★★
             cookie.setPath(path);
-
             response.addCookie(cookie);
         }
     }
 
+
     private void createExpiryCookie(HttpServletRequest request, HttpServletResponse response) {
-
-        long currentTimeMillis = System.currentTimeMillis();
-        long tokenExpiryInMillis = refreshExpiration * 1000L;
-        long expiryTimeMillis = currentTimeMillis + tokenExpiryInMillis;
-
-        // 사람이 읽을 수 있는 형식으로 변환
-        Instant expiryInstant = Instant.ofEpochMilli(expiryTimeMillis);
-        String formattedTime =
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                        .withZone(ZoneId.of("Asia/Seoul"))
-                        .format(expiryInstant);
-
-        log.info("만료 시간: {}", formattedTime);
-
+        // ...
         String path = request.getContextPath();
+        long expiryTimeMillis = System.currentTimeMillis() + (refreshExpiration * 1000L);
 
         String cookie =
                 ResponseCookie.from("expiry", String.valueOf(expiryTimeMillis))
-                        .domain(domainName)
+                        .domain(getCookieDomain()) // ★★★ 여기도 수정! ★★★
                         .secure(false)
                         .path(Optional.ofNullable(path).filter(p -> !p.isEmpty()).orElse("/"))
                         .build()
@@ -226,16 +221,12 @@ public class AuthenticationService {
     }
 
     private void deleteExpiryCookie(HttpServletRequest request, HttpServletResponse response) {
-
         Cookie cookie = WebUtils.getCookie(request, "expiry");
         if (cookie != null) {
-
             String path = request.getContextPath();
-
             cookie.setMaxAge(0);
-            cookie.setDomain(domainName);
+            cookie.setDomain(getCookieDomain()); // ★★★ 여기도 수정! ★★★
             cookie.setPath(Optional.ofNullable(path).filter(p -> !p.isEmpty()).orElse("/"));
-
             response.addCookie(cookie);
         }
     }

@@ -6,6 +6,7 @@ import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -22,6 +23,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +37,9 @@ public class SasangSecurityConfig {
 
     private final UserRepository repository;
     private final JwtProvider jwtProvider;
+
+    @Value("${domain.name}")
+    private String domainName;
 
     @Bean
     @Order(1)
@@ -97,6 +106,23 @@ public class SasangSecurityConfig {
         return http.build();
     }
 
+
+    @Bean
+    @Order(3)
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // 브라우저가 보내는 Origin을 정확히 명시합니다.
+        configuration.setAllowedOrigins(List.of("http://" + domainName)); // "http://101.254.21.120:10300"
+
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true); // 쿠키 사용 시 필수
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
     // 기존 JwtAuthenticationFilter 대신 SasangJwtAuthenticationFilter 빈 추가
     @Bean
     public SasangJwtAuthenticationFilter sasangJwtAuthenticationFilter() {
@@ -111,5 +137,21 @@ public class SasangSecurityConfig {
                         .findByUsername(username)
                         .map(CustomUserDetails::new)
                         .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource2() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(
+                List.of("http://localhost:*", "http://app.plug-platform:*", "http://101.254.21.120:*"));
+        configuration.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // OPTIONS도 명시적으로 허용하는 것이 좋음
+        configuration.setAllowedHeaders(List.of("*")); // 와일드카드 또는 필요한 헤더 명시
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // pre-flight 요청 캐시 시간
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
