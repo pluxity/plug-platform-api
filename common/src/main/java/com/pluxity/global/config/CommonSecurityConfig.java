@@ -121,7 +121,7 @@ public class CommonSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(
-                List.of("http://localhost:*", "http://app.plug-platform:*"));
+                List.of("http://localhost:*", "http://app.plug-platform:*", "http://101.254.21.120:*"));
         configuration.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // OPTIONS도 명시적으로 허용하는 것이 좋음
         configuration.setAllowedHeaders(List.of("*")); // 와일드카드 또는 필요한 헤더 명시
