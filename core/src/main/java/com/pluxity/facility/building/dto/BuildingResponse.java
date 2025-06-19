@@ -1,14 +1,15 @@
 package com.pluxity.facility.building.dto;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorResponse;
-import com.pluxity.global.response.BaseResponse;
+// import com.pluxity.global.response.BaseResponse; // Removed
 import java.util.List;
-import lombok.Builder;
+// import lombok.Builder; // Removed
 
-@Builder
+// @Builder // Removed
 public record BuildingResponse(
-        FacilityResponse facility,
-        List<FloorResponse> floors,
-        @JsonUnwrapped BaseResponse baseResponse) {}
+    Long id, // Added Building's own ID
+    FacilityResponse facility,
+    List<FloorResponse> floors
+    // @JsonUnwrapped BaseResponse baseResponse // Removed
+) {}
