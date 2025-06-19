@@ -5,6 +5,7 @@ import com.pluxity.authentication.security.JwtProvider;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -26,8 +27,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -106,14 +105,14 @@ public class SasangSecurityConfig {
         return http.build();
     }
 
-
     @Bean
     @Order(3)
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 브라우저가 보내는 Origin을 정확히 명시합니다.
-        configuration.setAllowedOrigins(List.of("http://" + domainName)); // "http://101.254.21.120:10300"
+        configuration.setAllowedOrigins(
+                List.of("http://" + domainName)); // "http://101.254.21.120:10300"
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
@@ -123,6 +122,7 @@ public class SasangSecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
     // 기존 JwtAuthenticationFilter 대신 SasangJwtAuthenticationFilter 빈 추가
     @Bean
     public SasangJwtAuthenticationFilter sasangJwtAuthenticationFilter() {

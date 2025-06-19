@@ -203,12 +203,21 @@ public class AuthenticationService {
         }
     }
 
-
     private void createExpiryCookie(HttpServletRequest request, HttpServletResponse response) {
-        // ...
-        String path = request.getContextPath();
-        long expiryTimeMillis = System.currentTimeMillis() + (refreshExpiration * 1000L);
+        long currentTimeMillis = System.currentTimeMillis();
+        long tokenExpiryInMillis = refreshExpiration * 1000L;
+        long expiryTimeMillis = currentTimeMillis + tokenExpiryInMillis;
 
+        // 사람이 읽을 수 있는 형식으로 변환
+        Instant expiryInstant = Instant.ofEpochMilli(expiryTimeMillis);
+        String formattedTime =
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(ZoneId.of("Asia/Seoul"))
+                        .format(expiryInstant);
+
+        log.info("만료 시간: {}", formattedTime);
+
+        String path = request.getContextPath();
         String cookie =
                 ResponseCookie.from("expiry", String.valueOf(expiryTimeMillis))
                         .domain(getCookieDomain()) // ★★★ 여기도 수정! ★★★
