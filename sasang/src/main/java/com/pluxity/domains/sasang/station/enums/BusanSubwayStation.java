@@ -1,4 +1,4 @@
-package com.pluxity.domains.station.enums;
+package com.pluxity.domains.sasang.station.enums; // Updated package
 
 import java.util.Arrays;
 import java.util.List;

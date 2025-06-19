@@ -16,13 +16,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "facility")
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "facility_type")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PUBLIC) // Changed to public
 @EntityListeners(AuditingEntityListener.class)
 @SoftDelete
-public abstract class Facility extends BaseEntity {
+public class Facility extends BaseEntity { // Removed abstract, @Inheritance, @DiscriminatorColumn
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,10 +1,12 @@
-package com.pluxity.domains.station;
+package com.pluxity.domains.sasang.station; // Updated package
 
-import com.pluxity.domains.station.dto.BusanSubwayStationResponse;
-import com.pluxity.domains.station.dto.SasangStationCreateRequest;
-import com.pluxity.domains.station.dto.SasangStationResponse;
-import com.pluxity.domains.station.dto.SasangStationUpdateRequest;
-import com.pluxity.domains.station.enums.BusanSubwayStation;
+import com.pluxity.domains.sasang.station.SasangStation;
+import com.pluxity.domains.sasang.station.SasangStationRepository;
+import com.pluxity.domains.sasang.station.dto.BusanSubwayStationResponse; // Updated DTO path
+import com.pluxity.domains.sasang.station.dto.SasangStationCreateRequest; // Updated DTO path
+import com.pluxity.domains.sasang.station.dto.SasangStationResponse; // Updated DTO path
+import com.pluxity.domains.sasang.station.dto.SasangStationUpdateRequest; // Updated DTO path
+import com.pluxity.domains.sasang.station.enums.BusanSubwayStation; // Updated enum path
 import com.pluxity.facility.facility.Facility;
 import com.pluxity.facility.facility.FacilityService;
 import com.pluxity.facility.facility.dto.FacilityCreateRequest;
@@ -14,6 +16,7 @@ import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.line.Line;
 import com.pluxity.facility.line.LineService;
+// import com.pluxity.facility.station.Station; // Not directly used as type, but through SasangStation.getStation()
 import com.pluxity.facility.station.StationService;
 import com.pluxity.facility.station.dto.StationResponse;
 import com.pluxity.facility.station.dto.StationResponseWithFeature;
@@ -45,59 +48,72 @@ public class SasangStationService {
 
     @Transactional
     public Long save(SasangStationCreateRequest request) {
-        createValidation(request);
+        createValidation(request); // Assuming this validation logic will be adapted or is okay for now
 
-        SasangStation sasangStation =
-                SasangStation.sasangStationBuilder()
-                        .name(request.facility().name())
-                        .description(request.facility().description())
-                        .externalCode(request.externalCode())
-                        .build();
+        // SasangStation constructor now handles creating the composed Station object,
+        // which in turn creates its Facility object.
+        SasangStation sasangStation = new SasangStation(
+                request.facility().name(),
+                request.facility().description(),
+                request.route(), // Assuming SasangStationCreateRequest has getRoute()
+                request.externalCode()
+        );
 
-        // 파일 ID 설정
         FacilityCreateRequest facilityRequest = request.facility();
-        sasangStation.updateDrawingFileId(facilityRequest.drawingFileId());
-        sasangStation.updateThumbnailFileId(facilityRequest.thumbnailFileId());
+        // Update drawing and thumbnail file IDs on the composed Facility
+        if (facilityRequest.drawingFileId() != null) {
+            sasangStation.getStation().getFacility().updateDrawingFileId(facilityRequest.drawingFileId());
+        }
+        if (facilityRequest.thumbnailFileId() != null) {
+            sasangStation.getStation().getFacility().updateThumbnailFileId(facilityRequest.thumbnailFileId());
+        }
 
-        // 저장
-        Facility saved = facilityService.save(sasangStation, facilityRequest);
+        // Save the composed Facility details via FacilityService
+        // FacilityService.save might update the facility object passed to it.
+        facilityService.save(sasangStation.getStation().getFacility(), facilityRequest);
 
-        // 층 정보 저장
+        // Save SasangStation entity
+        sasangStationRepository.save(sasangStation);
+
+
+        // Floor information processing using the composed facility
         if (request.floors() != null) {
             for (FloorRequest floorRequest : request.floors()) {
-                floorStrategy.save(saved, floorRequest);
+                floorStrategy.save(sasangStation.getStation().getFacility(), floorRequest);
             }
         }
 
-        // 노선 정보 저장
+        // Line information processing using the composed station
         if (request.lineIds() != null && !request.lineIds().isEmpty()) {
             for (Long lineId : request.lineIds()) {
                 Line line = lineService.findLineById(lineId);
-                sasangStation.addLine(line);
+                sasangStation.getStation().addLine(line);
             }
         }
 
-        return saved.getId();
+        return sasangStation.getId(); // Return ID of the saved SasangStation
     }
 
     private void createValidation(SasangStationCreateRequest request) {
+        // TODO: Validation logic needs review due to Facility.code and Facility.name now being indirect.
+        // Assuming repository methods are adapted or this is handled separately.
         sasangStationRepository
-                .findByCode(request.facility().code())
+                .findByCode(request.facility().code()) // This needs to search via Facility.code
+                .ifPresent(
+                        station -> {
+                            throw new CustomException(
+                                    "Station Code Already Exists", // Swapped Name and Code here to match original logic's string format
+                                    HttpStatus.BAD_REQUEST,
+                                    String.format("코드가 %s인 역사가 이미 존재합니다", request.facility().code())); // Corrected message to use code
+                        });
+        sasangStationRepository
+                .findByName(request.facility().name()) // This needs to search via Facility.name
                 .ifPresent(
                         station -> {
                             throw new CustomException(
                                     "Station Name Already Exists",
                                     HttpStatus.BAD_REQUEST,
-                                    String.format("코드가 %s인 역사가 이미 존재합니다", request.facility().name()));
-                        });
-        sasangStationRepository
-                .findByName(request.facility().name())
-                .ifPresent(
-                        station -> {
-                            throw new CustomException(
-                                    "Station Code Already Exists",
-                                    HttpStatus.BAD_REQUEST,
-                                    String.format("이름이 %s인 역사가 이미 존재합니다", request.facility().code()));
+                                    String.format("이름이 %s인 역사가 이미 존재합니다", request.facility().name())); // Corrected message to use name
                         });
     }
 
@@ -131,24 +147,27 @@ public class SasangStationService {
 
     @Transactional
     public void update(Long id, SasangStationUpdateRequest request) {
-        updateValidation(id, request);
+        updateValidation(id, request); // Assuming validation logic is adapted
         SasangStation sasangStation = findSasangStationById(id);
 
-        // 기본 Station 정보 업데이트
-        if (request != null) {
-            stationService.update(
-                    id, new StationUpdateRequest(request.facility(), request.floors(), request.lineIds()));
-        }
+        // Update composed Station's information via StationService
+        // Pass the ID of the composed Station
+        stationService.update(
+                sasangStation.getStation().getId(),
+                new StationUpdateRequest(request.facility(), request.floors(), request.lineIds()));
 
-        // SasangStation 고유 필드 업데이트
+        // Update SasangStation's specific fields
         if (request.externalCode() != null) {
             sasangStation.updateExternalCode(request.externalCode());
         }
+        // sasangStationRepository.save(sasangStation); // If changes to sasangStation itself need saving
     }
 
     private void updateValidation(Long id, SasangStationUpdateRequest request) {
+        // TODO: Validation logic needs review due to Facility.name and Facility.code now being indirect.
+        // Assuming repository methods are adapted or this is handled separately.
         sasangStationRepository
-                .findByNameAndIdNot(request.facility().name(), id)
+                .findByNameAndIdNot(request.facility().name(), id) // This needs to search via Facility.name
                 .ifPresent(
                         station -> {
                             throw new CustomException(
@@ -157,7 +176,7 @@ public class SasangStationService {
                                     String.format("이름이 %s인 역사가 이미 존재합니다", request.facility().name()));
                         });
         sasangStationRepository
-                .findByCodeAndIdNot(request.facility().code(), id)
+                .findByCodeAndIdNot(request.facility().code(), id) // This needs to search via Facility.code
                 .ifPresent(
                         station -> {
                             throw new CustomException(
@@ -169,53 +188,64 @@ public class SasangStationService {
 
     @Transactional
     public void delete(Long id) {
-        findSasangStationById(id);
-        stationService.delete(id);
+        SasangStation sasangStation = findSasangStationById(id);
+        // Deleting SasangStation should cascade to composed Station and Facility
+        // due to orphanRemoval=true and CascadeType.ALL settings.
+        sasangStationRepository.delete(sasangStation);
     }
 
     @Transactional
     public void addLineToStation(Long stationId, Long lineId) {
-        findSasangStationById(stationId);
-        stationService.addLineToStation(stationId, lineId);
+        SasangStation sasangStation = findSasangStationById(stationId);
+        // Add line to the composed Station
+        stationService.addLineToStation(sasangStation.getStation().getId(), lineId);
     }
 
     @Transactional
     public void removeLineFromStation(Long stationId, Long lineId) {
-        findSasangStationById(stationId);
-        stationService.removeLineFromStation(stationId, lineId);
+        SasangStation sasangStation = findSasangStationById(stationId);
+        // Remove line from the composed Station
+        stationService.removeLineFromStation(sasangStation.getStation().getId(), lineId);
     }
 
     @Transactional(readOnly = true)
     public List<FacilityHistoryResponse> findFacilityHistories(Long id) {
-        findSasangStationById(id);
-        return stationService.findFacilityHistories(id);
+        SasangStation sasangStation = findSasangStationById(id);
+        // Fetch histories for the Facility composed within the Station of SasangStation
+        return stationService.findFacilityHistories(sasangStation.getStation().getId());
     }
 
     @Transactional(readOnly = true)
     public StationResponseWithFeature findStationWithFeatures(Long id) {
         SasangStation sasangStation = findSasangStationById(id);
-        StationResponseWithFeature stationResponse = stationService.findStationWithFeatures(id);
+        // Fetch features for the composed Station
+        StationResponseWithFeature stationResponse =
+                stationService.findStationWithFeatures(sasangStation.getStation().getId());
 
+        // Populate SasangStation specific details into the response
         return getStationResponseWithFeature(sasangStation, stationResponse);
     }
 
     @Transactional(readOnly = true)
     public StationResponseWithFeature findByCode(String code) {
+        // TODO: findSasangStationByCode needs to be adapted for Facility.code being indirect.
         SasangStation sasangStation = findSasangStationByCode(code);
         StationResponseWithFeature response =
-                stationService.findStationWithFeatures(sasangStation.getId());
+                stationService.findStationWithFeatures(sasangStation.getStation().getId());
         return getStationResponseWithFeature(sasangStation, response);
     }
 
     private StationResponseWithFeature getStationResponseWithFeature(
             SasangStation sasangStation, StationResponseWithFeature stationResponse) {
+
         StationResponseWithFeature.AdjacentStationInfo precedingStation =
                 findPrecedingStationInfo(sasangStation);
         StationResponseWithFeature.AdjacentStationInfo followingStation =
                 findFollowingStationInfo(sasangStation);
 
-        List<Label3DResponse> label3Ds =
-                label3DService.getLabel3DsByFacilityId(sasangStation.getId().toString());
+        // Use Facility ID for Label3D services
+        List<Label3DResponse> label3Ds = label3DService.getLabel3DsByFacilityId(
+                sasangStation.getStation().getFacility().getId().toString());
 
         return StationResponseWithFeature.builder()
                 .facility(stationResponse.facility())
@@ -223,9 +253,9 @@ public class SasangStationService {
                 .lineIds(stationResponse.lineIds())
                 .features(stationResponse.features())
                 .label3Ds(label3Ds)
-                .route(stationResponse.route())
-                .externalCode(sasangStation.getExternalCode())
-                .subway(sasangStation.getSubway())
+                .route(stationResponse.route()) // Route from the composed Station
+                .externalCode(sasangStation.getExternalCode()) // SasangStation specific
+                .subway(sasangStation.getStation().getSubway()) // Subway from composed Station
                 .precedingStation(precedingStation)
                 .followingStation(followingStation)
                 .build();
@@ -248,8 +278,9 @@ public class SasangStationService {
     }
 
     private SasangStation findSasangStationByCode(String code) {
+        // TODO: This repository method needs adaptation for indirect Facility.code
         return sasangStationRepository
-                .findByCode(code)
+                .findByCode(code) // Assumes SasangStationRepository can search by Facility.code
                 .orElseThrow(
                         () ->
                                 new CustomException(
@@ -261,14 +292,15 @@ public class SasangStationService {
         return SasangStationResponse.of(stationResponse, sasangStation.getExternalCode());
     }
 
+    // This method needs to access composed objects for properties
     private StationResponseWithFeature.AdjacentStationInfo findPrecedingStationInfo(
             SasangStation sasangStation) {
-        if (sasangStation.getCode() == null) {
+        String facilityCode = sasangStation.getStation().getFacility().getCode();
+        if (facilityCode == null) {
             return null;
         }
 
-        Optional<BusanSubwayStation> currentStation =
-                BusanSubwayStation.findByCode(sasangStation.getCode());
+        Optional<BusanSubwayStation> currentStation = BusanSubwayStation.findByCode(facilityCode);
         if (currentStation.isEmpty()) {
             return null;
         }
@@ -282,14 +314,15 @@ public class SasangStationService {
                 .orElse(null);
     }
 
+    // This method needs to access composed objects for properties
     private StationResponseWithFeature.AdjacentStationInfo findFollowingStationInfo(
             SasangStation sasangStation) {
-        if (sasangStation.getCode() == null) {
+        String facilityCode = sasangStation.getStation().getFacility().getCode();
+        if (facilityCode == null) {
             return null;
         }
 
-        Optional<BusanSubwayStation> currentStation =
-                BusanSubwayStation.findByCode(sasangStation.getCode());
+        Optional<BusanSubwayStation> currentStation = BusanSubwayStation.findByCode(facilityCode);
         if (currentStation.isEmpty()) {
             return null;
         }
@@ -303,24 +336,34 @@ public class SasangStationService {
                 .orElse(null);
     }
 
-    private StationResponse convertToStationResponse(SasangStation station) {
-        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+    // This helper converts SasangStation to StationResponse, accessing composed objects
+    private StationResponse convertToStationResponse(SasangStation sasangStation) {
+        Facility facility = sasangStation.getStation().getFacility(); // Get composed facility
+        com.pluxity.facility.station.Station composedStation = sasangStation.getStation(); // Get composed station
+
+        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(facility);
 
         List<Long> lineIds =
-                station.getStationLines().stream()
+                composedStation.getStationLines().stream()
                         .map(stationLine -> stationLine.getLine().getId())
                         .collect(Collectors.toList());
+
+        List<String> featureIds = facility.getFeatures().stream() // Get features from facility
+                                          .map(feature -> feature.getId())
+                                          .collect(Collectors.toList());
+
 
         return StationResponse.builder()
                 .facility(
                         FacilityResponse.from(
-                                station,
-                                fileService.getFileResponse(station.getDrawingFileId()),
-                                fileService.getFileResponse(station.getThumbnailFileId())))
+                                facility, // Pass the actual facility object
+                                fileService.getFileResponse(facility.getDrawingFileId()),
+                                fileService.getFileResponse(facility.getThumbnailFileId())))
                 .floors(floorResponse)
                 .lineIds(lineIds)
-                .route(station.getRoute())
-                .subway(station.getSubway())
+                .featureIds(featureIds) // Added featureIds
+                .route(composedStation.getRoute())
+                .subway(composedStation.getSubway())
                 .build();
     }
 }

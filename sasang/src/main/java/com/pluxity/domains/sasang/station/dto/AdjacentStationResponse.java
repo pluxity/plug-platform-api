@@ -1,4 +1,4 @@
-package com.pluxity.domains.station.dto;
+package com.pluxity.domains.sasang.station.dto; // Updated package
 
 public record AdjacentStationResponse(String code, String name) {
     public static AdjacentStationResponse of(String code, String name) {

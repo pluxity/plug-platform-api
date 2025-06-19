@@ -2,7 +2,7 @@ package com.pluxity.facility.station;
 
 import com.pluxity.facility.facility.Facility;
 import com.pluxity.facility.line.Line;
-import jakarta.persistence.*;
+import jakarta.persistence.*; // Keep existing
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -13,11 +13,19 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @Entity
 @Table(name = "station")
-@DiscriminatorValue("STATION")
+// @DiscriminatorValue("STATION") // Removed
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ConditionalOnProperty(name = "facility.station.enabled", havingValue = "true")
-public class Station extends Facility {
+public class Station { // Removed "extends Facility"
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "facility_id", referencedColumnName = "id", nullable = false)
+    private Facility facility;
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<StationLine> stationLines = new ArrayList<>();
@@ -30,7 +38,8 @@ public class Station extends Facility {
 
     @Builder
     public Station(String name, String description, String route) {
-        super(name, description);
+        // super(name, description); // Removed
+        this.facility = new Facility(name, description, "Initial station facility"); // Added
         this.route = route;
     }
 

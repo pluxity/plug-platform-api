@@ -1,6 +1,6 @@
-package com.pluxity.domains.station.dto;
+package com.pluxity.domains.sasang.station.dto;
 
-import com.pluxity.domains.station.enums.BusanSubwayStation;
+import com.pluxity.domains.sasang.station.enums.BusanSubwayStation; // Corrected enum import
 
 public record BusanSubwayStationResponse(String code, String name, String line) {
 

@@ -1,4 +1,4 @@
-package com.pluxity.domains.station.dto;
+package com.pluxity.domains.sasang.station.dto; // Updated package
 
 import com.pluxity.facility.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorResponse;

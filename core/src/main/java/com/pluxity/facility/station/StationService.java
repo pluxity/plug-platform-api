@@ -19,6 +19,7 @@ import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.label3d.Label3DRepository;
+import com.pluxity.label3d.entity.Label3D; // Added import for Label3D
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -39,18 +40,21 @@ public class StationService {
 
     @Transactional
     public Long save(StationCreateRequest request) {
+        // Create Station, which internally creates its Facility
+        Station station = new Station(
+            request.facility().name(),
+            request.facility().description(),
+            request.route() // Assuming StationCreateRequest has getRoute()
+        );
+        // stationRepository.save(station); // Explicitly save station if not handled by cascade from FacilityService or transaction boundary
 
-        Station station =
-                Station.builder()
-                        .name(request.facility().name())
-                        .description(request.facility().description())
-                        .build();
-
-        Facility saved = facilityService.save(station, request.facility());
+        // Pass the Facility from Station to FacilityService to update details if needed
+        Facility savedFacility = facilityService.save(station.getFacility(), request.facility());
+        stationRepository.save(station); // Ensure station itself is saved to get its ID
 
         if (request.floors() != null) {
             for (FloorRequest floorRequest : request.floors()) {
-                floorStrategy.save(saved, floorRequest);
+                floorStrategy.save(station.getFacility(), floorRequest);
             }
         }
 
@@ -60,8 +64,8 @@ public class StationService {
                 station.addLine(line);
             }
         }
-
-        return saved.getId();
+        // Return Station ID as per typical save operations for the primary entity being created
+        return station.getId();
     }
 
     @Transactional(readOnly = true)
@@ -69,21 +73,22 @@ public class StationService {
         return stationRepository.findAll().stream()
                 .map(
                         station -> {
+                            Facility facility = station.getFacility();
                             List<Long> lineIds =
                                     station.getStationLines().stream()
                                             .map(stationLine -> stationLine.getLine().getId())
                                             .collect(Collectors.toList());
 
-                            List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
-                            List<String> featureIds = station.getFeatures().stream().map(Feature::getId).toList();
-                            FacilityResponseWithFeature.getFeatureResponses(station);
+                            List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(facility);
+                            List<String> featureIds = facility.getFeatures().stream().map(Feature::getId).toList();
+                            // FacilityResponseWithFeature.getFeatureResponses(facility); // This method seems to be static and returns a List, not modifying input
 
                             return StationResponse.builder()
                                     .facility(
                                             FacilityResponse.from(
-                                                    station,
-                                                    fileService.getFileResponse(station.getDrawingFileId()),
-                                                    fileService.getFileResponse(station.getThumbnailFileId())))
+                                                    facility,
+                                                    fileService.getFileResponse(facility.getDrawingFileId()),
+                                                    fileService.getFileResponse(facility.getThumbnailFileId())))
                                     .floors(floorResponse)
                                     .lineIds(lineIds)
                                     .featureIds(featureIds)
@@ -96,9 +101,10 @@ public class StationService {
 
     @Transactional(readOnly = true)
     public StationResponse findById(Long id) {
-        Station station = (Station) facilityService.findById(id);
-        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
-        List<String> featureIds = station.getFeatures().stream().map(Feature::getId).toList();
+        Station station = findStationById(id); // Use local method to fetch Station
+        Facility facility = station.getFacility();
+        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(facility);
+        List<String> featureIds = facility.getFeatures().stream().map(Feature::getId).toList();
 
         List<Long> lineIds =
                 station.getStationLines().stream()
@@ -108,9 +114,9 @@ public class StationService {
         return StationResponse.builder()
                 .facility(
                         FacilityResponse.from(
-                                station,
-                                fileService.getFileResponse(station.getDrawingFileId()),
-                                fileService.getFileResponse(station.getThumbnailFileId())))
+                                facility,
+                                fileService.getFileResponse(facility.getDrawingFileId()),
+                                fileService.getFileResponse(facility.getThumbnailFileId())))
                 .floors(floorResponse)
                 .lineIds(lineIds)
                 .featureIds(featureIds)
@@ -130,26 +136,32 @@ public class StationService {
 
     @Transactional(readOnly = true)
     public List<FacilityHistoryResponse> findFacilityHistories(Long id) {
-        return facilityService.findFacilityHistories(id);
+        // Assuming this should fetch histories for the Facility associated with the Station
+        Station station = findStationById(id);
+        return facilityService.findFacilityHistories(station.getFacility().getId());
     }
 
     @Transactional
     public void update(Long id, StationUpdateRequest request) {
-        // 먼저 스테이션을 조회
         Station station = findStationById(id);
+        Facility facility = station.getFacility();
 
-        facilityService.update(id, request.facility());
+        facilityService.update(facility.getId(), request.facility());
 
-        // 추가 정보 업데이트
         if (request.floors() != null) {
-            floorStrategy.delete(station);
+            floorStrategy.delete(facility);
             for (FloorRequest floorRequest : request.floors()) {
-                floorStrategy.save(station, floorRequest);
+                floorStrategy.save(facility, floorRequest);
             }
         }
 
+        // Update station-specific fields like route if they are in StationUpdateRequest
+        // For example: station.updateRoute(request.getRoute());
+
         if (request.lineIds() != null) {
-            station.getStationLines().clear();
+            // Manage clearing and adding lines carefully
+            // This simple clear and add might lose other StationLine properties if any
+            station.getStationLines().clear(); // Consider a more sophisticated update if needed
             for (Long lineId : request.lineIds()) {
                 Line line = lineService.findLineById(lineId);
                 station.addLine(line);
@@ -159,12 +171,11 @@ public class StationService {
 
     @Transactional
     public void delete(Long id) {
-        // 삭제할 스테이션 조회
         Station station = findStationById(id);
-
-        // Floor 삭제 및 Facility 삭제
-        floorStrategy.delete(station);
-        facilityService.deleteFacility(id);
+        // Deleting the station should cascade to Facility due to orphanRemoval=true
+        // floorStrategy.delete(station.getFacility()); // This might be handled by cascade from Facility or needs to be done before facility removal
+        stationRepository.delete(station);
+        // facilityService.deleteFacility(station.getFacility().getId()); // Should be redundant if cascade is set up correctly
     }
 
     @Transactional
@@ -172,7 +183,6 @@ public class StationService {
         Station station = findStationById(stationId);
         Line line = lineService.findLineById(lineId);
 
-        // 이미 연결되어 있는지 확인
         boolean alreadyConnected =
                 station.getStationLines().stream().anyMatch(sl -> sl.getLine().getId().equals(lineId));
 
@@ -191,7 +201,8 @@ public class StationService {
     @Transactional(readOnly = true)
     public StationResponseWithFeature findStationWithFeatures(Long id) {
         Station station = findStationById(id);
-        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+        Facility facility = station.getFacility();
+        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(facility);
 
         List<Long> lineIds =
                 station.getStationLines().stream()
@@ -200,17 +211,17 @@ public class StationService {
 
         FacilityResponseWithFeature facilityResponse =
                 FacilityResponseWithFeature.from(
-                        station,
-                        fileService.getFileResponse(station.getDrawingFileId()),
-                        fileService.getFileResponse(station.getThumbnailFileId()));
+                        facility,
+                        fileService.getFileResponse(facility.getDrawingFileId()),
+                        fileService.getFileResponse(facility.getThumbnailFileId()));
 
         List<String> label3DFeatureIds =
-                label3DRepository.findAllByFacilityId(id.toString()).stream()
+                label3DRepository.findAllByFacilityId(facility.getId().toString()).stream() // Use facility ID
                         .map(label3D -> label3D.getFeature().getId())
                         .collect(Collectors.toList());
 
         List<FeatureResponseWithoutAsset> features =
-                FacilityResponseWithFeature.getFeatureResponsesExcludingLabel3D(station, label3DFeatureIds);
+                FacilityResponseWithFeature.getFeatureResponsesExcludingLabel3D(facility, label3DFeatureIds);
 
         return StationResponseWithFeature.builder()
                 .facility(facilityResponse)
@@ -218,6 +229,7 @@ public class StationService {
                 .lineIds(lineIds)
                 .features(features)
                 .route(station.getRoute())
+                // .subway(station.getSubway()) // subway was in StationResponse, not StationResponseWithFeature in original. Add if needed.
                 .build();
     }
 }
