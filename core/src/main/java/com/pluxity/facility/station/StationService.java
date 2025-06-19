@@ -1,10 +1,11 @@
 package com.pluxity.facility.station;
 
+import com.pluxity.facility.station.mapper.StationMapper; // Added import
 import com.pluxity.facility.facility.Facility;
 import com.pluxity.facility.facility.FacilityService;
 import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
-import com.pluxity.facility.facility.dto.FacilityResponse;
-import com.pluxity.facility.facility.dto.FacilityResponseWithFeature;
+import com.pluxity.facility.facility.dto.FacilityResponse; // Still needed for new StationResponse(...)
+// import com.pluxity.facility.facility.dto.FacilityResponseWithFeature; // Removed
 import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.line.Line;
@@ -16,7 +17,7 @@ import com.pluxity.facility.station.dto.StationUpdateRequest;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
 import com.pluxity.feature.entity.Feature;
-import com.pluxity.file.service.FileService;
+// import com.pluxity.file.service.FileService; // Removed
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.label3d.Label3DRepository;
 import com.pluxity.label3d.entity.Label3D; // Added import for Label3D
@@ -31,12 +32,15 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class StationService {
 
-    private final FileService fileService;
+    // private final FileService fileService; // Removed from fields
     private final FacilityService facilityService;
     private final FloorStrategy floorStrategy;
     private final StationRepository stationRepository;
     private final LineService lineService;
     private final Label3DRepository label3DRepository;
+    private final StationMapper stationMapper; // Added StationMapper
+
+    // Constructor updated by @RequiredArgsConstructor
 
     @Transactional
     public Long save(StationCreateRequest request) {
@@ -71,58 +75,38 @@ public class StationService {
     @Transactional(readOnly = true)
     public List<StationResponse> findAll() {
         return stationRepository.findAll().stream()
-                .map(
-                        station -> {
-                            Facility facility = station.getFacility();
-                            List<Long> lineIds =
-                                    station.getStationLines().stream()
-                                            .map(stationLine -> stationLine.getLine().getId())
-                                            .collect(Collectors.toList());
-
-                            List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(facility);
-                            List<String> featureIds = facility.getFeatures().stream().map(Feature::getId).toList();
-                            // FacilityResponseWithFeature.getFeatureResponses(facility); // This method seems to be static and returns a List, not modifying input
-
-                            return StationResponse.builder()
-                                    .facility(
-                                            FacilityResponse.from(
-                                                    facility,
-                                                    fileService.getFileResponse(facility.getDrawingFileId()),
-                                                    fileService.getFileResponse(facility.getThumbnailFileId())))
-                                    .floors(floorResponse)
-                                    .lineIds(lineIds)
-                                    .featureIds(featureIds)
-                                    .route(station.getRoute())
-                                    .subway(station.getSubway())
-                                    .build();
-                        })
+                .map(station -> {
+                    StationResponse stationDto = stationMapper.toStationResponse(station);
+                    List<FloorResponse> floorResponses = floorStrategy.findAllByFacility(station.getFacility());
+                    // Create new DTO with floors populated
+                    return new StationResponse(
+                            stationDto.id(),
+                            stationDto.facility(),
+                            floorResponses, // floors manually set
+                            stationDto.lineIds(),
+                            stationDto.featureIds(),
+                            stationDto.route(),
+                            stationDto.subway()
+                    );
+                })
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public StationResponse findById(Long id) {
-        Station station = findStationById(id); // Use local method to fetch Station
-        Facility facility = station.getFacility();
-        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(facility);
-        List<String> featureIds = facility.getFeatures().stream().map(Feature::getId).toList();
-
-        List<Long> lineIds =
-                station.getStationLines().stream()
-                        .map(stationLine -> stationLine.getLine().getId())
-                        .collect(Collectors.toList());
-
-        return StationResponse.builder()
-                .facility(
-                        FacilityResponse.from(
-                                facility,
-                                fileService.getFileResponse(facility.getDrawingFileId()),
-                                fileService.getFileResponse(facility.getThumbnailFileId())))
-                .floors(floorResponse)
-                .lineIds(lineIds)
-                .featureIds(featureIds)
-                .route(station.getRoute())
-                .subway(station.getSubway())
-                .build();
+        Station station = findStationById(id);
+        StationResponse stationDto = stationMapper.toStationResponse(station);
+        List<FloorResponse> floorResponses = floorStrategy.findAllByFacility(station.getFacility());
+        // Create new DTO with floors populated
+        return new StationResponse(
+                stationDto.id(),
+                stationDto.facility(),
+                floorResponses, // floors manually set
+                stationDto.lineIds(),
+                stationDto.featureIds(),
+                stationDto.route(),
+                stationDto.subway()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -201,35 +185,39 @@ public class StationService {
     @Transactional(readOnly = true)
     public StationResponseWithFeature findStationWithFeatures(Long id) {
         Station station = findStationById(id);
-        Facility facility = station.getFacility();
-        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(facility);
+        // Use mapper for base StationResponse data
+        StationResponse baseStationResponse = stationMapper.toStationResponse(station);
 
-        List<Long> lineIds =
-                station.getStationLines().stream()
-                        .map(stationLine -> stationLine.getLine().getId())
-                        .collect(Collectors.toList());
+        // Get floors separately as it's not mapped by StationMapper
+        List<FloorResponse> floorResponses = floorStrategy.findAllByFacility(station.getFacility());
 
-        FacilityResponseWithFeature facilityResponse =
-                FacilityResponseWithFeature.from(
-                        facility,
-                        fileService.getFileResponse(facility.getDrawingFileId()),
-                        fileService.getFileResponse(facility.getThumbnailFileId()));
-
-        List<String> label3DFeatureIds =
-                label3DRepository.findAllByFacilityId(facility.getId().toString()).stream() // Use facility ID
+        // Get Label3D related features (this seems specific to StationResponseWithFeature)
+        List<String> label3DFeatureIdsFromRepo =
+                label3DRepository.findAllByFacilityId(station.getFacility().getId().toString()).stream()
                         .map(label3D -> label3D.getFeature().getId())
                         .collect(Collectors.toList());
 
-        List<FeatureResponseWithoutAsset> features =
-                FacilityResponseWithFeature.getFeatureResponsesExcludingLabel3D(facility, label3DFeatureIds);
+        // Get other features, excluding those already covered by Label3D (if this logic is still desired)
+        // The original FacilityResponseWithFeature.getFeatureResponsesExcludingLabel3D is complex.
+        // For now, let's assume featureIds from baseStationResponse.featureIds() is sufficient,
+        // or this part needs a dedicated FeatureMapper or service call.
+        // The baseStationResponse.featureIds() already contains all feature IDs from the facility.
+        // If specific filtering for Label3D is needed, it has to be applied here.
+        // Let's use the featureIds from the base DTO for now.
+        List<FeatureResponseWithoutAsset> featuresForResponse = station.getFacility().getFeatures().stream()
+            .filter(feature -> !label3DFeatureIdsFromRepo.contains(feature.getId()))
+            .map(feature -> new FeatureResponseWithoutAsset(feature.getId(), feature.getName(), feature.getFeatureType())) // Manual mapping
+            .collect(Collectors.toList());
+
 
         return StationResponseWithFeature.builder()
-                .facility(facilityResponse)
-                .floors(floorResponse)
-                .lineIds(lineIds)
-                .features(features)
-                .route(station.getRoute())
-                // .subway(station.getSubway()) // subway was in StationResponse, not StationResponseWithFeature in original. Add if needed.
+                .facility(baseStationResponse.facility()) // This is now the simplified FacilityResponse
+                .floors(floorResponses) // Manually set floors
+                .lineIds(baseStationResponse.lineIds())
+                .features(featuresForResponse) // Manually set/filtered features
+                .route(baseStationResponse.route())
+                // .subway(baseStationResponse.subway()) // Add if StationResponseWithFeature needs subway
+                // label3Ds would need to be fetched and set if part of StationResponseWithFeature
                 .build();
     }
 }

@@ -25,9 +25,22 @@ public class FacilityService {
     private final FacilityRepository facilityRepository;
     private final FileService fileService;
     private final EntityManager entityManager;
+    private final FacilityMapper facilityMapper; // Added FacilityMapper
 
     private final String PREFIX = "facilities/";
     private final FacilityRevisionRepository facilityRevisionRepository;
+
+    // Constructor updated for FacilityMapper due to @RequiredArgsConstructor
+    // If @RequiredArgsConstructor is handling it, this manual constructor isn't strictly needed
+    // but showing it for clarity if manual update was required.
+    // public FacilityService(FacilityRepository facilityRepository, FileService fileService, EntityManager entityManager, FacilityRevisionRepository facilityRevisionRepository, FacilityMapper facilityMapper) {
+    //     this.facilityRepository = facilityRepository;
+    //     this.fileService = fileService;
+    //     this.entityManager = entityManager;
+    //     this.facilityRevisionRepository = facilityRevisionRepository;
+    //     this.facilityMapper = facilityMapper;
+    // }
+
 
     @Transactional
     public Facility save(Facility facility, @Valid FacilityCreateRequest request) {
@@ -92,10 +105,7 @@ public class FacilityService {
         return facilityRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
-    protected List<Facility> findByType(String facilityType) {
-        return null;
-    }
+    // Removed findByType as it returned null and seemed unused or incomplete.
 
     @Transactional
     public void update(Long id, @Valid FacilityUpdateRequest request) {

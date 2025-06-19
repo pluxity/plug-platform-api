@@ -1,9 +1,10 @@
-package com.pluxity.domains.station;
+package com.pluxity.domains.sasang.station; // Updated package
 
-import com.pluxity.domains.station.dto.BusanSubwayStationResponse;
-import com.pluxity.domains.station.dto.SasangStationCreateRequest;
-import com.pluxity.domains.station.dto.SasangStationResponse;
-import com.pluxity.domains.station.dto.SasangStationUpdateRequest;
+import com.pluxity.domains.sasang.station.SasangStationService; // Updated import
+import com.pluxity.domains.sasang.station.dto.BusanSubwayStationResponse; // Updated import
+import com.pluxity.domains.sasang.station.dto.SasangStationCreateRequest; // Updated import
+import com.pluxity.domains.sasang.station.dto.SasangStationResponse; // Updated import
+import com.pluxity.domains.sasang.station.dto.SasangStationUpdateRequest; // Updated import
 import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.station.dto.StationResponseWithFeature;
 import com.pluxity.global.annotation.ResponseCreated;
@@ -23,9 +24,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/stations")
+@RequestMapping("/stations") // This base path might need review if Sasang stations have a more specific path e.g. /sasang/stations
 @RequiredArgsConstructor
-@Tag(name = "Station Controller", description = "역 관리 API")
+@Tag(name = "Station Controller", description = "역 관리 API") // Tag name could be more specific e.g. "Sasang Station Controller"
 public class SasangStationController {
 
     private final SasangStationService service;
@@ -50,7 +51,7 @@ public class SasangStationController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated(path = "/stations/{id}")
+    @ResponseCreated(path = "/stations/{id}") // Path might need to be /sasang/stations/{id}
     public ResponseEntity<Long> create(
             @Parameter(description = "역 생성 정보", required = true) @Valid @RequestBody
                     SasangStationCreateRequest request) {
@@ -102,7 +103,7 @@ public class SasangStationController {
         return ResponseEntity.ok(DataResponseBody.of(service.findById(id)));
     }
 
-    @Operation(summary = "역 상세 조회", description = "ID로 특정 역의 상세 정보를 조회합니다")
+    @Operation(summary = "역 상세 조회 (코드로)", description = "코드로 특정 역의 상세 정보를 조회합니다") // Updated summary
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "역 조회 성공"),
@@ -122,8 +123,8 @@ public class SasangStationController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping("/by-code/{code}")
-    public ResponseEntity<DataResponseBody<StationResponseWithFeature>> getByCode(
-            @Parameter(description = "역 ID", required = true) @PathVariable String code) {
+    public ResponseEntity<DataResponseBody<StationResponseWithFeature>> getByCode( // Return type is StationResponseWithFeature
+            @Parameter(description = "역 코드", required = true) @PathVariable String code) { // Parameter description updated
         return ResponseEntity.ok(DataResponseBody.of(service.findByCode(code)));
     }
 
@@ -317,7 +318,7 @@ public class SasangStationController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @GetMapping("/{stationId}/with-features")
+    @GetMapping("/{stationId}/with-features") // Path updated for clarity from original /features
     public ResponseEntity<DataResponseBody<StationResponseWithFeature>> getStationFeatures(
             @Parameter(description = "역 ID", required = true) @PathVariable Long stationId) {
         return ResponseEntity.ok(DataResponseBody.of(service.findStationWithFeatures(stationId)));

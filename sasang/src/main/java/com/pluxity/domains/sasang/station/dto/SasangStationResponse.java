@@ -1,25 +1,11 @@
-package com.pluxity.domains.sasang.station.dto; // Updated package
+package com.pluxity.domains.sasang.station.dto;
 
-import com.pluxity.facility.facility.dto.FacilityResponse;
-import com.pluxity.facility.floor.dto.FloorResponse;
-import com.pluxity.facility.station.dto.StationResponse;
-import java.util.List;
+import com.pluxity.facility.station.dto.StationResponse; // Core DTO for station details
 
 public record SasangStationResponse(
-        FacilityResponse facility,
-        List<FloorResponse> floors,
-        List<Long> lineIds,
-        List<String> featureIds,
-        String route,
-        String externalCode) {
-
-    public static SasangStationResponse of(StationResponse stationResponse, String externalCode) {
-        return new SasangStationResponse(
-                stationResponse.facility(),
-                stationResponse.floors(),
-                stationResponse.lineIds(),
-                stationResponse.featureIds(),
-                stationResponse.route(),
-                externalCode);
-    }
+    Long id, // SasangStation's own ID
+    StationResponse station, // Nested StationResponse from core module
+    String externalCode
+) {
+    // Removed static of() method, MapStruct will handle mapping.
 }
