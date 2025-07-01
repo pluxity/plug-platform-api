@@ -27,7 +27,7 @@ file:
   local:
     path: ${FILE_LOCAL_PATH:/app/upload}
   s3:
-    endpoint-url: http://192.168.4.20:9000
+    endpoint-url: http://192.168.4.25:9000
     public-url: http://api.plug-platform.com:9000
     bucket: ${S3_BUCKET:plug-platform}
     region: ${S3_REGION:ap-northeast-2}
