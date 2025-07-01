@@ -2,7 +2,10 @@ package com.pluxity.facility.facility;
 
 import com.pluxity.facility.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.facility.dto.FacilityResponse;
 import com.pluxity.facility.facility.dto.FacilityUpdateRequest;
+import com.pluxity.facility.facility.dto.details.FacilityDetailsDto;
+import com.pluxity.facility.facility.handler.FacilityHandlerFactory;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
@@ -25,92 +28,52 @@ public class FacilityService {
     private final FacilityRepository facilityRepository;
     private final FileService fileService;
     private final EntityManager entityManager;
+    private final FacilityRevisionRepository facilityRevisionRepository;
+    private final FacilityHandlerFactory handlerFactory;
 
     private final String PREFIX = "facilities/";
-    private final FacilityRevisionRepository facilityRevisionRepository;
 
     @Transactional
-    public Facility save(Facility facility, @Valid FacilityCreateRequest request) {
-        try {
-            // 코드 중복 검사
-            if (request.code() != null && !request.code().isEmpty()) {
-                checkDuplicateCode(request.code());
-                facility.updateCode(request.code());
-            }
+    public Long save(@Valid FacilityCreateRequest request) {
+        checkDuplicateCode(request.code());
 
-            Facility savedFacility = facilityRepository.save(facility);
+        Facility facility = new Facility(
+            request.facilityType(),
+            request.name(),
+            request.code(),
+            request.description(),
+            null // history comment
+        );
 
-            String filePath = PREFIX + savedFacility.getId() + "/";
-            if (request.drawingFileId() != null) {
-                facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
-            }
+        Facility savedFacility = facilityRepository.save(facility);
 
-            if (request.thumbnailFileId() != null) {
-                facility.updateThumbnailFileId(
-                        fileService.finalizeUpload(request.thumbnailFileId(), filePath));
-            }
-
-            return savedFacility;
-        } catch (Exception e) {
-            log.error("Facility creation failed: {}", e.getMessage());
-            throw new CustomException(
-                    "Facility creation failed", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        String filePath = PREFIX + savedFacility.getId() + "/";
+        if (request.drawingFileId() != null) {
+            savedFacility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
         }
-    }
 
-    private void checkDuplicateCode(String code) {
-        if (facilityRepository.existsByCode(code)) {
-            throw new CustomException(
-                    "Duplicate code", HttpStatus.BAD_REQUEST, String.format("이미 존재하는 코드입니다: %s", code));
+        if (request.thumbnailFileId() != null) {
+            savedFacility.updateThumbnailFileId(fileService.finalizeUpload(request.thumbnailFileId(), filePath));
         }
-    }
 
-    @Transactional(readOnly = true)
-    public Facility findByCode(String code) {
-        return facilityRepository
-                .findByCode(code)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "Facility not found",
-                                        HttpStatus.NOT_FOUND,
-                                        String.format("코드 %s인 시설을 찾을 수 없습니다", code)));
-    }
+        if (request.details() != null) {
+            saveFacilityDetails(savedFacility, request.facilityType(), request.details());
+        }
 
-    @Transactional(readOnly = true)
-    public Facility findById(Long id) {
-        return facilityRepository
-                .findById(id)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
-    }
-
-    @Transactional(readOnly = true)
-    protected List<Facility> findAll() {
-        return facilityRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    protected List<Facility> findByType(String facilityType) {
-        return null;
+        return savedFacility.getId();
     }
 
     @Transactional
     public void update(Long id, @Valid FacilityUpdateRequest request) {
-        Facility facility = findById(id);
+        Facility facility = findFacilityById(id);
 
-        // 코드 변경 요청이 있고, 기존 코드와 다른 경우에만 중복 검사
         if (request.code() != null && !request.code().equals(facility.getCode())) {
             checkDuplicateCode(request.code());
             facility.updateCode(request.code());
         }
-
         if (request.name() != null) {
             facility.updateName(request.name());
         }
-
         if (request.description() != null) {
             facility.updateDescription(request.description());
         }
@@ -128,26 +91,86 @@ public class FacilityService {
             facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
         }
 
-        facilityRepository.save(facility);
-    }
-
-    @Transactional
-    public void update(Long id, Facility newFacility) {
-        Facility facility = findById(id);
-
-        // 코드 변경 요청이 있고, 기존 코드와 다른 경우에만 중복 검사
-        if (newFacility.getCode() != null && !newFacility.getCode().equals(facility.getCode())) {
-            checkDuplicateCode(newFacility.getCode());
+        if (request.details() != null) {
+            updateFacilityDetails(facility, request.details());
         }
+    }
 
-        facility.update(newFacility);
-        facilityRepository.save(facility);
+    @Transactional(readOnly = true)
+    public FacilityResponse findById(Long id) {
+        Facility facility = findFacilityById(id);
+        FacilityDetailsDto details = getFacilityDetails(facility);
+
+        return FacilityResponse.from(
+            facility,
+            fileService.getFileResponse(facility.getDrawingFileId()),
+            fileService.getFileResponse(facility.getThumbnailFileId()),
+            details
+        );
     }
 
     @Transactional
-    public void deleteFacility(Long id) {
-        Facility facility = findById(id);
+    public void delete(Long id) {
+        Facility facility = findFacilityById(id);
+        deleteFacilityDetails(facility);
         facilityRepository.delete(facility);
+    }
+
+    private void saveFacilityDetails(Facility facility, FacilityType type, FacilityDetailsDto details) {
+        if (details == null) {
+            log.warn("No details to save for facility type: {}", type);
+            return;
+        }
+        handlerFactory.getHandler(type).saveDetails(facility, details);
+    }
+
+    private void updateFacilityDetails(Facility facility, FacilityDetailsDto details) {
+        if (details == null) {
+            log.warn("No details to update for facility type: {}", facility.getType());
+            return;
+        }
+        handlerFactory.getHandler(facility.getType()).updateDetails(facility, details);
+    }
+
+    private FacilityDetailsDto getFacilityDetails(Facility facility) {
+        return handlerFactory.getHandler(facility.getType()).getDetails(facility);
+    }
+
+    private void deleteFacilityDetails(Facility facility) {
+        handlerFactory.getHandler(facility.getType()).deleteDetails(facility);
+    }
+
+    public Facility findFacilityById(Long id) {
+        return facilityRepository.findById(id).orElseThrow(() -> new CustomException(
+            "Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
+    }
+
+    private void checkDuplicateCode(String code) {
+        facilityRepository.findByCode(code).ifPresent(facility -> {
+            throw new CustomException("Duplicate code", HttpStatus.BAD_REQUEST, String.format("이미 존재하는 코드입니다: %s", code));
+        });
+    }
+
+    @Transactional(readOnly = true)
+    public Facility findByCode(String code) {
+        return facilityRepository
+                .findByCode(code)
+                .orElseThrow(
+                        () ->
+                                new CustomException(
+                                        "Facility not found",
+                                        HttpStatus.NOT_FOUND,
+                                        String.format("코드 %s인 시설을 찾을 수 없습니다", code)));
+    }
+
+    @Transactional(readOnly = true)
+    protected List<Facility> findAll() {
+        return facilityRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    protected List<Facility> findByType(String facilityType) {
+        return null;
     }
 
     @Transactional(readOnly = true)
@@ -160,38 +183,33 @@ public class FacilityService {
                                         "Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
 
         try {
-            // Spring Data Envers를 이용한 이력 조회
             List<FacilityHistoryResponse> historyResponses = new ArrayList<>();
             facilityRevisionRepository
                     .findRevisions(facilityId)
                     .forEach(
                             revision -> {
                                 Facility facility = revision.getEntity();
-                                // getMetadata()로 RevisionMetadata 객체 접근
                                 Date revisionDate =
                                         revision
                                                 .getMetadata()
                                                 .getRevisionInstant()
                                                 .map(instant -> new Date(instant.toEpochMilli()))
                                                 .orElse(new Date());
-
                                 String revisionType = revision.getMetadata().getRevisionType().name();
-
-                                // 파일 정보 가져오기
-                                FileResponse drawingFileResponse = getDrawingFileResponse(facility);
-                                FileResponse thumbnailFileResponse = getThumbnailFileResponse(facility);
-
+                                
                                 historyResponses.add(
                                         new FacilityHistoryResponse(
-                                                facilityId,
-                                                facility.getClass().getSimpleName(),
+                                                revision.getMetadata().getRevisionNumber().orElse(null),
+                                                revisionDate,
+                                                revisionType,
+                                                facility.getId(),
+                                                facility.getType(),
                                                 facility.getCode(),
                                                 facility.getName(),
                                                 facility.getDescription(),
-                                                drawingFileResponse,
-                                                thumbnailFileResponse,
-                                                revisionDate,
-                                                revisionType));
+                                                getDrawingFileResponse(facility),
+                                                getThumbnailFileResponse(facility)
+                                            ));
                             });
 
             return historyResponses;

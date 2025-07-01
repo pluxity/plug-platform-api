@@ -5,45 +5,79 @@ import static com.pluxity.global.constant.ErrorCode.NOT_FOUND;
 import com.pluxity.category.dto.CategoryResponse;
 import com.pluxity.category.dto.CategoryTreeResponse;
 import com.pluxity.category.entity.Category;
+import com.pluxity.category.entity.CategoryType;
+import com.pluxity.category.repository.CategoryRepository;
 import com.pluxity.global.exception.CustomException;
 import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-public abstract class CategoryService<T extends Category<T>> {
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class CategoryService {
 
-    protected abstract JpaRepository<T, Long> getRepository();
+    private final CategoryRepository categoryRepository;
 
-    public Long create(T category, T parent) {
-        category.assignToParent(parent);
-        return getRepository().save(category).getId();
+    @Transactional
+    public Long create(String name, CategoryType type, Long parentId) {
+        Category parent = parentId != null ? findById(parentId) : null;
+        Category category = Category.builder()
+                .name(name)
+                .type(type)
+                .parent(parent)
+                .build();
+        
+        return categoryRepository.save(category).getId();
     }
 
-    public T findById(Long id) {
-        return getRepository().findById(id).orElseThrow(() -> new CustomException(NOT_FOUND));
+    public Category findById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new CustomException(NOT_FOUND));
     }
 
-    public List<T> getRootCategories() {
-        return getRepository().findAll().stream().filter(Category::isRoot).toList();
+    public List<Category> findRootCategoriesByType(CategoryType type) {
+        return categoryRepository.findByTypeAndParentIsNull(type);
     }
 
-    public List<T> getChildren(Long parentId) {
-        T parent = findById(parentId);
+    public List<Category> findChildrenByParentId(Long parentId) {
+        Category parent = findById(parentId);
         return parent.getChildren();
     }
 
-    public List<CategoryResponse> getRootCategoryResponses() {
-        return getRootCategories().stream().map(CategoryResponse::from).toList();
+    public List<CategoryResponse> getRootCategoryResponsesByType(CategoryType type) {
+        return findRootCategoriesByType(type).stream()
+                .map(CategoryResponse::from)
+                .toList();
     }
 
-    public List<CategoryResponse> getChildResponses(Long parentId) {
-        return getChildren(parentId).stream().map(CategoryResponse::from).toList();
+    public List<CategoryResponse> getChildResponsesByParentId(Long parentId) {
+        return findChildrenByParentId(parentId).stream()
+                .map(CategoryResponse::from)
+                .toList();
     }
 
     public CategoryResponse getResponse(Long id) {
         return CategoryResponse.from(findById(id));
     }
 
-    public List<CategoryTreeResponse> getCategoryTree() {
-        return getRootCategories().stream().map(CategoryTreeResponse::from).toList();
+    public List<CategoryTreeResponse> getCategoryTreeByType(CategoryType type) {
+        return findRootCategoriesByType(type).stream()
+                .map(CategoryTreeResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public void updateName(Long id, String newName) {
+        Category category = findById(id);
+        category.updateName(newName);
+    }
+
+    @Transactional
+    public void assignToParent(Long categoryId, Long parentId) {
+        Category category = findById(categoryId);
+        Category parent = parentId != null ? findById(parentId) : null;
+        category.assignToParent(parent);
     }
 }

@@ -6,28 +6,42 @@ import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
-@MappedSuperclass
+@Entity
+@Table(name = "category")
 @Getter
-public abstract class Category<T extends Category<T>> extends BaseEntity {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Category extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    @Setter
-    protected String name;
+    private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CategoryType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    protected T parent;
+    @JoinColumn(name = "parent_id")
+    private Category parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    protected List<T> children = new ArrayList<>();
+    @OneToMany(mappedBy = "parent")
+    private List<Category> children = new ArrayList<>();
 
-    public abstract int getMaxDepth();
+    @Builder
+    public Category(String name, CategoryType type, Category parent) {
+        this.name = name;
+        this.type = type;
+        assignToParent(parent);
+        validateDepth();
+    }
 
     public boolean isRoot() {
         return parent == null;
@@ -37,22 +51,34 @@ public abstract class Category<T extends Category<T>> extends BaseEntity {
         return isRoot() ? 1 : parent.getDepth() + 1;
     }
 
-    public void assignToParent(T newParent) {
+    public void assignToParent(Category newParent) {
+        validateParentType(newParent);
+        
         if (this.parent != null) {
-            this.parent.getChildren().remove(this);
+            this.parent.children.remove(this);
         }
 
         this.parent = newParent;
 
         if (newParent != null) {
-            newParent.getChildren().add((T) this);
+            newParent.children.add(this);
         }
 
-        this.validateDepth();
+        validateDepth();
     }
 
-    public void validateDepth() {
-        if (getDepth() > getMaxDepth()) {
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    private void validateParentType(Category newParent) {
+        if (newParent != null && !this.type.equals(newParent.type)) {
+            throw new CustomException(ErrorCode.INVALID_CATEGORY_TYPE);
+        }
+    }
+
+    private void validateDepth() {
+        if (getDepth() > type.getMaxDepth()) {
             throw new CustomException(ErrorCode.EXCEED_CATEGORY_DEPTH);
         }
     }

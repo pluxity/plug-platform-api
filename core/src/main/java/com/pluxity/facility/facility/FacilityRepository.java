@@ -18,4 +18,10 @@ public interface FacilityRepository extends JpaRepository<Facility, Long> {
     boolean existsByCode(String code);
 
     Optional<Facility> findByCode(String code);
+
+    Optional<Facility> findByName(String name);
+
+    Optional<Facility> findByNameAndIdNot(String name, Long id);
+
+    Optional<Facility> findByCodeAndIdNot(String code, Long id);
 }

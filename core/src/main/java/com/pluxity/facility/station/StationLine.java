@@ -1,5 +1,6 @@
 package com.pluxity.facility.station;
 
+import com.pluxity.facility.facility.Facility;
 import com.pluxity.facility.line.Line;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -20,15 +21,21 @@ public class StationLine extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id")
-    private Station station;
+    private Facility station;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "line_id")
     private Line line;
 
     @Builder
-    public StationLine(Station station, Line line) {
+    public StationLine(Facility station, Line line) {
         this.station = station;
         this.line = line;
+    }
+
+    // 역할을 하는 시설물인지 확인하는 메서드
+    public boolean isStationFacility() {
+        return station != null && 
+               (station.getFacilityType().equals(com.pluxity.facility.facility.FacilityType.STATION));
     }
 }

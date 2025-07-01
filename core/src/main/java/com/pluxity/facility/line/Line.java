@@ -1,5 +1,7 @@
 package com.pluxity.facility.line;
 
+import com.pluxity.facility.facility.Facility;
+import com.pluxity.facility.facility.FacilityType;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationLine;
 import com.pluxity.global.entity.BaseEntity;
@@ -20,7 +22,7 @@ public class Line extends BaseEntity {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "line", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "line")
     private final List<StationLine> stationLines = new ArrayList<>();
 
     @Column(name = "name", unique = true, nullable = false, length = 50)
@@ -35,16 +37,40 @@ public class Line extends BaseEntity {
         this.color = color;
     }
 
+    public void addStationFacility(Facility facility) {
+        if (facility.getFacilityType() == FacilityType.STATION) {
+            StationLine stationLine = StationLine.builder().station(facility).line(this).build();
+            this.stationLines.add(stationLine);
+        }
+    }
+
+    public void removeStationFacility(Facility facility) {
+        stationLines.removeIf(stationLine -> stationLine.getStation().equals(facility));
+    }
+
+    // 기존 Station과의 호환성을 위한 메서드
     public void addStation(Station station) {
-        station.addLine(this);
+        addStationFacility(station);
     }
 
     public void removeStation(Station station) {
-        station.removeLine(this);
+        removeStationFacility(station);
     }
 
+    public List<Facility> getStationFacilities() {
+        return stationLines.stream()
+                .map(StationLine::getStation)
+                .filter(facility -> facility.getFacilityType() == FacilityType.STATION)
+                .toList();
+    }
+
+    // 기존 호환성을 위한 메서드 (Station 타입만 반환)
     public List<Station> getStations() {
-        return stationLines.stream().map(StationLine::getStation).toList();
+        return stationLines.stream()
+                .map(StationLine::getStation)
+                .filter(facility -> facility instanceof Station)
+                .map(facility -> (Station) facility)
+                .toList();
     }
 
     public void update(Line line) {

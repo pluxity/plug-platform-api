@@ -1,25 +1,32 @@
 package com.pluxity.domains.station.dto;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.pluxity.domains.station.SasangStationDetails;
 import com.pluxity.facility.facility.dto.FacilityResponse;
-import com.pluxity.facility.floor.dto.FloorResponse;
-import com.pluxity.facility.station.dto.StationResponse;
-import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
 
-public record SasangStationResponse(
-        FacilityResponse facility,
-        List<FloorResponse> floors,
-        List<Long> lineIds,
-        List<String> featureIds,
-        String route,
-        String externalCode) {
+@Getter
+@Builder
+public class SasangStationResponse {
 
-    public static SasangStationResponse of(StationResponse stationResponse, String externalCode) {
-        return new SasangStationResponse(
-                stationResponse.facility(),
-                stationResponse.floors(),
-                stationResponse.lineIds(),
-                stationResponse.featureIds(),
-                stationResponse.route(),
-                externalCode);
+    @JsonUnwrapped
+    private FacilityResponse facilityResponse;
+
+    private String route;
+    private String subway;
+    private String externalCode;
+    private Integer platformCount;
+    private Boolean isTransferStation;
+
+    public static SasangStationResponse from(FacilityResponse facilityResponse, SasangStationDetails details) {
+        return SasangStationResponse.builder()
+                .facilityResponse(facilityResponse)
+                .route(details.getRoute())
+                .subway(details.getSubway())
+                .externalCode(details.getExternalCode())
+                .platformCount(details.getPlatformCount())
+                .isTransferStation(details.getIsTransferStation())
+                .build();
     }
 }

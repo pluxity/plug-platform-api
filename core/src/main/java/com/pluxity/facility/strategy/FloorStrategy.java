@@ -1,6 +1,7 @@
 package com.pluxity.facility.strategy;
 
 import com.pluxity.facility.facility.Facility;
+import com.pluxity.facility.facility.FacilityType;
 import com.pluxity.facility.floor.Floor;
 import com.pluxity.facility.floor.FloorRepository;
 import com.pluxity.facility.floor.dto.FloorRequest;
@@ -16,6 +17,11 @@ import org.springframework.stereotype.Service;
 public class FloorStrategy implements FacilityStrategy<FloorRequest, FloorResponse> {
 
     private final FloorRepository repository;
+
+    @Override
+    public boolean supports(FacilityType facilityType) {
+        return facilityType == FacilityType.BUILDING || facilityType == FacilityType.STATION;
+    }
 
     @Override
     public <T extends Facility> void save(T facility, FloorRequest data) {

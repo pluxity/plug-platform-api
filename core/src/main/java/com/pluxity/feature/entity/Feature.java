@@ -11,8 +11,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -22,27 +20,22 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class Feature extends BaseEntity {
 
-    @Id private String id;
+    @Id 
+    private String id;
 
     @Embedded
-    @AttributeOverride(name = "x", column = @Column(name = "position_x"))
-    @AttributeOverride(name = "y", column = @Column(name = "position_y"))
-    @AttributeOverride(name = "z", column = @Column(name = "position_z"))
-    private Spatial position;
+    @AttributeOverride(name = "position.x", column = @Column(name = "position_x"))
+    @AttributeOverride(name = "position.y", column = @Column(name = "position_y"))
+    @AttributeOverride(name = "position.z", column = @Column(name = "position_z"))
+    @AttributeOverride(name = "rotation.x", column = @Column(name = "rotation_x"))
+    @AttributeOverride(name = "rotation.y", column = @Column(name = "rotation_y"))
+    @AttributeOverride(name = "rotation.z", column = @Column(name = "rotation_z"))
+    @AttributeOverride(name = "scale.x", column = @Column(name = "scale_x"))
+    @AttributeOverride(name = "scale.y", column = @Column(name = "scale_y"))
+    @AttributeOverride(name = "scale.z", column = @Column(name = "scale_z"))
+    private SpatialTransform transform;
 
-    @Embedded
-    @AttributeOverride(name = "x", column = @Column(name = "rotation_x"))
-    @AttributeOverride(name = "y", column = @Column(name = "rotation_y"))
-    @AttributeOverride(name = "z", column = @Column(name = "rotation_z"))
-    private Spatial rotation;
-
-    @Embedded
-    @AttributeOverride(name = "x", column = @Column(name = "scale_x"))
-    @AttributeOverride(name = "y", column = @Column(name = "scale_y"))
-    @AttributeOverride(name = "z", column = @Column(name = "scale_z"))
-    private Spatial scale;
-
-    @OneToOne(mappedBy = "feature", cascade = CascadeType.PERSIST)
+    @OneToOne(mappedBy = "feature")
     private Device device;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -51,147 +44,168 @@ public class Feature extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facility_id")
-    @NotFound(action = NotFoundAction.IGNORE)
     private Facility facility;
 
     @Column(name = "floor_id")
     private String floorId;
 
+    @Transient
+    private FeatureRelations relations;
+
     @Builder
-    public Feature(
-            String id,
-            Spatial position,
-            Spatial rotation,
-            Spatial scale,
-            Asset asset,
-            Facility facility,
-            String floorId) {
+    public Feature(String id, SpatialTransform transform, Asset asset, Facility facility, String floorId) {
         this.id = id;
-        this.position = position;
-        this.rotation = rotation;
-        this.scale = scale;
-        this.floorId = floorId;
+        this.transform = transform != null ? transform : SpatialTransform.createDefault();
         this.asset = asset;
         this.facility = facility;
+        this.floorId = floorId;
+        initializeRelations();
     }
 
     public static Feature create(FeatureCreateRequest request, String uuid) {
+        SpatialTransform transform = SpatialTransform.create(
+                request.position(), 
+                request.rotation(), 
+                request.scale()
+        );
+        
         return Feature.builder()
                 .id(uuid)
-                .position(request.position() != null ? request.position() : new Spatial(0.0, 0.0, 0.0))
-                .rotation(request.rotation() != null ? request.rotation() : new Spatial(0.0, 0.0, 0.0))
-                .scale(request.scale() != null ? request.scale() : new Spatial(1.0, 1.0, 1.0))
+                .transform(transform)
                 .floorId(request.floorId())
                 .build();
     }
 
-    public void update(FeatureUpdateRequest request) {
+    @PostLoad
+    private void initializeRelations() {
+        this.relations = FeatureRelations.of(device, asset, facility, floorId);
+    }
+
+    public void updateTransform(FeatureUpdateRequest request) {
         if (request.position() != null) {
-            this.position = request.position();
+            this.transform = this.transform.updatePosition(request.position());
         }
         if (request.rotation() != null) {
-            this.rotation = request.rotation();
+            this.transform = this.transform.updateRotation(request.rotation());
         }
         if (request.scale() != null) {
-            this.scale = request.scale();
+            this.transform = this.transform.updateScale(request.scale());
         }
     }
 
     public void updatePosition(Spatial position) {
-        if (position != null) {
-            this.position = position;
-        }
+        this.transform = this.transform.updatePosition(position);
     }
 
     public void updateRotation(Spatial rotation) {
-        if (rotation != null) {
-            this.rotation = rotation;
-        }
+        this.transform = this.transform.updateRotation(rotation);
     }
 
     public void updateScale(Spatial scale) {
-        if (scale != null) {
-            this.scale = scale;
+        this.transform = this.transform.updateScale(scale);
+    }
+
+    public void changeDevice(Device newDevice) {
+        clearDeviceRelation();
+        this.device = newDevice;
+        this.relations = this.relations.changeDevice(newDevice);
+        if (newDevice != null) {
+            newDevice.changeFeature(this);
         }
+    }
+
+    public void changeAsset(Asset newAsset) {
+        clearAssetRelation();
+        this.asset = newAsset;
+        this.relations = this.relations.changeAsset(newAsset);
+        if (newAsset != null) {
+            newAsset.addFeature(this);
+        }
+    }
+
+    public void changeFacility(Facility newFacility) {
+        clearFacilityRelation();
+        this.facility = newFacility;
+        this.relations = this.relations.changeFacility(newFacility);
+        if (newFacility != null) {
+            newFacility.addFeature(this);
+        }
+    }
+
+    public void updateFloorId(String floorId) {
+        this.floorId = floorId;
+        this.relations = this.relations.updateFloorId(floorId);
+    }
+
+    public void clearAllRelations() {
+        clearDeviceRelation();
+        clearAssetRelation();
+        clearFacilityRelation();
+        this.relations = FeatureRelations.empty();
+    }
+
+    public Spatial getPosition() {
+        return transform.getPosition();
+    }
+
+    public Spatial getRotation() {
+        return transform.getRotation();
+    }
+
+    public Spatial getScale() {
+        return transform.getScale();
     }
 
     public boolean isDefaultPosition() {
-        return position != null
-                && position.getX() == 0.0
-                && position.getY() == 0.0
-                && position.getZ() == 0.0;
-    }
-
-    public boolean isDefaultScale() {
-        return scale != null && scale.getX() == 1.0 && scale.getY() == 1.0 && scale.getZ() == 1.0;
+        return transform.isDefaultPosition();
     }
 
     public boolean isDefaultRotation() {
-        return rotation != null
-                && rotation.getX() == 0.0
-                && rotation.getY() == 0.0
-                && rotation.getZ() == 0.0;
+        return transform.isDefaultRotation();
     }
 
-    public void changeDevice(Device device) {
-        if (this.device != null && this.device.getFeature() != null) {
+    public boolean isDefaultScale() {
+        return transform.isDefaultScale();
+    }
+
+    public boolean isCompletelyDefault() {
+        return transform.isCompletelyDefault();
+    }
+
+    public boolean hasDevice() {
+        return relations != null ? relations.hasDevice() : device != null;
+    }
+
+    public boolean hasAsset() {
+        return relations != null ? relations.hasAsset() : asset != null;
+    }
+
+    public boolean hasFacility() {
+        return relations != null ? relations.hasFacility() : facility != null;
+    }
+
+    public boolean hasFloor() {
+        return relations != null ? relations.hasFloor() : (floorId != null && !floorId.trim().isEmpty());
+    }
+
+    private void clearDeviceRelation() {
+        if (this.device != null) {
             this.device.clearFeatureOnly();
-        }
-
-        this.device = device;
-
-        if (device != null && device.getFeature() != this) {
-            device.changeFeature(this);
+            this.device = null;
         }
     }
 
-    public void changeAsset(Asset asset) {
+    private void clearAssetRelation() {
         if (this.asset != null) {
             this.asset.removeFeature(this);
-        }
-
-        this.asset = asset;
-
-        if (asset != null) {
-            asset.addFeature(this);
+            this.asset = null;
         }
     }
 
-    public void changeFacility(Facility facility) {
-        if (this.facility != null) {}
-
-        this.facility = facility;
-
-        if (facility != null) {
-            // 필요한 경우 시설 측의 연관관계 설정 로직 추가
-        }
-    }
-
-    /** 디바이스 관계만 단방향으로 제거하는 메서드 (디바이스에서 피처 제거 시 사용) */
-    public void clearDeviceOnly() {
-        this.device = null;
-    }
-
-    /** 에셋 관계만 단방향으로 제거하는 메서드 (에셋에서 피처 제거 시 사용) */
-    public void clearAssetOnly() {
-        this.asset = null;
-    }
-
-    /** 모든 연관관계를 제거하는 메서드 */
-    public void clearAllRelations() {
-        // Asset 연관관계 제거
-        if (this.asset != null) {
-            this.changeAsset(null);
-        }
-
-        // Facility 연관관계 제거
+    private void clearFacilityRelation() {
         if (this.facility != null) {
-            this.changeFacility(null);
-        }
-
-        // Device 연관관계 제거
-        if (this.device != null) {
-            this.changeDevice(null);
+            this.facility.removeFeature(this);
+            this.facility = null;
         }
     }
 }

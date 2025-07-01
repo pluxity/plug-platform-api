@@ -3,9 +3,18 @@ package com.pluxity.domains.station.dto;
 import com.pluxity.facility.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.floor.dto.FloorRequest;
 import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
 
-public record SasangStationCreateRequest(
-        FacilityCreateRequest facility,
-        List<FloorRequest> floors,
-        List<Long> lineIds,
-        String externalCode) {}
+@Getter
+@Builder
+public class SasangStationCreateRequest {
+    private FacilityCreateRequest facility;
+    private List<Long> lineIds;
+    private List<FloorRequest> floors;
+    private String externalCode;
+    private String route;
+    private String subway;
+    private Integer platformCount;
+    private Boolean isTransferStation;
+}

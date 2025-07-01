@@ -16,13 +16,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "facility")
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "facility_type")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 @SoftDelete
-public abstract class Facility extends BaseEntity {
+public class Facility extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +29,10 @@ public abstract class Facility extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private FacilityCategory category;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "facility_type", nullable = false)
+    private FacilityType type;
 
     @Column(name = "code", unique = true, length = 10)
     private String code;
@@ -52,24 +54,17 @@ public abstract class Facility extends BaseEntity {
     private String historyComment;
 
     @OneToMany(mappedBy = "facility")
-    private final List<Feature> features = new ArrayList<>();
+    private List<Feature> features = new ArrayList<>();
 
-    protected Facility(String name, String description) {
-        this(name, null, description, null);
-    }
-
-    public Facility(String name, String description, String historyComment) {
-        this(name, null, description, historyComment);
-    }
-
-    protected Facility(String name, String code, Long drawingFileId, Long thumbnailFileId) {
-        this.code = code;
+    public Facility(FacilityType type, String name, String description) {
+        this.type = type;
         this.name = name;
-        this.drawingFileId = drawingFileId;
-        this.thumbnailFileId = thumbnailFileId;
+        this.description = description;
     }
 
-    protected Facility(String name, String code, String description, String historyComment) {
+    public Facility(FacilityType type, String name, String code, String description,
+        String historyComment) {
+        this.type = type;
         this.code = code;
         this.name = name;
         this.description = description;
@@ -120,20 +115,5 @@ public abstract class Facility extends BaseEntity {
 
     public void removeFeature(Feature feature) {
         this.features.remove(feature);
-    }
-
-    public void update(Facility facility) {
-        if (facility.name != null) {
-            this.name = facility.name;
-        }
-        if (facility.code != null) {
-            this.code = facility.code;
-        }
-        if (facility.description != null) {
-            this.description = facility.description;
-        }
-        if (facility.historyComment != null) {
-            this.historyComment = facility.historyComment;
-        }
     }
 }
