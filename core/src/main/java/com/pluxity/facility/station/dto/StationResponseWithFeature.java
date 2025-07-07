@@ -1,6 +1,6 @@
 package com.pluxity.facility.station.dto;
 
-import com.pluxity.facility.facility.dto.FacilityResponseWithFeature;
+import com.pluxity.facility.dto.FacilityResponseWithFeature;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
 import com.pluxity.label3d.Label3DResponse;

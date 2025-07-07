@@ -1,6 +1,6 @@
 package com.pluxity.facility.station;
 
-import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.station.dto.StationCreateRequest;
 import com.pluxity.facility.station.dto.StationResponse;
 import com.pluxity.facility.station.dto.StationResponseWithFeature;

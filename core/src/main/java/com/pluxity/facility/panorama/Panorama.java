@@ -1,6 +1,6 @@
 package com.pluxity.facility.panorama;
 
-import com.pluxity.facility.facility.Facility;
+import com.pluxity.facility.Facility;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;

@@ -3,7 +3,7 @@ package com.pluxity.facility.building;
 import com.pluxity.facility.building.dto.BuildingCreateRequest;
 import com.pluxity.facility.building.dto.BuildingResponse;
 import com.pluxity.facility.building.dto.BuildingUpdateRequest;
-import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;

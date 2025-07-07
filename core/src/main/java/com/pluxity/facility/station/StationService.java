@@ -1,10 +1,10 @@
 package com.pluxity.facility.station;
 
-import com.pluxity.facility.facility.Facility;
-import com.pluxity.facility.facility.FacilityService;
-import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
-import com.pluxity.facility.facility.dto.FacilityResponse;
-import com.pluxity.facility.facility.dto.FacilityResponseWithFeature;
+import com.pluxity.facility.Facility;
+import com.pluxity.facility.FacilityService;
+import com.pluxity.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.dto.FacilityResponse;
+import com.pluxity.facility.dto.FacilityResponseWithFeature;
 import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.line.Line;

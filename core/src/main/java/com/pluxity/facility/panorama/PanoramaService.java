@@ -1,8 +1,8 @@
 package com.pluxity.facility.panorama;
 
-import com.pluxity.facility.facility.Facility;
-import com.pluxity.facility.facility.FacilityService;
-import com.pluxity.facility.facility.dto.FacilityResponse;
+import com.pluxity.facility.Facility;
+import com.pluxity.facility.FacilityService;
+import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.facility.location.dto.LocationResponse;
 import com.pluxity.facility.panorama.dto.PanoramaCreateRequest;
 import com.pluxity.facility.panorama.dto.PanoramaResponse;

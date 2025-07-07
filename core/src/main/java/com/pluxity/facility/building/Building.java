@@ -1,6 +1,6 @@
 package com.pluxity.facility.building;
 
-import com.pluxity.facility.facility.Facility;
+import com.pluxity.facility.Facility;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

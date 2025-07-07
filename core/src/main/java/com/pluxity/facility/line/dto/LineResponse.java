@@ -1,7 +1,7 @@
 package com.pluxity.facility.line.dto;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.pluxity.facility.facility.Facility;
+import com.pluxity.facility.Facility;
 import com.pluxity.facility.line.Line;
 import com.pluxity.global.response.BaseResponse;
 import java.util.List;

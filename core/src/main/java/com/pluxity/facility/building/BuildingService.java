@@ -1,12 +1,12 @@
 package com.pluxity.facility.building;
 
+import com.pluxity.facility.Facility;
+import com.pluxity.facility.FacilityService;
 import com.pluxity.facility.building.dto.BuildingCreateRequest;
 import com.pluxity.facility.building.dto.BuildingResponse;
 import com.pluxity.facility.building.dto.BuildingUpdateRequest;
-import com.pluxity.facility.facility.Facility;
-import com.pluxity.facility.facility.FacilityService;
-import com.pluxity.facility.facility.dto.FacilityHistoryResponse;
-import com.pluxity.facility.facility.dto.FacilityResponse;
+import com.pluxity.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.strategy.FloorStrategy;

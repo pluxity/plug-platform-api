@@ -1,6 +1,6 @@
 package com.pluxity.label3d;
 
-import com.pluxity.facility.facility.FacilityService;
+import com.pluxity.facility.FacilityService;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.service.FeatureService;
