@@ -66,3 +66,6 @@ out/
 /.cursor
 
 plug-platform-api.tar
+
+/out/
+/build/
