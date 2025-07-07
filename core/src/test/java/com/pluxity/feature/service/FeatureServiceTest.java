@@ -6,7 +6,7 @@ import com.pluxity.asset.service.AssetService;
 import com.pluxity.device.entity.Device;
 import com.pluxity.facility.FacilityRepository;
 import com.pluxity.facility.FacilityService;
-import com.pluxity.facility.station.Station;
+import com.pluxity.station.Station;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;

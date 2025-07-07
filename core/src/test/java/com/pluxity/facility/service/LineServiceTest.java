@@ -1,14 +1,14 @@
 package com.pluxity.facility.service;
 
-import com.pluxity.facility.line.Line;
-import com.pluxity.facility.line.LineRepository;
-import com.pluxity.facility.line.LineService;
-import com.pluxity.facility.line.dto.LineCreateRequest;
-import com.pluxity.facility.line.dto.LineResponse;
-import com.pluxity.facility.line.dto.LineUpdateRequest;
-import com.pluxity.facility.station.Station;
-import com.pluxity.facility.station.StationRepository;
-import com.pluxity.facility.station.StationService;
+import com.pluxity.line.Line;
+import com.pluxity.line.LineRepository;
+import com.pluxity.line.LineService;
+import com.pluxity.line.dto.LineCreateRequest;
+import com.pluxity.line.dto.LineResponse;
+import com.pluxity.line.dto.LineUpdateRequest;
+import com.pluxity.station.Station;
+import com.pluxity.station.StationRepository;
+import com.pluxity.station.StationService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
