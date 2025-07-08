@@ -1,7 +1,5 @@
 package com.pluxity.asset.entity;
 
-import static java.io.File.separator;
-
 import com.pluxity.asset.dto.AssetCreateRequest;
 import com.pluxity.asset.dto.AssetUpdateRequest;
 import com.pluxity.feature.entity.Feature;
@@ -124,11 +122,11 @@ public class Asset extends BaseEntity {
     }
 
     public String getAssetFilePath() {
-        return ASSETS_PATH + separator + this.id + separator;
+        return ASSETS_PATH + "/" + this.id + "/";
     }
 
     public String getThumbnailFilePath() {
-        return ASSETS_PATH + separator + this.id + separator + "thumbnail" + separator;
+        return ASSETS_PATH + "/" + this.id + "/thumbnail/";
     }
 
     public boolean hasFile() {
