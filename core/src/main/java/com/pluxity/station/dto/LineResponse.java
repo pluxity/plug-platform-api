@@ -1,9 +1,10 @@
-package com.pluxity.line.dto;
+package com.pluxity.station.dto;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.Facility;
 import com.pluxity.global.response.BaseResponse;
-import com.pluxity.line.Line;
+import com.pluxity.station.Line;
+
 import java.util.List;
 import java.util.stream.Collectors;
 

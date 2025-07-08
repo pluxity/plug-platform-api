@@ -1,4 +1,4 @@
-package com.pluxity.line;
+package com.pluxity.station;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

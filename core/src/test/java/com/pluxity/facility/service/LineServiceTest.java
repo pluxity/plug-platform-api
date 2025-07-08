@@ -1,11 +1,11 @@
 package com.pluxity.facility.service;
 
-import com.pluxity.line.Line;
-import com.pluxity.line.LineRepository;
-import com.pluxity.line.LineService;
-import com.pluxity.line.dto.LineCreateRequest;
-import com.pluxity.line.dto.LineResponse;
-import com.pluxity.line.dto.LineUpdateRequest;
+import com.pluxity.station.Line;
+import com.pluxity.station.LineRepository;
+import com.pluxity.station.LineService;
+import com.pluxity.station.dto.LineCreateRequest;
+import com.pluxity.station.dto.LineResponse;
+import com.pluxity.station.dto.LineUpdateRequest;
 import com.pluxity.station.Station;
 import com.pluxity.station.StationRepository;
 import com.pluxity.station.StationService;

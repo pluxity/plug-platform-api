@@ -1,11 +1,11 @@
-package com.pluxity.line;
+package com.pluxity.station;
 
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
-import com.pluxity.line.dto.LineCreateRequest;
-import com.pluxity.line.dto.LineResponse;
-import com.pluxity.line.dto.LineUpdateRequest;
+import com.pluxity.station.dto.LineCreateRequest;
+import com.pluxity.station.dto.LineResponse;
+import com.pluxity.station.dto.LineUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -50,7 +50,7 @@ public class LineController {
     @ResponseCreated
     public ResponseEntity<Long> create(
             @Parameter(description = "호선 생성 정보", required = true) @Valid @RequestBody
-                    LineCreateRequest request) {
+            LineCreateRequest request) {
 
         Long id = service.save(request);
 
@@ -154,7 +154,7 @@ public class LineController {
     public ResponseEntity<Void> update(
             @Parameter(description = "호선 ID", required = true) @PathVariable Long id,
             @Parameter(description = "호선 수정 정보", required = true) @Valid @RequestBody
-                    LineUpdateRequest request) {
+            LineUpdateRequest request) {
         service.update(id, request);
         return ResponseEntity.noContent().build();
     }

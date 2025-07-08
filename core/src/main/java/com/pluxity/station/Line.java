@@ -1,8 +1,6 @@
-package com.pluxity.line;
+package com.pluxity.station;
 
 import com.pluxity.global.entity.BaseEntity;
-import com.pluxity.station.Station;
-import com.pluxity.station.StationLine;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;

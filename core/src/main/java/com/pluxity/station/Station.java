@@ -1,7 +1,6 @@
 package com.pluxity.station;
 
 import com.pluxity.facility.Facility;
-import com.pluxity.line.Line;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;

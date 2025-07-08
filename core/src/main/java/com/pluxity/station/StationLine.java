@@ -1,7 +1,6 @@
 package com.pluxity.station;
 
 import com.pluxity.global.entity.BaseEntity;
-import com.pluxity.line.Line;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
