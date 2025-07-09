@@ -39,7 +39,8 @@ public class AssetCategoryService {
     @Transactional(readOnly = true)
     public AssetCategoryRootResponse getRootCategories() {
         List<AssetCategory> rootCategories = assetCategoryRepository.findAllRootCategories();
-        List<AssetCategoryResponse> list = rootCategories.stream().map(this::createAssetCategoryResponse).toList();
+        List<AssetCategoryResponse> list =
+                rootCategories.stream().map(this::createAssetCategoryResponse).toList();
         return AssetCategoryRootResponse.of(AssetCategory.builder().build().getMaxDepth(), list);
     }
 
