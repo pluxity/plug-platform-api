@@ -1,5 +1,8 @@
 package com.pluxity.facility.category;
 
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CATEGORY;
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_PARENT_CATEGORY;
+
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
 import com.pluxity.facility.category.dto.FacilityCategoryResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
@@ -8,7 +11,6 @@ import com.pluxity.global.exception.CustomException;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +33,10 @@ public class FacilityCategoryService {
             parent =
                     repository
                             .findById(request.parentId())
-                            .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "부모 카테고리를 찾을 수 없습니다."));
+                            .orElseThrow(
+                                    () ->
+                                            new CustomException(
+                                                    ErrorCode.NOT_FOUND_FACILITY_PARENT_CATEGORY, request.parentId()));
         }
 
         FacilityCategory entity =
@@ -53,7 +58,7 @@ public class FacilityCategoryService {
         FacilityCategory entity =
                 repository
                         .findById(id)
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 카테고리를 찾을 수 없습니다."));
+                        .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CATEGORY, id));
         return FacilityCategoryResponse.from(entity);
     }
 
@@ -62,10 +67,7 @@ public class FacilityCategoryService {
         FacilityCategory category =
                 repository
                         .findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "Category not found", HttpStatus.NOT_FOUND, "해당 카테고리를 찾을 수 없습니다."));
+                        .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CATEGORY, id));
 
         if (request.name() != null) category.setName(request.name());
         if (request.parentId() != null) {
@@ -78,8 +80,7 @@ public class FacilityCategoryService {
                             .findById(request.parentId())
                             .orElseThrow(
                                     () ->
-                                            new CustomException(
-                                                    "Parent not found", HttpStatus.NOT_FOUND, "부모 카테고리를 찾을 수 없습니다."));
+                                            new CustomException(NOT_FOUND_FACILITY_PARENT_CATEGORY, request.parentId()));
 
             category.assignToParent(parent);
         }
@@ -92,10 +93,7 @@ public class FacilityCategoryService {
         FacilityCategory facility =
                 repository
                         .findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "FacilityCategory not found", HttpStatus.NOT_FOUND, "해당 카테고리를 찾을 수 없습니다."));
+                        .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CATEGORY, id));
 
         if (!facility.getChildren().isEmpty()) {
             throw new CustomException(ErrorCode.PERMISSION_DENIED, "하위 카테고리가 있어 삭제할 수 없습니다.");

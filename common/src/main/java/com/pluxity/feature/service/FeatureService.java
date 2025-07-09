@@ -1,5 +1,7 @@
 package com.pluxity.feature.service;
 
+import static com.pluxity.global.constant.ErrorCode.*;
+
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.asset.service.AssetService;
@@ -23,7 +25,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,8 +53,7 @@ public class FeatureService {
         String featureId = request.id();
         Optional<Feature> existingFeature = featureRepository.findById(featureId);
         if (existingFeature.isPresent()) {
-            throw new CustomException(
-                    "Feature already exists", HttpStatus.CONFLICT, "이미 존재하는 피처 ID입니다: " + featureId);
+            throw new CustomException(DUPLICATE_FEATURE_ID, featureId);
         }
 
         // 먼저 관련 엔티티 조회
@@ -124,11 +124,11 @@ public class FeatureService {
 
     @Transactional(readOnly = true)
     public Feature findFeatureById(String id) {
-        return featureRepository.findById(id).orElseThrow(featureNotFound());
+        return featureRepository.findById(id).orElseThrow(featureNotFound(id));
     }
 
-    private static Supplier<CustomException> featureNotFound() {
-        return () -> new CustomException("Feature not found", HttpStatus.NOT_FOUND, "해당 피처를 찾을 수 없습니다");
+    private static Supplier<CustomException> featureNotFound(String id) {
+        return () -> new CustomException(NOT_FOUND_FEATURE, id);
     }
 
     @Transactional
@@ -139,10 +139,7 @@ public class FeatureService {
         Asset asset =
                 assetRepository
                         .findById(assetId)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "Asset not found", HttpStatus.NOT_FOUND, "해당 에셋을 찾을 수 없습니다: " + assetId));
+                        .orElseThrow(() -> new CustomException(NOT_FOUND_ASSET, assetId));
 
         // 양방향 연관관계 설정 - 엔티티의 편의 메서드 사용
         feature.changeAsset(asset);
@@ -156,10 +153,7 @@ public class FeatureService {
         Feature feature = findFeatureById(featureId);
 
         if (feature.getAsset() == null) {
-            throw new CustomException(
-                    "No Asset Assigned to Feature",
-                    HttpStatus.BAD_REQUEST,
-                    String.format("피처 ID [%s]에 할당된 에셋이 없습니다", featureId));
+            throw new CustomException(INVALID_FEATURE_ASSIGN_ASSET, featureId);
         }
 
         Long assetId = feature.getAsset().getId();
@@ -180,10 +174,7 @@ public class FeatureService {
         Device device = findDeviceById(assignDto.id());
 
         if (device.getFeature() != null) {
-            throw new CustomException(
-                    "Device already assigned to another feature",
-                    HttpStatus.BAD_REQUEST,
-                    String.format("디바이스 ID [%s]는 이미 다른 피처에 할당되어 있습니다", assignDto.id()));
+            throw new CustomException(DEVICE_ALREADY_HAS_FEATURE, device.getFeature().getId());
         }
 
         device.changeFeature(feature);
@@ -199,8 +190,7 @@ public class FeatureService {
         Device device = entityManager.find(Device.class, deviceId);
 
         if (device == null) {
-            throw new CustomException(
-                    "Device not found", HttpStatus.NOT_FOUND, "해당 디바이스를 찾을 수 없습니다. ID: " + deviceId);
+            throw new CustomException(NOT_FOUND_DEVICE, deviceId);
         }
 
         return device;
@@ -211,10 +201,7 @@ public class FeatureService {
         Feature feature = findFeatureById(featureId);
 
         if (feature.getDevice() == null) {
-            throw new CustomException(
-                    "No Device Assigned to Feature",
-                    HttpStatus.BAD_REQUEST,
-                    String.format("피처 ID [%s]에 할당된 디바이스가 없습니다", featureId));
+            throw new CustomException(FEATURE_HAS_NOT_DEVICE, featureId);
         }
 
         // 특정 디바이스 ID로 검증
@@ -222,8 +209,7 @@ public class FeatureService {
 
         // 일치하는 디바이스가 아닌 경우 예외 발생
         if (!isMatchingDevice) {
-            throw new CustomException(
-                    "Device mismatch", HttpStatus.BAD_REQUEST, "요청한 디바이스가 현재 피처에 할당된 디바이스와 일치하지 않습니다");
+            throw new CustomException(DEVICE_MISMATCH);
         }
 
         String deviceId = feature.getDevice().getId();
@@ -239,10 +225,7 @@ public class FeatureService {
         Feature feature = findFeatureById(featureId);
 
         if (feature.getDevice() == null) {
-            throw new CustomException(
-                    "No Device Assigned to Feature",
-                    HttpStatus.BAD_REQUEST,
-                    String.format("피처 ID [%s]에 할당된 디바이스가 없습니다", featureId));
+            throw new CustomException(FEATURE_HAS_NOT_DEVICE, feature.getId());
         }
 
         String deviceId = feature.getDevice().getId();

@@ -2,6 +2,7 @@ package com.pluxity.user.service;
 
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
+import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Role;
@@ -12,7 +13,6 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,8 +114,7 @@ public class UserService {
         User user = findUserById(id);
 
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-            throw new CustomException(
-                    "Invalid current password", HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
+            throw new CustomException(ErrorCode.INVALID_ID_OR_PASSWORD, "현재 비밀번호가 일치하지 않습니다.");
         }
 
         user.changePassword(passwordEncoder.encode(request.newPassword()));

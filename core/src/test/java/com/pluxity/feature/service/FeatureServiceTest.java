@@ -215,8 +215,8 @@ class FeatureServiceTest {
         CustomException exception = assertThrows(CustomException.class, 
                 () -> featureService.getFeature(nonExistingId));
         
-        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
-        assertEquals("Feature not found", exception.getCodeName());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getErrorCode().getHttpStatus());
+        assertEquals("NOT_FOUND", exception.getErrorCode().getStatusName());
     }
     
     @Test
@@ -396,8 +396,8 @@ class FeatureServiceTest {
         CustomException exception = assertThrows(CustomException.class, 
                 () -> featureService.updateFeature(nonExistingId, request));
         
-        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
-        assertEquals("Feature not found", exception.getCodeName());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getErrorCode().getHttpStatus());
+        assertEquals("NOT_FOUND", exception.getErrorCode().getStatusName());
     }
     
     @Test
@@ -435,8 +435,8 @@ class FeatureServiceTest {
         CustomException exception = assertThrows(CustomException.class, 
                 () -> featureService.deleteFeature(nonExistingId));
         
-        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
-        assertEquals("Feature not found", exception.getCodeName());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getErrorCode().getHttpStatus());
+        assertEquals("NOT_FOUND", exception.getErrorCode().getStatusName());
     }
     
     @Test
@@ -576,7 +576,7 @@ class FeatureServiceTest {
         // when & then
         CustomException exception = assertThrows(CustomException.class,
                 () -> featureService.assignAssetToFeature(nonExistingFeatureId, assetId));
-        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getErrorCode().getHttpStatus());
     }
 
     @Test
@@ -598,7 +598,7 @@ class FeatureServiceTest {
         // when & then
         CustomException exception = assertThrows(CustomException.class,
                 () -> featureService.assignAssetToFeature(feature.getId(), nonExistingAssetId));
-        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getErrorCode().getHttpStatus());
     }
 
     @Test
@@ -687,7 +687,7 @@ class FeatureServiceTest {
         // when & then
         CustomException exception = assertThrows(CustomException.class,
                 () -> featureService.removeAssetFromFeature(nonExistingFeatureId));
-        assertEquals(HttpStatus.NOT_FOUND, exception.getHttpStatus());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getErrorCode().getHttpStatus());
     }
 
     @Test

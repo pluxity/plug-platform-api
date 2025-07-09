@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
 
-            var errorResponse = ErrorResponseBody.of(e.getErrorCode(), e.getErrorCode().getMessage());
+            var errorResponse = ErrorResponseBody.of(e.getErrorCode().getHttpStatus(), e.getMessage());
 
             try {
                 response.getWriter().write(objectMapper.writeValueAsString(errorResponse));

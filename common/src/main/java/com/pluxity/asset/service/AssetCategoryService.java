@@ -1,5 +1,7 @@
 package com.pluxity.asset.service;
 
+import static com.pluxity.global.constant.ErrorCode.*;
+
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
@@ -11,7 +13,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,8 +104,7 @@ public class AssetCategoryService {
         if (request.parentId() != null) {
             AssetCategory parent = findById(request.parentId());
             if (parent.getId().equals(category.getId())) {
-                throw new CustomException(
-                        "Invalid Parent", HttpStatus.BAD_REQUEST, "카테고리는 자기 자신을 부모로 가질 수 없습니다.");
+                throw new CustomException(INVALID_PARENT_CATEGORY);
             }
             category.assignToParent(parent);
         }
@@ -115,13 +115,11 @@ public class AssetCategoryService {
         AssetCategory category = findById(id);
 
         if (!category.getAssets().isEmpty()) {
-            throw new CustomException(
-                    "Cannot Delete Category", HttpStatus.BAD_REQUEST, "카테고리에 속한 에셋이 있어 삭제할 수 없습니다.");
+            throw new CustomException(ASSET_CATEGORY_HAS_ASSET);
         }
 
         if (!category.getChildren().isEmpty()) {
-            throw new CustomException(
-                    "Cannot Delete Category", HttpStatus.BAD_REQUEST, "하위 카테고리가 있어 삭제할 수 없습니다.");
+            throw new CustomException(ASSET_CATEGORY_HAS_CHILDREN);
         }
 
         assetCategoryRepository.delete(category);
@@ -133,17 +131,12 @@ public class AssetCategoryService {
     }
 
     private Supplier<CustomException> notFoundAssetCategory(Long id) {
-        return () ->
-                new CustomException(
-                        "Asset Category Not Found",
-                        HttpStatus.NOT_FOUND,
-                        String.format("ID가 %d인 에셋 카테고리를 찾을 수 없습니다", id));
+        return () -> new CustomException(NOT_FOUND_ASSET_CATEGORY, id);
     }
 
     private void validateCodeUniqueness(String code) {
         if (assetCategoryRepository.existsByCode(code)) {
-            throw new CustomException(
-                    "Duplicate Code", HttpStatus.BAD_REQUEST, String.format("이미 존재하는 코드입니다: %s", code));
+            throw new CustomException(DUPLICATE_ASSET_CATEGORY_CODE, code);
         }
     }
 }

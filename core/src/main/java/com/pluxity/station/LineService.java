@@ -1,5 +1,8 @@
 package com.pluxity.station;
 
+import static com.pluxity.global.constant.ErrorCode.DUPLICATE_LINE_NAME;
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_LINE;
+
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.station.dto.LineCreateRequest;
 import com.pluxity.station.dto.LineResponse;
@@ -9,7 +12,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +36,7 @@ public class LineService {
                 .findByName(request.name())
                 .ifPresent(
                         line -> {
-                            throw new CustomException(
-                                    "Line already exists", HttpStatus.BAD_REQUEST, "이미 존재하는 호선입니다.");
+                            throw new CustomException(DUPLICATE_LINE_NAME, request.name());
                         });
         Line line = Line.builder().name(request.name()).color(request.color()).build();
         return lineRepository.save(line).getId();
@@ -48,13 +49,13 @@ public class LineService {
 
     @Transactional(readOnly = true)
     public LineResponse findById(Long id) {
-        Line line = lineRepository.findById(id).orElseThrow(LineService::notFoundException);
+        Line line = lineRepository.findById(id).orElseThrow(() -> notFoundException(id));
         return LineResponse.from(line);
     }
 
     @Transactional(readOnly = true)
     public Line findLineById(Long id) {
-        return lineRepository.findById(id).orElseThrow(LineService::notFoundException);
+        return lineRepository.findById(id).orElseThrow(() -> notFoundException(id));
     }
 
     @Transactional(readOnly = true)
@@ -88,7 +89,7 @@ public class LineService {
         station.addLine(line);
     }
 
-    private static CustomException notFoundException() {
-        return new CustomException("Line not found", HttpStatus.NOT_FOUND, "해당 호선을 찾을 수 없습니다.");
+    private static CustomException notFoundException(Long id) {
+        return new CustomException(NOT_FOUND_LINE, id);
     }
 }

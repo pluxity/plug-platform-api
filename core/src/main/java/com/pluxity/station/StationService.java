@@ -11,6 +11,7 @@ import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.label3d.Label3DRepository;
 import com.pluxity.station.dto.StationCreateRequest;
@@ -20,7 +21,6 @@ import com.pluxity.station.dto.StationUpdateRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -121,9 +121,7 @@ public class StationService {
     public Station findStationById(Long id) {
         return stationRepository
                 .findById(id)
-                .orElseThrow(
-                        () ->
-                                new CustomException("Station not found", HttpStatus.NOT_FOUND, "해당 역을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STATION, id));
     }
 
     @Transactional(readOnly = true)

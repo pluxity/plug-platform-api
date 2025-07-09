@@ -1,5 +1,6 @@
 package com.pluxity.global.exception;
 
+import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.response.ErrorResponseBody;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -32,16 +33,13 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponseBody> handleCustomException(CustomException e) {
-        LOGGER.error("CustomException", e);
+        log.error("CustomException: " + e.getMessage(), e);
 
-        if (e.getErrorCode() != null) {
-            var errorResponseBody =
-                    ErrorResponseBody.of(e.getErrorCode().getHttpStatus(), e.getMessage());
-            return new ResponseEntity<>(errorResponseBody, e.getErrorCode().getHttpStatus());
-        } else {
-            var errorResponseBody = ErrorResponseBody.of(e.getHttpStatus(), e.getMessage());
-            return new ResponseEntity<>(errorResponseBody, e.getHttpStatus());
-        }
+        ErrorCode errorCode = e.getErrorCode();
+
+        ErrorResponseBody body = ErrorResponseBody.of(errorCode, e.getMessage());
+
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(body);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

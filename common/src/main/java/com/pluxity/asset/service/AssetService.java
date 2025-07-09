@@ -1,5 +1,7 @@
 package com.pluxity.asset.service;
 
+import static com.pluxity.global.constant.ErrorCode.*;
+
 import com.pluxity.asset.dto.AssetCreateRequest;
 import com.pluxity.asset.dto.AssetResponse;
 import com.pluxity.asset.dto.AssetUpdateRequest;
@@ -12,6 +14,7 @@ import com.pluxity.feature.service.FeatureService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -19,7 +22,6 @@ import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -85,12 +87,7 @@ public class AssetService {
         Asset asset =
                 assetRepository
                         .findByCode(code)
-                        .orElseThrow(
-                                () ->
-                                        new CustomException(
-                                                "Asset Not Found By Code",
-                                                HttpStatus.NOT_FOUND,
-                                                String.format("코드가 %s인 에셋을 찾을 수 없습니다", code)));
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_ASSET_BY_CODE, code));
         FileResponse assetFileResponse = getFileResponse(asset);
         FileResponse thumbnailFileResponse = getThumbnailFileResponse(asset);
         return AssetResponse.from(asset, assetFileResponse, thumbnailFileResponse);
@@ -109,9 +106,7 @@ public class AssetService {
                             .orElseThrow(
                                     () ->
                                             new CustomException(
-                                                    "Category Not Found",
-                                                    HttpStatus.NOT_FOUND,
-                                                    String.format("ID가 %d인 카테고리를 찾을 수 없습니다", request.categoryId())));
+                                                    ErrorCode.NOT_FOUND_ASSET_CATEGORY, request.categoryId()));
             asset.updateCategory(category);
         }
 
@@ -138,19 +133,13 @@ public class AssetService {
                 .findByName(request.name())
                 .ifPresent(
                         asset -> {
-                            throw new CustomException(
-                                    "Asset Already Exists",
-                                    HttpStatus.BAD_REQUEST,
-                                    String.format("이름이 %s인 에셋이 이미 존재합니다", request.name()));
+                            throw new CustomException(DUPLICATE_ASSET_NAME, request.name());
                         });
         assetRepository
                 .findByCode(request.code())
                 .ifPresent(
                         asset -> {
-                            throw new CustomException(
-                                    "Code Already Exists",
-                                    HttpStatus.BAD_REQUEST,
-                                    String.format("코드가 %s인 에셋이 이미 존재합니다", request.code()));
+                            throw new CustomException(DUPLICATE_ASSET_CODE, request.code());
                         });
     }
 
@@ -167,11 +156,7 @@ public class AssetService {
                     assetCategoryRepository
                             .findById(request.categoryId())
                             .orElseThrow(
-                                    () ->
-                                            new CustomException(
-                                                    "Category Not Found",
-                                                    HttpStatus.NOT_FOUND,
-                                                    String.format("ID가 %d인 카테고리를 찾을 수 없습니다", request.categoryId())));
+                                    () -> new CustomException(NOT_FOUND_ASSET_CATEGORY, request.categoryId()));
             asset.updateCategory(category);
         }
 
@@ -193,19 +178,13 @@ public class AssetService {
                 .findByNameAndIdNot(request.name(), id)
                 .ifPresent(
                         asset -> {
-                            throw new CustomException(
-                                    "Asset Already Exists",
-                                    HttpStatus.BAD_REQUEST,
-                                    String.format("이름이 %s인 에셋이 이미 존재합니다", request.name()));
+                            throw new CustomException(DUPLICATE_ASSET_NAME, request.name());
                         });
         assetRepository
                 .findByCodeAndIdNot(request.code(), id)
                 .ifPresent(
                         asset -> {
-                            throw new CustomException(
-                                    "Code Already Exists",
-                                    HttpStatus.BAD_REQUEST,
-                                    String.format("코드가 %s인 에셋이 이미 존재합니다", request.code()));
+                            throw new CustomException(DUPLICATE_ASSET_CODE, request.code());
                         });
     }
 
@@ -249,10 +228,7 @@ public class AssetService {
         Asset asset = findById(assetId);
 
         if (asset.getCategory() == null) {
-            throw new CustomException(
-                    "No Category Assigned",
-                    HttpStatus.BAD_REQUEST,
-                    String.format("에셋 [%d]에 할당된 카테고리가 없습니다", assetId));
+            throw new CustomException(NOT_EXIST_ASSET_CATEGORY, assetId);
         }
 
         asset.updateCategory(null);
@@ -261,7 +237,7 @@ public class AssetService {
 
     @Transactional
     public Asset findById(Long id) {
-        return assetRepository.findById(id).orElseThrow(notFoundAsset());
+        return assetRepository.findById(id).orElseThrow(notFoundAsset(id));
     }
 
     public FileResponse getFileResponse(Asset asset) {
@@ -285,7 +261,7 @@ public class AssetService {
         return fileService.getFileResponse(asset.getThumbnailFileId());
     }
 
-    private static Supplier<CustomException> notFoundAsset() {
-        return () -> new CustomException("Asset not found", HttpStatus.NOT_FOUND, "해당 자원을 찾을 수 없습니다");
+    private static Supplier<CustomException> notFoundAsset(Long id) {
+        return () -> new CustomException(NOT_FOUND_ASSET, id);
     }
 }

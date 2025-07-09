@@ -1,7 +1,6 @@
 package com.pluxity.file.service;
 
-import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
-import static com.pluxity.global.constant.ErrorCode.INVALID_FILE_STATUS;
+import static com.pluxity.global.constant.ErrorCode.*;
 
 import com.pluxity.file.constant.FileStatus;
 import com.pluxity.file.dto.FileResponse;
@@ -21,7 +20,6 @@ import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -110,10 +108,7 @@ public class FileService {
             FileEntity file =
                     repository
                             .findById(fileId)
-                            .orElseThrow(
-                                    () ->
-                                            new CustomException(
-                                                    "File not found", HttpStatus.NOT_FOUND, "해당 파일 아이디를 찾지 못했습니다"));
+                            .orElseThrow(() -> new CustomException(NOT_FOUND_FILE, fileId));
 
             if (file.getFileStatus() != FileStatus.TEMP) {
                 throw new CustomException(INVALID_FILE_STATUS, "임시 파일이 아닌 경우에는 영구 저장할 수 없습니다");
@@ -142,8 +137,7 @@ public class FileService {
     public FileEntity getFile(Long fileId) {
         return repository
                 .findById(fileId)
-                .orElseThrow(
-                        () -> new CustomException("File not found", HttpStatus.NOT_FOUND, "해당 파일을 찾을 수 없습니다"));
+                .orElseThrow(() -> new CustomException(NOT_FOUND_FILE, fileId));
     }
 
     @Transactional(readOnly = true)

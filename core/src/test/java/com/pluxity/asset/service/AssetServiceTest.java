@@ -207,8 +207,8 @@ class AssetServiceTest {
 
         // when & then
         CustomException exception = assertThrows(CustomException.class, () -> assetService.getAsset(nonExistingId));
-        assertThat(exception.getHttpStatus()).isEqualTo(org.springframework.http.HttpStatus.NOT_FOUND);
-        assertThat(exception.getMessage()).isEqualTo("해당 자원을 찾을 수 없습니다");
+        assertThat(exception.getErrorCode().getHttpStatus()).isEqualTo(org.springframework.http.HttpStatus.NOT_FOUND);
+        assertThat(exception.getMessage()).isEqualTo(String.format("ID가 %s인 에셋을 찾을 수 없습니다.", nonExistingId));
     }
 
     @Test
@@ -373,8 +373,8 @@ class AssetServiceTest {
 
         // when & then
         CustomException exception = assertThrows(CustomException.class, () -> assetService.removeCategory(assetId));
-        assertThat(exception.getHttpStatus()).isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST);
-        assertThat(exception.getMessage()).isEqualTo(String.format("에셋 [%d]에 할당된 카테고리가 없습니다", assetId));
+        assertThat(exception.getErrorCode().getHttpStatus()).isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST);
+        assertThat(exception.getMessage()).isEqualTo(String.format("%s 아이디 에셋에 카테고리가 존재하지 않습니다.", assetId));
     }
 
     @Test

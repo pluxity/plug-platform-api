@@ -1,5 +1,7 @@
 package com.pluxity.facility;
 
+import static com.pluxity.global.constant.ErrorCode.*;
+
 import com.pluxity.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.dto.FacilityUpdateRequest;
@@ -13,7 +15,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,15 +54,13 @@ public class FacilityService {
             return savedFacility;
         } catch (Exception e) {
             log.error("Facility creation failed: {}", e.getMessage());
-            throw new CustomException(
-                    "Facility creation failed", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new IllegalStateException("Facility creation failed", e);
         }
     }
 
     private void checkDuplicateCode(String code) {
         if (facilityRepository.existsByCode(code)) {
-            throw new CustomException(
-                    "Duplicate code", HttpStatus.BAD_REQUEST, String.format("이미 존재하는 코드입니다: %s", code));
+            throw new CustomException(DUPLICATE_FACILITY_CODE, code);
         }
     }
 
@@ -69,22 +68,14 @@ public class FacilityService {
     public Facility findByCode(String code) {
         return facilityRepository
                 .findByCode(code)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "Facility not found",
-                                        HttpStatus.NOT_FOUND,
-                                        String.format("코드 %s인 시설을 찾을 수 없습니다", code)));
+                .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CODE, code));
     }
 
     @Transactional(readOnly = true)
     public Facility findById(Long id) {
         return facilityRepository
                 .findById(id)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY, id));
     }
 
     @Transactional(readOnly = true)
@@ -154,10 +145,7 @@ public class FacilityService {
     public List<FacilityHistoryResponse> findFacilityHistories(Long facilityId) {
         facilityRepository
                 .findById(facilityId)
-                .orElseThrow(
-                        () ->
-                                new CustomException(
-                                        "Facility not found", HttpStatus.NOT_FOUND, "해당 시설을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY, facilityId));
 
         try {
             // Spring Data Envers를 이용한 이력 조회
@@ -197,8 +185,7 @@ public class FacilityService {
             return historyResponses;
         } catch (Exception e) {
             log.error("Failed to fetch facility history: {}", e.getMessage());
-            throw new CustomException(
-                    "Failed to fetch facility history", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new IllegalStateException("Failed to fetch facility history", e);
         }
     }
 

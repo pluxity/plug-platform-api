@@ -1,6 +1,6 @@
 package com.pluxity.category.service;
 
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND;
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_CATEGORY;
 
 import com.pluxity.category.dto.CategoryResponse;
 import com.pluxity.category.dto.CategoryTreeResponse;
@@ -19,7 +19,9 @@ public abstract class CategoryService<T extends Category<T>> {
     }
 
     public T findById(Long id) {
-        return getRepository().findById(id).orElseThrow(() -> new CustomException(NOT_FOUND));
+        return getRepository()
+                .findById(id)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_CATEGORY, id));
     }
 
     public List<T> getRootCategories() {
