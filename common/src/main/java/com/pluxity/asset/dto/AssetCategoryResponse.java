@@ -17,7 +17,8 @@ public record AssetCategoryResponse(
         @Schema(description = "아이콘 파일 정보") FileResponse thumbnail,
         @Schema(description = "소속 에셋 ID 목록") List<Long> assetIds,
         @Schema(description = "생성일시") LocalDateTime createdAt,
-        @Schema(description = "수정일시") LocalDateTime updatedAt) {
+        @Schema(description = "수정일시") LocalDateTime updatedAt,
+        @Schema(description = "depth") int depth) {
     public static AssetCategoryResponse from(AssetCategory category) {
         return new AssetCategoryResponse(
                 category.getId(),
@@ -30,7 +31,8 @@ public record AssetCategoryResponse(
                 null, // 서비스에서 FileService를 통해 설정할 예정
                 category.getAssets().stream().map(Asset::getId).collect(Collectors.toList()),
                 category.getCreatedAt(),
-                category.getUpdatedAt());
+                category.getUpdatedAt(),
+                category.getDepth());
     }
 
     public static AssetCategoryResponse from(AssetCategory category, FileResponse iconFile) {
@@ -45,7 +47,8 @@ public record AssetCategoryResponse(
                 iconFile,
                 category.getAssets().stream().map(Asset::getId).collect(Collectors.toList()),
                 category.getCreatedAt(),
-                category.getUpdatedAt());
+                category.getUpdatedAt(),
+                category.getDepth());
     }
 
     public static AssetCategoryResponse fromWithoutChildren(AssetCategory category) {
@@ -58,7 +61,8 @@ public record AssetCategoryResponse(
                 null, // 서비스에서 FileService를 통해 설정할 예정
                 category.getAssets().stream().map(Asset::getId).collect(Collectors.toList()),
                 category.getCreatedAt(),
-                category.getUpdatedAt());
+                category.getUpdatedAt(),
+                category.getDepth());
     }
 
     public static AssetCategoryResponse fromWithoutChildren(
@@ -72,6 +76,7 @@ public record AssetCategoryResponse(
                 iconFile,
                 category.getAssets().stream().map(Asset::getId).collect(Collectors.toList()),
                 category.getCreatedAt(),
-                category.getUpdatedAt());
+                category.getUpdatedAt(),
+                category.getDepth());
     }
 }

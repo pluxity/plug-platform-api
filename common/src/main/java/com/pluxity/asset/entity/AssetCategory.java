@@ -38,7 +38,7 @@ public class AssetCategory extends Category<AssetCategory> {
 
     @Override
     public int getMaxDepth() {
-        return 1;
+        return 3;
     }
 
     public void updateIconFileId(Long iconFileId) {

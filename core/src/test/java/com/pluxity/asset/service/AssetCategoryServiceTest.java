@@ -2,6 +2,7 @@ package com.pluxity.asset.service;
 
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
+import com.pluxity.asset.dto.AssetCategoryRootResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.file.service.FileService;
@@ -118,7 +119,8 @@ class AssetCategoryServiceTest {
         Long rootId2 = assetCategoryService.createAssetCategory(anotherRootRequest);
 
         // when
-        List<AssetCategoryResponse> rootCategories = assetCategoryService.getRootCategories();
+        AssetCategoryRootResponse rootCategoriesResponse = assetCategoryService.getRootCategories();
+        List<AssetCategoryResponse> rootCategories = rootCategoriesResponse.list();
 
         // then
         assertThat(rootCategories).hasSize(2);

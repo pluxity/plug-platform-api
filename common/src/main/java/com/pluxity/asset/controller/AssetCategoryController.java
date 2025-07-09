@@ -2,6 +2,7 @@ package com.pluxity.asset.controller;
 
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
+import com.pluxity.asset.dto.AssetCategoryRootResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.service.AssetCategoryService;
 import com.pluxity.global.annotation.ResponseCreated;
@@ -43,24 +44,7 @@ public class AssetCategoryController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<List<AssetCategoryResponse>>> getAssetCategories() {
-        return ResponseEntity.ok(DataResponseBody.of(service.getAssetCategories()));
-    }
-
-    @Operation(summary = "루트 에셋 카테고리 목록 조회", description = "최상위 에셋 카테고리 목록을 조회합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/roots")
-    public ResponseEntity<DataResponseBody<List<AssetCategoryResponse>>> getRootCategories() {
+    public ResponseEntity<DataResponseBody<AssetCategoryRootResponse>> getRootCategories() {
         return ResponseEntity.ok(DataResponseBody.of(service.getRootCategories()));
     }
 
