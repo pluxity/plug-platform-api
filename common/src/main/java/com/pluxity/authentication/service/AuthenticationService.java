@@ -178,7 +178,7 @@ public class AuthenticationService {
 
         String cookie =
                 ResponseCookie.from(name, value)
-                        .domain(getCookieDomain()) // 수정된 로직 사용
+                        //                        .domain(getCookieDomain()) // 수정된 로직 사용
                         .secure(false)
                         .httpOnly(true)
                         .sameSite("Lax")
@@ -216,11 +216,10 @@ public class AuthenticationService {
                         .format(expiryInstant);
 
         log.info("만료 시간: {}", formattedTime);
-
         String path = request.getContextPath();
         String cookie =
                 ResponseCookie.from("expiry", String.valueOf(expiryTimeMillis))
-                        .domain(getCookieDomain()) // ★★★ 여기도 수정! ★★★
+                        //                        .domain(getCookieDomain()) // ★★★ 여기도 수정! ★★★
                         .secure(false)
                         .path(Optional.ofNullable(path).filter(p -> !p.isEmpty()).orElse("/"))
                         .build()

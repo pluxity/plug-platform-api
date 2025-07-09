@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.Facility;
 import com.pluxity.global.response.BaseResponse;
 import com.pluxity.station.Line;
-
 import java.util.List;
 import java.util.stream.Collectors;
 

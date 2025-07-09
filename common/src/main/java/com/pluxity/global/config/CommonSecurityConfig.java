@@ -9,10 +9,8 @@ import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -26,6 +24,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -44,23 +43,13 @@ public class CommonSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // 2. GET 이외의 요청 및 기존 규칙을 처리하는 SecurityFilterChain
     @Bean
-    @Order(2) // GET 필터 체인보다 낮은 우선순위
-    @ConditionalOnMissingBean(
-            name = "nonGetRequestsFilterChain") // SasangSecurityConfig에 정의된 빈이 있으면 이 빈을 사용하지 않음
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // 이 필터 체인은 GET 요청을 제외한 모든 요청 또는 특정 경로의 모든 메소드에 적용될 수 있습니다.
-                // 여기서는 명시적으로 actuator, swagger, auth 경로 등을 다시 정의하고, 나머지는 인증을 요구합니다.
-                // GET 요청은 이미 필터 체인에서 처리되었으므로, 여기서는 그 외의 메소드에 대한 규칙이 주로 적용됩니다.
-                .csrf(AbstractHttpConfigurer::disable)
+        http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         auth ->
                                 auth.requestMatchers(
-                                                // GET이 아닌 다른 메소드로 이 경로들에 접근 시 허용 (예: POST /auth/login)
-                                                // 또는, 모든 메소드에 대해 허용하되, GET은 이미  permitAll 처리됨
                                                 new AntPathRequestMatcher("/actuator/**"),
                                                 new AntPathRequestMatcher("/health"),
                                                 new AntPathRequestMatcher("/info"),
@@ -79,8 +68,7 @@ public class CommonSecurityConfig {
                                         .authenticated() // 나머지 모든 (GET이 아닌) 요청은 인증 필요
                         )
                 .authenticationProvider(authenticationProvider())
-                //                .addFilterBefore(jwtAuthenticationFilter(),
-                // UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         sessionManagement ->
                                 sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -112,7 +100,6 @@ public class CommonSecurityConfig {
     }
 
     @Bean
-    @ConditionalOnMissingBean(name = "sasangJwtAuthenticationFilter")
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtProvider, userDetailsService());
     }
@@ -120,8 +107,7 @@ public class CommonSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(
-                List.of("http://localhost:*", "http://app.plug-platform:*", "http://101.254.21.120:*"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://192.168.4.8:*"));
         configuration.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // OPTIONS도 명시적으로 허용하는 것이 좋음
         configuration.setAllowedHeaders(List.of("*")); // 와일드카드 또는 필요한 헤더 명시

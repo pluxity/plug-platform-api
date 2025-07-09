@@ -5,7 +5,7 @@ server:
 #  address: ${SERVER_ADDRESS:0.0.0.0}
 
 domain:
-  name: plug-platform.com
+  name: pluxity.com
 
 management:
   endpoints:
