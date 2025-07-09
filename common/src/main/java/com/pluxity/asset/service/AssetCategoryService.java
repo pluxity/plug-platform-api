@@ -4,6 +4,7 @@ import static com.pluxity.global.constant.ErrorCode.*;
 
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
+import com.pluxity.asset.dto.AssetCategoryRootResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.asset.repository.AssetCategoryRepository;
@@ -37,9 +38,11 @@ public class AssetCategoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<AssetCategoryResponse> getRootCategories() {
+    public AssetCategoryRootResponse getRootCategories() {
         List<AssetCategory> rootCategories = assetCategoryRepository.findAllRootCategories();
-        return rootCategories.stream().map(this::createAssetCategoryResponse).toList();
+        List<AssetCategoryResponse> list =
+                rootCategories.stream().map(this::createAssetCategoryResponse).toList();
+        return AssetCategoryRootResponse.of(AssetCategory.builder().build().getMaxDepth(), list);
     }
 
     @Transactional(readOnly = true)
