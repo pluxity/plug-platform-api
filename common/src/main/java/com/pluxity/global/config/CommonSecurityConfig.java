@@ -7,7 +7,9 @@ import com.pluxity.authentication.security.JwtAuthenticationFilter;
 import com.pluxity.authentication.security.JwtProvider;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.repository.UserRepository;
+
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +28,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -77,10 +80,10 @@ public class CommonSecurityConfig {
                                         .permitAll() // GET 외의 /auth/** 경로도 허용
                                         .anyRequest()
                                         .authenticated() // 나머지 모든 (GET이 아닌) 요청은 인증 필요
-                        )
+                )
                 .authenticationProvider(authenticationProvider())
-                //                .addFilterBefore(jwtAuthenticationFilter(),
-                // UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter(),
+                        UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         sessionManagement ->
                                 sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

@@ -2,6 +2,4 @@ rootProject.name = 'plug-platform-api'
 
 include 'common'
 include 'core'
-include 'sasang'
-include 'gs'
 include 'gs'
