@@ -35,7 +35,7 @@ public class AssetCategoryService {
     public AssetCategoryAllResponse getAllCategories() {
         List<AssetCategory> rootCategories = assetCategoryRepository.findAllRootCategories();
         List<AssetCategoryResponse> list =
-                  rootCategories.stream().map(this::createAssetCategoryResponse).toList();
+                rootCategories.stream().map(this::createAssetCategoryResponse).toList();
         return AssetCategoryAllResponse.of(AssetCategory.builder().build().getMaxDepth(), list);
     }
 
