@@ -35,9 +35,3 @@ file:
     access-key: ${S3_ACCESS_KEY:pluxity}
     secret-key: ${S3_SECRET_KEY:pluxity0304}
     pre-signed-url-expiration: 600
-
-logging:
-  level:
-    org: INFO
-    com: INFO
-    root: INFO 

@@ -12,3 +12,10 @@ spring:
       - classpath:db/migration
     table: flyway_schema_history
     validate-on-migrate: true
+
+logging:
+  level:
+    org: INFO
+    com: INFO
+    root: INFO
+    org.zalando.logbook: TRACE

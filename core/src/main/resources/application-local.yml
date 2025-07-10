@@ -13,7 +13,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:
@@ -37,9 +37,6 @@ file:
     secret-key: pluxity0304
     pre-signed-url-expiration: 600
 
-
 logging:
   level:
-    org: INFO
     com: DEBUG
-    root: INFO

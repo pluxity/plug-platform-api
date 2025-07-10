@@ -43,6 +43,20 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
+logbook:
+  obfuscate: # 민감 정보 마스킹 가능
+    headers:
+      - Cookie
+      - Set-Cookie
+    json-body-fields:
+      - password
+  predicate:
+    exclude:
+      - path: /actuator/**
+      - path: /swagger-ui/**
+      - path: /api-docs/**
+      - path: /.well-known/**
+
 tcp:
   server1: 101.254.21.100
   server2: 101.254.21.100
