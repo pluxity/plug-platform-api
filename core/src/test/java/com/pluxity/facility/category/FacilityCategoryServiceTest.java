@@ -1,5 +1,6 @@
 package com.pluxity.facility.category;
 
+import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
 import com.pluxity.facility.category.dto.FacilityCategoryResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
@@ -92,17 +93,18 @@ class FacilityCategoryServiceTest {
     }
 
     @Test
-    @DisplayName("모든 카테고리 조회 시 카테고리 목록이 반환된다")
+    @DisplayName("모든 카테고리 조회 시 카테고리 목록이 계층형구조로 반환된다")
     void findAll_ReturnsListOfCategoryResponses() {
         // given
         categoryService.create(createRequest);
 
         // when
-        List<FacilityCategoryResponse> responses = categoryService.findAll();
+        FacilityCategoryAllResponse allResponse = categoryService.findAll();
+        List<FacilityCategoryResponse> responses = allResponse.list();
 
         // then
         assertThat(responses).isNotEmpty();
-        assertThat(responses.size()).isGreaterThanOrEqualTo(2); // 부모 카테고리 + 생성한 카테고리
+        assertThat(responses.size()).isGreaterThanOrEqualTo(1);
     }
 
     @Test

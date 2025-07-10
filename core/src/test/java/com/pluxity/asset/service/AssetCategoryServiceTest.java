@@ -237,24 +237,33 @@ class AssetCategoryServiceTest {
         Long rootId = assetCategoryService.createAssetCategory(createRequest);
         
 //        // 2. 1단계 자식 카테고리 생성
-//        AssetCategoryCreateRequest childRequest = new AssetCategoryCreateRequest(
-//                "자식 카테고리",
-//                "CC1",
-//                rootId,
-//                null
-//        );
-//        Long childId = assetCategoryService.createAssetCategory(childRequest);
+        AssetCategoryCreateRequest childRequest = new AssetCategoryCreateRequest(
+                "자식 카테고리",
+                "CC1",
+                rootId,
+                null
+        );
+        Long childId = assetCategoryService.createAssetCategory(childRequest);
         
-        // 3. 2단계 자식 카테고리 생성 시도 (최대 깊이 초과)
+        // 3. 2단계 자식 카테고리 생성
         AssetCategoryCreateRequest grandchildRequest = new AssetCategoryCreateRequest(
                 "손자 카테고리",
                 "GC1",
-                rootId,
+                childId,
+                null
+        );
+        Long grandchildId = assetCategoryService.createAssetCategory(grandchildRequest);
+
+        // 3. 3단계 자식 카테고리 생성 시도 (최대 깊이 초과)
+        AssetCategoryCreateRequest greatGrandchildRequest = new AssetCategoryCreateRequest(
+                "증손자 카테고리",
+                "GGC1",
+                grandchildId,
                 null
         );
         
         // when & then
-        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(grandchildRequest));
+        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(greatGrandchildRequest));
     }
 
     @Test
