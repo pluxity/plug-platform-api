@@ -3,6 +3,7 @@ package com.pluxity.facility.category;
 import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CATEGORY;
 import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_PARENT_CATEGORY;
 
+import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
 import com.pluxity.facility.category.dto.FacilityCategoryResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
@@ -47,10 +48,11 @@ public class FacilityCategoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<FacilityCategoryResponse> findAll() {
-        return repository.findAll().stream()
-                .map(FacilityCategoryResponse::from)
-                .collect(Collectors.toList());
+    public FacilityCategoryAllResponse findAll() {
+        List<FacilityCategory> allRootCategories = repository.findAllByParentIsNull();
+        List<FacilityCategoryResponse> list =
+                allRootCategories.stream().map(FacilityCategoryResponse::from).collect(Collectors.toList());
+        return FacilityCategoryAllResponse.of(FacilityCategory.builder().build().getMaxDepth(), list);
     }
 
     @Transactional(readOnly = true)

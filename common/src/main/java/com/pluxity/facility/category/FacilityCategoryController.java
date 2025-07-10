@@ -1,5 +1,6 @@
 package com.pluxity.facility.category;
 
+import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
 import com.pluxity.facility.category.dto.FacilityCategoryResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
@@ -14,13 +15,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-// @RestController
-// @RequestMapping("/facility-categories")
+@RestController
+@RequestMapping("/facility-categories")
 @RequiredArgsConstructor
 @Tag(name = "Facility Category Controller", description = "시설 카테고리 관리 API")
 public class FacilityCategoryController {
@@ -85,7 +85,7 @@ public class FacilityCategoryController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<List<FacilityCategoryResponse>>> getFacilityCategories() {
+    public ResponseEntity<DataResponseBody<FacilityCategoryAllResponse>> getFacilityCategories() {
         return ResponseEntity.ok(DataResponseBody.of(service.findAll()));
     }
 

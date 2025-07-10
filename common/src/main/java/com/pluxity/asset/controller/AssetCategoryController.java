@@ -1,8 +1,8 @@
 package com.pluxity.asset.controller;
 
+import com.pluxity.asset.dto.AssetCategoryAllResponse;
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
-import com.pluxity.asset.dto.AssetCategoryRootResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.service.AssetCategoryService;
 import com.pluxity.global.annotation.ResponseCreated;
@@ -44,8 +44,8 @@ public class AssetCategoryController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<AssetCategoryRootResponse>> getRootCategories() {
-        return ResponseEntity.ok(DataResponseBody.of(service.getRootCategories()));
+    public ResponseEntity<DataResponseBody<AssetCategoryAllResponse>> getAllCategories() {
+        return ResponseEntity.ok(DataResponseBody.of(service.getAllCategories()));
     }
 
     @Operation(summary = "하위 에셋 카테고리 목록 조회", description = "특정 카테고리의 하위 카테고리 목록을 조회합니다")

@@ -1,16 +1,29 @@
 package com.pluxity.facility.category.dto;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.category.FacilityCategory;
-import com.pluxity.global.response.BaseResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public record FacilityCategoryResponse(
-        Long id, String name, Long parentId, @JsonUnwrapped BaseResponse baseResponse) {
+        @Schema(description = "카테고리 ID", example = "1") Long id,
+        @Schema(description = "카테고리 이름", example = "그래픽 에셋") String name,
+        @Schema(description = "부모 카테고리 ID", example = "2") Long parentId,
+        @Schema(description = "자식 카테고리 목록") List<FacilityCategoryResponse> children,
+        @Schema(description = "생성일시") LocalDateTime createdAt,
+        @Schema(description = "수정일시") LocalDateTime updatedAt,
+        @Schema(description = "depth") int depth) {
     public static FacilityCategoryResponse from(FacilityCategory category) {
         return new FacilityCategoryResponse(
                 category.getId(),
                 category.getName(),
                 category.getParent() != null ? category.getParent().getId() : null,
-                BaseResponse.of(category));
+                category.getChildren().stream()
+                        .map(FacilityCategoryResponse::from)
+                        .collect(Collectors.toList()),
+                category.getCreatedAt(),
+                category.getUpdatedAt(),
+                category.getDepth());
     }
 }

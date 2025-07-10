@@ -2,9 +2,9 @@ package com.pluxity.asset.service;
 
 import static com.pluxity.global.constant.ErrorCode.*;
 
+import com.pluxity.asset.dto.AssetCategoryAllResponse;
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
-import com.pluxity.asset.dto.AssetCategoryRootResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.asset.repository.AssetCategoryRepository;
@@ -32,22 +32,17 @@ public class AssetCategoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<AssetCategoryResponse> getAssetCategories() {
-        List<AssetCategory> categories = assetCategoryRepository.findAll();
-        return categories.stream().map(this::createAssetCategoryResponse).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public AssetCategoryRootResponse getRootCategories() {
+    public AssetCategoryAllResponse getAllCategories() {
         List<AssetCategory> rootCategories = assetCategoryRepository.findAllRootCategories();
         List<AssetCategoryResponse> list =
                 rootCategories.stream().map(this::createAssetCategoryResponse).toList();
-        return AssetCategoryRootResponse.of(AssetCategory.builder().build().getMaxDepth(), list);
+        return AssetCategoryAllResponse.of(AssetCategory.builder().build().getMaxDepth(), list);
     }
 
     @Transactional(readOnly = true)
     public List<AssetCategoryResponse> getChildCategories(Long parentId) {
         List<AssetCategory> childCategories = assetCategoryRepository.findByParentId(parentId);
+
         return childCategories.stream().map(this::createAssetCategoryResponseWithoutChildren).toList();
     }
 

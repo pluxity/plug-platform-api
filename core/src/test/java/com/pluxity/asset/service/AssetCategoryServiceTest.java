@@ -2,7 +2,7 @@ package com.pluxity.asset.service;
 
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
-import com.pluxity.asset.dto.AssetCategoryRootResponse;
+import com.pluxity.asset.dto.AssetCategoryAllResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.file.service.FileService;
@@ -67,20 +67,6 @@ class AssetCategoryServiceTest {
     }
 
     @Test
-    @DisplayName("모든 에셋 카테고리 조회 시 카테고리 목록이 반환된다")
-    void getAssetCategories_ReturnsListOfCategoryResponses() {
-        // given
-        Long id = assetCategoryService.createAssetCategory(createRequest);
-
-        // when
-        List<AssetCategoryResponse> responses = assetCategoryService.getAssetCategories();
-
-        // then
-        assertThat(responses).isNotEmpty();
-        assertThat(responses.stream().anyMatch(cat -> cat.name().equals("테스트 카테고리"))).isTrue();
-    }
-
-    @Test
     @DisplayName("ID로 에셋 카테고리 조회 시 카테고리 정보가 반환된다")
     void getAssetCategory_WithExistingId_ReturnsCategoryResponse() {
         // given
@@ -119,7 +105,7 @@ class AssetCategoryServiceTest {
         Long rootId2 = assetCategoryService.createAssetCategory(anotherRootRequest);
 
         // when
-        AssetCategoryRootResponse rootCategoriesResponse = assetCategoryService.getRootCategories();
+        AssetCategoryAllResponse rootCategoriesResponse = assetCategoryService.getAllCategories();
         List<AssetCategoryResponse> rootCategories = rootCategoriesResponse.list();
 
         // then
