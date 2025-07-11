@@ -159,7 +159,7 @@ public class FileService {
         String url =
                 "local".equals(storageStrategyType)
                         ? "/files/" + fileEntity.getFilePath()
-                        : publicUrl + "/" + bucket + "/" + fileEntity.getFilePath();
+                        : publicUrl + "/" + fileEntity.getFilePath();
 
         return FileResponse.builder()
                 .id(fileEntity.getId())
