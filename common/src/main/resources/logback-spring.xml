@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <!--output file, line and log message -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%5level) %logger - %msg [%F:%M:%L]%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>./log/platform_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+            <maxFileSize>30MB</maxFileSize>
+            <totalSizeCap>1000MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%5level) %logger - %msg [%F:%M:%L]%n</pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="local">
+        <root level="info">
+            <appender-ref ref="console" />
+        </root>
+    </springProfile>
+
+    <springProfile name="stage,prod">
+        <root level="info">
+            <appender-ref ref="console" />
+            <appender-ref ref="file" />
+        </root>
+    </springProfile>
+
+</configuration>
