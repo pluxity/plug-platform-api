@@ -1,5 +1,5 @@
 # Stage 1: Build the project
-FROM eclipse-temurin:21-jdk-alpine as builder
+FROM eclipse-temurin:21-jdk-alpine AS builder
 
 # Set the working directory inside the container
 WORKDIR /app

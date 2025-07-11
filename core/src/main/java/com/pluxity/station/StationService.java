@@ -4,16 +4,16 @@ import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.dto.FacilityResponse;
-import com.pluxity.facility.dto.FacilityResponseWithFeature;
 import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.strategy.FloorStrategy;
-import com.pluxity.feature.dto.FeatureResponseWithoutAsset;
+import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.label3d.Label3DRepository;
+import com.pluxity.label3d.Label3DResponse;
 import com.pluxity.station.dto.StationCreateRequest;
 import com.pluxity.station.dto.StationResponse;
 import com.pluxity.station.dto.StationResponseWithFeature;
@@ -74,7 +74,6 @@ public class StationService {
 
                             List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
                             List<String> featureIds = station.getFeatures().stream().map(Feature::getId).toList();
-                            FacilityResponseWithFeature.getFeatureResponses(station);
 
                             return StationResponse.builder()
                                     .facility(
@@ -194,8 +193,8 @@ public class StationService {
                         .map(stationLine -> stationLine.getLine().getId())
                         .collect(Collectors.toList());
 
-        FacilityResponseWithFeature facilityResponse =
-                FacilityResponseWithFeature.from(
+        FacilityResponse facilityResponse =
+                FacilityResponse.from(
                         station,
                         fileService.getFileResponse(station.getDrawingFileId()),
                         fileService.getFileResponse(station.getThumbnailFileId()));
@@ -203,17 +202,27 @@ public class StationService {
         List<String> label3DFeatureIds =
                 label3DRepository.findAllByFacilityId(id.toString()).stream()
                         .map(label3D -> label3D.getFeature().getId())
+                        .toList();
+
+        List<FeatureResponse> features =
+                station.getFeatures().stream()
+                        .filter(feature -> !label3DFeatureIds.contains(feature.getId()))
+                        .map(FeatureResponse::from)
                         .collect(Collectors.toList());
 
-        List<FeatureResponseWithoutAsset> features =
-                FacilityResponseWithFeature.getFeatureResponsesExcludingLabel3D(station, label3DFeatureIds);
+        List<Label3DResponse> label3Ds =
+                label3DRepository.findAllByFacilityId(id.toString()).stream()
+                        .map(Label3DResponse::from)
+                        .collect(Collectors.toList());
 
         return StationResponseWithFeature.builder()
                 .facility(facilityResponse)
                 .floors(floorResponse)
                 .lineIds(lineIds)
                 .features(features)
+                .label3Ds(label3Ds)
                 .route(station.getRoute())
+                .subway(station.getSubway())
                 .build();
     }
 }
