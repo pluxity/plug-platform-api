@@ -20,8 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-// @RestController
-// @RequestMapping("/buildings")
+@RestController
+@RequestMapping("/buildings")
 @RequiredArgsConstructor
 @Tag(name = "Building Controller", description = "건물 관리 API")
 public class BuildingController {
