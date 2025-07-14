@@ -5,6 +5,7 @@ import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.file.dto.FileResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,9 +46,7 @@ public record AssetCategoryResponse(
                 category.getName(),
                 category.getCode(),
                 category.getParent() != null ? category.getParent().getId() : null,
-                category.getChildren().stream()
-                        .map(child -> AssetCategoryResponse.from(child, null))
-                        .collect(Collectors.toList()),
+                new ArrayList<>(),
                 iconFile,
                 category.getAssets().stream().map(Asset::getId).collect(Collectors.toList()),
                 category.getCreatedAt(),

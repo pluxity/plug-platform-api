@@ -10,7 +10,10 @@ import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,16 +30,41 @@ public class AssetCategoryService {
 
     @Transactional(readOnly = true)
     public AssetCategoryResponse getAssetCategory(Long id) {
-        AssetCategory category = findById(id);
-        return createAssetCategoryResponse(category);
+        AssetCategoryAllResponse allCategories = getAllCategories();
+        return allCategories.list().stream()
+                .filter(v -> v.id().equals(id))
+                .findFirst()
+                .orElseThrow(notFoundAssetCategory(id));
     }
 
     @Transactional(readOnly = true)
     public AssetCategoryAllResponse getAllCategories() {
-        List<AssetCategory> rootCategories = assetCategoryRepository.findAllRootCategories();
-        List<AssetCategoryResponse> list =
-                rootCategories.stream().map(this::createAssetCategoryResponse).toList();
-        return AssetCategoryAllResponse.of(AssetCategory.builder().build().getMaxDepth(), list);
+        List<AssetCategory> allCategories = assetCategoryRepository.findAll();
+        List<AssetCategoryResponse> allCategoryDtoList =
+                allCategories.stream().map(this::createAssetCategoryResponse).toList();
+        return AssetCategoryAllResponse.of(
+                AssetCategory.builder().build().getMaxDepth(), makeCategoryList(allCategoryDtoList));
+    }
+
+    private List<AssetCategoryResponse> makeCategoryList(List<AssetCategoryResponse> list) {
+        Map<Long, AssetCategoryResponse> categoryMap = new HashMap<>();
+        for (AssetCategoryResponse c : list) {
+            categoryMap.put(c.id(), c); // list의 객체를 그대로 Map에 넣는다
+        }
+        List<AssetCategoryResponse> roots = new ArrayList<>();
+
+        for (AssetCategoryResponse category : list) {
+            Long parentId = category.parentId();
+            if (parentId == null) {
+                // 루트 카테고리
+                roots.add(category);
+            } else {
+                // 부모를 찾아서 children에 추가
+                AssetCategoryResponse findParent = categoryMap.get(parentId);
+                findParent.children().add(category); // flatList의 객체 그대로 추가
+            }
+        }
+        return roots; // 루트부터 시작하는 트리 반환
     }
 
     @Transactional(readOnly = true)
@@ -98,13 +126,16 @@ public class AssetCategoryService {
             category.updateIconFileId(request.thumbnailFileId());
         }
 
-        if (request.parentId() != null) {
-            AssetCategory parent = findById(request.parentId());
-            if (parent.getId().equals(category.getId())) {
-                throw new CustomException(INVALID_PARENT_CATEGORY);
-            }
-            category.assignToParent(parent);
+        if (request.parentId() == null) {
+            category.assignToParent(null);
+            return;
         }
+
+        AssetCategory parent = findById(request.parentId());
+        if (parent.getId().equals(category.getId())) {
+            throw new CustomException(INVALID_PARENT_CATEGORY);
+        }
+        category.assignToParent(parent);
     }
 
     @Transactional
