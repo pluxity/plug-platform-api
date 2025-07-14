@@ -24,7 +24,7 @@ public abstract class Category<T extends Category<T>> extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     protected T parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parent", orphanRemoval = true)
     protected List<T> children = new ArrayList<>();
 
     public abstract int getMaxDepth();
