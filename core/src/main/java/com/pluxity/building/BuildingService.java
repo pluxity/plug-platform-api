@@ -58,6 +58,7 @@ public class BuildingService {
                                                         building,
                                                         fileService.getFileResponse(building.getDrawingFileId()),
                                                         fileService.getFileResponse(building.getThumbnailFileId())))
+                                        .floors(floorStrategy.findAllByFacility(building))
                                         .build())
                 .toList();
     }
