@@ -8,12 +8,10 @@ import com.pluxity.asset.dto.AssetCategoryResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.asset.repository.AssetCategoryRepository;
+import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +38,11 @@ public class AssetCategoryService {
     @Transactional(readOnly = true)
     public AssetCategoryAllResponse getAllCategories() {
         List<AssetCategory> allCategories = assetCategoryRepository.findAll();
+        List<Long> fileIds =
+                allCategories.stream().map(AssetCategory::getIconFileId).filter(Objects::nonNull).toList();
+        List<FileResponse> files = fileService.getFiles(fileIds);
         List<AssetCategoryResponse> allCategoryDtoList =
-                allCategories.stream().map(this::createAssetCategoryResponse).toList();
+                allCategories.stream().map(v -> createAssetCategoryResponse(v, files)).toList();
         return AssetCategoryAllResponse.of(
                 AssetCategory.builder().build().getMaxDepth(), makeCategoryList(allCategoryDtoList));
     }
@@ -73,11 +74,15 @@ public class AssetCategoryService {
         return childCategories.stream().map(this::createAssetCategoryResponseWithoutChildren).toList();
     }
 
-    private AssetCategoryResponse createAssetCategoryResponse(AssetCategory category) {
+    private AssetCategoryResponse createAssetCategoryResponse(
+            AssetCategory category, List<FileResponse> files) {
         return AssetCategoryResponse.from(
                 category,
                 category.getIconFileId() != null
-                        ? fileService.getFileResponse(category.getIconFileId())
+                        ? files.stream()
+                                .filter(v -> v.id().equals(category.getIconFileId()))
+                                .findFirst()
+                                .orElse(null)
                         : null);
     }
 

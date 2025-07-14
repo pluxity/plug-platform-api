@@ -2,7 +2,6 @@ package com.pluxity.global.config;
 
 import com.pluxity.file.repository.FileRepository;
 import com.pluxity.file.service.FileService;
-import com.pluxity.file.service.SbmFileService;
 import com.pluxity.file.strategy.storage.LocalStorageStrategy;
 import com.pluxity.file.strategy.storage.S3StorageStrategy;
 import com.pluxity.file.strategy.storage.StorageStrategy;
@@ -19,10 +18,9 @@ public class FileConfig {
     public FileService fileService(
             StorageStrategy storageStrategy,
             FileRepository fileRepository,
-            SbmFileService sbmFileService,
             S3Config s3Config,
             S3Presigner s3Presigner) {
-        return new FileService(s3Presigner, s3Config, storageStrategy, fileRepository, sbmFileService);
+        return new FileService(s3Presigner, s3Config, storageStrategy, fileRepository);
     }
 
     @Bean

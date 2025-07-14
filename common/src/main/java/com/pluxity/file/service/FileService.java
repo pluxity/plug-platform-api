@@ -17,6 +17,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +37,6 @@ public class FileService {
     private final S3Config s3Config;
     private final StorageStrategy storageStrategy;
     private final FileRepository repository;
-    private final SbmFileService sbmFileService;
 
     @Value("${file.storage-strategy}")
     private String storageStrategyType;
@@ -138,6 +138,14 @@ public class FileService {
         return repository
                 .findById(fileId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_FILE, fileId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<FileResponse> getFiles(List<Long> fileIds) {
+        if (fileIds.isEmpty()) {
+            return List.of();
+        }
+        return repository.findByIdIn(fileIds).stream().map(this::getFileResponse).toList();
     }
 
     @Transactional(readOnly = true)
