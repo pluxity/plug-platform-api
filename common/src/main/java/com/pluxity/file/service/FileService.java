@@ -159,7 +159,11 @@ public class FileService {
         String url =
                 "local".equals(storageStrategyType)
                         ? "/files/" + fileEntity.getFilePath()
-                        : publicUrl + "/" + fileEntity.getFilePath();
+                        : publicUrl
+                                + "/"
+                                + bucket
+                                + "/"
+                                + fileEntity.getFilePath(); // FIXME: AWS에서는 bucket이 들어가면 에러 발생 해결요
 
         return FileResponse.builder()
                 .id(fileEntity.getId())
