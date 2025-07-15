@@ -11,7 +11,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SoftDelete;
-import org.hibernate.envers.Audited;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -35,7 +34,6 @@ public abstract class Facility extends BaseEntity {
     @Column(name = "code", unique = true, length = 10)
     private String code;
 
-    @Audited
     @Column(name = "drawing_file_id")
     private Long drawingFileId;
 

@@ -1,4 +1,4 @@
-package com.pluxity.utils;
+package com.pluxity.global.utils;
 
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.dto.FacilityResponse;
@@ -21,8 +21,7 @@ public class FacilityMappingUtil {
                         .distinct()
                         .toList();
 
-        Map<Long, FileResponse> fileMap =
-                fileService.getFiles(fileIds).stream().collect(Collectors.toMap(FileResponse::id, f -> f));
+        Map<Long, FileResponse> fileMap = mapFilesToIds(fileIds, fileService);
 
         return entities.stream()
                 .map(
@@ -30,5 +29,10 @@ public class FacilityMappingUtil {
                                 FacilityResponse.from(
                                         v, fileMap.get(v.getDrawingFileId()), fileMap.get(v.getThumbnailFileId())))
                 .toList();
+    }
+
+    public static Map<Long, FileResponse> mapFilesToIds(List<Long> fileIds, FileService fileService) {
+        return fileService.getFiles(fileIds).stream()
+                .collect(Collectors.toMap(FileResponse::id, f -> f));
     }
 }

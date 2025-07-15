@@ -1,15 +1,16 @@
 package com.pluxity.facility.dto;
 
+import com.pluxity.facility.history.FacilityHistory;
 import com.pluxity.file.dto.FileResponse;
-import java.util.Date;
 
 public record FacilityHistoryResponse(
-        Long facilityId,
-        String facilityType,
-        String code,
-        String name,
-        String description,
-        FileResponse drawingFile,
-        FileResponse thumbnailFile,
-        Date changedAt,
-        String revisionType) {}
+        Long id, String description, String createdAt, String createdBy, FileResponse file) {
+    public static FacilityHistoryResponse from(FacilityHistory entity, FileResponse file) {
+        return new FacilityHistoryResponse(
+                entity.getId(),
+                entity.getDescription(),
+                entity.getCreatedAt().toString(),
+                entity.getCreatedBy(),
+                file);
+    }
+}
