@@ -4,9 +4,8 @@ import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.dto.FacilityResponse;
-import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
-import com.pluxity.facility.strategy.FloorStrategy;
+import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.service.FileService;
@@ -31,7 +30,7 @@ public class StationService {
 
     private final FileService fileService;
     private final FacilityService facilityService;
-    private final FloorStrategy floorStrategy;
+    private final FloorService floorService;
     private final StationRepository stationRepository;
     private final LineService lineService;
     private final Label3DRepository label3DRepository;
@@ -47,11 +46,7 @@ public class StationService {
 
         Facility saved = facilityService.save(station, request.facility());
 
-        if (request.floors() != null) {
-            for (FloorRequest floorRequest : request.floors()) {
-                floorStrategy.save(saved, floorRequest);
-            }
-        }
+        floorService.save(saved, request.floors());
 
         if (request.lineIds() != null && !request.lineIds().isEmpty()) {
             for (Long lineId : request.lineIds()) {
@@ -73,7 +68,7 @@ public class StationService {
                                             .map(stationLine -> stationLine.getLine().getId())
                                             .collect(Collectors.toList());
 
-                            List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+                            List<FloorResponse> floorResponse = floorService.findAllByFacility(station);
                             List<String> featureIds = station.getFeatures().stream().map(Feature::getId).toList();
 
                             return StationResponse.builder()
@@ -95,7 +90,7 @@ public class StationService {
     @Transactional(readOnly = true)
     public StationResponse findById(Long id) {
         Station station = (Station) facilityService.findById(id);
-        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+        List<FloorResponse> floorResponse = floorService.findAllByFacility(station);
         List<String> featureIds = station.getFeatures().stream().map(Feature::getId).toList();
 
         List<Long> lineIds =
@@ -136,13 +131,7 @@ public class StationService {
 
         facilityService.update(id, request.facility());
 
-        // 추가 정보 업데이트
-        if (request.floors() != null) {
-            floorStrategy.delete(station);
-            for (FloorRequest floorRequest : request.floors()) {
-                floorStrategy.save(station, floorRequest);
-            }
-        }
+        floorService.save(station, request.floors());
 
         if (request.lineIds() != null) {
             station.getStationLines().clear();
@@ -159,7 +148,7 @@ public class StationService {
         Station station = findStationById(id);
 
         // Floor 삭제 및 Facility 삭제
-        floorStrategy.delete(station);
+        floorService.delete(station);
         facilityService.deleteFacility(id);
     }
 
@@ -187,7 +176,7 @@ public class StationService {
     @Transactional(readOnly = true)
     public StationResponseWithFeature findStationWithFeatures(Long id) {
         Station station = findStationById(id);
-        List<FloorResponse> floorResponse = floorStrategy.findAllByFacility(station);
+        List<FloorResponse> floorResponse = floorService.findAllByFacility(station);
 
         List<Long> lineIds =
                 station.getStationLines().stream()

@@ -18,7 +18,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @ConditionalOnProperty(name = "facility.building.enabled", havingValue = "true")
 public class Building extends Facility {
     @Builder
-    public Building(String name, String description) {
-        super(name, description);
+    public Building(
+            String name, String code, String description, Long drawingFileId, Long thumbnailFileId) {
+        super(name, code, description, drawingFileId, thumbnailFileId);
     }
 }

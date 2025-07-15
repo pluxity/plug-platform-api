@@ -1,4 +1,7 @@
 package com.pluxity.building.dto;
 
-public record BuildingUpdateRequest(
-        String name, String description, Long drawingFileId, Long thumbnailFileId) {}
+import com.pluxity.facility.dto.FacilityUpdateRequest;
+import com.pluxity.facility.floor.dto.FloorRequest;
+import java.util.List;
+
+public record BuildingUpdateRequest(FacilityUpdateRequest facility, List<FloorRequest> floors) {}
