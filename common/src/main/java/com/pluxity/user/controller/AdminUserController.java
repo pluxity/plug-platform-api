@@ -99,13 +99,7 @@ public class AdminUserController {
     @Operation(summary = "로그인된 사용자 정보 조회", description = "현재 로그인된 사용자의 정보를 조회합니다.")
     @ApiResponses(
             value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "로그인된 사용자 정보 조회 성공",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = DataResponseBody.class))),
+                @ApiResponse(responseCode = "200", description = "로그인된 사용자 정보 조회 성공"),
                 @ApiResponse(
                         responseCode = "401",
                         description = "인증되지 않은 요청 (예: 세션이 없거나 유효하지 않은 토큰)",

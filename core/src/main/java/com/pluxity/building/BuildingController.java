@@ -103,13 +103,7 @@ public class BuildingController {
     @Operation(summary = "특정 건물 이력 조회", description = "특정 ID를 가진 건물의 이력 목록을 조회합니다.")
     @ApiResponses(
             value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "이력 조회 성공",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = DataResponseBody.class))),
+                @ApiResponse(responseCode = "200", description = "이력 조회 성공"),
                 @ApiResponse(
                         responseCode = "404",
                         description = "해당 ID의 건물을 찾을 수 없음",
