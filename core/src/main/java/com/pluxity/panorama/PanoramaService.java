@@ -8,6 +8,7 @@ import com.pluxity.file.service.FileService;
 import com.pluxity.panorama.dto.PanoramaCreateRequest;
 import com.pluxity.panorama.dto.PanoramaResponse;
 import com.pluxity.panorama.dto.PanoramaUpdateRequest;
+import com.pluxity.utils.FacilityMappingUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -93,5 +94,11 @@ public class PanoramaService {
     @Transactional
     public void delete(Long id) {
         facilityService.deleteFacility(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FacilityResponse> findAllFacilities() {
+        List<Panorama> panoramas = repository.findAll();
+        return FacilityMappingUtil.mapWithFiles(panoramas, fileService);
     }
 }

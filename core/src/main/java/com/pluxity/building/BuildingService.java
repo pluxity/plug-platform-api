@@ -11,6 +11,7 @@ import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.strategy.FloorStrategy;
 import com.pluxity.file.service.FileService;
+import com.pluxity.utils.FacilityMappingUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -96,5 +97,11 @@ public class BuildingService {
         var building = facilityService.findById(id);
         floorStrategy.delete(building);
         facilityService.deleteFacility(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FacilityResponse> findAllFacilities() {
+        List<Building> buildings = repository.findAll();
+        return FacilityMappingUtil.mapWithFiles(buildings, fileService);
     }
 }

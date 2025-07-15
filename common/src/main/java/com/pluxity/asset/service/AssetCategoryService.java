@@ -13,6 +13,7 @@ import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,9 +41,10 @@ public class AssetCategoryService {
         List<AssetCategory> allCategories = assetCategoryRepository.findAll();
         List<Long> fileIds =
                 allCategories.stream().map(AssetCategory::getIconFileId).filter(Objects::nonNull).toList();
-        List<FileResponse> files = fileService.getFiles(fileIds);
+        Map<Long, FileResponse> fileMap =
+                fileService.getFiles(fileIds).stream().collect(Collectors.toMap(FileResponse::id, f -> f));
         List<AssetCategoryResponse> allCategoryDtoList =
-                allCategories.stream().map(v -> createAssetCategoryResponse(v, files)).toList();
+                allCategories.stream().map(v -> createAssetCategoryResponse(v, fileMap)).toList();
         return AssetCategoryAllResponse.of(
                 AssetCategory.builder().build().getMaxDepth(), makeCategoryList(allCategoryDtoList));
     }
@@ -75,15 +77,9 @@ public class AssetCategoryService {
     }
 
     private AssetCategoryResponse createAssetCategoryResponse(
-            AssetCategory category, List<FileResponse> files) {
+            AssetCategory category, Map<Long, FileResponse> fileMap) {
         return AssetCategoryResponse.from(
-                category,
-                category.getIconFileId() != null
-                        ? files.stream()
-                                .filter(v -> v.id().equals(category.getIconFileId()))
-                                .findFirst()
-                                .orElse(null)
-                        : null);
+                category, category.getIconFileId() != null ? fileMap.get(category.getIconFileId()) : null);
     }
 
     private AssetCategoryResponse createAssetCategoryResponseWithoutChildren(AssetCategory category) {

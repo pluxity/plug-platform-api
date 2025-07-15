@@ -18,6 +18,7 @@ import com.pluxity.station.dto.StationCreateRequest;
 import com.pluxity.station.dto.StationResponse;
 import com.pluxity.station.dto.StationResponseWithFeature;
 import com.pluxity.station.dto.StationUpdateRequest;
+import com.pluxity.utils.FacilityMappingUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -224,5 +225,11 @@ public class StationService {
                 .route(station.getRoute())
                 .subway(station.getSubway())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<FacilityResponse> findAllFacilities() {
+        List<Station> stations = stationRepository.findAll();
+        return FacilityMappingUtil.mapWithFiles(stations, fileService);
     }
 }
