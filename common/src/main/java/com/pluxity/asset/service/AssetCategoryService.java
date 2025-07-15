@@ -11,9 +11,9 @@ import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.FacilityMappingUtil;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,8 +41,7 @@ public class AssetCategoryService {
         List<AssetCategory> allCategories = assetCategoryRepository.findAll();
         List<Long> fileIds =
                 allCategories.stream().map(AssetCategory::getIconFileId).filter(Objects::nonNull).toList();
-        Map<Long, FileResponse> fileMap =
-                fileService.getFiles(fileIds).stream().collect(Collectors.toMap(FileResponse::id, f -> f));
+        Map<Long, FileResponse> fileMap = FacilityMappingUtil.mapFilesToIds(fileIds, fileService);
         List<AssetCategoryResponse> allCategoryDtoList =
                 allCategories.stream().map(v -> createAssetCategoryResponse(v, fileMap)).toList();
         return AssetCategoryAllResponse.of(
