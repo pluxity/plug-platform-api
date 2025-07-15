@@ -58,6 +58,7 @@ public enum ErrorCode implements Code {
     DUPLICATE_LINE_NAME(BAD_REQUEST, "이름이 %s인 노선이 이미 존재합니다."),
 
     NOT_FOUND_STATION(NOT_FOUND, "ID가 %s인 역을 찾을 수 없습니다."),
+    NOT_FOUND_BUILDING(NOT_FOUND, "ID가 %s인 건물을 찾을 수 없습니다."),
     NOT_FOUND_CATEGORY(NOT_FOUND, "ID가 %s인 카테고리를 찾을 수 없습니다."),
     NOT_FOUND_FILE(NOT_FOUND, "ID가 %s인 파일을 찾을 수 없습니다."),
     NOT_FOUND_ASSET(NOT_FOUND, "ID가 %s인 에셋을 찾을 수 없습니다."),

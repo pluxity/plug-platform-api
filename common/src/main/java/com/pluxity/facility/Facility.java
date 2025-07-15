@@ -76,6 +76,15 @@ public abstract class Facility extends BaseEntity {
         this.historyComment = historyComment;
     }
 
+    public Facility(
+            String name, String code, String description, Long drawingFileId, Long thumbnailFileId) {
+        this.name = name;
+        this.code = code;
+        this.description = description;
+        this.drawingFileId = drawingFileId;
+        this.thumbnailFileId = thumbnailFileId;
+    }
+
     public void updateDrawingFileId(FileEntity drawingFile) {
         this.drawingFileId = drawingFile.getId();
     }
@@ -134,6 +143,12 @@ public abstract class Facility extends BaseEntity {
         }
         if (facility.historyComment != null) {
             this.historyComment = facility.historyComment;
+        }
+        if (facility.drawingFileId != null) {
+            this.drawingFileId = facility.drawingFileId;
+        }
+        if (facility.thumbnailFileId != null) {
+            this.thumbnailFileId = facility.thumbnailFileId;
         }
     }
 }

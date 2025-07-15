@@ -3,7 +3,7 @@ package com.pluxity.panorama;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.facility.dto.FacilityResponse;
-import com.pluxity.facility.strategy.FloorStrategy;
+import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.panorama.dto.PanoramaCreateRequest;
 import com.pluxity.panorama.dto.PanoramaResponse;
@@ -21,7 +21,7 @@ public class PanoramaService {
 
     private final FileService fileService;
 
-    private final FloorStrategy floorStrategy;
+    private final FloorService floorService;
 
     private final PanoramaRepository repository;
 

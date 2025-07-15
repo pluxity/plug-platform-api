@@ -1,16 +1,26 @@
 package com.pluxity.facility.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.pluxity.building.Building;
 import com.pluxity.building.BuildingRepository;
 import com.pluxity.building.BuildingService;
 import com.pluxity.building.dto.BuildingCreateRequest;
 import com.pluxity.building.dto.BuildingResponse;
 import com.pluxity.building.dto.BuildingUpdateRequest;
-import com.pluxity.facility.dto.FacilityCreateRequest;
+import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
+import com.pluxity.facility.dto.FacilityCreateRequest;
+import com.pluxity.facility.dto.FacilityUpdateRequest;
 import com.pluxity.facility.floor.dto.FloorRequest;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,15 +30,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -153,19 +154,22 @@ class BuildingServiceTest {
         // given
         Long id = buildingService.save(createRequest);
         BuildingUpdateRequest updateRequest = new BuildingUpdateRequest(
-                "수정된 건물",
-                "수정된 건물 설명",
-                drawingFileId,
-                thumbnailFileId
+                new FacilityUpdateRequest(
+                        "수정된 건물 이름",
+                        "수정된 코드",
+                        "수정된 건물 설명",
+                        null,
+                        null
+                ), null
         );
 
         // when
         buildingService.update(id, updateRequest);
 
         // then
-        BuildingResponse updatedBuilding = buildingService.findById(id);
-        assertThat(updatedBuilding.facility().name()).isEqualTo("수정된 건물");
-        assertThat(updatedBuilding.facility().description()).isEqualTo("수정된 건물 설명");
+        Facility updatedBuilding = facilityService.findById(id);
+        assertThat(updatedBuilding.getName()).isEqualTo("수정된 건물 이름");
+        assertThat(updatedBuilding.getDescription()).isEqualTo("수정된 건물 설명");
     }
 
     @Test
