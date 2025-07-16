@@ -92,6 +92,9 @@ public class FacilityService {
 
     @Transactional
     public void update(Long id, @Valid FacilityUpdateRequest request) {
+        if (request == null) {
+            return;
+        }
         Facility facility = findById(id);
 
         // 코드 변경 요청이 있고, 기존 코드와 다른 경우에만 중복 검사

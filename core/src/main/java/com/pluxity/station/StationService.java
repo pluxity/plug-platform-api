@@ -129,13 +129,8 @@ public class StationService {
         // 먼저 스테이션을 조회
         Station station = findStationById(id);
 
-        if (request.facility() != null) {
-            facilityService.update(id, request.facility());
-        }
-
-        if (request.floors() != null) {
-            floorService.save(station, request.floors());
-        }
+        facilityService.update(id, request.facility());
+        floorService.save(station, request.floors());
 
         if (request.lineIds() != null) {
             station.getStationLines().clear();
