@@ -133,7 +133,7 @@ public class StationService {
             facilityService.update(id, request.facility());
         }
 
-        if(request.floors() != null) {
+        if (request.floors() != null) {
             floorService.save(station, request.floors());
         }
 

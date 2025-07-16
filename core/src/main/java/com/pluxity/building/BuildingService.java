@@ -84,11 +84,11 @@ public class BuildingService {
     public void update(Long id, BuildingUpdateRequest request) {
         Building building = findBuilding(id);
 
-        if(request.facility() != null) {
+        if (request.facility() != null) {
             facilityService.update(id, request.facility());
         }
 
-        if(request.floors() != null) {
+        if (request.floors() != null) {
             floorService.update(building, request.floors());
         }
     }

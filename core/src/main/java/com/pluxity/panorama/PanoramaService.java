@@ -79,7 +79,7 @@ public class PanoramaService {
 
     @Transactional
     public void update(Long id, PanoramaUpdateRequest request) {
-        if(request.facility() != null) {
+        if (request.facility() != null) {
             facilityService.update(id, request.facility());
         }
 
