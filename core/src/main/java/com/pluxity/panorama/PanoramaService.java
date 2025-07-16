@@ -79,7 +79,9 @@ public class PanoramaService {
 
     @Transactional
     public void update(Long id, PanoramaUpdateRequest request) {
-        facilityService.update(id, request.facility());
+        if(request.facility() != null) {
+            facilityService.update(id, request.facility());
+        }
 
         //        if (request.locationRequest() != null) {
         //            Panorama savedPanorama = repository.findById(id).orElseThrow();
