@@ -11,10 +11,9 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.FacilityMappingUtil;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import com.pluxity.global.utils.FacilityMappingUtils;
+import com.pluxity.global.utils.SortUtils;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,18 +54,40 @@ public class FacilityCategoryService {
 
     @Transactional(readOnly = true)
     public FacilityCategoryAllResponse findAll() {
-        List<FacilityCategory> allCategories = repository.findAll();
+        List<FacilityCategory> allCategories = repository.findAll(SortUtils.getOrderByCreatedAtDesc());
         List<Long> fileIds =
                 allCategories.stream()
                         .map(FacilityCategory::getImageFileId)
                         .filter(Objects::nonNull)
                         .toList();
-        Map<Long, FileResponse> fileMap = FacilityMappingUtil.mapFilesToIds(fileIds, fileService);
+        Map<Long, FileResponse> fileMap = FacilityMappingUtils.getFileMapByIds(fileIds, fileService);
         List<FacilityCategoryResponse> list =
                 allCategories.stream()
                         .map(v -> FacilityCategoryResponse.from(v, fileMap.get(v.getImageFileId())))
                         .collect(Collectors.toList());
-        return FacilityCategoryAllResponse.of(FacilityCategory.builder().build().getMaxDepth(), list);
+        return FacilityCategoryAllResponse.of(
+                FacilityCategory.builder().build().getMaxDepth(), makeCategoryList(list));
+    }
+
+    private List<FacilityCategoryResponse> makeCategoryList(List<FacilityCategoryResponse> list) {
+        Map<Long, FacilityCategoryResponse> categoryMap = new HashMap<>();
+        for (FacilityCategoryResponse c : list) {
+            categoryMap.put(c.id(), c); // list의 객체를 그대로 Map에 넣는다
+        }
+        List<FacilityCategoryResponse> roots = new ArrayList<>();
+
+        for (FacilityCategoryResponse category : list) {
+            Long parentId = category.parentId();
+            if (parentId == null) {
+                // 루트 카테고리
+                roots.add(category);
+            } else {
+                // 부모를 찾아서 children에 추가
+                FacilityCategoryResponse findParent = categoryMap.get(parentId);
+                findParent.children().add(category); // list의 객체 그대로 추가
+            }
+        }
+        return roots; // 루트부터 시작하는 트리 반환
     }
 
     @Transactional(readOnly = true)

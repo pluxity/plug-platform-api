@@ -11,7 +11,7 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.FacilityMappingUtil;
+import com.pluxity.global.utils.FacilityMappingUtils;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -144,9 +144,10 @@ public class FacilityService {
                 .findById(facilityId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY, facilityId));
 
-        List<FacilityHistory> histories = facilityHistoryRepository.findByFacilityId(facilityId);
+        List<FacilityHistory> histories =
+                facilityHistoryRepository.findByFacilityIdOrderByCreatedAtDesc(facilityId);
         List<Long> ids = histories.stream().map(FacilityHistory::getFileId).toList();
-        Map<Long, FileResponse> fileMap = FacilityMappingUtil.mapFilesToIds(ids, fileService);
+        Map<Long, FileResponse> fileMap = FacilityMappingUtils.getFileMapByIds(ids, fileService);
         return histories.stream()
                 .map(v -> FacilityHistoryResponse.from(v, fileMap.get(v.getFileId())))
                 .toList();

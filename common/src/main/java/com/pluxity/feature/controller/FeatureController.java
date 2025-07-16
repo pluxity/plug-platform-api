@@ -5,6 +5,7 @@ import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.service.FeatureService;
+import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -70,9 +71,9 @@ public class FeatureController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<List<FeatureResponse>> getFeatures() {
+    public ResponseEntity<DataResponseBody<List<FeatureResponse>>> getFeatures() {
         List<FeatureResponse> responses = featureService.getFeatures();
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(DataResponseBody.of(responses));
     }
 
     @Operation(summary = "피처 상세 조회", description = "ID로 특정 피처의 상세 정보를 조회합니다")

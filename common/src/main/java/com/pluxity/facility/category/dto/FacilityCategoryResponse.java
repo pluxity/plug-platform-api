@@ -4,6 +4,7 @@ import com.pluxity.facility.category.FacilityCategory;
 import com.pluxity.file.dto.FileResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,9 +40,7 @@ public record FacilityCategoryResponse(
                 category.getId(),
                 category.getName(),
                 category.getParent() != null ? category.getParent().getId() : null,
-                category.getChildren().stream()
-                        .map(FacilityCategoryResponse::from)
-                        .collect(Collectors.toList()),
+                new ArrayList<>(),
                 iconFile,
                 category.getCreatedAt(),
                 category.getUpdatedAt(),

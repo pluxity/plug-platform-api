@@ -5,7 +5,6 @@ import com.pluxity.facility.FacilityService;
 import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.file.service.FileService;
-import com.pluxity.global.utils.FacilityMappingUtil;
 import com.pluxity.panorama.dto.PanoramaCreateRequest;
 import com.pluxity.panorama.dto.PanoramaResponse;
 import com.pluxity.panorama.dto.PanoramaUpdateRequest;
@@ -90,11 +89,5 @@ public class PanoramaService {
     @Transactional
     public void delete(Long id) {
         facilityService.deleteFacility(id);
-    }
-
-    @Transactional(readOnly = true)
-    public List<FacilityResponse> findAllFacilities() {
-        List<Panorama> panoramas = repository.findAll();
-        return FacilityMappingUtil.mapWithFiles(panoramas, fileService);
     }
 }

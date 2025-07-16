@@ -12,7 +12,8 @@ import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.FacilityMappingUtil;
+import com.pluxity.global.utils.FacilityMappingUtils;
+import com.pluxity.global.utils.SortUtils;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class BuildingService {
 
     @Transactional(readOnly = true)
     public List<BuildingResponse> findAll() {
-        List<Building> buildings = repository.findAll();
+        List<Building> buildings = repository.findAll(SortUtils.getOrderByCreatedAtDesc());
 
         return buildings.stream()
                 .map(
@@ -103,7 +104,7 @@ public class BuildingService {
 
     @Transactional(readOnly = true)
     public List<FacilityResponse> findAllFacilities() {
-        List<Building> buildings = repository.findAll();
-        return FacilityMappingUtil.mapWithFiles(buildings, fileService);
+        List<Building> buildings = repository.findAll(SortUtils.getOrderByCreatedAtDesc());
+        return FacilityMappingUtils.mapWithFiles(buildings, fileService);
     }
 }

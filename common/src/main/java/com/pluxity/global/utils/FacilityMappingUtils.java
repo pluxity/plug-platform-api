@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class FacilityMappingUtil {
+public class FacilityMappingUtils {
 
     public static List<FacilityResponse> mapWithFiles(
             List<? extends Facility> entities, FileService fileService) {
@@ -21,7 +21,7 @@ public class FacilityMappingUtil {
                         .distinct()
                         .toList();
 
-        Map<Long, FileResponse> fileMap = mapFilesToIds(fileIds, fileService);
+        Map<Long, FileResponse> fileMap = getFileMapByIds(fileIds, fileService);
 
         return entities.stream()
                 .map(
@@ -31,7 +31,8 @@ public class FacilityMappingUtil {
                 .toList();
     }
 
-    public static Map<Long, FileResponse> mapFilesToIds(List<Long> fileIds, FileService fileService) {
+    public static Map<Long, FileResponse> getFileMapByIds(
+            List<Long> fileIds, FileService fileService) {
         return fileService.getFiles(fileIds).stream()
                 .collect(Collectors.toMap(FileResponse::id, f -> f));
     }

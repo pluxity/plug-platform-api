@@ -4,6 +4,7 @@ import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.SortUtils;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
@@ -33,7 +34,9 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserResponse> findAll() {
-        return userRepository.findAll().stream().map(UserResponse::from).toList();
+        return userRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
+                .map(UserResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)

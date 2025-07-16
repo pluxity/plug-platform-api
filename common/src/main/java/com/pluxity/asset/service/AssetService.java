@@ -16,6 +16,7 @@ import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.SortUtils;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.function.Supplier;
@@ -63,7 +64,7 @@ public class AssetService {
 
     @Transactional(readOnly = true)
     public List<AssetResponse> getAssets() {
-        List<Asset> assets = assetRepository.findAll();
+        List<Asset> assets = assetRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
         return assets.stream()
                 .map(
                         asset ->

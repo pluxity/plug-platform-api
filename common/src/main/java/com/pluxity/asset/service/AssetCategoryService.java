@@ -11,7 +11,8 @@ import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.FacilityMappingUtil;
+import com.pluxity.global.utils.FacilityMappingUtils;
+import com.pluxity.global.utils.SortUtils;
 import java.util.*;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
@@ -38,14 +39,15 @@ public class AssetCategoryService {
 
     @Transactional(readOnly = true)
     public AssetCategoryAllResponse getAllCategories() {
-        List<AssetCategory> allCategories = assetCategoryRepository.findAll();
+        List<AssetCategory> allCategories =
+                assetCategoryRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
         List<Long> fileIds =
                 allCategories.stream().map(AssetCategory::getIconFileId).filter(Objects::nonNull).toList();
-        Map<Long, FileResponse> fileMap = FacilityMappingUtil.mapFilesToIds(fileIds, fileService);
-        List<AssetCategoryResponse> allCategoryDtoList =
+        Map<Long, FileResponse> fileMap = FacilityMappingUtils.getFileMapByIds(fileIds, fileService);
+        List<AssetCategoryResponse> list =
                 allCategories.stream().map(v -> createAssetCategoryResponse(v, fileMap)).toList();
         return AssetCategoryAllResponse.of(
-                AssetCategory.builder().build().getMaxDepth(), makeCategoryList(allCategoryDtoList));
+                AssetCategory.builder().build().getMaxDepth(), makeCategoryList(list));
     }
 
     private List<AssetCategoryResponse> makeCategoryList(List<AssetCategoryResponse> list) {

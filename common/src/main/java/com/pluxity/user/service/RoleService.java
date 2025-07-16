@@ -2,6 +2,7 @@ package com.pluxity.user.service;
 
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.SortUtils;
 import com.pluxity.user.dto.RoleCreateRequest;
 import com.pluxity.user.dto.RoleResponse;
 import com.pluxity.user.dto.RoleUpdateRequest;
@@ -26,7 +27,9 @@ public class RoleService {
 
     @Transactional(readOnly = true)
     public List<RoleResponse> findAll() {
-        return roleRepository.findAll().stream().map(RoleResponse::from).toList();
+        return roleRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
+                .map(RoleResponse::from)
+                .toList();
     }
 
     @Transactional

@@ -4,6 +4,7 @@ import static com.pluxity.global.constant.ErrorCode.DUPLICATE_LINE_NAME;
 import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_LINE;
 
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.SortUtils;
 import com.pluxity.station.dto.LineCreateRequest;
 import com.pluxity.station.dto.LineResponse;
 import com.pluxity.station.dto.LineUpdateRequest;
@@ -44,7 +45,9 @@ public class LineService {
 
     @Transactional(readOnly = true)
     public List<LineResponse> findAll() {
-        return lineRepository.findAll().stream().map(LineResponse::from).toList();
+        return lineRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
+                .map(LineResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)

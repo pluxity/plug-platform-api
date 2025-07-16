@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FacilityHistoryRepository extends JpaRepository<FacilityHistory, Long> {
 
-    List<FacilityHistory> findByFacilityId(Long facilityId);
+    List<FacilityHistory> findByFacilityIdOrderByCreatedAtDesc(Long facilityId);
 }

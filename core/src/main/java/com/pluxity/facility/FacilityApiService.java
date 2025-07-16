@@ -21,9 +21,7 @@ public class FacilityApiService {
 
     protected FacilityAllResponse findAll() {
         return FacilityAllResponse.from(
-                buildingService.findAllFacilities(),
-                stationService.findAllFacilities(),
-                panoramaService.findAllFacilities());
+                buildingService.findAllFacilities(), stationService.findAllFacilities());
     }
 
     public void updateDrawingFile(Long id, FacilityDrawingUpdateRequest request) {

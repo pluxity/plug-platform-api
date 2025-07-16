@@ -4,6 +4,7 @@ import com.pluxity.facility.FacilityService;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.service.FeatureService;
+import com.pluxity.global.utils.SortUtils;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,9 @@ public class Label3DService {
 
     @Transactional(readOnly = true)
     public List<Label3DResponse> getAllLabel3Ds() {
-        return label3DRepository.findAll().stream().map(Label3DResponse::from).toList();
+        return label3DRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
+                .map(Label3DResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
