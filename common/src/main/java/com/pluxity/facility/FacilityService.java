@@ -9,6 +9,7 @@ import com.pluxity.facility.history.FacilityHistory;
 import com.pluxity.facility.history.FacilityHistoryRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.FacilityMappingUtil;
 import jakarta.validation.Valid;
@@ -44,6 +45,12 @@ public class FacilityService {
             String filePath = PREFIX + savedFacility.getId() + "/";
             if (request.drawingFileId() != null) {
                 facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
+                facilityHistoryRepository.save(
+                        FacilityHistory.builder()
+                                .fileId(request.drawingFileId())
+                                .facilityId(facility.getId())
+                                .comment("최초등록")
+                                .build());
             }
 
             if (request.thumbnailFileId() != null) {
@@ -107,18 +114,6 @@ public class FacilityService {
             facility.updateThumbnailFileId(
                     fileService.finalizeUpload(request.thumbnailFileId(), filePath));
         }
-
-        if (request.drawingFileId() != null
-                && !request.drawingFileId().equals(facility.getDrawingFileId())) {
-            String filePath = PREFIX + facility.getId() + "/";
-            facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
-            facilityHistoryRepository.save(
-                    FacilityHistory.builder()
-                            .fileId(request.drawingFileId())
-                            .facilityId(facility.getId())
-                            .description(facility.getDescription())
-                            .build());
-        }
     }
 
     @Transactional
@@ -176,5 +171,22 @@ public class FacilityService {
             log.error("Failed to get thumbnail file: {}", e.getMessage());
             return FileResponse.empty();
         }
+    }
+
+    @Transactional
+    public void updateDrawingFile(Long id, Long drawingFileId, String comment) {
+        Facility facility =
+                facilityRepository
+                        .findById(id)
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_FACILITY, id));
+
+        String filePath = PREFIX + facility.getId() + "/";
+        facility.updateDrawingFileId(fileService.finalizeUpload(drawingFileId, filePath));
+        facilityHistoryRepository.save(
+                FacilityHistory.builder()
+                        .fileId(drawingFileId)
+                        .facilityId(facility.getId())
+                        .comment(comment)
+                        .build());
     }
 }

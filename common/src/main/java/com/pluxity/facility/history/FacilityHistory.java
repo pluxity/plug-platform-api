@@ -19,13 +19,13 @@ public class FacilityHistory extends BaseEntity {
     private Long id;
 
     private Long fileId;
-    private String description;
     private Long facilityId;
+    private String comment;
 
     @Builder
-    public FacilityHistory(Long fileId, String description, Long facilityId) {
+    public FacilityHistory(Long fileId, Long facilityId, String comment) {
         this.fileId = fileId;
-        this.description = description;
         this.facilityId = facilityId;
+        this.comment = comment;
     }
 }
