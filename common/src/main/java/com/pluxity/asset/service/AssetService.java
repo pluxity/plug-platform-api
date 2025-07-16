@@ -161,13 +161,14 @@ public class AssetService {
             asset.updateCategory(category);
         }
 
-        if (request.fileId() != null) {
+        if (request.fileId() != null && !request.fileId().equals(asset.getFileId())) {
             FileEntity fileEntity =
                     fileService.finalizeUpload(request.fileId(), asset.getAssetFilePath());
             asset.updateFileEntity(fileEntity);
         }
 
-        if (request.thumbnailFileId() != null) {
+        if (request.thumbnailFileId() != null
+                && !request.thumbnailFileId().equals(asset.getThumbnailFileId())) {
             FileEntity thumbnailEntity =
                     fileService.finalizeUpload(request.thumbnailFileId(), asset.getThumbnailFilePath());
             asset.updateThumbnailFileEntity(thumbnailEntity);

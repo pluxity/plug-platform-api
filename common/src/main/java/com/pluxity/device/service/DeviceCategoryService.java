@@ -38,8 +38,8 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         DeviceCategory deviceCategory =
                 DeviceCategory.builder().name(request.getName()).parent(parent).build();
 
-        if (request.getIconFileId() != null) {
-            deviceCategory.updateIconFileId(request.getIconFileId());
+        if (request.getThumbnailFileId() != null) {
+            deviceCategory.updateIconFileId(request.getThumbnailFileId());
         }
 
         return deviceCategoryRepository.save(deviceCategory).getId();
@@ -53,8 +53,9 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
             deviceCategory.setName(request.getName());
         }
 
-        if (request.getIconFileId() != null) {
-            deviceCategory.updateIconFileId(request.getIconFileId());
+        if (request.getThumbnailFileId() != null
+                && !request.getThumbnailFileId().equals(deviceCategory.getIconFileId())) {
+            deviceCategory.updateIconFileId(request.getThumbnailFileId());
         }
 
         if (request.getParentId() != null) {

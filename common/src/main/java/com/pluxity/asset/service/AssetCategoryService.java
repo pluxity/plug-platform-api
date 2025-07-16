@@ -123,7 +123,8 @@ public class AssetCategoryService {
             category.updateName(request.name());
         }
 
-        if (request.thumbnailFileId() != null) {
+        if (request.thumbnailFileId() != null
+                && !request.thumbnailFileId().equals(category.getIconFileId())) {
             category.updateIconFileId(request.thumbnailFileId());
         }
 
