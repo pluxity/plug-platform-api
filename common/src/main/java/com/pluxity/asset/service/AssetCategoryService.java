@@ -63,7 +63,7 @@ public class AssetCategoryService {
             } else {
                 // 부모를 찾아서 children에 추가
                 AssetCategoryResponse findParent = categoryMap.get(parentId);
-                findParent.children().add(category); // flatList의 객체 그대로 추가
+                findParent.children().add(category); // list의 객체 그대로 추가
             }
         }
         return roots; // 루트부터 시작하는 트리 반환
@@ -77,8 +77,7 @@ public class AssetCategoryService {
 
     private AssetCategoryResponse createAssetCategoryResponse(
             AssetCategory category, Map<Long, FileResponse> fileMap) {
-        return AssetCategoryResponse.from(
-                category, category.getIconFileId() != null ? fileMap.get(category.getIconFileId()) : null);
+        return AssetCategoryResponse.from(category, fileMap.get(category.getIconFileId()));
     }
 
     private AssetCategoryResponse createAssetCategoryResponseWithoutChildren(AssetCategory category) {

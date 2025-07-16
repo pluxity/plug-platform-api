@@ -55,7 +55,7 @@ public class FacilityCategoryService {
 
     @Transactional(readOnly = true)
     public FacilityCategoryAllResponse findAll() {
-        List<FacilityCategory> allCategories = repository.findAllByParentIsNull();
+        List<FacilityCategory> allCategories = repository.findAll();
         List<Long> fileIds =
                 allCategories.stream()
                         .map(FacilityCategory::getImageFileId)
@@ -64,10 +64,7 @@ public class FacilityCategoryService {
         Map<Long, FileResponse> fileMap = FacilityMappingUtil.mapFilesToIds(fileIds, fileService);
         List<FacilityCategoryResponse> list =
                 allCategories.stream()
-                        .map(
-                                v ->
-                                        FacilityCategoryResponse.from(
-                                                v, v.getImageFileId() == null ? null : fileMap.get(v.getImageFileId())))
+                        .map(v -> FacilityCategoryResponse.from(v, fileMap.get(v.getImageFileId())))
                         .collect(Collectors.toList());
         return FacilityCategoryAllResponse.of(FacilityCategory.builder().build().getMaxDepth(), list);
     }
