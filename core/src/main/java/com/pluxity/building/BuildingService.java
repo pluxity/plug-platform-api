@@ -12,7 +12,7 @@ import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.utils.FacilityMappingUtil;
+import com.pluxity.global.utils.FacilityMappingUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -85,7 +85,6 @@ public class BuildingService {
         Building building = findBuilding(id);
 
         facilityService.update(id, request.facility());
-
         floorService.update(building, request.floors());
     }
 

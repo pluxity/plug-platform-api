@@ -5,10 +5,10 @@ import com.pluxity.facility.FacilityService;
 import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.utils.FacilityMappingUtil;
 import com.pluxity.panorama.dto.PanoramaCreateRequest;
 import com.pluxity.panorama.dto.PanoramaResponse;
 import com.pluxity.panorama.dto.PanoramaUpdateRequest;
-import com.pluxity.utils.FacilityMappingUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -79,11 +79,7 @@ public class PanoramaService {
 
     @Transactional
     public void update(Long id, PanoramaUpdateRequest request) {
-
-        var panorama =
-                Panorama.builder().name(request.name()).description(request.description()).build();
-
-        facilityService.update(id, panorama);
+        facilityService.update(id, request.facility());
 
         //        if (request.locationRequest() != null) {
         //            Panorama savedPanorama = repository.findById(id).orElseThrow();

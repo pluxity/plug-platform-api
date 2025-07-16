@@ -11,9 +11,9 @@ import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.FacilityMappingUtil;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,8 +41,7 @@ public class AssetCategoryService {
         List<AssetCategory> allCategories = assetCategoryRepository.findAll();
         List<Long> fileIds =
                 allCategories.stream().map(AssetCategory::getIconFileId).filter(Objects::nonNull).toList();
-        Map<Long, FileResponse> fileMap =
-                fileService.getFiles(fileIds).stream().collect(Collectors.toMap(FileResponse::id, f -> f));
+        Map<Long, FileResponse> fileMap = FacilityMappingUtil.mapFilesToIds(fileIds, fileService);
         List<AssetCategoryResponse> allCategoryDtoList =
                 allCategories.stream().map(v -> createAssetCategoryResponse(v, fileMap)).toList();
         return AssetCategoryAllResponse.of(
@@ -64,7 +63,7 @@ public class AssetCategoryService {
             } else {
                 // 부모를 찾아서 children에 추가
                 AssetCategoryResponse findParent = categoryMap.get(parentId);
-                findParent.children().add(category); // flatList의 객체 그대로 추가
+                findParent.children().add(category); // list의 객체 그대로 추가
             }
         }
         return roots; // 루트부터 시작하는 트리 반환
@@ -78,8 +77,7 @@ public class AssetCategoryService {
 
     private AssetCategoryResponse createAssetCategoryResponse(
             AssetCategory category, Map<Long, FileResponse> fileMap) {
-        return AssetCategoryResponse.from(
-                category, category.getIconFileId() != null ? fileMap.get(category.getIconFileId()) : null);
+        return AssetCategoryResponse.from(category, fileMap.get(category.getIconFileId()));
     }
 
     private AssetCategoryResponse createAssetCategoryResponseWithoutChildren(AssetCategory category) {

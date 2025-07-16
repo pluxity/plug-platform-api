@@ -5,14 +5,16 @@ import static com.pluxity.global.constant.ErrorCode.*;
 import com.pluxity.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.dto.FacilityUpdateRequest;
+import com.pluxity.facility.history.FacilityHistory;
+import com.pluxity.facility.history.FacilityHistoryRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import jakarta.persistence.EntityManager;
+import com.pluxity.global.utils.FacilityMappingUtil;
 import jakarta.validation.Valid;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,10 +27,9 @@ public class FacilityService {
 
     private final FacilityRepository facilityRepository;
     private final FileService fileService;
-    private final EntityManager entityManager;
 
     private final String PREFIX = "facilities/";
-    private final FacilityRevisionRepository facilityRevisionRepository;
+    private final FacilityHistoryRepository facilityHistoryRepository;
 
     @Transactional
     public Facility save(Facility facility, @Valid FacilityCreateRequest request) {
@@ -44,6 +45,12 @@ public class FacilityService {
             String filePath = PREFIX + savedFacility.getId() + "/";
             if (request.drawingFileId() != null) {
                 facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
+                facilityHistoryRepository.save(
+                        FacilityHistory.builder()
+                                .fileId(request.drawingFileId())
+                                .facilityId(facility.getId())
+                                .comment("최초등록")
+                                .build());
             }
 
             if (request.thumbnailFileId() != null) {
@@ -83,13 +90,11 @@ public class FacilityService {
         return facilityRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
-    protected List<Facility> findByType(String facilityType) {
-        return null;
-    }
-
     @Transactional
     public void update(Long id, @Valid FacilityUpdateRequest request) {
+        if (request == null) {
+            return;
+        }
         Facility facility = findById(id);
 
         // 코드 변경 요청이 있고, 기존 코드와 다른 경우에만 중복 검사
@@ -112,14 +117,6 @@ public class FacilityService {
             facility.updateThumbnailFileId(
                     fileService.finalizeUpload(request.thumbnailFileId(), filePath));
         }
-
-        if (request.drawingFileId() != null
-                && !request.drawingFileId().equals(facility.getDrawingFileId())) {
-            String filePath = PREFIX + facility.getId() + "/";
-            facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
-        }
-
-        facilityRepository.save(facility);
     }
 
     @Transactional
@@ -147,46 +144,12 @@ public class FacilityService {
                 .findById(facilityId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY, facilityId));
 
-        try {
-            // Spring Data Envers를 이용한 이력 조회
-            List<FacilityHistoryResponse> historyResponses = new ArrayList<>();
-            facilityRevisionRepository
-                    .findRevisions(facilityId)
-                    .forEach(
-                            revision -> {
-                                Facility facility = revision.getEntity();
-                                // getMetadata()로 RevisionMetadata 객체 접근
-                                Date revisionDate =
-                                        revision
-                                                .getMetadata()
-                                                .getRevisionInstant()
-                                                .map(instant -> new Date(instant.toEpochMilli()))
-                                                .orElse(new Date());
-
-                                String revisionType = revision.getMetadata().getRevisionType().name();
-
-                                // 파일 정보 가져오기
-                                FileResponse drawingFileResponse = getDrawingFileResponse(facility);
-                                FileResponse thumbnailFileResponse = getThumbnailFileResponse(facility);
-
-                                historyResponses.add(
-                                        new FacilityHistoryResponse(
-                                                facilityId,
-                                                facility.getClass().getSimpleName(),
-                                                facility.getCode(),
-                                                facility.getName(),
-                                                facility.getDescription(),
-                                                drawingFileResponse,
-                                                thumbnailFileResponse,
-                                                revisionDate,
-                                                revisionType));
-                            });
-
-            return historyResponses;
-        } catch (Exception e) {
-            log.error("Failed to fetch facility history: {}", e.getMessage());
-            throw new IllegalStateException("Failed to fetch facility history", e);
-        }
+        List<FacilityHistory> histories = facilityHistoryRepository.findByFacilityId(facilityId);
+        List<Long> ids = histories.stream().map(FacilityHistory::getFileId).toList();
+        Map<Long, FileResponse> fileMap = FacilityMappingUtil.mapFilesToIds(ids, fileService);
+        return histories.stream()
+                .map(v -> FacilityHistoryResponse.from(v, fileMap.get(v.getFileId())))
+                .toList();
     }
 
     public FileResponse getDrawingFileResponse(Facility facility) {
@@ -211,5 +174,22 @@ public class FacilityService {
             log.error("Failed to get thumbnail file: {}", e.getMessage());
             return FileResponse.empty();
         }
+    }
+
+    @Transactional
+    public void updateDrawingFile(Long id, Long drawingFileId, String comment) {
+        Facility facility =
+                facilityRepository
+                        .findById(id)
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_FACILITY, id));
+
+        String filePath = PREFIX + facility.getId() + "/";
+        facility.updateDrawingFileId(fileService.finalizeUpload(drawingFileId, filePath));
+        facilityHistoryRepository.save(
+                FacilityHistory.builder()
+                        .fileId(drawingFileId)
+                        .facilityId(facility.getId())
+                        .comment(comment)
+                        .build());
     }
 }

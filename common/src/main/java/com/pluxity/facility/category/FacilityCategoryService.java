@@ -7,9 +7,14 @@ import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
 import com.pluxity.facility.category.dto.FacilityCategoryResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
+import com.pluxity.file.dto.FileResponse;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.FacilityMappingUtil;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class FacilityCategoryService {
     private final FacilityCategoryRepository repository;
+    private final FileService fileService;
 
     @Transactional
     public FacilityCategoryResponse create(FacilityCategoryCreateRequest request) {
@@ -49,9 +55,17 @@ public class FacilityCategoryService {
 
     @Transactional(readOnly = true)
     public FacilityCategoryAllResponse findAll() {
-        List<FacilityCategory> allRootCategories = repository.findAllByParentIsNull();
+        List<FacilityCategory> allCategories = repository.findAll();
+        List<Long> fileIds =
+                allCategories.stream()
+                        .map(FacilityCategory::getImageFileId)
+                        .filter(Objects::nonNull)
+                        .toList();
+        Map<Long, FileResponse> fileMap = FacilityMappingUtil.mapFilesToIds(fileIds, fileService);
         List<FacilityCategoryResponse> list =
-                allRootCategories.stream().map(FacilityCategoryResponse::from).collect(Collectors.toList());
+                allCategories.stream()
+                        .map(v -> FacilityCategoryResponse.from(v, fileMap.get(v.getImageFileId())))
+                        .collect(Collectors.toList());
         return FacilityCategoryAllResponse.of(FacilityCategory.builder().build().getMaxDepth(), list);
     }
 

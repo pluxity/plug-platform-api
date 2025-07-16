@@ -11,13 +11,13 @@ import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.FacilityMappingUtil;
 import com.pluxity.label3d.Label3DRepository;
 import com.pluxity.label3d.Label3DResponse;
 import com.pluxity.station.dto.StationCreateRequest;
 import com.pluxity.station.dto.StationResponse;
 import com.pluxity.station.dto.StationResponseWithFeature;
 import com.pluxity.station.dto.StationUpdateRequest;
-import com.pluxity.utils.FacilityMappingUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -130,7 +130,6 @@ public class StationService {
         Station station = findStationById(id);
 
         facilityService.update(id, request.facility());
-
         floorService.save(station, request.floors());
 
         if (request.lineIds() != null) {
