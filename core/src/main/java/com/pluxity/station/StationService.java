@@ -61,7 +61,7 @@ public class StationService {
 
     @Transactional(readOnly = true)
     public List<StationResponse> findAll() {
-        return stationRepository.findAll().stream()
+        return stationRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
                 .map(
                         station -> {
                             List<Long> lineIds =
