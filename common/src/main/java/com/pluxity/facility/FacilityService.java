@@ -9,6 +9,9 @@ import com.pluxity.facility.history.FacilityHistory;
 import com.pluxity.facility.history.FacilityHistoryRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.annotation.CheckPermission;
+import com.pluxity.global.annotation.CheckPermissionAfter;
+import com.pluxity.global.annotation.CheckPermissionAll;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
@@ -72,13 +75,7 @@ public class FacilityService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Facility findByCode(String code) {
-        return facilityRepository
-                .findByCode(code)
-                .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CODE, code));
-    }
-
+    @CheckPermission(resourceName = "Facility", resourceId = "#id")
     @Transactional(readOnly = true)
     public Facility findById(Long id) {
         return facilityRepository
@@ -86,8 +83,17 @@ public class FacilityService {
                 .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY, id));
     }
 
+    @CheckPermissionAfter(resourceName = "Facility")
     @Transactional(readOnly = true)
-    protected List<Facility> findAll() {
+    public Facility findByCode(String code) {
+        return facilityRepository
+                .findByCode(code)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CODE, code));
+    }
+
+    @CheckPermissionAll(resourceName = "Facility")
+    @Transactional(readOnly = true)
+    public List<Facility> findAll() {
         return facilityRepository.findAll();
     }
 

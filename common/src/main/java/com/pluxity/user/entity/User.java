@@ -143,4 +143,14 @@ public class User extends BaseEntity {
     public void changeDepartment(String department) {
         this.department = department;
     }
+
+    public boolean canAccess(String resourceName, Long resourceId) {
+        if (userRoles.stream()
+                .anyMatch(userRole -> "SUPER_ADMIN".equalsIgnoreCase(userRole.getRole().getName()))) {
+            return true;
+        }
+
+        return userRoles.stream()
+                .anyMatch(userRole -> userRole.getRole().hasPermissionFor(resourceName, resourceId));
+    }
 }
