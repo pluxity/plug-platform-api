@@ -59,12 +59,20 @@ public class CommonApiConfig {
     public GroupedOpenApi facilityApiByPath() {
         return GroupedOpenApi.builder()
                 .group("5. 시설관리 API")
-                .pathsToMatch("/facilities/**", "/buildings/**", "/stations/**", "/panoramas/**")
+                .pathsToMatch("/facilities/**", "/facility-categories/**", "/buildings/**", "/stations/**", "/lines/**")
                 .build();
     }
 
     @Bean
     public GroupedOpenApi assetApiByPath() {
-        return GroupedOpenApi.builder().group("6. Asset 관리 API").pathsToMatch("/assets/**").build();
+        return GroupedOpenApi.builder()
+                .group("6. Asset 관리 API")
+                .pathsToMatch("/assets/**", "/asset-categories/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi featureApiByPath() {
+        return GroupedOpenApi.builder().group("7. Feature 관리 API").pathsToMatch("/features/**", "/label-3d/**").build();
     }
 }
