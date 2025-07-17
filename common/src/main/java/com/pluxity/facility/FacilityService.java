@@ -11,10 +11,11 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.FacilityMappingUtils;
+import com.pluxity.global.utils.MappingUtils;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -146,8 +147,8 @@ public class FacilityService {
 
         List<FacilityHistory> histories =
                 facilityHistoryRepository.findByFacilityIdOrderByCreatedAtDesc(facilityId);
-        List<Long> ids = histories.stream().map(FacilityHistory::getFileId).toList();
-        Map<Long, FileResponse> fileMap = FacilityMappingUtils.getFileMapByIds(ids, fileService);
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(histories, v -> Stream.of(v.getFileId()), fileService);
         return histories.stream()
                 .map(v -> FacilityHistoryResponse.from(v, fileMap.get(v.getFileId())))
                 .toList();

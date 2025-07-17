@@ -12,7 +12,7 @@ import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.FacilityMappingUtils;
+import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -105,6 +105,6 @@ public class BuildingService {
     @Transactional(readOnly = true)
     public List<FacilityResponse> findAllFacilities() {
         List<Building> buildings = repository.findAll(SortUtils.getOrderByCreatedAtDesc());
-        return FacilityMappingUtils.mapWithFiles(buildings, fileService);
+        return MappingUtils.mapWithFiles(buildings, fileService);
     }
 }

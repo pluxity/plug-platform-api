@@ -11,7 +11,7 @@ import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.FacilityMappingUtils;
+import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import com.pluxity.label3d.Label3DRepository;
 import com.pluxity.label3d.Label3DResponse;
@@ -219,6 +219,6 @@ public class StationService {
     @Transactional(readOnly = true)
     public List<FacilityResponse> findAllFacilities() {
         List<Station> stations = stationRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
-        return FacilityMappingUtils.mapWithFiles(stations, fileService);
+        return MappingUtils.mapWithFiles(stations, fileService);
     }
 }
