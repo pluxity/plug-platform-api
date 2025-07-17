@@ -3,7 +3,8 @@ package com.pluxity.facility;
 import com.pluxity.building.BuildingService;
 import com.pluxity.facility.dto.FacilityAllResponse;
 import com.pluxity.facility.dto.FacilityDrawingUpdateRequest;
-import com.pluxity.panorama.PanoramaService;
+import com.pluxity.facility.dto.FacilityPathSaveRequest;
+import com.pluxity.facility.dto.FacilityPathUpdateRequest;
 import com.pluxity.station.StationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 public class FacilityApiService {
 
     private final BuildingService buildingService;
-    private final PanoramaService panoramaService;
     private final StationService stationService;
     private final FacilityService facilityService;
 
@@ -26,5 +26,17 @@ public class FacilityApiService {
 
     public void updateDrawingFile(Long id, FacilityDrawingUpdateRequest request) {
         facilityService.updateDrawingFile(id, request.drawingFileId(), request.comment());
+    }
+
+    public void addPath(Long id, FacilityPathSaveRequest request) {
+        facilityService.savePath(id, request.name(), request.type(), request.path());
+    }
+
+    public void updatePath(Long id, Long pathId, FacilityPathUpdateRequest request) {
+        facilityService.updatePath(id, pathId, request.name(), request.type(), request.path());
+    }
+
+    public void deletePath(Long id, Long pathId) {
+        facilityService.deletePath(id, pathId);
     }
 }

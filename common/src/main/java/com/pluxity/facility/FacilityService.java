@@ -7,9 +7,9 @@ import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.dto.FacilityUpdateRequest;
 import com.pluxity.facility.history.FacilityHistory;
 import com.pluxity.facility.history.FacilityHistoryRepository;
+import com.pluxity.facility.path.FacilityPathService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
-import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import jakarta.validation.Valid;
@@ -31,6 +31,7 @@ public class FacilityService {
 
     private final String PREFIX = "facilities/";
     private final FacilityHistoryRepository facilityHistoryRepository;
+    private final FacilityPathService facilityPathService;
 
     @Transactional
     public Facility save(Facility facility, @Valid FacilityCreateRequest request) {
@@ -180,11 +181,7 @@ public class FacilityService {
 
     @Transactional
     public void updateDrawingFile(Long id, Long drawingFileId, String comment) {
-        Facility facility =
-                facilityRepository
-                        .findById(id)
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_FACILITY, id));
-
+        Facility facility = findById(id);
         String filePath = PREFIX + facility.getId() + "/";
         facility.updateDrawingFileId(fileService.finalizeUpload(drawingFileId, filePath));
         facilityHistoryRepository.save(
@@ -193,5 +190,22 @@ public class FacilityService {
                         .facilityId(facility.getId())
                         .comment(comment)
                         .build());
+    }
+
+    @Transactional
+    public void savePath(Long facilityId, String name, String type, String path) {
+        facilityPathService.save(findById(facilityId), name, type, path);
+    }
+
+    @Transactional
+    public void updatePath(Long facilityId, Long pathId, String name, String type, String path) {
+        findById(facilityId);
+        facilityPathService.update(pathId, name, type, path);
+    }
+
+    @Transactional
+    public void deletePath(Long facilityId, Long pathId) {
+        findById(facilityId);
+        facilityPathService.delete(pathId);
     }
 }

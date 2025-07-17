@@ -70,7 +70,9 @@ public enum ErrorCode implements Code {
     NOT_FOUND_FACILITY_PARENT_CATEGORY(NOT_FOUND, "ID가 %s인 facility의 상위 카테고리를 찾을 수 없습니다."),
     NOT_FOUND_FACILITY_CODE(NOT_FOUND, "코드가 %s인 시설을 찾을 수 없습니다."),
     NOT_FOUND_FACILITY(NOT_FOUND, "ID가 %s인 시설을 찾을 수 없습니다."),
+    NOT_FOUND_FACILITY_PATH(NOT_FOUND, "ID가 %s인 경로를 찾을 수 없습니다."),
     NOT_FOUND_LINE(NOT_FOUND, "ID가 %s인 노선을 찾을 수 없습니다."),
+    NOT_FOUND_PATH_TYPE(NOT_FOUND, "타입 %s를 찾을 수 없습니다."),
     ;
     private final HttpStatus httpStatus;
     private final String message;
