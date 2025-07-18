@@ -3,21 +3,26 @@ package com.pluxity.facility.category;
 import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CATEGORY;
 import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_PARENT_CATEGORY;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pluxity.facility.Facility;
 import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
 import com.pluxity.facility.category.dto.FacilityCategoryResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
+import com.pluxity.user.entity.ResourceType;
+import com.pluxity.user.service.AclService;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FacilityCategoryService {
     private final FacilityCategoryRepository repository;
     private final FileService fileService;
+    private final AclService aclService;
 
     @Transactional
     public FacilityCategoryResponse create(FacilityCategoryCreateRequest request) {
@@ -121,5 +127,49 @@ public class FacilityCategoryService {
         }
 
         repository.delete(facility);
+    }
+
+    @Transactional(readOnly = true)
+    @CheckPermissionCategory(categoryResourceType = ResourceType.FACILITY_CATEGORY)
+    public List<FacilityCategory> findAllTest() {
+        List<FacilityCategory> all = repository.findAll();
+        return all;
+    }
+
+    @Transactional(readOnly = true)
+    @CheckPermissionCategory(categoryResourceType = ResourceType.FACILITY_CATEGORY)
+    public FacilityCategory findByTest(Long id) {
+        return repository
+                .findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_RESOURCE));
+    }
+
+    @Getter
+    @Builder(access = AccessLevel.PRIVATE)
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) // 자식 노드가 없을 때 "children": [] 생략
+    public static class FacilityResponse {
+        private Long id;
+        private String name;
+        private String code;
+        private String categoryName;
+
+        public static FacilityResponse from(Facility facility) {
+            return FacilityResponse.builder()
+                    .id(facility.getId())
+                    .name(facility.getName())
+                    .code(facility.getCode())
+                    .categoryName(facility.getCategory() != null ? facility.getCategory().getName() : null)
+                    .build();
+        }
+    }
+
+    public List<FacilityResponse> getFacilityWithGrouping() {
+        List<FacilityCategory> facilityCategories = aclService.facilityCategories();
+
+        return facilityCategories.stream()
+                .flatMap(category -> category.getFacilities().stream())
+                .map(FacilityResponse::from)
+                .collect(Collectors.toList());
     }
 }

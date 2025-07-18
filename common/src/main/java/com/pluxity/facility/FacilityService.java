@@ -9,10 +9,11 @@ import com.pluxity.facility.history.FacilityHistoryService;
 import com.pluxity.facility.path.FacilityPathService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
-import com.pluxity.global.annotation.CheckPermission;
 import com.pluxity.global.annotation.CheckPermissionAfter;
 import com.pluxity.global.annotation.CheckPermissionAll;
+import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.user.entity.ResourceType;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +68,7 @@ public class FacilityService {
         }
     }
 
-    @CheckPermission(resourceName = "Facility", resourceId = "#id")
+    @CheckPermissionCategory(categoryResourceType = ResourceType.FACILITY_CATEGORY)
     @Transactional(readOnly = true)
     public Facility findById(Long id) {
         return facilityRepository

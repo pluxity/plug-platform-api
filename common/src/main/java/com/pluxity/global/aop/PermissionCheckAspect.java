@@ -14,11 +14,14 @@ import com.pluxity.user.entity.User;
 import com.pluxity.user.service.UserService;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -32,6 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Profile("!local")
+@Slf4j
 public class PermissionCheckAspect {
 
     private final UserService userService;
@@ -117,60 +121,91 @@ public class PermissionCheckAspect {
         }
     }
 
-    @AfterReturning(pointcut = "@annotation(check)", returning = "returnObject")
-    //    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
-    public void checkOrFilterByCategory(CheckPermissionCategory check, Object returnObject) {
-        // 1. 공통 로직: 반환값이 없거나, ADMIN이면 검사하지 않음
+    @Around("@annotation(checkPermissionCategory)")
+    public Object checkOrFilterByCategory(
+            ProceedingJoinPoint pjp, CheckPermissionCategory checkPermissionCategory) throws Throwable {
+        Object returnObject = pjp.proceed();
+
         if (returnObject == null) {
-            return;
+            return null;
         }
+
         AuthInfo authInfo = CheckAuth();
         if (authInfo == null) {
-            return; // ADMIN 통과
+            log.debug("ADMIN user detected. Skipping permission check and returning original object.");
+            return returnObject; // ADMIN 통과
         }
 
-        ResourceType categoryResourceType = check.categoryResourceType();
+        ResourceType categoryResourceType = checkPermissionCategory.categoryResourceType();
 
-        // 2. 반환값의 타입에 따라 로직 분기
         if (returnObject instanceof Collection<?> collection) {
             // === 목록 필터링 로직 ===
-            Iterator<?> iterator = collection.iterator();
-            while (iterator.hasNext()) {
-                Object item = iterator.next();
-                if (!hasCategoryPermission(item, categoryResourceType, authInfo.user())) {
-                    iterator.remove();
-                }
-            }
+
+            // 필터링하여 새로운 리스트를 생성합니다. (원본을 수정하지 않음)
+            List<?> filteredList =
+                    collection.stream()
+                            .filter(
+                                    item -> hasDirectCategoryPermission(item, categoryResourceType, authInfo.user()))
+                            .collect(Collectors.toList());
+
+            log.debug(
+                    "Finished filtering. Original size: {}, Filtered size: {}. Returning filtered list.",
+                    collection.size(),
+                    filteredList.size());
+
+            // 4. 필터링된 '새로운' 리스트를 최종 반환값으로 리턴합니다.
+            return filteredList;
+
         } else {
             // === 단일 객체 검사 로직 ===
-            if (!hasCategoryPermission(returnObject, categoryResourceType, authInfo.user())) {
+            if (!hasDirectCategoryPermission(returnObject, categoryResourceType, authInfo.user())) {
                 throw new CustomException(
-                        PERMISSION_DENIED, "Access denied based on the resource's category permission.");
+                        PERMISSION_DENIED,
+                        "Access denied. User lacks direct permission for the resource's category.");
             }
+
+            // 권한이 있으면 원본 객체를 그대로 반환
+            return returnObject;
         }
     }
 
-    /** [헬퍼 메서드] 주어진 객체(item)의 카테고리 권한이 있는지 확인합니다. */
-    private boolean hasCategoryPermission(Object item, ResourceType categoryResourceType, User user) {
+    private boolean hasDirectCategoryPermission(
+            Object item, ResourceType categoryResourceType, User user) {
         try {
-            // 리플렉션으로 getCategory() 메서드 호출
-            Method getCategoryMethod = item.getClass().getMethod("getCategory");
-            Object category = getCategoryMethod.invoke(item);
+            Object category;
+            // item이 리소스(Device 등)인지, 카테고리 자체인지 확인
+            if (item.getClass().getSimpleName().endsWith("Category")) {
+                category = item;
+            } else {
+                category = item.getClass().getMethod("getCategory").invoke(item);
+            }
 
             if (category == null) {
                 return false; // 카테고리가 없으면 접근 불가
             }
 
-            // 리플렉션으로 category.getId() 메서드 호출
-            Method getIdMethod = category.getClass().getMethod("getId");
-            Long categoryId = (Long) getIdMethod.invoke(category);
+            Long categoryId = (Long) category.getClass().getMethod("getId").invoke(category);
 
-            // 최종 권한 검사
-            return user.canAccess(categoryResourceType.name(), categoryId);
+            boolean hasAccess = user.canAccess(categoryResourceType.getResourceName(), categoryId);
+
+            return hasAccess;
 
         } catch (Exception e) {
-            // 리플렉션 실패 등 예외 발생 시 안전하게 접근 거부로 처리
+            log.error(
+                    "Error during direct category permission check for item: {}", getNodeIdentifier(item), e);
             return false;
+        }
+    }
+
+    // 로그용 헬퍼 메서드
+    private String getNodeIdentifier(Object node) {
+        if (node == null) return "null";
+        try {
+            Long id = (Long) node.getClass().getMethod("getId").invoke(node);
+            String name = (String) node.getClass().getMethod("getName").invoke(node);
+            return String.format("%s(id=%d, name=%s)", node.getClass().getSimpleName(), id, name);
+        } catch (Exception e) {
+            return node.toString();
         }
     }
 
