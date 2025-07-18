@@ -20,14 +20,17 @@ public class Role extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserRole> userRoles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+    private Set<ResourcePermission> permissions = new HashSet<>();
+
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @Column(name = "description", length = 100)
     private String description;
-
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserRole> userRoles = new ArrayList<>();
 
     @Builder
     public Role(String name, String description) {
@@ -45,5 +48,10 @@ public class Role extends BaseEntity {
 
     public void changeDescription(String description) {
         this.description = description;
+    }
+
+    public boolean hasPermissionFor(String resourceName, Long resourceId) {
+        return permissions.stream()
+                .anyMatch(permission -> permission.matches(resourceName, resourceId));
     }
 }

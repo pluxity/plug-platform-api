@@ -41,11 +41,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponse findByUsername(String username) {
-        return UserResponse.from(
-                userRepository
-                        .findByUsername(username)
-                        .orElseThrow(
-                                () -> new EntityNotFoundException("User not found with username: " + username)));
+        return UserResponse.from(findUserByUsername(username));
     }
 
     @Transactional(readOnly = true)
@@ -109,6 +105,13 @@ public class UserService {
         return roleRepository
                 .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id));
+    }
+
+    public User findUserByUsername(String username) {
+        return userRepository
+                .findByUsername(username)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("User not found with username: " + username));
     }
 
     @Transactional

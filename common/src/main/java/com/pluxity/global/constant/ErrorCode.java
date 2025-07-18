@@ -27,10 +27,11 @@ public enum ErrorCode implements Code {
     FAILED_TO_PROCESS_SBM_FILE(BAD_REQUEST, "SBM 파일 처리에 실패했습니다."),
 
     NOT_FOUND_USER(BAD_REQUEST, "해당 회원이 존재하지 않습니다."),
-
     NOT_AUTHORIZED(UNAUTHORIZED, "권한이 없습니다."),
-
     PERMISSION_DENIED(FORBIDDEN, "접근 권한이 없습니다."),
+    USER_CANNOT_ACCESS(UNAUTHORIZED, "사용자 '%s'는 ID가 %d인 %s에 접근할 권한이 없습니다."),
+    NOT_FOUND_RESOURCE_ID(BAD_REQUEST, "요청한 리소스 ID가 존재하지 않습니다."),
+    INVALID_RESOURCE_TYPE(BAD_REQUEST, "%s는 유효하지 않은 타입입니다."),
 
     CATEGORY_HAS_DEVICES(BAD_REQUEST, "카테고리에 등록된 디바이스가 있어 삭제할 수 없습니다."),
 
@@ -73,6 +74,9 @@ public enum ErrorCode implements Code {
     NOT_FOUND_FACILITY_PATH(NOT_FOUND, "ID가 %s인 경로를 찾을 수 없습니다."),
     NOT_FOUND_LINE(NOT_FOUND, "ID가 %s인 노선을 찾을 수 없습니다."),
     NOT_FOUND_PATH_TYPE(NOT_FOUND, "타입 %s를 찾을 수 없습니다."),
+    NOT_FOUND_ROLE(NOT_FOUND, "ID가 %s인 Role을 찾을 수 없습니다."),
+    NOT_FOUND_RESOURCE(NOT_FOUND, "ID가 %s인 %s 리소스를 찾을 수 없습니다."),
+    INVALID_RESOURCE_IDS_INCLUDED(BAD_REQUEST, "요청한 리소스 ID %s 는 유효하지 않습니다."),
     ;
     private final HttpStatus httpStatus;
     private final String message;

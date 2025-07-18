@@ -18,4 +18,6 @@ public interface FacilityRepository extends JpaRepository<Facility, Long> {
     boolean existsByCode(String code);
 
     Optional<Facility> findByCode(String code);
+
+    long countByIdIn(List<Long> ids);
 }
