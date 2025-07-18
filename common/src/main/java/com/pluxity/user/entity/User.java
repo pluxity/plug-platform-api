@@ -146,7 +146,7 @@ public class User extends BaseEntity {
 
     public boolean canAccess(String resourceName, Long resourceId) {
         if (userRoles.stream()
-                .anyMatch(userRole -> "SUPER_ADMIN".equalsIgnoreCase(userRole.getRole().getName()))) {
+                .anyMatch(userRole -> "ADMIN".equalsIgnoreCase(userRole.getRole().getName()))) {
             return true;
         }
 

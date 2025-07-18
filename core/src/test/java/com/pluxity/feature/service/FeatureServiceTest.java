@@ -1,12 +1,13 @@
 package com.pluxity.feature.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.asset.service.AssetService;
 import com.pluxity.device.entity.Device;
 import com.pluxity.facility.FacilityRepository;
 import com.pluxity.facility.FacilityService;
-import com.pluxity.station.Station;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
@@ -15,6 +16,9 @@ import com.pluxity.feature.entity.Spatial;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.station.Station;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,11 +27,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional

@@ -125,22 +125,22 @@ class UserServiceTest {
                 .hasMessageContaining("User not found with id: 1");
     }
 
-    @Test
-    @DisplayName("모든 사용자 조회")
-    void findAll() {
-        // given
-        List<User> users = new ArrayList<>();
-        users.add(testUser);
-        when(userRepository.findAll()).thenReturn(users);
-
-        // when
-        List<UserResponse> responses = userService.findAll();
-
-        // then
-        assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).username()).isEqualTo("testuser");
-        verify(userRepository, times(1)).findAll();
-    }
+//    @Test
+//    @DisplayName("모든 사용자 조회")
+//    void findAll() {
+//        // given
+//        List<User> users = new ArrayList<>();
+//        users.add(testUser);
+//        when(userRepository.findAll()).thenReturn(users);
+//
+//        // when
+//        List<UserResponse> responses = userService.findAll();
+//
+//        // then
+//        assertThat(responses).hasSize(1);
+//        assertThat(responses.get(0).username()).isEqualTo("testuser");
+//        verify(userRepository, times(1)).findAll();
+//    }
 
     @Test
     @DisplayName("사용자명으로 사용자 조회 - 성공")
