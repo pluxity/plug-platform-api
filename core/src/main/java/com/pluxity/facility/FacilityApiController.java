@@ -71,7 +71,7 @@ public class FacilityApiController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping("/drawing/{facilityId}")
+    @PatchMapping("/{facilityId}/drawing")
     public ResponseEntity<Void> patch(
             @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
             @Parameter(description = "도면 수정 정보", required = true) @Valid @RequestBody

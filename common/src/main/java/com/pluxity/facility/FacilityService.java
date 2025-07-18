@@ -13,7 +13,6 @@ import com.pluxity.file.service.FileService;
 import com.pluxity.global.annotation.CheckPermission;
 import com.pluxity.global.annotation.CheckPermissionAfter;
 import com.pluxity.global.annotation.CheckPermissionAll;
-import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import jakarta.validation.Valid;

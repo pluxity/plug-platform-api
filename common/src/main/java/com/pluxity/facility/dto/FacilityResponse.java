@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.Facility;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.global.response.BaseResponse;
+import java.util.List;
 import lombok.Builder;
 
 @Builder
@@ -14,6 +15,7 @@ public record FacilityResponse(
         String description,
         FileResponse drawing,
         FileResponse thumbnail,
+        List<FacilityPathResponse> paths,
         @JsonUnwrapped BaseResponse baseResponse) {
     public static FacilityResponse from(
             Facility facility, FileResponse drawing, FileResponse thumbnail) {
@@ -24,6 +26,7 @@ public record FacilityResponse(
                 facility.getDescription(),
                 drawing != null ? drawing : FileResponse.empty(),
                 thumbnail != null ? thumbnail : FileResponse.empty(),
+                facility.getPaths().stream().map(FacilityPathResponse::from).toList(),
                 BaseResponse.of(facility));
     }
 }

@@ -1,6 +1,7 @@
 package com.pluxity.facility;
 
 import com.pluxity.facility.category.FacilityCategory;
+import com.pluxity.facility.path.FacilityPath;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
@@ -51,6 +52,9 @@ public abstract class Facility extends BaseEntity {
 
     @OneToMany(mappedBy = "facility")
     private final List<Feature> features = new ArrayList<>();
+
+    @OneToMany(mappedBy = "facility")
+    private final List<FacilityPath> paths = new ArrayList<>();
 
     protected Facility(String name, String description) {
         this(name, null, description, null);
