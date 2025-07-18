@@ -5,8 +5,7 @@ import static com.pluxity.global.constant.ErrorCode.*;
 import com.pluxity.facility.dto.FacilityCreateRequest;
 import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.dto.FacilityUpdateRequest;
-import com.pluxity.facility.history.FacilityHistory;
-import com.pluxity.facility.history.FacilityHistoryRepository;
+import com.pluxity.facility.history.FacilityHistoryService;
 import com.pluxity.facility.path.FacilityPathService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
@@ -14,11 +13,8 @@ import com.pluxity.global.annotation.CheckPermission;
 import com.pluxity.global.annotation.CheckPermissionAfter;
 import com.pluxity.global.annotation.CheckPermissionAll;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.MappingUtils;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +29,7 @@ public class FacilityService {
     private final FileService fileService;
 
     private final String PREFIX = "facilities/";
-    private final FacilityHistoryRepository facilityHistoryRepository;
+    private final FacilityHistoryService facilityHistoryService;
     private final FacilityPathService facilityPathService;
 
     @Transactional
@@ -50,12 +46,7 @@ public class FacilityService {
             String filePath = PREFIX + savedFacility.getId() + "/";
             if (request.drawingFileId() != null) {
                 facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
-                facilityHistoryRepository.save(
-                        FacilityHistory.builder()
-                                .fileId(request.drawingFileId())
-                                .facilityId(facility.getId())
-                                .comment("최초등록")
-                                .build());
+                facilityHistoryService.save(request.drawingFileId(), facility.getId(), "최초등록");
             }
 
             if (request.thumbnailFileId() != null) {
@@ -151,14 +142,7 @@ public class FacilityService {
         facilityRepository
                 .findById(facilityId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY, facilityId));
-
-        List<FacilityHistory> histories =
-                facilityHistoryRepository.findByFacilityIdOrderByCreatedAtDesc(facilityId);
-        Map<Long, FileResponse> fileMap =
-                MappingUtils.getFileMapByIds(histories, v -> Stream.of(v.getFileId()), fileService);
-        return histories.stream()
-                .map(v -> FacilityHistoryResponse.from(v, fileMap.get(v.getFileId())))
-                .toList();
+        return facilityHistoryService.findByFacilityId(facilityId);
     }
 
     public FileResponse getDrawingFileResponse(Facility facility) {
@@ -190,12 +174,7 @@ public class FacilityService {
         Facility facility = findById(id);
         String filePath = PREFIX + facility.getId() + "/";
         facility.updateDrawingFileId(fileService.finalizeUpload(drawingFileId, filePath));
-        facilityHistoryRepository.save(
-                FacilityHistory.builder()
-                        .fileId(drawingFileId)
-                        .facilityId(facility.getId())
-                        .comment(comment)
-                        .build());
+        facilityHistoryService.save(drawingFileId, facility.getId(), comment);
     }
 
     @Transactional
