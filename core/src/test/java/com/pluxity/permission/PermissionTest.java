@@ -29,10 +29,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
+@ActiveProfiles("test")
 public class PermissionTest {
 
     @Autowired private PermissionService permissionService;
@@ -54,7 +56,7 @@ public class PermissionTest {
     @BeforeEach
     void setUp() {
         // 1. 역할 생성
-        Role adminRole = roleRepository.save(Role.builder().name("SUPER_ADMIN").build());
+        Role adminRole = roleRepository.save(Role.builder().name("ADMIN").build());
         editorRole = roleRepository.save(Role.builder().name("EDITOR").build());
 
         // 2. 사용자 생성 및 역할 부여

@@ -20,6 +20,7 @@ import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 @RequiredArgsConstructor
+@Profile("!local")
 public class PermissionCheckAspect {
 
     private final UserService userService;
@@ -35,14 +37,8 @@ public class PermissionCheckAspect {
 
     @Before("@annotation(checkPermission)")
     public void check(JoinPoint joinPoint, CheckPermission checkPermission) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new CustomException(PERMISSION_DENIED);
-        }
-
-        User user = getCurrentUser();
+        AuthInfo result = CheckAuth();
+        if (result == null) return;
 
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Long resourceId =
@@ -58,27 +54,18 @@ public class PermissionCheckAspect {
             throw new CustomException(NOT_FOUND_RESOURCE_ID);
         }
 
-        if (!user.canAccess(resourceName, resourceId)) {
+        if (!result.user().canAccess(resourceName, resourceId)) {
             throw new CustomException(
-                    PERMISSION_DENIED, authentication.getName(), resourceId, resourceName);
+                    PERMISSION_DENIED, result.authentication().getName(), resourceId, resourceName);
         }
     }
 
     @AfterReturning(pointcut = "@annotation(checkPermissionAfter)", returning = "returnObject")
     public void checkAfter(
             JoinPoint joinPoint, CheckPermissionAfter checkPermissionAfter, Object returnObject) {
-        if (returnObject == null) {
-            return;
-        }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new CustomException(PERMISSION_DENIED);
-        }
-
-        User user = getCurrentUser();
+        AuthInfo result = CheckAuth();
+        if (result == null) return;
 
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 
@@ -91,9 +78,9 @@ public class PermissionCheckAspect {
 
         String resourceName = checkPermissionAfter.resourceName();
 
-        if (!user.canAccess(resourceName, resourceId)) {
+        if (!result.user.canAccess(resourceName, resourceId)) {
             throw new CustomException(
-                    PERMISSION_DENIED, authentication.getName(), resourceId, resourceName);
+                    PERMISSION_DENIED, result.authentication.getName(), resourceId, resourceName);
         }
     }
 
@@ -105,7 +92,7 @@ public class PermissionCheckAspect {
         }
 
         User user = getCurrentUser();
-        if (user.getRoles().stream().anyMatch(role -> role.getName().equals("SUPER_ADMIN"))) {
+        if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
             return;
         }
 
@@ -117,7 +104,6 @@ public class PermissionCheckAspect {
             Long itemId = getItemId(item);
 
             if (itemId == null) {
-                iterator.remove();
                 continue;
             }
             if (!user.canAccess(resourceName, itemId)) {
@@ -140,8 +126,33 @@ public class PermissionCheckAspect {
                 return (Long) idObj;
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            return null;
+            try {
+                Method idMethod = item.getClass().getMethod("id");
+                Object idObj = idMethod.invoke(item);
+                if (idObj instanceof Long) {
+                    return (Long) idObj;
+                }
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+                return null;
+            }
         }
         return null;
     }
+
+    private AuthInfo CheckAuth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new CustomException(PERMISSION_DENIED);
+        }
+
+        User user = getCurrentUser();
+        if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
+            return null;
+        }
+        return new AuthInfo(authentication, user);
+    }
+
+    private record AuthInfo(Authentication authentication, User user) {}
 }

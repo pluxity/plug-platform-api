@@ -1,25 +1,108 @@
 spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 1000
+  application:
+    name: core
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: pluxity
+    password: pluxity0304
+    driver-class-name: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
     hibernate:
-      ddl-auto: create-drop
-    show-sql: true
+      ddl-auto: update
     properties:
       hibernate:
+        default_batch_fetch_size: 100
         format_sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    open-in-view: false
+
+  flyway:
+    enabled: false
+  servlet:
+    multipart:
+          max-file-size: 100MB
+          max-request-size: 100MB
+
+file:
+  storage-strategy: s3
+  local:
+    path: C:/Dev/Upload/
+  s3:
+    #    endpoint-url: http://127.0.0.1:9000
+    endpoint-url: ${S3_ENDPOINT_URL:http://192.168.4.8:9000}
+    public-url: ${S3_PUBLIC_URL:http://192.168.4.8:9000}
+    bucket: plug-platform
+    region: ap-northeast-2
+    access-key: pluxity
+    secret-key: pluxity0304
+    pre-signed-url-expiration: 600
+
+logging:
+  level:
+    com: DEBUG
+
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+#  address: ${SERVER_ADDRESS:0.0.0.0}
+
+domain:
+  name: pluxity.com
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus"
+
 jwt:
   access-token:
-    expiration: 3600
+    name: AccessToken
+    secret: +iBcUJRWGvl+94+ow4nXV1fzWIq4rph8x7MyRmrtWio=
+    expiration: 36000000
   refresh-token:
-    expiration: 604800
+    name: RefreshToken
+    secret: gtzRlqF6bIkmOi5i15A9G5xbLdwiAMmZi6JPOeemC1E=
+    expiration: 864000000
 
-#C:\task\plug-platform-api\core\src\test\resources\application-test.yml
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  show-actuator: true
+  packages-to-scan: com.pluxity
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+logbook:
+  obfuscate: # 민감 정보 마스킹 가능
+    headers:
+      - Cookie
+      - Set-Cookie
+    json-body-fields:
+      - password
+  predicate:
+    exclude:
+      - path: /actuator/**
+      - path: /swagger-ui/**
+      - path: /api-docs/**
+      - path: /.well-known/**
+
+tcp:
+  server1: 101.254.21.100
+  server2: 101.254.21.100
+  server3: 101.254.21.100
+  server4: 101.254.21.100
+  port1: 4001
+  port2: 4002
+  port3: 4003
+  port4: 4004
