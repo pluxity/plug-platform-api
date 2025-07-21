@@ -73,6 +73,7 @@ public class StationService {
         Map<Long, FileResponse> fileMap =
                 MappingUtils.getFileMapByIds(
                         stations, v -> Stream.of(v.getDrawingFileId(), v.getThumbnailFileId()), fileService);
+        Map<Facility, List<FloorResponse>> floorMap = floorService.findAllByFacilities(stations);
         return stations.stream()
                 .map(
                         station -> {
@@ -81,15 +82,13 @@ public class StationService {
                                             .map(stationLine -> stationLine.getLine().getId())
                                             .collect(Collectors.toList());
 
-                            List<FloorResponse> floorResponse = floorService.findAllByFacility(station);
-
                             return StationResponse.builder()
                                     .facility(
                                             FacilityResponse.from(
                                                     station,
                                                     fileMap.get(station.getDrawingFileId()),
                                                     fileMap.get(station.getThumbnailFileId())))
-                                    .floors(floorResponse)
+                                    .floors(floorMap.get(station))
                                     .lineIds(lineIds)
                                     .stationCodes(stationCodeService.findCodesByStationId(station.getId()))
                                     .build();

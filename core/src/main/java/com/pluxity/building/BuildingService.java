@@ -52,7 +52,7 @@ public class BuildingService {
         Map<Long, FileResponse> fileMap =
                 MappingUtils.getFileMapByIds(
                         buildings, v -> Stream.of(v.getDrawingFileId(), v.getThumbnailFileId()), fileService);
-
+        Map<Facility, List<FloorResponse>> floorMap = floorService.findAllByFacilities(buildings);
         return buildings.stream()
                 .map(
                         building ->
@@ -62,7 +62,7 @@ public class BuildingService {
                                                         building,
                                                         fileMap.get(building.getDrawingFileId()),
                                                         fileMap.get(building.getThumbnailFileId())))
-                                        .floors(floorService.findAllByFacility(building))
+                                        .floors(floorMap.get(building))
                                         .build())
                 .toList();
     }
