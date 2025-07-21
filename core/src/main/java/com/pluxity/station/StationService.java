@@ -7,6 +7,7 @@ import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.feature.dto.FeatureResponse;
+import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
@@ -19,7 +20,9 @@ import com.pluxity.station.dto.StationResponse;
 import com.pluxity.station.dto.StationResponseWithFeature;
 import com.pluxity.station.dto.StationUpdateRequest;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +69,11 @@ public class StationService {
 
     @Transactional(readOnly = true)
     public List<StationResponse> findAll() {
-        return stationRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
+        List<Station> stations = stationRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(
+                        stations, v -> Stream.of(v.getDrawingFileId(), v.getThumbnailFileId()), fileService);
+        return stations.stream()
                 .map(
                         station -> {
                             List<Long> lineIds =
@@ -80,8 +87,8 @@ public class StationService {
                                     .facility(
                                             FacilityResponse.from(
                                                     station,
-                                                    fileService.getFileResponse(station.getDrawingFileId()),
-                                                    fileService.getFileResponse(station.getThumbnailFileId())))
+                                                    fileMap.get(station.getDrawingFileId()),
+                                                    fileMap.get(station.getThumbnailFileId())))
                                     .floors(floorResponse)
                                     .lineIds(lineIds)
                                     .stationCodes(stationCodeService.findCodesByStationId(station.getId()))

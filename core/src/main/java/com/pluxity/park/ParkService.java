@@ -3,14 +3,18 @@ package com.pluxity.park;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.facility.dto.FacilityResponse;
+import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import com.pluxity.park.dto.ParkCreateRequest;
 import com.pluxity.park.dto.ParkResponse;
 import com.pluxity.park.dto.ParkUpdateRequest;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +48,9 @@ public class ParkService {
     @Transactional(readOnly = true)
     public List<ParkResponse> findAll() {
         List<Park> parks = parkRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(
+                        parks, v -> Stream.of(v.getDrawingFileId(), v.getThumbnailFileId()), fileService);
 
         return parks.stream()
                 .map(
@@ -52,8 +59,8 @@ public class ParkService {
                                         .facility(
                                                 FacilityResponse.from(
                                                         park,
-                                                        fileService.getFileResponse(park.getDrawingFileId()),
-                                                        fileService.getFileResponse(park.getThumbnailFileId())))
+                                                        fileMap.get(park.getDrawingFileId()),
+                                                        fileMap.get(park.getThumbnailFileId())))
                                         .boundary(park.getBoundary())
                                         .build())
                 .toList();
