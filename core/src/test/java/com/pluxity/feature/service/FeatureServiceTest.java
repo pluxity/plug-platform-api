@@ -63,7 +63,6 @@ class FeatureServiceTest {
         Station station = Station.builder()
                 .name("Test Station")
                 .description("Test Description")
-                .route("{\"name\": \"Test Route\"}")
                 .build();
         
         return facilityRepository.save(station);

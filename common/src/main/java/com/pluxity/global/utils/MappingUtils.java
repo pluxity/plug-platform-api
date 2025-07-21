@@ -49,8 +49,10 @@ public class MappingUtils {
             if (parentId == null) { // 루트 노드인 경우
                 roots.add(item);
             } else {
-                T parent = map.get(parentId);
-                childrenGetter.apply(parent).add(item);
+                if (map.containsKey(parentId)) {
+                    T parent = map.get(parentId);
+                    childrenGetter.apply(parent).add(item);
+                }
             }
         }
         return roots;

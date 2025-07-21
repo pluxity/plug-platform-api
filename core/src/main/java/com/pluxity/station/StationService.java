@@ -7,7 +7,7 @@ import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.feature.dto.FeatureResponse;
-import com.pluxity.feature.entity.Feature;
+import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
@@ -20,7 +20,9 @@ import com.pluxity.station.dto.StationResponse;
 import com.pluxity.station.dto.StationResponseWithFeature;
 import com.pluxity.station.dto.StationUpdateRequest;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,7 @@ public class StationService {
     private final StationRepository stationRepository;
     private final LineService lineService;
     private final Label3DRepository label3DRepository;
+    private final StationCodeService stationCodeService;
 
     @Transactional
     public Long save(StationCreateRequest request) {
@@ -55,13 +58,23 @@ public class StationService {
                 station.addLine(line);
             }
         }
+        if (request.stationCodes() != null && !request.stationCodes().isEmpty()) {
+            for (String stationCode : request.stationCodes()) {
+                stationCodeService.save(station.getId(), stationCode);
+            }
+        }
 
         return saved.getId();
     }
 
     @Transactional(readOnly = true)
     public List<StationResponse> findAll() {
-        return stationRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
+        List<Station> stations = stationRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(
+                        stations, v -> Stream.of(v.getDrawingFileId(), v.getThumbnailFileId()), fileService);
+        Map<Facility, List<FloorResponse>> floorMap = floorService.findAllByFacilities(stations);
+        return stations.stream()
                 .map(
                         station -> {
                             List<Long> lineIds =
@@ -69,20 +82,15 @@ public class StationService {
                                             .map(stationLine -> stationLine.getLine().getId())
                                             .collect(Collectors.toList());
 
-                            List<FloorResponse> floorResponse = floorService.findAllByFacility(station);
-                            List<String> featureIds = station.getFeatures().stream().map(Feature::getId).toList();
-
                             return StationResponse.builder()
                                     .facility(
                                             FacilityResponse.from(
                                                     station,
-                                                    fileService.getFileResponse(station.getDrawingFileId()),
-                                                    fileService.getFileResponse(station.getThumbnailFileId())))
-                                    .floors(floorResponse)
+                                                    fileMap.get(station.getDrawingFileId()),
+                                                    fileMap.get(station.getThumbnailFileId())))
+                                    .floors(floorMap.get(station))
                                     .lineIds(lineIds)
-                                    .featureIds(featureIds)
-                                    .route(station.getRoute())
-                                    .subway(station.getSubway())
+                                    .stationCodes(stationCodeService.findCodesByStationId(station.getId()))
                                     .build();
                         })
                 .toList();
@@ -92,7 +100,6 @@ public class StationService {
     public StationResponse findById(Long id) {
         Station station = (Station) facilityService.findById(id);
         List<FloorResponse> floorResponse = floorService.findAllByFacility(station);
-        List<String> featureIds = station.getFeatures().stream().map(Feature::getId).toList();
 
         List<Long> lineIds =
                 station.getStationLines().stream()
@@ -107,9 +114,7 @@ public class StationService {
                                 fileService.getFileResponse(station.getThumbnailFileId())))
                 .floors(floorResponse)
                 .lineIds(lineIds)
-                .featureIds(featureIds)
-                .route(station.getRoute())
-                .subway(station.getSubway())
+                .stationCodes(stationCodeService.findCodesByStationId(station.getId()))
                 .build();
     }
 
@@ -140,6 +145,12 @@ public class StationService {
                 station.addLine(line);
             }
         }
+        if (request.stationCodes() != null) {
+            stationCodeService.deleteByStationId(station.getId());
+            for (String code : request.stationCodes()) {
+                stationCodeService.save(station.getId(), code);
+            }
+        }
     }
 
     @Transactional
@@ -150,6 +161,7 @@ public class StationService {
         // Floor 삭제 및 Facility 삭제
         floorService.delete(station);
         facilityService.deleteFacility(id);
+        stationCodeService.deleteByStationId(station.getId());
     }
 
     @Transactional
@@ -205,14 +217,15 @@ public class StationService {
                         .map(Label3DResponse::from)
                         .collect(Collectors.toList());
 
+        List<String> stationCodes = stationCodeService.findCodesByStationId(id);
+
         return StationResponseWithFeature.builder()
                 .facility(facilityResponse)
                 .floors(floorResponse)
                 .lineIds(lineIds)
                 .features(features)
                 .label3Ds(label3Ds)
-                .route(station.getRoute())
-                .subway(station.getSubway())
+                .stationCodes(stationCodes)
                 .build();
     }
 

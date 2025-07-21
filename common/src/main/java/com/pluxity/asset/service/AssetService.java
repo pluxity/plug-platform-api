@@ -16,10 +16,14 @@ import com.pluxity.file.entity.FileEntity;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -65,10 +69,12 @@ public class AssetService {
     @Transactional(readOnly = true)
     public List<AssetResponse> getAssets() {
         List<Asset> assets = assetRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(assets, v -> Stream.of(v.getThumbnailFileId(), v.getFileId()), fileService);
         return assets.stream()
                 .map(
                         asset ->
-                                AssetResponse.from(asset, getFileResponse(asset), getThumbnailFileResponse(asset)))
+                                AssetResponse.from(asset, fileMap.get(asset.getFileId()), fileMap.get(asset.getThumbnailFileId())))
                 .toList();
     }
 
@@ -76,10 +82,12 @@ public class AssetService {
     public List<AssetResponse> getAssetsByCategory(Long categoryId) {
         AssetCategory category = assetCategoryService.findById(categoryId);
         List<Asset> assets = assetRepository.findByCategory(category);
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(assets, v -> Stream.of(v.getThumbnailFileId(), v.getFileId()), fileService);
         return assets.stream()
                 .map(
                         asset ->
-                                AssetResponse.from(asset, getFileResponse(asset), getThumbnailFileResponse(asset)))
+                                AssetResponse.from(asset, fileMap.get(asset.getFileId()), fileMap.get(asset.getThumbnailFileId())))
                 .toList();
     }
 

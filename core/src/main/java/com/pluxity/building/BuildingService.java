@@ -9,12 +9,15 @@ import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.strategy.FloorService;
+import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +49,10 @@ public class BuildingService {
     @Transactional(readOnly = true)
     public List<BuildingResponse> findAll() {
         List<Building> buildings = repository.findAll(SortUtils.getOrderByCreatedAtDesc());
-
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(
+                        buildings, v -> Stream.of(v.getDrawingFileId(), v.getThumbnailFileId()), fileService);
+        Map<Facility, List<FloorResponse>> floorMap = floorService.findAllByFacilities(buildings);
         return buildings.stream()
                 .map(
                         building ->
@@ -54,9 +60,9 @@ public class BuildingService {
                                         .facility(
                                                 FacilityResponse.from(
                                                         building,
-                                                        fileService.getFileResponse(building.getDrawingFileId()),
-                                                        fileService.getFileResponse(building.getThumbnailFileId())))
-                                        .floors(floorService.findAllByFacility(building))
+                                                        fileMap.get(building.getDrawingFileId()),
+                                                        fileMap.get(building.getThumbnailFileId())))
+                                        .floors(floorMap.get(building))
                                         .build())
                 .toList();
     }

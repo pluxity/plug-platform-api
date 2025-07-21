@@ -45,12 +45,15 @@ public class FloorService {
     }
 
     @Transactional(readOnly = true)
-    public <T extends Facility> Map<Facility, List<Floor>> findAllByFacilities(List<T> facilities) {
+    public <T extends Facility> Map<Facility, List<FloorResponse>> findAllByFacilities(
+            List<T> facilities) {
         if (CollectionUtils.isEmpty(facilities)) {
             return Collections.emptyMap();
         }
         return repository.findAllByFacilities(facilities).stream()
-                .collect(Collectors.groupingBy(Floor::getFacility));
+                .collect(
+                        Collectors.groupingBy(
+                                Floor::getFacility, Collectors.mapping(FloorResponse::from, Collectors.toList())));
     }
 
     @Transactional
