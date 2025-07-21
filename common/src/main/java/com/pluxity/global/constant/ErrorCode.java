@@ -76,6 +76,7 @@ public enum ErrorCode implements Code {
     NOT_FOUND_PATH_TYPE(NOT_FOUND, "타입 %s를 찾을 수 없습니다."),
     NOT_FOUND_ROLE(NOT_FOUND, "ID가 %s인 Role을 찾을 수 없습니다."),
     NOT_FOUND_RESOURCE(NOT_FOUND, "ID가 %s인 %s 리소스를 찾을 수 없습니다."),
+    NOT_FOUND_PARK(NOT_FOUND, "ID가 %s인 Park를 찾을 수 없습니다."),
     INVALID_RESOURCE_IDS_INCLUDED(BAD_REQUEST, "요청한 리소스 ID %s 는 유효하지 않습니다."),
     ;
     private final HttpStatus httpStatus;

@@ -34,7 +34,7 @@ public class RoleService {
 
     @Transactional
     public RoleResponse save(RoleCreateRequest request) {
-        Role role = Role.builder().name(request.name()).build();
+        Role role = Role.builder().name(request.name()).description(request.description()).build();
         roleRepository
                 .findByName(request.name())
                 .ifPresent(
