@@ -53,7 +53,7 @@ public abstract class Device extends BaseEntity {
         this.feature = null;
     }
 
-    public void updateCategory(DeviceCategory category) {
+    public void changeCategory(DeviceCategory category) {
         if (this.category != null) {
             this.category.removeDevice(this);
         }
@@ -69,7 +69,7 @@ public abstract class Device extends BaseEntity {
         }
 
         if (this.category != null) {
-            this.updateCategory(null);
+            this.changeCategory(null);
         }
     }
 
