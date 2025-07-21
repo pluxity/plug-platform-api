@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -70,11 +69,13 @@ public class AssetService {
     public List<AssetResponse> getAssets() {
         List<Asset> assets = assetRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
         Map<Long, FileResponse> fileMap =
-                MappingUtils.getFileMapByIds(assets, v -> Stream.of(v.getThumbnailFileId(), v.getFileId()), fileService);
+                MappingUtils.getFileMapByIds(
+                        assets, v -> Stream.of(v.getThumbnailFileId(), v.getFileId()), fileService);
         return assets.stream()
                 .map(
                         asset ->
-                                AssetResponse.from(asset, fileMap.get(asset.getFileId()), fileMap.get(asset.getThumbnailFileId())))
+                                AssetResponse.from(
+                                        asset, fileMap.get(asset.getFileId()), fileMap.get(asset.getThumbnailFileId())))
                 .toList();
     }
 
@@ -83,11 +84,13 @@ public class AssetService {
         AssetCategory category = assetCategoryService.findById(categoryId);
         List<Asset> assets = assetRepository.findByCategory(category);
         Map<Long, FileResponse> fileMap =
-                MappingUtils.getFileMapByIds(assets, v -> Stream.of(v.getThumbnailFileId(), v.getFileId()), fileService);
+                MappingUtils.getFileMapByIds(
+                        assets, v -> Stream.of(v.getThumbnailFileId(), v.getFileId()), fileService);
         return assets.stream()
                 .map(
                         asset ->
-                                AssetResponse.from(asset, fileMap.get(asset.getFileId()), fileMap.get(asset.getThumbnailFileId())))
+                                AssetResponse.from(
+                                        asset, fileMap.get(asset.getFileId()), fileMap.get(asset.getThumbnailFileId())))
                 .toList();
     }
 

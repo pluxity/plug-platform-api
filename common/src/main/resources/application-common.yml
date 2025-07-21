@@ -57,6 +57,8 @@ logbook:
       - path: /api-docs/**
       - path: /.well-known/**
 
+user:
+  init-password: qwer1234
 tcp:
   server1: 101.254.21.100
   server2: 101.254.21.100

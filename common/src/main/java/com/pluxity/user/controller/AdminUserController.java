@@ -451,4 +451,51 @@ public class AdminUserController {
         service.removeRoleFromUser(userId, roleId);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "사용자 비밀번호 초기화", description = "사용자의 비밀번호를 초기화합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "비밀번호 초기화 성공"),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "잘못된 요청",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "401",
+                        description = "인증되지 않은 요청",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "403",
+                        description = "권한 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "사용자를 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @PatchMapping(value = "/{id}/password-init")
+    public ResponseEntity<Void> initPassword(
+            @Parameter(description = "사용자 ID", required = true) @PathVariable("id") Long id) {
+        service.initPassword(id);
+        return ResponseEntity.noContent().build();
+    }
 }

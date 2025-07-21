@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
+    @Value("${user.init-password}")
+    private String initPassword;
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -170,5 +174,17 @@ public class UserService {
                                     user.getRoles().stream().map(RoleResponse::from).toList());
                         })
                 .toList();
+    }
+
+    @Transactional
+    public void initPassword(Long id) {
+        User user = findUserById(id);
+        user.changePassword(passwordEncoder.encode(initPassword));
+    }
+
+    @Transactional
+    public void updateUserPassword(String name, UserPasswordUpdateRequest dto) {
+        Long id = findByUsername(name).id();
+        updateUserPassword(id, dto);
     }
 }

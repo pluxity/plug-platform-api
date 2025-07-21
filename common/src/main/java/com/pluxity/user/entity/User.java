@@ -2,6 +2,7 @@ package com.pluxity.user.entity;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +40,8 @@ public class User extends BaseEntity {
     @Column(name = "department")
     private String department;
 
+    private LocalDateTime lastPasswordChangeDate;
+
     @OneToMany(
             mappedBy = "user",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
@@ -59,6 +62,7 @@ public class User extends BaseEntity {
         this.code = code;
         this.phoneNumber = phoneNumber;
         this.department = department;
+        this.lastPasswordChangeDate = LocalDateTime.now();
     }
 
     public void changeUsername(String username) {
@@ -67,6 +71,7 @@ public class User extends BaseEntity {
 
     public void changePassword(String password) {
         this.password = Objects.requireNonNull(password, "Password must not be null");
+        this.lastPasswordChangeDate = LocalDateTime.now();
     }
 
     public void addRoles(List<Role> roles) {
@@ -152,5 +157,10 @@ public class User extends BaseEntity {
 
         return userRoles.stream()
                 .anyMatch(userRole -> userRole.getRole().hasPermissionFor(resourceName, resourceId));
+    }
+
+    public boolean isPasswordChangeRequired() {
+        LocalDateTime now = LocalDateTime.now();
+        return lastPasswordChangeDate.isBefore(now.minusDays(90));
     }
 }
