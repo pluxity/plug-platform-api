@@ -9,23 +9,17 @@ public record StationResponse(
         FacilityResponse facility,
         List<FloorResponse> floors,
         List<Long> lineIds,
-        List<String> featureIds,
-        String route,
-        String subway) {
+        List<String> stationCodes) {
 
     @Builder
     public StationResponse(
             FacilityResponse facility,
             List<FloorResponse> floors,
             List<Long> lineIds,
-            List<String> featureIds,
-            String route,
-            String subway) {
+            List<String> stationCodes) {
         this.facility = facility;
         this.floors = floors != null ? floors : List.of();
         this.lineIds = lineIds != null ? lineIds : List.of();
-        this.featureIds = featureIds != null ? featureIds : List.of();
-        this.route = route;
-        this.subway = subway;
+        this.stationCodes = stationCodes != null ? stationCodes : List.of();
     }
 }

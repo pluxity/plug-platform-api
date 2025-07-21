@@ -5,4 +5,7 @@ import com.pluxity.facility.floor.dto.FloorRequest;
 import java.util.List;
 
 public record StationUpdateRequest(
-        FacilityUpdateRequest facility, List<FloorRequest> floors, List<Long> lineIds) {}
+        FacilityUpdateRequest facility,
+        List<FloorRequest> floors,
+        List<Long> lineIds,
+        List<String> stationCodes) {}

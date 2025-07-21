@@ -21,16 +21,10 @@ public class Station extends Facility {
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<StationLine> stationLines = new ArrayList<>();
 
-    @Column(name = "route", columnDefinition = "text")
-    private String route;
-
-    @Column(name = "subway", columnDefinition = "text")
-    private String subway;
-
     @Builder
-    public Station(String name, String description, String route) {
-        super(name, description);
-        this.route = route;
+    public Station(
+            String name, String code, String description, Long drawingFileId, Long thumbnailFileId) {
+        super(name, code, description, drawingFileId, thumbnailFileId);
     }
 
     public void addLine(Line line) {
@@ -49,9 +43,5 @@ public class Station extends Facility {
                     }
                     return false;
                 });
-    }
-
-    public void updateRoute(String route) {
-        this.route = route;
     }
 }

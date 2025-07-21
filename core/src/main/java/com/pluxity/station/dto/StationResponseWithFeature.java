@@ -14,9 +14,7 @@ public record StationResponseWithFeature(
         List<Long> lineIds,
         List<FeatureResponse> features,
         List<Label3DResponse> label3Ds,
-        String route,
-        String externalCode,
-        String subway,
+        List<String> stationCodes,
         AdjacentStationInfo precedingStation,
         AdjacentStationInfo followingStation) {
 
@@ -25,6 +23,7 @@ public record StationResponseWithFeature(
         lineIds = lineIds != null ? lineIds : List.of();
         features = features != null ? features : List.of();
         label3Ds = label3Ds != null ? label3Ds : List.of();
+        stationCodes = stationCodes != null ? stationCodes : List.of();
     }
 
     public record AdjacentStationInfo(String code, String name) {

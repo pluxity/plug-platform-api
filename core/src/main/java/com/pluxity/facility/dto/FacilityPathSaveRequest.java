@@ -8,8 +8,8 @@ public record FacilityPathSaveRequest(
                 @NotNull
                 String name,
         @Schema(
-                        description = "타입",
-                        example = "SUBWAY(\"지하철\"), WAY(\"길찾기\"), PATROL(\"순찰\")",
+                        description = "타입(SUBWAY: 지하철, WAY: 길찾기, PATROL: 순찰)",
+                        allowableValues = {"SUBWAY", "WAY", "PATROL"},
                         requiredMode = Schema.RequiredMode.REQUIRED)
                 @NotNull
                 String type,
