@@ -16,6 +16,9 @@ public record FacilityResponse(
         FileResponse drawing,
         FileResponse thumbnail,
         List<FacilityPathResponse> paths,
+        Double lon,
+        Double lat,
+        String locationMeta,
         @JsonUnwrapped BaseResponse baseResponse) {
     public static FacilityResponse from(
             Facility facility, FileResponse drawing, FileResponse thumbnail) {
@@ -27,6 +30,9 @@ public record FacilityResponse(
                 drawing != null ? drawing : FileResponse.empty(),
                 thumbnail != null ? thumbnail : FileResponse.empty(),
                 facility.getPaths().stream().map(FacilityPathResponse::from).toList(),
+                facility.getPosition() != null ? facility.getPosition().getLon() : null,
+                facility.getPosition() != null ? facility.getPosition().getLat() : null,
+                facility.getPosition() != null ? facility.getPosition().getLocationMeta() : null,
                 BaseResponse.of(facility));
     }
 }

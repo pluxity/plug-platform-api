@@ -193,4 +193,11 @@ public class FacilityService {
         findById(facilityId);
         facilityPathService.delete(pathId);
     }
+
+    @Transactional
+    public void updateLocation(Long facilityId, Double lon, Double lat, String locationMeta) {
+        Facility facility = findById(facilityId);
+        facility.updatePosition(
+                FacilityPosition.builder().lon(lon).lat(lat).locationMeta(locationMeta).build());
+    }
 }
