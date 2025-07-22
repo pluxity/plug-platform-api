@@ -38,6 +38,7 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+    tags-sorter: alpha
   show-actuator: true
   packages-to-scan: com.pluxity
   default-consumes-media-type: application/json

@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 @Embeddable
 @Getter
@@ -24,5 +25,11 @@ public class FacilityPosition {
         this.lon = lon;
         this.lat = lat;
         this.locationMeta = locationMeta;
+    }
+
+    public void merge(Double lon, Double lat, String locationMeta) {
+        if (lon != null) this.lon = lon;
+        if (lat != null) this.lat = lat;
+        if (StringUtils.hasText(locationMeta)) this.locationMeta = locationMeta;
     }
 }

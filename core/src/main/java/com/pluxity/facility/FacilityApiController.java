@@ -103,7 +103,7 @@ public class FacilityApiController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping("/{facilityId}/location")
+    @PutMapping("/{facilityId}/location")
     public ResponseEntity<Void> patchLocation(
             @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
             @Parameter(description = "위치 수정 정보", required = true) @Valid @RequestBody

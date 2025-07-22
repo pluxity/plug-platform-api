@@ -159,4 +159,11 @@ public abstract class Facility extends BaseEntity {
     public void updatePosition(FacilityPosition position) {
         this.position = position;
     }
+
+    public void updatePosition(Double lon, Double lat, String locationMeta) {
+        if (this.position == null) {
+            this.position = new FacilityPosition();
+        }
+        this.position.merge(lon, lat, locationMeta);
+    }
 }
