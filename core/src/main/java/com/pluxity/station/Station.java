@@ -21,6 +21,9 @@ public class Station extends Facility {
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<StationLine> stationLines = new ArrayList<>();
 
+    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<StationCode> stationCodes = new ArrayList<>();
+
     @Builder
     public Station(
             String name, String code, String description, Long drawingFileId, Long thumbnailFileId) {
@@ -43,5 +46,14 @@ public class Station extends Facility {
                     }
                     return false;
                 });
+    }
+
+    public void addStationCode(String code) {
+        StationCode stationCodes = StationCode.builder().station(this).code(code).build();
+        this.stationCodes.add(stationCodes);
+    }
+
+    public void removeStationCode(StationCode stationCode) {
+        stationCodes.remove(stationCode);
     }
 }
