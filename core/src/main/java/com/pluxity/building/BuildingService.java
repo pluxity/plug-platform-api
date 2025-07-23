@@ -69,7 +69,7 @@ public class BuildingService {
 
     @Transactional(readOnly = true)
     public BuildingResponse findById(Long id) {
-        Building building = findBuilding(id);
+        Building building = (Building) facilityService.findById(id);
         List<FloorResponse> floorResponses = floorService.findAllByFacility(building);
 
         return BuildingResponse.builder()

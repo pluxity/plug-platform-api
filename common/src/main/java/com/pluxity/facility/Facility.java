@@ -50,6 +50,8 @@ public abstract class Facility extends BaseEntity {
     @Column(name = "history_comment")
     private String historyComment;
 
+    @Embedded private FacilityPosition position;
+
     @OneToMany(mappedBy = "facility")
     private final List<Feature> features = new ArrayList<>();
 
@@ -152,5 +154,16 @@ public abstract class Facility extends BaseEntity {
         if (facility.thumbnailFileId != null) {
             this.thumbnailFileId = facility.thumbnailFileId;
         }
+    }
+
+    public void updatePosition(FacilityPosition position) {
+        this.position = position;
+    }
+
+    public void updatePosition(Double lon, Double lat, String locationMeta) {
+        if (this.position == null) {
+            this.position = new FacilityPosition();
+        }
+        this.position.merge(lon, lat, locationMeta);
     }
 }

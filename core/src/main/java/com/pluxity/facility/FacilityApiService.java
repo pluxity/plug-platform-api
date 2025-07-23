@@ -1,10 +1,7 @@
 package com.pluxity.facility;
 
 import com.pluxity.building.BuildingService;
-import com.pluxity.facility.dto.FacilityAllResponse;
-import com.pluxity.facility.dto.FacilityDrawingUpdateRequest;
-import com.pluxity.facility.dto.FacilityPathSaveRequest;
-import com.pluxity.facility.dto.FacilityPathUpdateRequest;
+import com.pluxity.facility.dto.*;
 import com.pluxity.station.StationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,5 +35,9 @@ public class FacilityApiService {
 
     public void deletePath(Long id, Long pathId) {
         facilityService.deletePath(id, pathId);
+    }
+
+    public void updateLocation(Long id, FacilityLocationUpdateRequest request) {
+        facilityService.updateLocation(id, request.lon(), request.lat(), request.locationMeta());
     }
 }

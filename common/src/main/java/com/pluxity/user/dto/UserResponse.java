@@ -11,6 +11,7 @@ public record UserResponse(
         String code,
         String phoneNumber,
         String department,
+        boolean shouldChangePassword,
         List<RoleResponse> roles) {
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -20,6 +21,7 @@ public record UserResponse(
                 user.getCode(),
                 user.getPhoneNumber(),
                 user.getDepartment(),
+                user.isPasswordChangeRequired(),
                 user.getUserRoles().stream()
                         .map(userRole -> RoleResponse.from(userRole.getRole()))
                         .distinct()

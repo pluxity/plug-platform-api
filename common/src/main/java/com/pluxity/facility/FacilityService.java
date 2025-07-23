@@ -53,6 +53,12 @@ public class FacilityService {
                 facility.updateThumbnailFileId(
                         fileService.finalizeUpload(request.thumbnailFileId(), filePath));
             }
+            facility.updatePosition(
+                    FacilityPosition.builder()
+                            .lon(request.lon())
+                            .lat(request.lat())
+                            .locationMeta(request.locationMeta())
+                            .build());
 
             return savedFacility;
         } catch (Exception e) {
@@ -116,6 +122,7 @@ public class FacilityService {
             facility.updateThumbnailFileId(
                     fileService.finalizeUpload(request.thumbnailFileId(), filePath));
         }
+        facility.updatePosition(request.lon(), request.lat(), request.locationMeta());
     }
 
     @Transactional
@@ -192,5 +199,12 @@ public class FacilityService {
     public void deletePath(Long facilityId, Long pathId) {
         findById(facilityId);
         facilityPathService.delete(pathId);
+    }
+
+    @Transactional
+    public void updateLocation(Long facilityId, Double lon, Double lat, String locationMeta) {
+        Facility facility = findById(facilityId);
+        facility.updatePosition(
+                FacilityPosition.builder().lon(lon).lat(lat).locationMeta(locationMeta).build());
     }
 }

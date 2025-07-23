@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 @Entity
 @Getter
@@ -16,13 +18,16 @@ public class StationCode extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long stationId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "station_id")
+    @NotFound(action = NotFoundAction.IGNORE)
+    private Station station;
 
     private String code;
 
     @Builder
-    public StationCode(Long stationId, String code) {
-        this.stationId = stationId;
+    public StationCode(Station station, String code) {
+        this.station = station;
         this.code = code;
     }
 }

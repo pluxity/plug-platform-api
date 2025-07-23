@@ -68,7 +68,7 @@ public class ParkService {
 
     @Transactional(readOnly = true)
     public ParkResponse findById(Long id) {
-        Park park = findPark(id);
+        Park park = (Park) facilityService.findById(id);
 
         return ParkResponse.builder()
                 .facility(
