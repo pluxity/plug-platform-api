@@ -95,6 +95,14 @@ public class BuildingService {
         floorService.update(building, request.floors());
     }
 
+    @Transactional
+    public void putUpdate(Long id, BuildingUpdateRequest request) {
+        Building building = findBuilding(id);
+
+        facilityService.putUpdate(id, request.facility());
+        floorService.update(building, request.floors());
+    }
+
     private Building findBuilding(Long id) {
         return repository
                 .findById(id)

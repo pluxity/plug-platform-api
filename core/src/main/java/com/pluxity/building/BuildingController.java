@@ -156,7 +156,7 @@ public class BuildingController {
             @Parameter(description = "건물 ID", required = true) @PathVariable Long id,
             @Parameter(description = "건물 수정 정보", required = true) @Valid @RequestBody
                     BuildingUpdateRequest request) {
-        service.update(id, request);
+        service.putUpdate(id, request);
         return ResponseEntity.noContent().build();
     }
 

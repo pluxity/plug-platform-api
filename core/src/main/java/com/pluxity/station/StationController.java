@@ -157,7 +157,7 @@ public class StationController {
             @Parameter(description = "스테이션 ID", required = true) @PathVariable Long id,
             @Parameter(description = "스테이션 수정 정보", required = true) @Valid @RequestBody
                     StationUpdateRequest request) {
-        service.update(id, request);
+        service.putUpdate(id, request);
         return ResponseEntity.noContent().build();
     }
 
