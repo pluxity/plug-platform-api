@@ -16,7 +16,7 @@ public class PermissionService {
     private final PermissionRepository permissionRepository;
 
     @Transactional
-    public Permission findOrCreatePermission(ResourceType resourceType, Long resourceId) {
+    public Permission findOrCreatePermission(ResourceType resourceType, String resourceId) {
         String resourceNameStr = resourceType.getResourceName();
         return permissionRepository
                 .findByResourceNameAndResourceId(resourceNameStr, resourceId)

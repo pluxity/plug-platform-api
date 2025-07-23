@@ -50,7 +50,7 @@ public class Role extends BaseEntity {
         this.description = description;
     }
 
-    public boolean hasPermissionFor(String resourceName, Long resourceId) {
+    public boolean hasPermissionFor(String resourceName, String resourceId) {
         return rolePermissions.stream()
                 .map(RolePermission::getPermission)
                 .anyMatch(permission -> permission.matches(resourceName, resourceId));

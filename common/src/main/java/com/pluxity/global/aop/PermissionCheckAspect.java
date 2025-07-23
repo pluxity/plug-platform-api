@@ -46,18 +46,19 @@ public class PermissionCheckAspect {
         if (result == null) return;
 
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Long resourceId =
+        Object resourceIdObj =
                 spelEvaluator.evaluate(
                         checkPermission.resourceId(),
                         signature.getParameterNames(),
                         joinPoint.getArgs(),
-                        Long.class);
+                        Object.class);
 
         String resourceName = checkPermission.resourceName();
 
-        if (resourceId == null) {
+        if (resourceIdObj == null) {
             throw new CustomException(NOT_FOUND_RESOURCE_ID);
         }
+        String resourceId = String.valueOf(resourceIdObj);
 
         if (!result.user().canAccess(resourceName, resourceId)) {
             throw new CustomException(
@@ -74,14 +75,18 @@ public class PermissionCheckAspect {
 
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 
-        Long resourceId =
+        Object resourceIdObj =
                 spelEvaluator.evaluate(
                         checkPermissionAfter.resourceId(),
                         new String[] {"returnObject"},
                         new Object[] {returnObject},
-                        Long.class);
+                        Object.class);
 
         String resourceName = checkPermissionAfter.resourceName();
+        if (resourceIdObj == null) {
+            throw new CustomException(NOT_FOUND_RESOURCE_ID);
+        }
+        String resourceId = String.valueOf(resourceIdObj);
 
         if (!result.user.canAccess(resourceName, resourceId)) {
             throw new CustomException(
@@ -106,7 +111,7 @@ public class PermissionCheckAspect {
 
         while (iterator.hasNext()) {
             Object item = iterator.next();
-            Long itemId = getItemId(item);
+            String itemId = getItemId(item);
 
             if (itemId == null) {
                 continue;
@@ -163,7 +168,8 @@ public class PermissionCheckAspect {
 
             // 리플렉션으로 category.getId() 메서드 호출
             Method getIdMethod = category.getClass().getMethod("getId");
-            Long categoryId = (Long) getIdMethod.invoke(category);
+            Object categoryIdObj = getIdMethod.invoke(category);
+            String categoryId = String.valueOf(categoryIdObj);
 
             // 최종 권한 검사
             return user.canAccess(categoryResourceType.name(), categoryId);
@@ -180,25 +186,20 @@ public class PermissionCheckAspect {
         return userService.findUserByUsername(username);
     }
 
-    private Long getItemId(Object item) {
+    private String getItemId(Object item) {
         try {
             Method getIdMethod = item.getClass().getMethod("getId");
             Object idObj = getIdMethod.invoke(item);
-            if (idObj instanceof Long) {
-                return (Long) idObj;
-            }
+            return String.valueOf(idObj);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             try {
                 Method idMethod = item.getClass().getMethod("id");
                 Object idObj = idMethod.invoke(item);
-                if (idObj instanceof Long) {
-                    return (Long) idObj;
-                }
+                return String.valueOf(idObj);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
                 return null;
             }
         }
-        return null;
     }
 
     private AuthInfo CheckAuth() {
