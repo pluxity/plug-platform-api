@@ -1,6 +1,5 @@
-package com.pluxity.gs_device.dto;
+package com.pluxity.device.dto;
 
-import com.pluxity.device.dto.DeviceCategoryResponse;
 import com.pluxity.feature.dto.FeatureResponse;
 import lombok.Builder;
 

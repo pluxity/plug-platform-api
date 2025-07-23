@@ -1,4 +1,4 @@
-package com.pluxity.gs_device;
+package com.pluxity.device;
 
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;

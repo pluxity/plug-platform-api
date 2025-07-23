@@ -1,6 +1,9 @@
-package com.pluxity.gs_device;
+package com.pluxity.device;
 
 import com.pluxity.device.dto.DeviceCategoryResponse;
+import com.pluxity.device.dto.GsDeviceCreateRequest;
+import com.pluxity.device.dto.GsDeviceResponse;
+import com.pluxity.device.dto.GsDeviceUpdateRequest;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.feature.dto.FeatureResponse;
@@ -8,9 +11,6 @@ import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.service.FeatureService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.gs_device.dto.GsDeviceCreateRequest;
-import com.pluxity.gs_device.dto.GsDeviceResponse;
-import com.pluxity.gs_device.dto.GsDeviceUpdateRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -65,6 +65,9 @@ class ParkServiceTest {
                 "테스트 공원 설명입니다.",
                 drawingFileId,
                 thumbnailFileId
+                ,null
+                ,null
+                ,null
         );
 
         // 경계 정보 (GeoJSON 형식의 문자열 예시)
@@ -148,6 +151,9 @@ class ParkServiceTest {
                         "PARK-002",
                         "수정된 공원 설명",
                         null
+                        ,null
+                        ,null
+                        ,null
                 ),
                 updatedBoundary
         );

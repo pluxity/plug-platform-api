@@ -1,3 +1,3 @@
-package com.pluxity.gs_device.dto;
+package com.pluxity.device.dto;
 
 public record GsDeviceUpdateRequest(String name, String featureId, Long categoryId) {}

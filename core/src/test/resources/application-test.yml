@@ -106,3 +106,6 @@ tcp:
   port2: 4002
   port3: 4003
   port4: 4004
+
+user:
+  init-password: qwer1234

@@ -1,11 +1,11 @@
-package com.pluxity.gs_device;
+package com.pluxity.device;
 
+import com.pluxity.device.dto.GsDeviceCreateRequest;
+import com.pluxity.device.dto.GsDeviceResponse;
+import com.pluxity.device.dto.GsDeviceUpdateRequest;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
-import com.pluxity.gs_device.dto.GsDeviceCreateRequest;
-import com.pluxity.gs_device.dto.GsDeviceResponse;
-import com.pluxity.gs_device.dto.GsDeviceUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,42 +20,42 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/gs-devices")
+@RequestMapping("/devices")
 @RequiredArgsConstructor
-@Tag(name = "GS Device Controller", description = "GS 디바이스 관리 API")
+@Tag(name = "Device Controller", description = "디바이스 관리 API")
 public class GsDeviceController {
 
     private final GsDeviceService gsDeviceService;
 
-    @Operation(summary = "GS 디바이스 생성", description = "새로운 GS 디바이스를 생성합니다.")
+    @Operation(summary = "디바이스 생성", description = "새로운 디바이스를 생성합니다.")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "201", description = "GS 디바이스 생성 성공"),
+                @ApiResponse(responseCode = "201", description = "디바이스 생성 성공"),
                 @ApiResponse(
                         responseCode = "400",
                         description = "잘못된 요청",
                         content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PostMapping
-    @ResponseCreated(path = "/gs-devices/{id}")
+    @ResponseCreated(path = "/devices/{id}")
     public ResponseEntity<String> create(
-            @Parameter(description = "GS 디바이스 생성 정보", required = true) @Valid @RequestBody
+            @Parameter(description = "디바이스 생성 정보", required = true) @Valid @RequestBody
                     GsDeviceCreateRequest request) {
         String id = gsDeviceService.save(request);
         return ResponseEntity.ok(id);
     }
 
-    @Operation(summary = "GS 디바이스 목록 조회", description = "모든 GS 디바이스 목록을 조회합니다.")
+    @Operation(summary = "디바이스 목록 조회", description = "모든 디바이스 목록을 조회합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "목록 조회 성공")})
     @GetMapping
     public ResponseEntity<DataResponseBody<List<GsDeviceResponse>>> getAll() {
         return ResponseEntity.ok(DataResponseBody.of(gsDeviceService.findAll()));
     }
 
-    @Operation(summary = "GS 디바이스 상세 조회", description = "ID로 특정 GS 디바이스의 상세 정보를 조회합니다.")
+    @Operation(summary = "디바이스 상세 조회", description = "ID로 특정 디바이스의 상세 정보를 조회합니다.")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "200", description = "GS 디바이스 조회 성공"),
+                @ApiResponse(responseCode = "200", description = "디바이스 조회 성공"),
                 @ApiResponse(
                         responseCode = "404",
                         description = "해당 ID의 디바이스를 찾을 수 없음",
@@ -63,11 +63,11 @@ public class GsDeviceController {
             })
     @GetMapping("/{id}")
     public ResponseEntity<DataResponseBody<GsDeviceResponse>> getById(
-            @Parameter(description = "GS 디바이스 ID", required = true) @PathVariable String id) {
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String id) {
         return ResponseEntity.ok(DataResponseBody.of(gsDeviceService.findById(id)));
     }
 
-    @Operation(summary = "GS 디바이스 정보 수정", description = "ID로 특정 GS 디바이스의 정보를 수정합니다.")
+    @Operation(summary = "디바이스 정보 수정", description = "ID로 특정 디바이스의 정보를 수정합니다.")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "204", description = "디바이스 수정 성공"),
@@ -82,14 +82,14 @@ public class GsDeviceController {
             })
     @PatchMapping("/{id}")
     public ResponseEntity<Void> update(
-            @Parameter(description = "GS 디바이스 ID", required = true) @PathVariable String id,
-            @Parameter(description = "GS 디바이스 수정 정보", required = true) @Valid @RequestBody
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String id,
+            @Parameter(description = "디바이스 수정 정보", required = true) @Valid @RequestBody
                     GsDeviceUpdateRequest request) {
         gsDeviceService.update(id, request);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "GS 디바이스 삭제", description = "ID로 특정 GS 디바이스를 삭제합니다.")
+    @Operation(summary = "디바이스 삭제", description = "ID로 특정 디바이스를 삭제합니다.")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "204", description = "디바이스 삭제 성공"),
@@ -100,7 +100,7 @@ public class GsDeviceController {
             })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
-            @Parameter(description = "GS 디바이스 ID", required = true) @PathVariable String id) {
+            @Parameter(description = "`디바이스 ID", required = true) @PathVariable String id) {
         gsDeviceService.delete(id);
         return ResponseEntity.noContent().build();
     }

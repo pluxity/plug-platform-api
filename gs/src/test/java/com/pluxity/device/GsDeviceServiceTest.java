@@ -1,18 +1,18 @@
-package com.pluxity.gs_device;
+package com.pluxity.device;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.pluxity.GsApplication;
+import com.pluxity.device.dto.GsDeviceCreateRequest;
+import com.pluxity.device.dto.GsDeviceResponse;
+import com.pluxity.device.dto.GsDeviceUpdateRequest;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.gs_device.dto.GsDeviceCreateRequest;
-import com.pluxity.gs_device.dto.GsDeviceResponse;
-import com.pluxity.gs_device.dto.GsDeviceUpdateRequest;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.UUID;
@@ -94,7 +94,7 @@ class GsDeviceServiceTest {
 
         // then
         assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).name()).isEqualTo("Test Device");
+        assertThat(responses.getFirst().name()).isEqualTo("Test Device");
     }
 
     @Test

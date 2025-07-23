@@ -76,6 +76,9 @@ class BuildingServiceTest {
                 "테스트 건물 설명",
                 drawingFileId,
                 thumbnailFileId
+                ,null
+                ,null
+                ,null
         );
         
         List<FloorRequest> floorRequests = new ArrayList<>();
@@ -159,6 +162,9 @@ class BuildingServiceTest {
                         "수정된 코드",
                         "수정된 건물 설명",
                         null
+                        ,null
+                        ,null
+                        ,null
                 ), null
         );
 
