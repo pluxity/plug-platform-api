@@ -184,31 +184,4 @@ public class LineController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-    @Operation(summary = "호선에 역 추가", description = "특정 호선에 역을 추가합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "204", description = "역 추가 성공"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "호선 또는 역을 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @PostMapping("/{lineId}/stations/{stationId}")
-    public ResponseEntity<Void> addStation(
-            @Parameter(description = "호선 ID", required = true) @PathVariable Long lineId,
-            @Parameter(description = "역 ID", required = true) @PathVariable Long stationId) {
-        service.addStationToLine(lineId, stationId);
-        return ResponseEntity.noContent().build();
-    }
 }

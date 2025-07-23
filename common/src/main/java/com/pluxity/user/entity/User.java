@@ -18,6 +18,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
 
+    private static final int PASSWORD_CHANGE_DAYS = 90; // 비밀번호 변경 주기
+    private static final int INIT_PASSWORD_CHANGE_DAY =
+            PASSWORD_CHANGE_DAYS + 1; // 비밀번호 초기화 시 비밀번호 변경 알림을 위해 변경일을 1일 추가한 날짜 전으로 설정
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -160,7 +164,11 @@ public class User extends BaseEntity {
     }
 
     public boolean isPasswordChangeRequired() {
-        LocalDateTime now = LocalDateTime.now();
-        return lastPasswordChangeDate.isBefore(now.minusDays(90));
+        return lastPasswordChangeDate.isBefore(LocalDateTime.now().minusDays(PASSWORD_CHANGE_DAYS));
+    }
+
+    public void initPassword(String password) {
+        this.password = Objects.requireNonNull(password, "Password must not be null");
+        this.lastPasswordChangeDate = LocalDateTime.now().minusDays(INIT_PASSWORD_CHANGE_DAY);
     }
 }

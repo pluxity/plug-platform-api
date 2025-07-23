@@ -11,25 +11,16 @@ import com.pluxity.station.dto.LineUpdateRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class LineService {
 
     private final LineRepository lineRepository;
-    private StationService stationService;
-
-    @Autowired
-    public void setStationService(@Lazy StationService stationService) {
-        this.stationService = stationService;
-    }
-
-    public LineService(LineRepository lineRepository) {
-        this.lineRepository = lineRepository;
-    }
+    private final StationLineService stationLineService;
 
     @Transactional
     public Long save(LineCreateRequest request) {
@@ -79,17 +70,10 @@ public class LineService {
 
         List<Station> stations = new ArrayList<>(line.getStations());
         for (Station station : stations) {
-            station.removeLine(line);
+            stationLineService.deleteStationLine(station, line);
         }
 
         lineRepository.delete(line);
-    }
-
-    @Transactional
-    public void addStationToLine(Long lineId, Long stationId) {
-        Line line = findLineById(lineId);
-        Station station = stationService.findStationById(stationId);
-        station.addLine(line);
     }
 
     private static CustomException notFoundException(Long id) {

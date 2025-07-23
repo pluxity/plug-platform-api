@@ -2,8 +2,6 @@ package com.pluxity.station;
 
 import com.pluxity.facility.Facility;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,30 +16,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @ConditionalOnProperty(name = "facility.station.enabled", havingValue = "true")
 public class Station extends Facility {
 
-    @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<StationLine> stationLines = new ArrayList<>();
-
     @Builder
     public Station(
             String name, String code, String description, Long drawingFileId, Long thumbnailFileId) {
         super(name, code, description, drawingFileId, thumbnailFileId);
-    }
-
-    public void addLine(Line line) {
-        StationLine stationLine = StationLine.builder().station(this).line(line).build();
-
-        this.stationLines.add(stationLine);
-        line.getStationLines().add(stationLine);
-    }
-
-    public void removeLine(Line line) {
-        stationLines.removeIf(
-                stationLine -> {
-                    if (stationLine.getLine().equals(line)) {
-                        line.getStationLines().remove(stationLine);
-                        return true;
-                    }
-                    return false;
-                });
     }
 }

@@ -38,6 +38,7 @@ public class StationService {
     private final LineService lineService;
     private final Label3DRepository label3DRepository;
     private final StationCodeService stationCodeService;
+    private final StationLineService stationLineService;
 
     @Transactional
     public Long save(StationCreateRequest request) {
@@ -55,7 +56,7 @@ public class StationService {
         if (request.lineIds() != null && !request.lineIds().isEmpty()) {
             for (Long lineId : request.lineIds()) {
                 Line line = lineService.findLineById(lineId);
-                station.addLine(line);
+                stationLineService.save(station, line);
             }
         }
         if (request.stationCodes() != null && !request.stationCodes().isEmpty()) {
@@ -76,25 +77,18 @@ public class StationService {
         Map<Facility, List<FloorResponse>> floorMap = floorService.findAllByFacilities(stations);
         Map<Station, List<String>> stationCodeMap =
                 stationCodeService.findCodeMapByStationIds(stations);
+        Map<Station, List<Long>> lineMap = stationLineService.findLineMapByStationIds(stations);
         return stations.stream()
                 .map(
-                        station -> {
-                            List<Long> lineIds =
-                                    station.getStationLines().stream()
-                                            .map(stationLine -> stationLine.getLine().getId())
-                                            .collect(Collectors.toList());
-
-                            return StationResponse.builder()
-                                    .facility(
-                                            FacilityResponse.from(
-                                                    station,
-                                                    fileMap.get(station.getDrawingFileId()),
-                                                    fileMap.get(station.getThumbnailFileId())))
-                                    .floors(floorMap.get(station))
-                                    .lineIds(lineIds)
-                                    .stationCodes(stationCodeMap.get(station))
-                                    .build();
-                        })
+                        station ->
+                                StationResponse.of(
+                                        FacilityResponse.from(
+                                                station,
+                                                fileMap.get(station.getDrawingFileId()),
+                                                fileMap.get(station.getThumbnailFileId())),
+                                        floorMap.get(station),
+                                        lineMap.get(station),
+                                        stationCodeMap.get(station)))
                 .toList();
     }
 
@@ -103,21 +97,14 @@ public class StationService {
         Station station = (Station) facilityService.findById(id);
         List<FloorResponse> floorResponse = floorService.findAllByFacility(station);
 
-        List<Long> lineIds =
-                station.getStationLines().stream()
-                        .map(stationLine -> stationLine.getLine().getId())
-                        .collect(Collectors.toList());
-
-        return StationResponse.builder()
-                .facility(
-                        FacilityResponse.from(
-                                station,
-                                fileService.getFileResponse(station.getDrawingFileId()),
-                                fileService.getFileResponse(station.getThumbnailFileId())))
-                .floors(floorResponse)
-                .lineIds(lineIds)
-                .stationCodes(stationCodeService.findCodesByStation(station))
-                .build();
+        return StationResponse.of(
+                FacilityResponse.from(
+                        station,
+                        fileService.getFileResponse(station.getDrawingFileId()),
+                        fileService.getFileResponse(station.getThumbnailFileId())),
+                floorResponse,
+                stationLineService.findLinesByStation(station),
+                stationCodeService.findCodesByStation(station));
     }
 
     @Transactional(readOnly = true)
@@ -140,10 +127,10 @@ public class StationService {
         floorService.update(station, request.floors());
 
         if (request.lineIds() != null) {
-            station.getStationLines().clear();
+            stationLineService.deleteByStation(station);
             for (Long lineId : request.lineIds()) {
                 Line line = lineService.findLineById(lineId);
-                station.addLine(line);
+                stationLineService.save(station, line);
             }
         }
         if (request.stationCodes() != null) {
@@ -161,23 +148,19 @@ public class StationService {
         facilityService.putUpdate(id, request.facility());
         floorService.update(station, request.floors());
 
+        stationLineService.deleteByStation(station);
         if (request.lineIds() != null) {
-            station.getStationLines().clear();
             for (Long lineId : request.lineIds()) {
                 Line line = lineService.findLineById(lineId);
-                station.addLine(line);
+                stationLineService.save(station, line);
             }
-        } else {
-            station.getStationLines().clear();
         }
 
+        stationCodeService.deleteByStation(station);
         if (request.stationCodes() != null) {
-            station.getStationCodes().clear();
             for (String code : request.stationCodes()) {
-                station.addStationCode(code);
+                stationCodeService.save(station, code);
             }
-        } else {
-            station.getStationCodes().clear();
         }
     }
 
@@ -189,6 +172,7 @@ public class StationService {
         // Floor 삭제 및 Facility 삭제
         floorService.delete(station);
         facilityService.deleteFacility(id);
+        stationLineService.deleteByStation(station);
         stationCodeService.deleteByStation(station);
     }
 
@@ -198,11 +182,8 @@ public class StationService {
         Line line = lineService.findLineById(lineId);
 
         // 이미 연결되어 있는지 확인
-        boolean alreadyConnected =
-                station.getStationLines().stream().anyMatch(sl -> sl.getLine().getId().equals(lineId));
-
-        if (!alreadyConnected) {
-            station.addLine(line);
+        if (!stationLineService.checkAlreadyConnect(station, line)) {
+            stationLineService.save(station, line);
         }
     }
 
@@ -210,7 +191,7 @@ public class StationService {
     public void removeLineFromStation(Long stationId, Long lineId) {
         Station station = findStationById(stationId);
         Line line = lineService.findLineById(lineId);
-        station.removeLine(line);
+        stationLineService.deleteStationLine(station, line);
     }
 
     @Transactional(readOnly = true)
@@ -218,10 +199,7 @@ public class StationService {
         Station station = findStationById(id);
         List<FloorResponse> floorResponse = floorService.findAllByFacility(station);
 
-        List<Long> lineIds =
-                station.getStationLines().stream()
-                        .map(stationLine -> stationLine.getLine().getId())
-                        .collect(Collectors.toList());
+        List<Long> lineIds = stationLineService.findLinesByStation(station);
 
         FacilityResponse facilityResponse =
                 FacilityResponse.from(

@@ -33,14 +33,6 @@ public class Line extends BaseEntity {
         this.color = color;
     }
 
-    public void addStation(Station station) {
-        station.addLine(this);
-    }
-
-    public void removeStation(Station station) {
-        station.removeLine(this);
-    }
-
     public List<Station> getStations() {
         return stationLines.stream().map(StationLine::getStation).toList();
     }

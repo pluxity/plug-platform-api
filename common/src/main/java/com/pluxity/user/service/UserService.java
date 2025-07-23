@@ -192,7 +192,7 @@ public class UserService {
     @Transactional
     public void initPassword(Long id) {
         User user = findUserById(id);
-        user.changePassword(passwordEncoder.encode(initPassword));
+        user.initPassword(passwordEncoder.encode(initPassword));
     }
 
     @Transactional
