@@ -10,4 +10,4 @@ public record PermissionRequest(
         @NotNull @Schema(description = "권한을 관리할 리소스의 타입", example = "FACILITY")
                 ResourceType resourceName,
         @NotEmpty @Schema(description = "권한을 부여/관리할 리소스들의 ID 목록", example = "[101, 102, 105]")
-                List<Long> resourceId) {}
+                List<String> resourceId) {}

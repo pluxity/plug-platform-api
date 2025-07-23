@@ -29,12 +29,13 @@ public class RoleService {
 
     @Transactional
     public Long save(RoleCreateRequest request) {
+
         Role role = Role.builder().name(request.name()).description(request.description()).build();
 
         roleRepository.save(role);
 
         for (PermissionRequest permissionRequest : request.permissions()) {
-            for (Long resourceId : permissionRequest.resourceId()) {
+            for (String resourceId : permissionRequest.resourceId()) {
                 Permission permission =
                         permissionService.findOrCreatePermission(permissionRequest.resourceName(), resourceId);
                 rolePermissionRepository.save(

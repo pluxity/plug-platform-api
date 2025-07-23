@@ -19,7 +19,7 @@ public record RoleResponse(
                 role.getRolePermissions().stream().map(RolePermission::getPermission).toList();
 
         // 2. Stream의 groupingBy를 사용하여 resourceName을 키로, resourceId 목록을 값으로 하는 Map을 생성합니다.
-        Map<String, List<Long>> groupedPermissions =
+        Map<String, List<String>> groupedPermissions =
                 allPermissions.stream()
                         .collect(
                                 Collectors.groupingBy(

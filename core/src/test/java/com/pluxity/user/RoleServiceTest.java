@@ -35,7 +35,7 @@ class RoleServiceTest {
     @Autowired private BuildingRepository buildingRepository;
     @Autowired private EntityManager em;
 
-    private List<Building> buildings = new ArrayList<>();
+    private final List<Building> buildings = new ArrayList<>();
     private RoleCreateRequest createRequest;
 
     @BeforeEach
@@ -45,7 +45,11 @@ class RoleServiceTest {
                 buildings.add(buildingRepository.save(Building.builder().name("Building " + i).code("B" + i).build()))
         );
 
-        List<Long> initialPermissionIds = List.of(buildings.get(0).getId(), buildings.get(1).getId());
+        // [수정] Long ID 리스트를 String ID 리스트로 변환합니다.
+        List<String> initialPermissionIds = List.of(
+                String.valueOf(buildings.get(0).getId()),
+                String.valueOf(buildings.get(1).getId())
+        );
         PermissionRequest permissionRequest = new PermissionRequest(ResourceType.FACILITY, initialPermissionIds);
         createRequest = new RoleCreateRequest("Test Role", "A role for testing", List.of(permissionRequest));
     }
@@ -64,11 +68,14 @@ class RoleServiceTest {
         assertThat(response.name()).isEqualTo("Test Role");
         assertThat(response.description()).isEqualTo("A role for testing");
 
-        // DTO의 그룹화된 권한 목록을 검증합니다.
+        // [수정] DTO의 그룹화된 권한 목록을 String ID 기준으로 검증합니다.
         assertThat(response.permissions()).hasSize(1);
-        assertThat(response.permissions().get(0).resourceName()).isEqualTo(ResourceType.FACILITY.getResourceName());
-        assertThat(response.permissions().get(0).resourceIds())
-                .containsExactlyInAnyOrder(buildings.get(0).getId(), buildings.get(1).getId());
+        assertThat(response.permissions().getFirst().resourceName()).isEqualTo(ResourceType.FACILITY.getResourceName());
+        assertThat(response.permissions().getFirst().resourceIds())
+                .containsExactlyInAnyOrder(
+                        String.valueOf(buildings.get(0).getId()),
+                        String.valueOf(buildings.get(1).getId())
+                );
     }
 
     @Test
@@ -83,12 +90,16 @@ class RoleServiceTest {
         RoleResponse response = roleService.findById(roleId);
 
         // THEN
+        // [수정] 권한 정보를 String ID 기준으로 검증합니다.
         assertThat(response.name()).isEqualTo("Test Role");
         assertThat(response.permissions()).isNotNull();
         assertThat(response.permissions()).hasSize(1);
-        assertThat(response.permissions().get(0).resourceIds()).hasSize(2);
-        assertThat(response.permissions().get(0).resourceIds())
-                .containsExactlyInAnyOrder(buildings.get(0).getId(), buildings.get(1).getId());
+        assertThat(response.permissions().getFirst().resourceIds()).hasSize(2);
+        assertThat(response.permissions().getFirst().resourceIds())
+                .containsExactlyInAnyOrder(
+                        String.valueOf(buildings.get(0).getId()),
+                        String.valueOf(buildings.get(1).getId())
+                );
     }
 
     @Test
@@ -99,8 +110,11 @@ class RoleServiceTest {
         em.flush();
         em.clear();
 
-        // 업데이트 요청: 1번은 삭제, 2번은 유지, 3번은 새로 추가 -> 최종 권한은 2, 3번 건물
-        List<Long> updatedPermissionIds = List.of(buildings.get(1).getId(), buildings.get(2).getId());
+        // [수정] 업데이트 요청: 1번은 삭제, 2번은 유지, 3번은 새로 추가 -> 최종 권한은 2, 3번 건물의 'String' ID
+        List<String> updatedPermissionIds = List.of(
+                String.valueOf(buildings.get(1).getId()),
+                String.valueOf(buildings.get(2).getId())
+        );
         PermissionRequest updatedPermissionRequest = new PermissionRequest(ResourceType.FACILITY, updatedPermissionIds);
         RoleUpdateRequest updateRequest = new RoleUpdateRequest("Updated Role", "Updated Description", List.of(updatedPermissionRequest));
 
@@ -115,10 +129,10 @@ class RoleServiceTest {
         assertThat(response.name()).isEqualTo("Updated Role");
         assertThat(response.description()).isEqualTo("Updated Description");
 
-        // 최종 권한이 올바르게 동기화되었는지 검증
+        // [수정] 최종 권한이 올바르게 동기화되었는지 String ID 기준으로 검증
         assertThat(response.permissions()).hasSize(1);
-        assertThat(response.permissions().get(0).resourceIds()).hasSize(2);
-        assertThat(response.permissions().get(0).resourceIds()).containsExactlyInAnyOrderElementsOf(updatedPermissionIds);
+        assertThat(response.permissions().getFirst().resourceIds()).hasSize(2);
+        assertThat(response.permissions().getFirst().resourceIds()).containsExactlyInAnyOrderElementsOf(updatedPermissionIds);
     }
 
     @Test
@@ -143,8 +157,6 @@ class RoleServiceTest {
         assertThrows(EntityNotFoundException.class, () -> roleService.findById(roleId));
 
         // 2. [중요] Permission 엔티티 자체는 삭제되지 않고 그대로 남아있어야 함을 검증
-        // 이 부분은 RoleService의 책임 범위를 벗어나는 사이드 이펙트 검증이므로,
-        // 예외적으로 PermissionRepository를 직접 사용하여 확인합니다.
         assertThat(permissionRepository.count()).isEqualTo(initialPermissionCount);
     }
 

@@ -60,21 +60,21 @@ class UserRolePermissionIntegrationTest {
 
     // 2. 기본 사용자 생성
     adminUser =
-        userRepository.save(User.builder().username("admin").password("pw").name("관리자").build());
+            userRepository.save(User.builder().username("admin").password("pw").name("관리자").build());
     adminUser.addRole(adminRole);
 
     editorUser =
-        userRepository.save(User.builder().username("editor").password("pw").name("편집자").build());
+            userRepository.save(User.builder().username("editor").password("pw").name("편집자").build());
 
     // 3. 테스트용 리소스(Facility) 5개 생성
     facilities.clear();
 
     IntStream.rangeClosed(1, 5)
-        .forEach(
-            i -> {
-              Building building = Building.builder().name("Facility" + i).code("F" + i).build();
-              facilities.add(facilityRepository.save(building));
-            });
+            .forEach(
+                    i -> {
+                      Building building = Building.builder().name("Facility" + i).code("F" + i).build();
+                      facilities.add(facilityRepository.save(building));
+                    });
 
     em.flush();
     em.clear();
@@ -82,10 +82,8 @@ class UserRolePermissionIntegrationTest {
 
   private void setAuthentication(User user) {
     SecurityContext context = SecurityContextHolder.createEmptyContext();
-    // 실제 인증 절차를 밟는 것이 아니므로, 간단한 인증 토큰을 생성하여 SecurityContext에 설정합니다.
-    // AOP Aspect에서는 이 컨텍스트에서 사용자 이름을 꺼내 권한을 검사하게 됩니다.
     context.setAuthentication(
-        new UsernamePasswordAuthenticationToken(user.getUsername(), null, null));
+            new UsernamePasswordAuthenticationToken(user.getUsername(), null, null));
     SecurityContextHolder.setContext(context);
   }
 
@@ -97,21 +95,23 @@ class UserRolePermissionIntegrationTest {
     // 1. 관리자로 로그인하여 역할을 생성하고 사용자에게 할당합니다.
     setAuthentication(adminUser);
 
-    // 2. 1번, 3번 시설에 대한 접근 권한을 정의합니다.
-    List<Long> permittedFacilityIds = List.of(facilities.get(0).getId(), facilities.get(2).getId());
+    // 2. [수정] 1번, 3번 시설에 대한 접근 권한을 'String' ID 리스트로 정의합니다.
+    List<String> permittedFacilityIds = List.of(
+            String.valueOf(facilities.get(0).getId()),
+            String.valueOf(facilities.get(2).getId())
+    );
     PermissionRequest permissionRequest =
-        new PermissionRequest(ResourceType.FACILITY, permittedFacilityIds);
+            new PermissionRequest(ResourceType.FACILITY, permittedFacilityIds);
 
     // 3. "시설 관리자" 역할을 생성하면서 위에서 정의한 권한을 부여합니다.
     RoleCreateRequest createRoleRequest =
-        new RoleCreateRequest("시설 관리자", "1, 3번 시설 접근 가능", List.of(permissionRequest));
+            new RoleCreateRequest("시설 관리자", "1, 3번 시설 접근 가능", List.of(permissionRequest));
     Long newRoleId = roleService.save(createRoleRequest);
 
     // 4. 생성된 "시설 관리자" 역할을 '편집자' 사용자에게 할당합니다.
     userService.assignRolesToUser(
-        editorUser.getId(), new UserRoleAssignRequest(List.of(newRoleId)));
+            editorUser.getId(), new UserRoleAssignRequest(List.of(newRoleId)));
 
-    // 영속성 컨텍스트를 초기화하여 이후 작업이 DB에서 직접 읽도록 보장합니다.
     em.flush();
     em.clear();
 
@@ -128,9 +128,12 @@ class UserRolePermissionIntegrationTest {
     // 7. 조회된 시설은 정확히 2개여야 합니다.
     assertThat(accessibleFacilities).hasSize(2);
 
-    // 8. 조회된 시설 목록의 ID가 우리가 허가한 ID 목록과 일치하는지 확인합니다.
-    List<Long> accessibleIds =
-        accessibleFacilities.stream().map(Facility::getId).collect(Collectors.toList());
+    // 8. [수정] 조회된 시설 목록의 ID를 'String' 리스트로 변환하여 우리가 허가한 ID 목록과 일치하는지 확인합니다.
+    List<String> accessibleIds =
+            accessibleFacilities.stream()
+                    .map(Facility::getId)
+                    .map(String::valueOf)
+                    .collect(Collectors.toList());
     assertThat(accessibleIds).containsExactlyInAnyOrderElementsOf(permittedFacilityIds);
 
     // 9. 추가 검증: 허가된 시설(1번)에 ID로 직접 접근하면 성공해야 합니다.
@@ -140,8 +143,8 @@ class UserRolePermissionIntegrationTest {
     // 10. 추가 검증: 허가되지 않은 시설(2번)에 ID로 직접 접근하면 예외가 발생해야 합니다.
     Long forbiddenId = facilities.get(1).getId();
     assertThrows(
-        CustomException.class,
-        () -> facilityService.findById(forbiddenId),
-        "허가되지 않은 리소스 접근 시 CustomException이 발생해야 합니다.");
+            CustomException.class,
+            () -> facilityService.findById(forbiddenId),
+            "허가되지 않은 리소스 접근 시 CustomException이 발생해야 합니다.");
   }
 }

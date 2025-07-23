@@ -26,15 +26,15 @@ public class Permission {
     private String resourceName;
 
     @Column(nullable = false)
-    private Long resourceId;
+    private String resourceId;
 
     @Builder
-    public Permission(String resourceName, Long resourceId) {
+    public Permission(String resourceName, String resourceId) {
         this.resourceName = resourceName;
         this.resourceId = resourceId;
     }
 
-    public boolean matches(String resourceName, Long resourceId) {
+    public boolean matches(String resourceName, String resourceId) {
         return this.resourceName.equalsIgnoreCase(resourceName) && this.resourceId.equals(resourceId);
     }
 

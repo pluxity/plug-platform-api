@@ -149,7 +149,7 @@ public class User extends BaseEntity {
         this.department = department;
     }
 
-    public boolean canAccess(String resourceName, Long resourceId) {
+    public boolean canAccess(String resourceName, String resourceId) {
         if (userRoles.stream()
                 .anyMatch(userRole -> "ADMIN".equalsIgnoreCase(userRole.getRole().getName()))) {
             return true;
