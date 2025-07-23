@@ -52,7 +52,6 @@ class LineServiceTest {
         testStation = Station.builder()
                 .name("테스트 역")
                 .description("테스트 역 설명")
-                .route("{\"name\": \"asdf\"}")
                 .build();
     }
 
@@ -230,7 +229,6 @@ class LineServiceTest {
                 .mapToObj(i -> Station.builder()
                         .name("테스트 역 " + i)
                         .description("테스트 역 설명 " + i)
-                        .route("{\"name\": \"route" + i + "\"}")
                         .build())
                 .map(stationRepository::save)
                 .toList();

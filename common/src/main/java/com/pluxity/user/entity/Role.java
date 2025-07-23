@@ -20,11 +20,11 @@ public class Role extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserRole> userRoles = new ArrayList<>();
+    @OneToMany(mappedBy = "role")
+    private final List<UserRole> userRoles = new ArrayList<>();
 
-    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
-    private Set<ResourcePermission> permissions = new HashSet<>();
+    @OneToMany(mappedBy = "role")
+    private final Set<RolePermission> rolePermissions = new HashSet<>();
 
     @Column(name = "name", nullable = false, unique = true)
     private String name;
@@ -51,7 +51,8 @@ public class Role extends BaseEntity {
     }
 
     public boolean hasPermissionFor(String resourceName, Long resourceId) {
-        return permissions.stream()
+        return rolePermissions.stream()
+                .map(RolePermission::getPermission)
                 .anyMatch(permission -> permission.matches(resourceName, resourceId));
     }
 }

@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 @Entity
 @Table(name = "station_line")
@@ -19,6 +21,7 @@ public class StationLine extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id")
+    @NotFound(action = NotFoundAction.IGNORE)
     private Station station;
 
     @ManyToOne(fetch = FetchType.LAZY)

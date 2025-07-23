@@ -1,15 +1,20 @@
 package com.pluxity.user.service;
 
-import com.pluxity.global.constant.ErrorCode;
-import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.SortUtils;
+import com.pluxity.user.dto.PermissionRequest;
 import com.pluxity.user.dto.RoleCreateRequest;
 import com.pluxity.user.dto.RoleResponse;
 import com.pluxity.user.dto.RoleUpdateRequest;
+import com.pluxity.user.entity.Permission;
 import com.pluxity.user.entity.Role;
+import com.pluxity.user.entity.RolePermission;
+import com.pluxity.user.repository.RolePermissionRepository;
 import com.pluxity.user.repository.RoleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +24,26 @@ import org.springframework.transaction.annotation.Transactional;
 public class RoleService {
 
     private final RoleRepository roleRepository;
+    private final PermissionService permissionService;
+    private final RolePermissionRepository rolePermissionRepository;
+
+    @Transactional
+    public Long save(RoleCreateRequest request) {
+        Role role = Role.builder().name(request.name()).description(request.description()).build();
+
+        roleRepository.save(role);
+
+        for (PermissionRequest permissionRequest : request.permissions()) {
+            for (Long resourceId : permissionRequest.resourceId()) {
+                Permission permission =
+                        permissionService.findOrCreatePermission(permissionRequest.resourceName(), resourceId);
+                rolePermissionRepository.save(
+                        RolePermission.builder().permission(permission).role(role).build());
+            }
+        }
+
+        return role.getId();
+    }
 
     @Transactional(readOnly = true)
     public RoleResponse findById(Long id) {
@@ -33,20 +58,7 @@ public class RoleService {
     }
 
     @Transactional
-    public RoleResponse save(RoleCreateRequest request) {
-        Role role = Role.builder().name(request.name()).description(request.description()).build();
-        roleRepository
-                .findByName(request.name())
-                .ifPresent(
-                        existingRole -> {
-                            throw new CustomException(ErrorCode.DUPLICATE_ROLE_NAME, request.name());
-                        });
-        Role savedRole = roleRepository.save(role);
-        return RoleResponse.from(savedRole);
-    }
-
-    @Transactional
-    public RoleResponse update(Long id, RoleUpdateRequest request) {
+    public void update(Long id, RoleUpdateRequest request) {
         Role role = findRoleById(id);
 
         if (request.name() != null && !request.name().isBlank()) {
@@ -55,12 +67,66 @@ public class RoleService {
         if (request.description() != null) {
             role.changeDescription(request.description());
         }
-        return RoleResponse.from(role);
+
+        if (request.permissions() != null) {
+            syncPermissions(role, request.permissions());
+        }
+    }
+
+    private void syncPermissions(Role role, List<PermissionRequest> requestedPermissions) {
+
+        // Step 1: 요청된 모든 권한(Permission) 객체를 준비합니다. (DB에서 찾거나 새로 생성)
+        Set<Permission> requestedPermissionSet =
+                requestedPermissions.stream()
+                        .flatMap(
+                                pr ->
+                                        pr.resourceId().stream()
+                                                .map(
+                                                        resourceId ->
+                                                                permissionService.findOrCreatePermission(
+                                                                        pr.resourceName(), resourceId)))
+                        .collect(Collectors.toSet());
+
+        // Step 2: 현재 역할(Role)이 가지고 있는 실제 권한(Permission) 객체 목록을 가져옵니다.
+        Map<Long, RolePermission> currentRolePermissionMap =
+                role.getRolePermissions().stream()
+                        .collect(Collectors.toMap(rp -> rp.getPermission().getId(), rp -> rp));
+        Set<Permission> currentPermissionSet =
+                currentRolePermissionMap.values().stream()
+                        .map(RolePermission::getPermission)
+                        .collect(Collectors.toSet());
+
+        // Step 3: 삭제해야 할 권한을 찾아서 RolePermission 연결을 끊습니다.
+        // (현재 권한 목록에는 있지만, 요청된 권한 목록에는 없는 것)
+        Set<Permission> permissionsToRemove =
+                currentPermissionSet.stream()
+                        .filter(p -> !requestedPermissionSet.contains(p))
+                        .collect(Collectors.toSet());
+
+        if (!permissionsToRemove.isEmpty()) {
+            List<RolePermission> rolePermissionsToRemove =
+                    permissionsToRemove.stream().map(p -> currentRolePermissionMap.get(p.getId())).toList();
+            rolePermissionRepository.deleteAll(rolePermissionsToRemove);
+            rolePermissionsToRemove.forEach(role.getRolePermissions()::remove);
+        }
+
+        // Step 4: 추가해야 할 권한을 찾아서 새로운 RolePermission을 생성합니다.
+        // (요청된 권한 목록에는 있지만, 현재 권한 목록에는 없는 것)
+        requestedPermissionSet.stream()
+                .filter(p -> !currentPermissionSet.contains(p))
+                .forEach(
+                        permissionToAdd -> {
+                            RolePermission newRolePermission =
+                                    RolePermission.builder().role(role).permission(permissionToAdd).build();
+                            rolePermissionRepository.save(newRolePermission);
+                            role.getRolePermissions().add(newRolePermission);
+                        });
     }
 
     @Transactional
     public void delete(Long id) {
         Role role = findRoleById(id);
+        rolePermissionRepository.deleteAllByRole(role);
         roleRepository.delete(role);
     }
 
