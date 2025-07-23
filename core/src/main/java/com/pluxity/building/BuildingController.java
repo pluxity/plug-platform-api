@@ -151,8 +151,8 @@ public class BuildingController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping("/{id}")
-    public ResponseEntity<Void> patch(
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> put(
             @Parameter(description = "건물 ID", required = true) @PathVariable Long id,
             @Parameter(description = "건물 수정 정보", required = true) @Valid @RequestBody
                     BuildingUpdateRequest request) {

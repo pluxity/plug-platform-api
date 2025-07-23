@@ -152,8 +152,8 @@ public class StationController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping("/{id}")
-    public ResponseEntity<Void> patch(
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> put(
             @Parameter(description = "스테이션 ID", required = true) @PathVariable Long id,
             @Parameter(description = "스테이션 수정 정보", required = true) @Valid @RequestBody
                     StationUpdateRequest request) {

@@ -132,11 +132,10 @@ public class StationService {
 
     @Transactional
     public void update(Long id, StationUpdateRequest request) {
-        // 먼저 스테이션을 조회
         Station station = findStationById(id);
 
         facilityService.update(id, request.facility());
-        floorService.save(station, request.floors());
+        floorService.update(station, request.floors());
 
         if (request.lineIds() != null) {
             station.getStationLines().clear();
