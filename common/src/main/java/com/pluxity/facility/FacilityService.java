@@ -126,6 +126,29 @@ public class FacilityService {
     }
 
     @Transactional
+    public void putUpdate(Long id, @Valid FacilityUpdateRequest request) {
+        Facility facility = findById(id);
+
+        if (request.code() != null && !request.code().equals(facility.getCode())) {
+            checkDuplicateCode(request.code());
+        }
+
+        facility.updateCode(request.code());
+        facility.updateName(request.name());
+        facility.updateDescription(request.description());
+
+        if (request.thumbnailFileId() != null
+                && !request.thumbnailFileId().equals(facility.getThumbnailFileId())) {
+            String filePath = PREFIX + facility.getId() + "/";
+            facility.updateThumbnailFileId(
+                    fileService.finalizeUpload(request.thumbnailFileId(), filePath));
+        } else {
+            facility.updateThumbnailFileId((Long) null);
+        }
+        facility.updatePosition(request.lon(), request.lat(), request.locationMeta());
+    }
+
+    @Transactional
     public void update(Long id, Facility newFacility) {
         Facility facility = findById(id);
 

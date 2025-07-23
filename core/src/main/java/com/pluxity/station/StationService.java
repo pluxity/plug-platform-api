@@ -155,6 +155,33 @@ public class StationService {
     }
 
     @Transactional
+    public void putUpdate(Long id, StationUpdateRequest request) {
+        Station station = findStationById(id);
+
+        facilityService.putUpdate(id, request.facility());
+        floorService.update(station, request.floors());
+
+        if (request.lineIds() != null) {
+            station.getStationLines().clear();
+            for (Long lineId : request.lineIds()) {
+                Line line = lineService.findLineById(lineId);
+                station.addLine(line);
+            }
+        } else {
+            station.getStationLines().clear();
+        }
+
+        if (request.stationCodes() != null) {
+            station.getStationCodes().clear();
+            for (String code : request.stationCodes()) {
+                station.addStationCode(code);
+            }
+        } else {
+            station.getStationCodes().clear();
+        }
+    }
+
+    @Transactional
     public void delete(Long id) {
         // 삭제할 스테이션 조회
         Station station = findStationById(id);

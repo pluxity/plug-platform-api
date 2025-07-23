@@ -3,6 +3,7 @@ package com.pluxity.user.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import lombok.Builder;
 
 @Builder
@@ -21,4 +22,5 @@ public record UserCreateRequest(
                 String name,
         @Size(max = 20, message = "코드는 20자 이하 여야 합니다.") String code,
         @Size(max = 20, message = "연락처는 20자 이하 여야 합니다.") String phoneNumber,
-        @Size(max = 50, message = "부서는 50자 이하 여야 합니다.") String department) {}
+        @Size(max = 50, message = "부서는 50자 이하 여야 합니다.") String department,
+        List<Long> roleIds) {}
