@@ -37,6 +37,7 @@ public class StationService {
     private final StationRepository stationRepository;
     private final LineService lineService;
     private final Label3DRepository label3DRepository;
+    private final StationCodeService stationCodeService;
 
     @Transactional
     public Long save(StationCreateRequest request) {
@@ -59,7 +60,7 @@ public class StationService {
         }
         if (request.stationCodes() != null && !request.stationCodes().isEmpty()) {
             for (String stationCode : request.stationCodes()) {
-                station.addStationCode(stationCode);
+                stationCodeService.save(station, stationCode);
             }
         }
 
@@ -73,6 +74,8 @@ public class StationService {
                 MappingUtils.getFileMapByIds(
                         stations, v -> Stream.of(v.getDrawingFileId(), v.getThumbnailFileId()), fileService);
         Map<Facility, List<FloorResponse>> floorMap = floorService.findAllByFacilities(stations);
+        Map<Station, List<String>> stationCodeMap =
+                stationCodeService.findCodeMapByStationIds(stations);
         return stations.stream()
                 .map(
                         station -> {
@@ -89,8 +92,7 @@ public class StationService {
                                                     fileMap.get(station.getThumbnailFileId())))
                                     .floors(floorMap.get(station))
                                     .lineIds(lineIds)
-                                    .stationCodes(
-                                            station.getStationCodes().stream().map(StationCode::getCode).toList())
+                                    .stationCodes(stationCodeMap.get(station))
                                     .build();
                         })
                 .toList();
@@ -114,7 +116,7 @@ public class StationService {
                                 fileService.getFileResponse(station.getThumbnailFileId())))
                 .floors(floorResponse)
                 .lineIds(lineIds)
-                .stationCodes(station.getStationCodes().stream().map(StationCode::getCode).toList())
+                .stationCodes(stationCodeService.findCodesByStation(station))
                 .build();
     }
 
@@ -145,9 +147,9 @@ public class StationService {
             }
         }
         if (request.stationCodes() != null) {
-            station.getStationCodes().clear();
+            stationCodeService.deleteByStation(station);
             for (String code : request.stationCodes()) {
-                station.addStationCode(code);
+                stationCodeService.save(station, code);
             }
         }
     }
@@ -160,6 +162,7 @@ public class StationService {
         // Floor 삭제 및 Facility 삭제
         floorService.delete(station);
         facilityService.deleteFacility(id);
+        stationCodeService.deleteByStation(station);
     }
 
     @Transactional
@@ -215,8 +218,7 @@ public class StationService {
                         .map(Label3DResponse::from)
                         .collect(Collectors.toList());
 
-        List<String> stationCodes =
-                station.getStationCodes().stream().map(StationCode::getCode).toList();
+        List<String> stationCodes = stationCodeService.findCodesByStation(station);
 
         return StationResponseWithFeature.builder()
                 .facility(facilityResponse)
