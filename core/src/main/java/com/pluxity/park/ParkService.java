@@ -99,4 +99,10 @@ public class ParkService {
         Park park = findPark(id);
         facilityService.deleteFacility(id);
     }
+
+    @Transactional(readOnly = true)
+    public List<FacilityResponse> findAllFacilities() {
+        List<Park> parks = parkRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
+        return MappingUtils.mapWithFiles(parks, fileService);
+    }
 }

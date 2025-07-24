@@ -2,23 +2,25 @@ package com.pluxity.facility;
 
 import com.pluxity.building.BuildingService;
 import com.pluxity.facility.dto.*;
+import com.pluxity.park.ParkService;
 import com.pluxity.station.StationService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class FacilityApiService {
 
     private final BuildingService buildingService;
     private final StationService stationService;
     private final FacilityService facilityService;
+    private final ParkService parkService;
 
-    protected FacilityAllResponse findAll() {
+    public FacilityAllResponse findAll() {
         return FacilityAllResponse.from(
-                buildingService.findAllFacilities(), stationService.findAllFacilities());
+                buildingService.findAllFacilities(),
+                stationService.findAllFacilities(),
+                parkService.findAllFacilities());
     }
 
     public void updateDrawingFile(Long id, FacilityDrawingUpdateRequest request) {
