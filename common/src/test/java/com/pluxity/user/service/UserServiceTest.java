@@ -325,29 +325,36 @@ class UserServiceTest {
     @Test
     @DisplayName("사용자에게 역할 할당 - 성공")
     void assignRolesToUser_Success() {
-        // given
-        UserRoleAssignRequest request = new UserRoleAssignRequest(List.of(1L));
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser));
-        when(roleRepository.findById(1L)).thenReturn(Optional.of(testRole));
+        Long userId = 1L;
+        List<Long> roleIds = List.of(1L);
+        UserRoleAssignRequest request = new UserRoleAssignRequest(roleIds);
+
+        List<Role> expectedRoles = List.of(testRole);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+
+        when(roleRepository.findAllById(roleIds)).thenReturn(expectedRoles);
 
         // when
-        UserResponse response = userService.assignRolesToUser(1L, request);
+        UserResponse response = userService.assignRolesToUser(userId, request);
 
         // then
         assertThat(response).isNotNull();
-        verify(userRepository, times(1)).findById(1L);
-        verify(roleRepository, times(1)).findById(1L);
-        verify(testUser, times(1)).addRoles(anyList());
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(roleRepository, times(1)).findAllById(roleIds);
+        verify(testUser, times(1)).updateRoles(expectedRoles);
     }
 
     @Test
     @DisplayName("사용자에게 여러 역할 할당 - 성공")
     void assignMultipleRolesToUser_Success() {
         // given
-        UserRoleAssignRequest request = new UserRoleAssignRequest(List.of(1L, 2L));
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(testUser));
-        when(roleRepository.findById(1L)).thenReturn(Optional.of(testRole));
-        when(roleRepository.findById(2L)).thenReturn(Optional.of(adminRole));
+        List<Long> roleIds = List.of(1L, 2L);
+        UserRoleAssignRequest request = new UserRoleAssignRequest(roleIds);
+        List<Role> roles = List.of(testRole, adminRole);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(roleRepository.findAllById(roleIds)).thenReturn(roles);
 
         // when
         UserResponse response = userService.assignRolesToUser(1L, request);
@@ -355,9 +362,8 @@ class UserServiceTest {
         // then
         assertThat(response).isNotNull();
         verify(userRepository, times(1)).findById(1L);
-        verify(roleRepository, times(1)).findById(1L);
-        verify(roleRepository, times(1)).findById(2L);
-        verify(testUser, times(1)).addRoles(anyList());
+        verify(roleRepository, times(1)).findAllById(roleIds);
+        verify(testUser, times(1)).updateRoles(roles);
     }
 
     @Test

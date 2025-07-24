@@ -67,7 +67,8 @@ public class UserService {
                         .build();
 
         if (request.roleIds() != null && !request.roleIds().isEmpty()) {
-            assignRole(request.roleIds(), user);
+            List<Role> roles = request.roleIds().stream().map(this::findRoleById).toList();
+            user.addRoles(roles);
         }
 
         User savedUser = userRepository.save(user);
@@ -79,8 +80,9 @@ public class UserService {
         User user = findUserById(id);
         updateUserFields(user, request);
 
-        if (request.roleIds() != null && !request.roleIds().isEmpty()) {
-            assignRole(request.roleIds(), user);
+        if (request.roleIds() != null) {
+            List<Role> roles = roleRepository.findAllById(request.roleIds());
+            user.updateRoles(roles);
         }
 
         return UserResponse.from(user);
@@ -95,14 +97,10 @@ public class UserService {
     @Transactional
     public UserResponse assignRolesToUser(Long userId, UserRoleAssignRequest request) {
         User user = findUserById(userId);
-        assignRole(request.roleIds(), user);
+        List<Role> roles = roleRepository.findAllById(request.roleIds());
+        user.updateRoles(roles);
 
         return UserResponse.from(user);
-    }
-
-    private void assignRole(List<Long> roleIds, User user) {
-        List<Role> roles = roleIds.stream().map(this::findRoleById).toList();
-        user.addRoles(roles);
     }
 
     @Transactional
