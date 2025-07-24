@@ -2,12 +2,10 @@ package com.pluxity.user.dto;
 
 import com.pluxity.user.entity.ResourceType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
 
-public record PermissionRequest(
+public record PermissionCreateRequest(
         @NotNull @Schema(description = "권한을 관리할 리소스의 타입", example = "FACILITY")
                 ResourceType resourceName,
-        @NotEmpty @Schema(description = "권한을 부여/관리할 리소스들의 ID 목록", example = "[101, 102, 105]")
-                List<String> resourceId) {}
+        @NotBlank @Schema(description = "권한을 부여/관리할 리소스의 ID", example = "101") String resourceId) {}

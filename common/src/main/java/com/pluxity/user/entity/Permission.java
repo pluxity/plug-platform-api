@@ -1,5 +1,6 @@
 package com.pluxity.user.entity;
 
+import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Objects;
@@ -13,13 +14,13 @@ import lombok.NoArgsConstructor;
 @Table(name = "permission")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Permission {
+public class Permission extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "permission")
+    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
     private final Set<RolePermission> rolePermissions = new HashSet<>();
 
     @Column(nullable = false)
@@ -31,6 +32,14 @@ public class Permission {
     @Builder
     public Permission(String resourceName, String resourceId) {
         this.resourceName = resourceName;
+        this.resourceId = resourceId;
+    }
+
+    public void changeResourceName(String resourceName) {
+        this.resourceName = resourceName;
+    }
+
+    public void changeResourceId(String resourceId) {
         this.resourceId = resourceId;
     }
 

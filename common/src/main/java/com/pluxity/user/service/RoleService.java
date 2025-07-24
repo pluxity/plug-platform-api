@@ -1,7 +1,6 @@
 package com.pluxity.user.service;
 
 import com.pluxity.global.utils.SortUtils;
-import com.pluxity.user.dto.PermissionRequest;
 import com.pluxity.user.dto.RoleCreateRequest;
 import com.pluxity.user.dto.RoleResponse;
 import com.pluxity.user.dto.RoleUpdateRequest;
@@ -11,6 +10,7 @@ import com.pluxity.user.entity.RolePermission;
 import com.pluxity.user.repository.RolePermissionRepository;
 import com.pluxity.user.repository.RoleRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,10 +34,9 @@ public class RoleService {
 
         roleRepository.save(role);
 
-        for (PermissionRequest permissionRequest : request.permissions()) {
-            for (String resourceId : permissionRequest.resourceId()) {
-                Permission permission =
-                        permissionService.findOrCreatePermission(permissionRequest.resourceName(), resourceId);
+        if (request.permissionIds() != null) {
+            for (Long permissionId : request.permissionIds()) {
+                Permission permission = permissionService.findById(permissionId);
                 rolePermissionRepository.save(
                         RolePermission.builder().permission(permission).role(role).build());
             }
@@ -69,24 +68,16 @@ public class RoleService {
             role.changeDescription(request.description());
         }
 
-        if (request.permissions() != null) {
-            syncPermissions(role, request.permissions());
+        if (request.permissionIds() != null) {
+            syncPermissions(role, request.permissionIds());
         }
     }
 
-    private void syncPermissions(Role role, List<PermissionRequest> requestedPermissions) {
+    private void syncPermissions(Role role, List<Long> requestedPermissionIds) {
 
-        // Step 1: 요청된 모든 권한(Permission) 객체를 준비합니다. (DB에서 찾거나 새로 생성)
-        Set<Permission> requestedPermissionSet =
-                requestedPermissions.stream()
-                        .flatMap(
-                                pr ->
-                                        pr.resourceId().stream()
-                                                .map(
-                                                        resourceId ->
-                                                                permissionService.findOrCreatePermission(
-                                                                        pr.resourceName(), resourceId)))
-                        .collect(Collectors.toSet());
+        // Step 1: 요청된 모든 권한(Permission) 객체를 준비합니다.
+        List<Permission> permissions = permissionService.findAllByIds(requestedPermissionIds);
+        Set<Permission> requestedPermissionSet = new HashSet<>(permissions);
 
         // Step 2: 현재 역할(Role)이 가지고 있는 실제 권한(Permission) 객체 목록을 가져옵니다.
         Map<Long, RolePermission> currentRolePermissionMap =
