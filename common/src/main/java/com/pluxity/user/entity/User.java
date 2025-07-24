@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -118,11 +119,20 @@ public class User extends BaseEntity {
     }
 
     public void updateRoles(List<Role> newRoles) {
-        Objects.requireNonNull(newRoles, "Roles list must not be null");
+        Objects.requireNonNull(newRoles, "newRoles list must not be null");
 
-        clearRoles();
+        Set<Long> newRoleIds = newRoles.stream().map(Role::getId).collect(Collectors.toSet());
 
-        newRoles.forEach(this::addRole);
+        this.userRoles.removeIf(userRole -> !newRoleIds.contains(userRole.getRole().getId()));
+
+        Set<Long> currentRoleIds =
+                this.userRoles.stream()
+                        .map(userRole -> userRole.getRole().getId())
+                        .collect(Collectors.toSet());
+
+        newRoles.stream()
+                .filter(newRole -> !currentRoleIds.contains(newRole.getId()))
+                .forEach(this::addRole);
     }
 
     public void clearRoles() {
@@ -134,7 +144,9 @@ public class User extends BaseEntity {
     }
 
     public boolean hasRole(Role role) {
-        return userRoles.stream().map(UserRole::getRole).anyMatch(r -> r.equals(role));
+        return userRoles.stream()
+                .map(UserRole::getRole)
+                .anyMatch(r -> Objects.equals(r.getId(), role.getId()));
     }
 
     public void changeName(String name) {

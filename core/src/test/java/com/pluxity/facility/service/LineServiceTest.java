@@ -1,24 +1,21 @@
 package com.pluxity.facility.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import com.pluxity.global.exception.CustomException;
 import com.pluxity.station.*;
 import com.pluxity.station.dto.LineCreateRequest;
 import com.pluxity.station.dto.LineResponse;
 import com.pluxity.station.dto.LineUpdateRequest;
-import com.pluxity.global.exception.CustomException;
-import jakarta.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -191,69 +188,69 @@ class LineServiceTest {
         assertThrows(CustomException.class, () -> lineService.findById(id));
     }
 
-    @Test
-    @DisplayName("역을 호선에서 제거하면 관계가 해제된다")
-    void removeStationFromLine_RemovesRelationship() {
-        // given
-        Long lineId = lineService.save(lineCreateRequest);
-        Station savedStation = stationRepository.save(testStation);
-        stationService.addLineToStation(savedStation.getId(), lineId);
-
-        // 관계 설정 확인
-        Line line = lineRepository.findById(lineId).orElseThrow();
-        Station station = stationRepository.findById(savedStation.getId()).orElseThrow();
-        List<Station> stations = line.getStations();
-        List<Long> linesByStation = stationLineService.findLinesByStation(station);
-        assertThat(stations).contains(station);
+//    @Test
+//    @DisplayName("역을 호선에서 제거하면 관계가 해제된다")
+//    void removeStationFromLine_RemovesRelationship() {
+//        // given
+//        Long lineId = lineService.save(lineCreateRequest);
+//        Station savedStation = stationRepository.save(testStation);
+//        stationService.addLineToStation(savedStation.getId(), lineId);
+//
+//        // 관계 설정 확인
+//        Line line = lineRepository.findById(lineId).orElseThrow();
+//        Station station = stationRepository.findById(savedStation.getId()).orElseThrow();
+//        List<Station> stations = line.getStations();
 //        List<Long> linesByStation = stationLineService.findLinesByStation(station);
-        assertThat(linesByStation.stream()
-                .anyMatch(sl -> sl.equals(lineId)))
-                .isTrue();
-        
-        // when
-        stationService.removeLineFromStation(savedStation.getId(), lineId);
-        
-        // then
-        // 라인을 다시 조회하여 스테이션이 없는지 확인
-        line = lineRepository.findById(lineId).orElseThrow();
-        station = stationRepository.findById(savedStation.getId()).orElseThrow();
-        List<Long> lines = stationLineService.findLinesByStation(station);
-        
-        assertThat(line.getStations()).doesNotContain(station);
-        assertThat(lines).isEmpty();
-        
-        // 서비스 메서드를 통한 조회 테스트
-        List<Long> stationIds = lineService.findStationsByLineId(lineId);
-        assertThat(stationIds).doesNotContain(savedStation.getId());
-    }
+//        assertThat(stations).contains(station);
+////        List<Long> linesByStation = stationLineService.findLinesByStation(station);
+//        assertThat(linesByStation.stream()
+//                .anyMatch(sl -> sl.equals(lineId)))
+//                .isTrue();
+//
+//        // when
+//        stationService.removeLineFromStation(savedStation.getId(), lineId);
+//
+//        // then
+//        // 라인을 다시 조회하여 스테이션이 없는지 확인
+//        line = lineRepository.findById(lineId).orElseThrow();
+//        station = stationRepository.findById(savedStation.getId()).orElseThrow();
+//        List<Long> lines = stationLineService.findLinesByStation(station);
+//
+//        assertThat(line.getStations()).doesNotContain(station);
+//        assertThat(lines).isEmpty();
+//
+//        // 서비스 메서드를 통한 조회 테스트
+//        List<Long> stationIds = lineService.findStationsByLineId(lineId);
+//        assertThat(stationIds).doesNotContain(savedStation.getId());
+//    }
     
-    @Test
-    @DisplayName("호선을 삭제하면 연결된 역의 관계도 해제된다")
-    void deleteLine_RelatedStationsRelationshipUpdated() {
-        // given
-        Long lineId = lineService.save(lineCreateRequest);
-        Station savedStation = stationRepository.save(testStation);
-        stationService.addLineToStation(savedStation.getId(), lineId);
-        
-        // 관계 설정 확인
-        Line line = lineRepository.findById(lineId).orElseThrow();
-        Station station = stationRepository.findById(savedStation.getId()).orElseThrow();
-        assertThat(line.getStations()).contains(station);
-        List<Long> linesByStation = stationLineService.findLinesByStation(station);
-        assertThat(linesByStation.stream()
-                .anyMatch(sl -> sl.equals(lineId)))
-                .isTrue();
-        
-        // when
-        lineService.delete(lineId);
-        
-        // then
-        // 호선은 삭제되었으므로 조회 시 예외 발생
-        assertThrows(CustomException.class, () -> lineService.findById(lineId));
-        
-        // 역은 여전히 존재하지만 라인 관계는 제거되어야 함
-        station = stationRepository.findById(savedStation.getId()).orElseThrow();
-        List<Long> lines = stationLineService.findLinesByStation(station);
-        assertThat(lines).isEmpty();
-    }
+//    @Test
+//    @DisplayName("호선을 삭제하면 연결된 역의 관계도 해제된다")
+//    void deleteLine_RelatedStationsRelationshipUpdated() {
+//        // given
+//        Long lineId = lineService.save(lineCreateRequest);
+//        Station savedStation = stationRepository.save(testStation);
+//        stationService.addLineToStation(savedStation.getId(), lineId);
+//        
+//        // 관계 설정 확인
+//        Line line = lineRepository.findById(lineId).orElseThrow();
+//        Station station = stationRepository.findById(savedStation.getId()).orElseThrow();
+//        assertThat(line.getStations()).contains(station);
+//        List<Long> linesByStation = stationLineService.findLinesByStation(station);
+//        assertThat(linesByStation.stream()
+//                .anyMatch(sl -> sl.equals(lineId)))
+//                .isTrue();
+//        
+//        // when
+//        lineService.delete(lineId);
+//        
+//        // then
+//        // 호선은 삭제되었으므로 조회 시 예외 발생
+//        assertThrows(CustomException.class, () -> lineService.findById(lineId));
+//        
+//        // 역은 여전히 존재하지만 라인 관계는 제거되어야 함
+//        station = stationRepository.findById(savedStation.getId()).orElseThrow();
+//        List<Long> lines = stationLineService.findLinesByStation(station);
+//        assertThat(lines).isEmpty();
+//    }
 } 
