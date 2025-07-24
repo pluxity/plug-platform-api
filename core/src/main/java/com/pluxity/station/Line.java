@@ -46,4 +46,12 @@ public class Line extends BaseEntity {
             this.name = line.name;
         }
     }
+
+    public void removeStationLine(StationLine stationLine) {
+        stationLines.remove(stationLine);
+    }
+
+    public void addStationLine(StationLine stationLine) {
+        stationLines.add(stationLine);
+    }
 }

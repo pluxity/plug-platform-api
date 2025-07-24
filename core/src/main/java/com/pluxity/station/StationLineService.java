@@ -1,5 +1,7 @@
 package com.pluxity.station;
 
+import com.pluxity.global.constant.ErrorCode;
+import com.pluxity.global.exception.CustomException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,9 @@ public class StationLineService {
 
     @Transactional
     public void save(Station station, Line line) {
-        stationLineRepository.save(StationLine.builder().station(station).line(line).build());
+        StationLine stationLine =
+                stationLineRepository.save(StationLine.builder().station(station).line(line).build());
+        line.addStationLine(stationLine);
     }
 
     @Transactional(readOnly = true)
@@ -51,6 +55,11 @@ public class StationLineService {
 
     @Transactional
     public void deleteStationLine(Station station, Line line) {
-        stationLineRepository.deleteByStationAndLine(station, line);
+        StationLine stationLine =
+                stationLineRepository
+                        .findByStationAndLine(station, line)
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_DEVICE, station.getId()));
+        line.removeStationLine(stationLine);
+        stationLineRepository.delete(stationLine);
     }
 }
