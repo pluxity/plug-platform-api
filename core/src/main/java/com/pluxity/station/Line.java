@@ -18,7 +18,7 @@ public class Line extends BaseEntity {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "line", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "line")
     private final List<StationLine> stationLines = new ArrayList<>();
 
     @Column(name = "name", unique = true, nullable = false, length = 50)

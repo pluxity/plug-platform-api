@@ -171,9 +171,9 @@ public class StationService {
 
         // Floor 삭제 및 Facility 삭제
         floorService.delete(station);
-        facilityService.deleteFacility(id);
         stationLineService.deleteByStation(station);
         stationCodeService.deleteByStation(station);
+        facilityService.deleteFacility(id);
     }
 
     @Transactional

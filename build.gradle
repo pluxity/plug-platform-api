@@ -77,7 +77,6 @@ subprojects {
 
         implementation 'org.flywaydb:flyway-core'
 
-        implementation 'org.springframework.data:spring-data-envers'
         implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.11.0")
 
         implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
