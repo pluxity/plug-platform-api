@@ -58,7 +58,10 @@ public class StationLineService {
         StationLine stationLine =
                 stationLineRepository
                         .findByStationAndLine(station, line)
-                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_DEVICE, station.getId()));
+                        .orElseThrow(
+                                () ->
+                                        new CustomException(
+                                                ErrorCode.NOT_FOUND_STATION_LINE, station.getId(), line.getId()));
         line.removeStationLine(stationLine);
         stationLineRepository.delete(stationLine);
     }
