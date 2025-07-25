@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AssetCategory extends Category<AssetCategory> {
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "category")
     private final List<Asset> assets = new ArrayList<>();
 
     @Column(name = "code", unique = true, length = 10)

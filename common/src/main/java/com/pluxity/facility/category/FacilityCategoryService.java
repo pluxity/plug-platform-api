@@ -35,7 +35,7 @@ public class FacilityCategoryService {
                     .findByNameAndParentId(request.name(), request.parentId())
                     .ifPresent(
                             existingCategory -> {
-                                throw new CustomException(ErrorCode.INVALID_REFERENCE, "이미 존재하는 카테고리 이름입니다.");
+                                throw new CustomException(ErrorCode.INVALID_REFERENCE, request.name());
                             });
 
             parent =
@@ -94,7 +94,7 @@ public class FacilityCategoryService {
         if (request.parentId() != null) {
 
             if (request.parentId().equals(id)) {
-                throw new CustomException(ErrorCode.INVALID_REFERENCE, "자기 자신을 부모로 설정할 수 없습니다.");
+                throw new CustomException(ErrorCode.INVALID_PARENT_CATEGORY);
             }
             FacilityCategory parent =
                     repository
@@ -117,7 +117,11 @@ public class FacilityCategoryService {
                         .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CATEGORY, id));
 
         if (!facility.getChildren().isEmpty()) {
-            throw new CustomException(ErrorCode.PERMISSION_DENIED, "하위 카테고리가 있어 삭제할 수 없습니다.");
+            throw new CustomException(ErrorCode.FACILITY_CATEGORY_HAS_CHILDREN);
+        }
+
+        if (!facility.getFacilities().isEmpty()) {
+            throw new CustomException(ErrorCode.FACILITY_CATEGORY_HAS_FACILITY);
         }
 
         repository.delete(facility);

@@ -42,6 +42,8 @@ public enum ErrorCode implements Code {
 
     ASSET_CATEGORY_HAS_ASSET(BAD_REQUEST, "에셋 카테고리에 에셋이 있어 삭제할 수 없습니다."),
     ASSET_CATEGORY_HAS_CHILDREN(BAD_REQUEST, "에셋 카테고리에 하위 카테고리가 있어 삭제할 수 없습니다."),
+    FACILITY_CATEGORY_HAS_FACILITY(BAD_REQUEST, "시설 카테고리에 시설이 있어 삭제할 수 없습니다."),
+    FACILITY_CATEGORY_HAS_CHILDREN(BAD_REQUEST, "시설 카테고리에 하위 카테고리가 있어 삭제할 수 없습니다."),
 
     DEVICE_ALREADY_HAS_FEATURE(BAD_REQUEST, "디바이스는 이미 %s Feature를 가지고 있습니다."),
     FEATURE_HAS_NOT_DEVICE(BAD_REQUEST, "%s Feature에 할당된 디바이스가 존재하지 않습니다."),
@@ -58,6 +60,7 @@ public enum ErrorCode implements Code {
     DUPLICATE_FACILITY_CODE(BAD_REQUEST, "코드가 %s인 시설이 이미 존재합니다."),
     DUPLICATE_LINE_NAME(BAD_REQUEST, "이름이 %s인 노선이 이미 존재합니다."),
     DUPLICATE_PERMISSION_NAME_ID(BAD_REQUEST, "resource name이 %s이고 id가 %s인 Permission이 이미 존재합니다."),
+    DUPLICATE_FACILITY_CATEGORY_CODE(BAD_REQUEST, "이름이 %s인 에셋 카테고리가 이미 존재합니다."),
 
     NOT_FOUND_STATION(NOT_FOUND, "ID가 %s인 역을 찾을 수 없습니다."),
     NOT_FOUND_BUILDING(NOT_FOUND, "ID가 %s인 건물을 찾을 수 없습니다."),
