@@ -51,7 +51,7 @@ public class CommonApiConfig {
     public GroupedOpenApi userApiByPath() {
         return GroupedOpenApi.builder()
                 .group("4. 사용자 API")
-                .pathsToMatch("/users/**", "/admin/users/**", "/roles/**")
+                .pathsToMatch("/users/**", "/admin/users/**", "/roles/**", "/permissions/**")
                 .build();
     }
 
@@ -64,7 +64,8 @@ public class CommonApiConfig {
                         "/facility-categories/**",
                         "/buildings/**",
                         "/stations/**",
-                        "/lines/**")
+                        "/lines/**",
+                        "/parks/**")
                 .build();
     }
 
