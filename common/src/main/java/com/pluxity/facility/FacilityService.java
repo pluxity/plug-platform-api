@@ -34,37 +34,32 @@ public class FacilityService {
 
     @Transactional
     public Facility save(Facility facility, @Valid FacilityCreateRequest request) {
-        try {
-            // 코드 중복 검사
-            if (request.code() != null && !request.code().isEmpty()) {
-                checkDuplicateCode(request.code());
-                facility.updateCode(request.code());
-            }
-
-            Facility savedFacility = facilityRepository.save(facility);
-
-            String filePath = PREFIX + savedFacility.getId() + "/";
-            if (request.drawingFileId() != null) {
-                facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
-                facilityHistoryService.save(request.drawingFileId(), facility.getId(), "최초등록");
-            }
-
-            if (request.thumbnailFileId() != null) {
-                facility.updateThumbnailFileId(
-                        fileService.finalizeUpload(request.thumbnailFileId(), filePath));
-            }
-            facility.updatePosition(
-                    FacilityPosition.builder()
-                            .lon(request.lon())
-                            .lat(request.lat())
-                            .locationMeta(request.locationMeta())
-                            .build());
-
-            return savedFacility;
-        } catch (Exception e) {
-            log.error("Facility creation failed: {}", e.getMessage());
-            throw new IllegalStateException("Facility creation failed", e);
+        // 코드 중복 검사
+        if (request.code() != null && !request.code().isEmpty()) {
+            checkDuplicateCode(request.code());
+            facility.updateCode(request.code());
         }
+
+        Facility savedFacility = facilityRepository.save(facility);
+
+        String filePath = PREFIX + savedFacility.getId() + "/";
+        if (request.drawingFileId() != null) {
+            facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
+            facilityHistoryService.save(request.drawingFileId(), facility.getId(), "최초등록");
+        }
+
+        if (request.thumbnailFileId() != null) {
+            facility.updateThumbnailFileId(
+                    fileService.finalizeUpload(request.thumbnailFileId(), filePath));
+        }
+        facility.updatePosition(
+                FacilityPosition.builder()
+                        .lon(request.lon())
+                        .lat(request.lat())
+                        .locationMeta(request.locationMeta())
+                        .build());
+
+        return savedFacility;
     }
 
     private void checkDuplicateCode(String code) {
