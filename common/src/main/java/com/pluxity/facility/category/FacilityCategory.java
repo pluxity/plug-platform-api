@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FacilityCategory extends Category<FacilityCategory> {
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "category")
     private final List<Facility> facilities = new ArrayList<>();
 
     @Column(name = "image_file_id")

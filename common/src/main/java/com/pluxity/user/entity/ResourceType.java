@@ -10,7 +10,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ResourceType {
     FACILITY("Facility"),
-    BUILDING("Building");
+    BUILDING("Building"),
+    PARK("Park");
 
     private final String resourceName;
 
