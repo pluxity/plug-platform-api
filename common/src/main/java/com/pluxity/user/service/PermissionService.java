@@ -8,6 +8,7 @@ import com.pluxity.user.dto.PermissionResponse;
 import com.pluxity.user.dto.PermissionUpdateRequest;
 import com.pluxity.user.entity.Permission;
 import com.pluxity.user.repository.PermissionRepository;
+import com.pluxity.user.repository.RolePermissionRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PermissionService {
 
     private final PermissionRepository permissionRepository;
+    private final RolePermissionRepository rolePermissionRepository;
 
     @Transactional
     public Long create(PermissionCreateRequest request) {
@@ -70,6 +72,7 @@ public class PermissionService {
     @Transactional
     public void delete(Long id) {
         Permission permission = findById(id);
+        rolePermissionRepository.deleteAllByPermission(permission);
         permissionRepository.delete(permission);
     }
 }

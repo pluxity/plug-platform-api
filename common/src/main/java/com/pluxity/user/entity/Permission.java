@@ -20,7 +20,7 @@ public class Permission extends BaseEntity {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
     private final Set<RolePermission> rolePermissions = new HashSet<>();
 
     @Column(nullable = false)
