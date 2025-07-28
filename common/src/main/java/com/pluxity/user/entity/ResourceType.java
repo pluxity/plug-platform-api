@@ -11,7 +11,8 @@ import lombok.RequiredArgsConstructor;
 public enum ResourceType {
     FACILITY("Facility"),
     BUILDING("Building"),
-    PARK("Park");
+    PARK("Park"),
+    DEVICE("Device");
 
     private final String resourceName;
 

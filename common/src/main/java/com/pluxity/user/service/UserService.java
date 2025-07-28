@@ -8,11 +8,15 @@ import com.pluxity.global.utils.SortUtils;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
+import com.pluxity.user.entity.UserRole;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
+import com.pluxity.user.repository.UserRoleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +34,7 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRoleRepository userRoleRepository;
 
     @Transactional(readOnly = true)
     public UserResponse findById(Long id) {
@@ -80,17 +85,33 @@ public class UserService {
         User user = findUserById(id);
         updateUserFields(user, request);
 
-        if (request.roleIds() != null) {
-            List<Role> roles = roleRepository.findAllById(request.roleIds());
-            user.updateRoles(roles);
-        }
+        changeRole(request.roleIds(), user);
 
         return UserResponse.from(user);
+    }
+
+    private void changeRole(List<Long> roleIds, User user) {
+        if (roleIds != null) {
+            List<Role> newRoles = roleRepository.findAllById(roleIds);
+            Set<Long> newRoleIds = newRoles.stream().map(Role::getId).collect(Collectors.toSet());
+
+            List<UserRole> rolesToRemove =
+                    user.getUserRoles().stream()
+                            .filter(userRole -> !newRoleIds.contains(userRole.getRole().getId()))
+                            .toList();
+
+            if (!rolesToRemove.isEmpty()) {
+                userRoleRepository.deleteAll(rolesToRemove);
+            }
+
+            user.updateRoles(newRoles);
+        }
     }
 
     @Transactional
     public void delete(Long id) {
         User user = findUserById(id);
+        userRoleRepository.deleteAllByUser(user);
         userRepository.delete(user);
     }
 
@@ -98,7 +119,7 @@ public class UserService {
     public UserResponse assignRolesToUser(Long userId, UserRoleAssignRequest request) {
         User user = findUserById(userId);
         List<Role> roles = roleRepository.findAllById(request.roleIds());
-        user.updateRoles(roles);
+        changeRole(request.roleIds(), user);
 
         return UserResponse.from(user);
     }
@@ -146,7 +167,7 @@ public class UserService {
     public UserResponse updateUserRoles(Long id, UserRoleUpdateRequest request) {
         User user = findUserById(id);
         List<Role> roles = roleRepository.findAllById(request.roleIds());
-        user.updateRoles(roles);
+        changeRole(request.roleIds(), user);
         return UserResponse.from(user);
     }
 

@@ -9,6 +9,7 @@ import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.RolePermission;
 import com.pluxity.user.repository.RolePermissionRepository;
 import com.pluxity.user.repository.RoleRepository;
+import com.pluxity.user.repository.UserRoleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +27,7 @@ public class RoleService {
     private final RoleRepository roleRepository;
     private final PermissionService permissionService;
     private final RolePermissionRepository rolePermissionRepository;
+    private final UserRoleRepository userRoleRepository;
 
     @Transactional
     public Long save(RoleCreateRequest request) {
@@ -119,6 +121,7 @@ public class RoleService {
     public void delete(Long id) {
         Role role = findRoleById(id);
         rolePermissionRepository.deleteAllByRole(role);
+        userRoleRepository.deleteAllByRole(role);
         roleRepository.delete(role);
     }
 

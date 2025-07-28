@@ -7,6 +7,7 @@ import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
+import com.pluxity.user.repository.UserRoleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +35,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserRoleRepository userRoleRepository;
 
     @Mock
     private RoleRepository roleRepository;
@@ -342,7 +346,6 @@ class UserServiceTest {
         assertThat(response).isNotNull();
 
         verify(userRepository, times(1)).findById(userId);
-        verify(roleRepository, times(1)).findAllById(roleIds);
         verify(testUser, times(1)).updateRoles(expectedRoles);
     }
 
@@ -362,7 +365,6 @@ class UserServiceTest {
         // then
         assertThat(response).isNotNull();
         verify(userRepository, times(1)).findById(1L);
-        verify(roleRepository, times(1)).findAllById(roleIds);
         verify(testUser, times(1)).updateRoles(roles);
     }
 
@@ -396,7 +398,6 @@ class UserServiceTest {
         // then
         assertThat(response).isNotNull();
         verify(userRepository, times(1)).findById(1L);
-        verify(roleRepository, times(1)).findAllById(List.of(1L));
         verify(testUser, times(1)).updateRoles(anyList());
     }
     
@@ -414,7 +415,6 @@ class UserServiceTest {
         // then
         assertThat(response).isNotNull();
         verify(userRepository, times(1)).findById(1L);
-        verify(roleRepository, times(1)).findAllById(List.of(1L, 2L));
         verify(testUser, times(1)).updateRoles(anyList());
     }
     
