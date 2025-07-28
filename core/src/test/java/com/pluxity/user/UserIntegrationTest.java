@@ -96,38 +96,75 @@ class UserIntegrationTest {
     }
 
 
-    // 뭔가 연관관계가 이상하게되어있는듯 API로 삭제할때 문제 없었음. FIXME
-//    @Test
-//    @DisplayName("[연쇄 삭제 검증 1] 특정 Role 삭제 시, 해당 Role을 가진 User는 유지되지만 UserRole 연결은 끊어져야 한다")
-//    void deleteRole_shouldOnlyRemoveRoleAndUserRoleLink_notUser() {
-//        // GIVEN
-//        long initialUserCount = userRepository.count();
-//        long initialUserRoleCount = userRoleRepository.count();
-//        User operatorBeforeDelete = userRepository.findById(operatorUserId).get();
-//        assertThat(operatorBeforeDelete.getRoles()).hasSize(1);
-//
-//        // WHEN
-//        roleService.delete(operatorRoleId);
-//        em.flush();
-//        em.clear();
-//
-//        // THEN
-//        // 1. Role은 삭제되었는가?
-//        assertThrows(EntityNotFoundException.class, () -> roleService.findById(operatorRoleId));
-//
-//        // 2. User는 삭제되지 않았는가?
-//        assertThat(userRepository.count()).isEqualTo(initialUserCount);
-//        User operatorAfterDelete = userRepository.findById(operatorUserId).get();
-//        assertThat(operatorAfterDelete).isNotNull();
-//
-//        // 3. User와 Role의 연결(UserRole)은 끊어졌는가?
-//        assertThat(operatorAfterDelete.getRoles()).isEmpty();
-//        assertThat(userRoleRepository.count()).isEqualTo(initialUserRoleCount - 1);
-//
-//        // 4. 다른 User(admin)는 영향을 받지 않았는가?
-//        User adminUser = userRepository.findById(adminUserId).get();
-//        assertThat(adminUser.getRoles()).hasSize(1);
-//    }
+    @Test
+    @DisplayName("[연쇄 삭제 검증 1] 특정 Role 삭제 시, 해당 Role을 가진 User는 유지되지만 UserRole 연결은 끊어져야 한다")
+    void deleteRole_shouldOnlyRemoveRoleAndUserRoleLink_notUser() {
+        // GIVEN: 이 테스트만을 위한 독립적이고 명확한 데이터 설정
+        rolePermissionRepository.deleteAll();
+        userRoleRepository.deleteAll();
+        roleRepository.deleteAll();
+        userRepository.deleteAll();
+
+        em.flush();
+        em.clear();
+
+        // 1. 두 개의 독립적인 Role을 생성하고 영속화합니다.
+        Role roleToDelete = roleRepository.save(new Role("DELETABLE_ROLE", "곧 삭제될 역할"));
+        Role roleToKeep = roleRepository.save(new Role("KEEPER_ROLE", "유지될 역할"));
+
+        // 2. 두 명의 User를 생성합니다.
+        // 첫 번째 User는 '삭제될 역할'과 '유지될 역할' 두 가지를 모두 가집니다.
+        User userWithTwoRoles = User.builder().username("multiRoleUser").password("pw").name("다중역할사용자").build();
+        userWithTwoRoles.addRole(roleToDelete);
+        userWithTwoRoles.addRole(roleToKeep);
+        userRepository.save(userWithTwoRoles);
+
+        // 두 번째 User는 '삭제될 역할'만 가집니다.
+        User userWithOneRole = User.builder().username("singleRoleUser").password("pw").name("단일역할사용자").build();
+        userWithOneRole.addRole(roleToDelete);
+        userRepository.save(userWithOneRole);
+
+        // 3. 영속성 컨텍스트를 초기화하여 GIVEN 단계가 DB에 완전히 반영되었음을 보장합니다.
+        em.flush();
+        em.clear();
+
+        // 4. 초기 상태를 검증합니다. (Optional, 하지만 좋은 습관)
+        assertThat(userRepository.count()).isEqualTo(2);
+        assertThat(roleRepository.count()).isEqualTo(2);
+        assertThat(userRoleRepository.count()).isEqualTo(3); // user1->role1, user1->role2, user2->role1
+
+
+        // WHEN: '삭제될 역할' (roleToDelete)을 삭제합니다.
+        roleService.delete(roleToDelete.getId());
+        em.flush();
+        em.clear();
+
+        // THEN: 삭제 후 상태를 검증합니다.
+
+        // 1. '삭제될 역할'은 DB에서 완전히 사라졌는가?
+        assertThat(roleRepository.findById(roleToDelete.getId())).isEmpty();
+
+        // 2. '유지될 역할'은 그대로 남아있는가?
+        assertThat(roleRepository.findById(roleToKeep.getId())).isPresent();
+
+        // 3. User들은 삭제되지 않고 모두 살아있는가?
+        User survivingUser1 = userRepository.findByUsername("multiRoleUser").orElseThrow();
+        User survivingUser2 = userRepository.findByUsername("singleRoleUser").orElseThrow();
+        assertThat(survivingUser1).isNotNull();
+        assertThat(survivingUser2).isNotNull();
+
+        // 4. User와 Role의 연결(UserRole)이 정확하게 끊어졌는가?
+        // 'roleToDelete'와 연결된 2개의 UserRole이 삭제되고, 'roleToKeep'과 연결된 1개만 남아야 합니다.
+        assertThat(userRoleRepository.count()).isEqualTo(1);
+
+        // 5. 각 User의 Role 상태를 상세히 검증합니다.
+        // - userWithTwoRoles는 이제 'roleToKeep' 하나만 가져야 합니다.
+        assertThat(survivingUser1.getRoles()).hasSize(1);
+        assertThat(survivingUser1.getRoles().get(0).getId()).isEqualTo(roleToKeep.getId());
+
+        // - userWithOneRole은 이제 어떤 Role도 가지지 않아야 합니다.
+        assertThat(survivingUser2.getRoles()).isEmpty();
+    }
 
     @Test
     @DisplayName("[연쇄 삭제 검증 2] 특정 Permission 삭제 시, 해당 Permission을 가진 Role들은 유지되지만 RolePermission 연결은 끊어져야 한다")
