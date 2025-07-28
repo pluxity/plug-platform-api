@@ -102,7 +102,7 @@ public class ParkService {
 
     @Transactional(readOnly = true)
     public List<FacilityResponse> findAllFacilities() {
-        List<Park> stations = parkRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
-        return MappingUtils.mapWithFiles(stations, fileService);
+        List<Park> parks = parkRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
+        return MappingUtils.mapWithFiles(parks, fileService);
     }
 }
