@@ -51,7 +51,7 @@ public class PermissionServiceTest {
     @DisplayName("새로운 Permission을 생성하고, ID로 조회하여 검증한다")
     void create_andFindById_succeeds() {
         // GIVEN
-        PermissionCreateRequest request = new PermissionCreateRequest(ResourceType.FACILITY, "main");
+        PermissionCreateRequest request = new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "main");
 
         // WHEN
         Long permissionId = permissionService.create(request);
@@ -69,13 +69,13 @@ public class PermissionServiceTest {
     @DisplayName("중복된 ResourceName과 ResourceId로 Permission 생성을 시도하면 CustomException이 발생한다")
     void create_duplicatePermission_throwsException() {
         // GIVEN
-        PermissionCreateRequest request = new PermissionCreateRequest(ResourceType.BUILDING, "1");
+        PermissionCreateRequest request = new PermissionCreateRequest(ResourceType.BUILDING.getResourceName(), "1");
         permissionService.create(request);
         em.flush();
         em.clear();
 
         // WHEN & THEN
-        PermissionCreateRequest duplicateRequest = new PermissionCreateRequest(ResourceType.BUILDING, "1");
+        PermissionCreateRequest duplicateRequest = new PermissionCreateRequest(ResourceType.BUILDING.getResourceName(), "1");
         assertThrows(CustomException.class, () -> permissionService.create(duplicateRequest));
     }
 
@@ -83,13 +83,13 @@ public class PermissionServiceTest {
     @DisplayName("Permission 정보 업데이트 후, 변경사항이 올바르게 반영되었는지 검증한다")
     void update_permission_andVerify() {
         // GIVEN
-        Long permissionId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY, "config"));
+        Long permissionId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "config"));
         em.flush();
         em.clear();
 
         // WHEN
         PermissionUpdateRequest updateRequest =
-                new PermissionUpdateRequest(ResourceType.FACILITY, "new_config_id");
+                new PermissionUpdateRequest(ResourceType.FACILITY.getResourceName(), "new_config_id");
         permissionService.update(permissionId, updateRequest);
         em.flush();
         em.clear();
@@ -106,7 +106,7 @@ public class PermissionServiceTest {
         // GIVEN
         // 1. Permission 생성
         Long permissionId =
-                permissionService.create(new PermissionCreateRequest(ResourceType.BUILDING, "100"));
+                permissionService.create(new PermissionCreateRequest(ResourceType.BUILDING.getResourceName(), "100"));
 
         // 2. Role 생성 및 위 Permission 할당
         Long roleId = roleService.save(
@@ -147,7 +147,7 @@ public class PermissionServiceTest {
     @DisplayName("존재하지 않는 ID 목록으로 findAllByIds 조회 시 CustomException이 발생한다")
     void findAllByIds_withNonExistentId_throwsException() {
         // GIVEN
-        Long existingId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY, "1"));
+        Long existingId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "1"));
         List<Long> ids = List.of(existingId, 9999L);
         em.flush();
         em.clear();

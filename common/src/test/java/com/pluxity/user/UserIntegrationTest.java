@@ -74,9 +74,9 @@ class UserIntegrationTest {
         em.clear();
 
         // 1. Permission 생성
-        userManagePermissionId = permissionService.create(new PermissionCreateRequest(ResourceType.BUILDING, "*"));
-        facilityReadPermissionId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY, "READ"));
-        facilityEditPermissionId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY, "EDIT"));
+        userManagePermissionId = permissionService.create(new PermissionCreateRequest(ResourceType.BUILDING.getResourceName(), "*"));
+        facilityReadPermissionId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "READ"));
+        facilityEditPermissionId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "EDIT"));
 
         // 2. Role 생성 및 Permission 할당
         adminRoleId = roleService.save(new RoleCreateRequest("ADMIN", "관리자",

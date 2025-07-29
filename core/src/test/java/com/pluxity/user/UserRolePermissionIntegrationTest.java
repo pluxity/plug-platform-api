@@ -101,8 +101,8 @@ class UserRolePermissionIntegrationTest {
     setAuthentication(adminUser);
 
     // 2. [수정] 1번, 3번 시설에 대한 Permission을 미리 생성합니다.
-    PermissionCreateRequest createPerm1Request = new PermissionCreateRequest(ResourceType.FACILITY, String.valueOf(buildings.get(0).getId()));
-    PermissionCreateRequest createPerm3Request = new PermissionCreateRequest(ResourceType.FACILITY, String.valueOf(buildings.get(2).getId()));
+    PermissionCreateRequest createPerm1Request = new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), String.valueOf(buildings.get(0).getId()));
+    PermissionCreateRequest createPerm3Request = new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), String.valueOf(buildings.get(2).getId()));
 
     Long permission1Id = permissionService.create(createPerm1Request);
     Long permission3Id = permissionService.create(createPerm3Request);

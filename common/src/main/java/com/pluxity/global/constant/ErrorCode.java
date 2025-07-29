@@ -31,7 +31,7 @@ public enum ErrorCode implements Code {
     PERMISSION_DENIED(FORBIDDEN, "접근 권한이 없습니다."),
     USER_CANNOT_ACCESS(UNAUTHORIZED, "사용자 '%s'는 ID가 %d인 %s에 접근할 권한이 없습니다."),
     NOT_FOUND_RESOURCE_ID(BAD_REQUEST, "요청한 리소스 ID가 존재하지 않습니다."),
-    INVALID_RESOURCE_TYPE(BAD_REQUEST, "%s는 유효하지 않은 타입입니다."),
+    INVALID_RESOURCE_TYPE(BAD_REQUEST, "%s는 유효하지 않은 RESOURCE TYPE 입니다."),
 
     CATEGORY_HAS_DEVICES(BAD_REQUEST, "카테고리에 등록된 디바이스가 있어 삭제할 수 없습니다."),
 
