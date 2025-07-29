@@ -8,12 +8,9 @@ public class CategoryBasedPermissionStrategy implements PermissionStrategy {
     @Override
     public boolean check(User user, Object resource) {
         return Optional.ofNullable(resource)
-                .filter(r -> r instanceof CategorizedPermissible)
-                .map(r -> (CategorizedPermissible) r)
-                .map(
-                        p ->
-                                user.canAccess(
-                                        p.getCategoryResourceType().getResourceName(), p.getCategoryResourceId()))
+                .filter(r -> r instanceof Permissible)
+                .map(r -> (Permissible) r)
+                .map(p -> user.canAccess(p.getResourceType().getResourceName(), p.getResourceId()))
                 .orElse(false);
     }
 }

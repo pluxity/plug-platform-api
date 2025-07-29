@@ -3,6 +3,8 @@ package com.pluxity.device;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.user.entity.Permissible;
+import com.pluxity.user.entity.ResourceType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -16,7 +18,7 @@ import lombok.NoArgsConstructor;
 @DiscriminatorValue("gs_device")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GsDevice extends Device {
+public class GsDevice extends Device implements Permissible {
 
     private String name;
 
@@ -35,5 +37,15 @@ public class GsDevice extends Device {
         if (name != null) {
             this.name = name;
         }
+    }
+
+    @Override
+    public String getResourceId() {
+        return String.valueOf(this.getCategory().getId());
+    }
+
+    @Override
+    public ResourceType getResourceType() {
+        return ResourceType.DEVICE;
     }
 }
