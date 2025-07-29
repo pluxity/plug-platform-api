@@ -166,7 +166,7 @@ public class RoleController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Void> updateRole(
             @Parameter(description = "역할 ID", required = true) @PathVariable(name = "id") Long id,
             @Parameter(description = "역할 수정 정보", required = true) @Valid @RequestBody

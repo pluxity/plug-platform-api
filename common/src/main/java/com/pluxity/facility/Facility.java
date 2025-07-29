@@ -32,7 +32,7 @@ public abstract class Facility extends BaseEntity {
     @JoinColumn(name = "category_id")
     private FacilityCategory category;
 
-    @Column(name = "code", unique = true, length = 10)
+    @Column(name = "code", length = 10)
     private String code;
 
     @Column(name = "drawing_file_id")
@@ -41,7 +41,7 @@ public abstract class Facility extends BaseEntity {
     @Column(name = "thumbnail_file_id")
     private Long thumbnailFileId;
 
-    @Column(name = "name", unique = true, nullable = false, length = 50)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
     @Column(name = "description")

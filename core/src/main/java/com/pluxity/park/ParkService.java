@@ -89,14 +89,13 @@ public class ParkService {
     @Transactional
     public void update(Long id, ParkUpdateRequest request) {
         Park park = findPark(id);
-
-        facilityService.update(id, request.facility());
-        park.update(request.boundary());
+        facilityService.putUpdate(id, request.facility());
+        park.updateBoundary(request.boundary());
     }
 
     @Transactional
     public void delete(Long id) {
-        Park park = findPark(id);
+        findPark(id);
         facilityService.deleteFacility(id);
     }
 

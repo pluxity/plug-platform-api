@@ -362,7 +362,7 @@ public class AdminUserController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping(value = "/{id}/roles")
+    @PatchMapping(value = "/{id}/roles")
     public ResponseEntity<Void> updateRoles(
             @Parameter(description = "사용자 ID", required = true) @PathVariable("id") Long id,
             @Parameter(description = "역할 수정 정보", required = true) @Valid @RequestBody

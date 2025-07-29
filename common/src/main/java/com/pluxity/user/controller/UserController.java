@@ -78,7 +78,7 @@ public class UserController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/me")
+    @PatchMapping("/me")
     public ResponseEntity<Void> updateUser(
             Authentication authentication,
             @Parameter(description = "사용자 수정 정보", required = true) @RequestBody @Valid

@@ -151,7 +151,7 @@ public class AssetCategoryController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Void> updateAssetCategory(
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id,
             @Parameter(description = "카테고리 수정 정보", required = true) @RequestBody @Valid

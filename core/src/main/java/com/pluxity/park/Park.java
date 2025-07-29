@@ -32,9 +32,7 @@ public class Park extends Facility {
         this.boundary = boundary;
     }
 
-    public void update(String boundary) {
-        if (boundary != null) {
-            this.boundary = boundary;
-        }
+    public void updateBoundary(String boundary) {
+        this.boundary = boundary;
     }
 }

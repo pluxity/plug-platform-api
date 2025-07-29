@@ -173,7 +173,7 @@ public class FeatureController {
                         content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
                 @ApiResponse(responseCode = "404", description = "피처 또는 에셋을 찾을 수 없음")
             })
-    @PutMapping("/{featureId}/assets/{assetId}")
+    @PatchMapping("/{featureId}/assets/{assetId}")
     public ResponseEntity<Void> assignAssetToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "에셋 ID (Long)", required = true) @PathVariable Long assetId) {
@@ -209,7 +209,7 @@ public class FeatureController {
                 @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스에 할당됨)"),
                 @ApiResponse(responseCode = "404", description = "피처 또는 디바이스를 찾을 수 없음")
             })
-    @PutMapping("/{featureId}/assign-device")
+    @PatchMapping("/{featureId}/assign-device")
     public ResponseEntity<Void> assignDeviceToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "디바이스 할당 정보 (id 또는 code)", required = true) @Valid @RequestBody

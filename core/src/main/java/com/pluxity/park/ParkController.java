@@ -83,8 +83,8 @@ public class ParkController {
                         description = "해당 ID의 공원을 찾을 수 없음",
                         content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping("/{id}")
-    public ResponseEntity<Void> patch(
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> put(
             @Parameter(description = "공원 ID", required = true) @PathVariable Long id,
             @Parameter(description = "공원 수정 정보", required = true) @Valid @RequestBody
                     ParkUpdateRequest request) {

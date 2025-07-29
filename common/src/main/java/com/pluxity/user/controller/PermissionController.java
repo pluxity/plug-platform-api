@@ -85,7 +85,7 @@ public class PermissionController {
                         description = "해당 ID의 권한을 찾을 수 없음",
                         content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Void> updatePermission(
             @Parameter(description = "권한 ID", required = true) @PathVariable Long id,
             @Parameter(description = "권한 수정 정보", required = true) @Valid @RequestBody

@@ -125,7 +125,7 @@ public class AssetController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Void> updateAsset(
             @Parameter(description = "에셋 ID", required = true) @PathVariable Long id,
             @Parameter(description = "에셋 수정 정보", required = true) @RequestBody @Valid
@@ -186,7 +186,7 @@ public class AssetController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/{id}/category/{categoryId}")
+    @PatchMapping("/{id}/category/{categoryId}")
     public ResponseEntity<Void> assignCategory(
             @Parameter(description = "에셋 ID", required = true) @PathVariable Long id,
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long categoryId) {

@@ -71,7 +71,7 @@ public class Label3DController {
         return ResponseEntity.ok(DataResponseBody.of(responses));
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @Operation(summary = "Label3D 수정", description = "Label3D를 수정합니다.")
     @ApiResponses(
             value = {
