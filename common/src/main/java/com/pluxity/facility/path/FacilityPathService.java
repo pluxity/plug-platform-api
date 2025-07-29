@@ -41,7 +41,7 @@ public class FacilityPathService {
                 FacilityPath.builder()
                         .facility(facility)
                         .name(name)
-                        .pathType(PathType.valueOf(type))
+                        .pathType(PathType.from(type))
                         .path(path)
                         .build());
     }
