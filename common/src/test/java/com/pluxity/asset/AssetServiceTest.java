@@ -1,4 +1,4 @@
-package com.pluxity.asset.service;
+package com.pluxity.asset;
 
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCreateRequest;
@@ -6,6 +6,8 @@ import com.pluxity.asset.dto.AssetResponse;
 import com.pluxity.asset.dto.AssetUpdateRequest;
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
+import com.pluxity.asset.service.AssetCategoryService;
+import com.pluxity.asset.service.AssetService;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.feature.service.FeatureService;
 import com.pluxity.file.service.FileService;

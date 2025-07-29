@@ -1,4 +1,4 @@
-package com.pluxity.permission;
+package com.pluxity.user;
 
 
 import com.pluxity.building.Building;
