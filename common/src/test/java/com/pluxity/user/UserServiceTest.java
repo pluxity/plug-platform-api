@@ -1,4 +1,4 @@
-package com.pluxity.user.service;
+package com.pluxity.user;
 
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
@@ -8,6 +8,7 @@ import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
 import com.pluxity.user.repository.UserRoleRepository;
+import com.pluxity.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

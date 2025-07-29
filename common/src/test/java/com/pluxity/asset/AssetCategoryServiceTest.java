@@ -1,10 +1,11 @@
-package com.pluxity.asset.service;
+package com.pluxity.asset;
 
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
 import com.pluxity.asset.dto.AssetCategoryAllResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.repository.AssetCategoryRepository;
+import com.pluxity.asset.service.AssetCategoryService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;

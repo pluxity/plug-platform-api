@@ -1,9 +1,10 @@
-package com.pluxity.device.service;
+package com.pluxity.device;
 
 import com.pluxity.device.dto.DeviceCategoryRequest;
 import com.pluxity.device.dto.DeviceCategoryResponse;
 import com.pluxity.device.dto.DeviceCategoryTreeResponse;
 import com.pluxity.device.repository.DeviceCategoryRepository;
+import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;

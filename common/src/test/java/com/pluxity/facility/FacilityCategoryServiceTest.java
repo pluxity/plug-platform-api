@@ -1,5 +1,7 @@
-package com.pluxity.facility.category;
+package com.pluxity.facility;
 
+import com.pluxity.facility.category.FacilityCategoryRepository;
+import com.pluxity.facility.category.FacilityCategoryService;
 import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
 import com.pluxity.facility.category.dto.FacilityCategoryResponse;
