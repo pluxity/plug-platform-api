@@ -128,7 +128,9 @@ public class PermissionController {
     @GetMapping("/resource-types")
     public ResponseEntity<DataResponseBody<List<String>>> getAvailableResourceTypes() {
         List<String> resourceTypeKeys =
-                Arrays.stream(ResourceType.values()).map(ResourceType::name).collect(Collectors.toList());
+                Arrays.stream(ResourceType.values())
+                        .map(ResourceType::getResourceName)
+                        .collect(Collectors.toList());
 
         return ResponseEntity.ok(DataResponseBody.of(resourceTypeKeys));
     }
