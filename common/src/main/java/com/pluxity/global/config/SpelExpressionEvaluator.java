@@ -11,15 +11,16 @@ public class SpelExpressionEvaluator {
     private final ExpressionParser expressionParser = new SpelExpressionParser();
 
     public <T> T evaluate(
-            String expression, String[] parameterNames, Object[] args, Class<T> desiredResultType) {
-        String parsedExpression = expression.startsWith("#") ? expression : "#" + expression;
-
+            String expression,
+            String[] parameterNames,
+            Object[] args,
+            Object returnObject,
+            Class<T> type) {
         EvaluationContext context = new StandardEvaluationContext();
-
         for (int i = 0; i < parameterNames.length; i++) {
             context.setVariable(parameterNames[i], args[i]);
         }
-
-        return expressionParser.parseExpression(parsedExpression).getValue(context, desiredResultType);
+        context.setVariable("returnObject", returnObject);
+        return expressionParser.parseExpression(expression).getValue(context, type);
     }
 }

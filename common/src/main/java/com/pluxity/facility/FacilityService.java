@@ -10,9 +10,9 @@ import com.pluxity.facility.path.FacilityPathService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.annotation.CheckPermission;
-import com.pluxity.global.annotation.CheckPermissionAfter;
-import com.pluxity.global.annotation.CheckPermissionAll;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.user.entity.ExecutionPhase;
+import com.pluxity.user.entity.PermissionType;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -68,15 +68,7 @@ public class FacilityService {
         }
     }
 
-    @CheckPermission(resourceName = "Facility", resourceId = "#id")
-    @Transactional(readOnly = true)
-    public Facility findById(Long id) {
-        return facilityRepository
-                .findById(id)
-                .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY, id));
-    }
-
-    @CheckPermissionAfter(resourceName = "Facility")
+    @CheckPermission(type = PermissionType.ID)
     @Transactional(readOnly = true)
     public Facility findByCode(String code) {
         return facilityRepository
@@ -84,7 +76,15 @@ public class FacilityService {
                 .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CODE, code));
     }
 
-    @CheckPermissionAll(resourceName = "Facility")
+    @CheckPermission(type = PermissionType.ID)
+    @Transactional(readOnly = true)
+    public Facility findById(Long id) {
+        return facilityRepository
+                .findById(id)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY, id));
+    }
+
+    @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.FILTER)
     @Transactional(readOnly = true)
     public List<Facility> findAll() {
         return facilityRepository.findAll();
