@@ -48,7 +48,7 @@ class RoleServiceTest {
         // 테스트에 사용할 권한(Permission) 미리 생성
         permissionIds.clear();
         buildings.forEach(building -> {
-            PermissionCreateRequest request = new PermissionCreateRequest(ResourceType.FACILITY, String.valueOf(building.getId()));
+            PermissionCreateRequest request = new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), String.valueOf(building.getId()));
             Long permissionId = permissionService.create(request);
             permissionIds.add(permissionId);
         });

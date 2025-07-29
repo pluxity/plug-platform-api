@@ -4,8 +4,6 @@ import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.response.ErrorResponseBody;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -84,15 +82,6 @@ public class CustomExceptionHandler {
         String detailMessage = "필수 요청 본문이 누락되었거나 형식이 잘못되었습니다.";
         if (ex.getMessage() != null && ex.getMessage().contains("Required request body is missing")) {
             detailMessage = "필수 요청 본문(Request Body)이 누락되었습니다.";
-        }
-
-        String regex = ".*Cannot deserialize value of type `.*ResourceType` from String \"([^\"]*)\".*";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(ex.getMessage());
-
-        if (matcher.find()) {
-            String invalidValue = matcher.group(1);
-            detailMessage = String.format("'%s'는 유효한 ResourceType이 아닙니다.", invalidValue);
         }
 
         ErrorResponseBody errorResponseBody =

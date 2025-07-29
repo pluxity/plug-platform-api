@@ -7,6 +7,7 @@ import com.pluxity.user.dto.PermissionCreateRequest;
 import com.pluxity.user.dto.PermissionResponse;
 import com.pluxity.user.dto.PermissionUpdateRequest;
 import com.pluxity.user.entity.Permission;
+import com.pluxity.user.entity.ResourceType;
 import com.pluxity.user.repository.PermissionRepository;
 import com.pluxity.user.repository.RolePermissionRepository;
 import java.util.List;
@@ -23,7 +24,8 @@ public class PermissionService {
 
     @Transactional
     public Long create(PermissionCreateRequest request) {
-        String resourceName = request.resourceName().getResourceName();
+        ResourceType resourceType = ResourceType.fromString(request.resourceName());
+        String resourceName = resourceType.getResourceName();
         if (permissionRepository.existsByResourceNameAndResourceId(
                 resourceName, request.resourceId())) {
             throw new CustomException(
@@ -59,10 +61,13 @@ public class PermissionService {
 
     @Transactional
     public void update(Long id, PermissionUpdateRequest request) {
+        ResourceType resourceType = ResourceType.fromString(request.resourceName());
+        String resourceName = resourceType.getResourceName();
+
         Permission permission = findById(id);
 
         if (request.resourceName() != null) {
-            permission.changeResourceName(request.resourceName().getResourceName());
+            permission.changeResourceName(resourceName);
         }
         if (request.resourceId() != null && !request.resourceId().isBlank()) {
             permission.changeResourceId(request.resourceId());
