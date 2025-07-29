@@ -177,7 +177,7 @@ public class FeatureController {
     public ResponseEntity<Void> assignAssetToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "에셋 ID (Long)", required = true) @PathVariable Long assetId) {
-        FeatureResponse response = featureService.assignAssetToFeature(featureId, assetId);
+        featureService.assignAssetToFeature(featureId, assetId);
         return ResponseEntity.noContent().build();
     }
 
@@ -195,7 +195,7 @@ public class FeatureController {
     @DeleteMapping("/{featureId}/assets")
     public ResponseEntity<Void> removeAssetFromFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId) {
-        FeatureResponse response = featureService.removeAssetFromFeature(featureId);
+        featureService.removeAssetFromFeature(featureId);
         return ResponseEntity.noContent().build();
     }
 
@@ -214,7 +214,7 @@ public class FeatureController {
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "디바이스 할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
                     FeatureAssignDto assignDto) {
-        FeatureResponse response = featureService.assignDeviceToFeature(featureId, assignDto);
+        featureService.assignDeviceToFeature(featureId, assignDto);
         return ResponseEntity.noContent().build();
     }
 
@@ -233,7 +233,7 @@ public class FeatureController {
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "제거할 디바이스 정보 (id 또는 code)", required = true) @Valid @RequestBody
                     FeatureAssignDto assignDto) {
-        FeatureResponse response = featureService.removeDeviceFromFeature(featureId, assignDto);
+        featureService.removeDeviceFromFeature(featureId, assignDto);
         return ResponseEntity.noContent().build();
     }
 }

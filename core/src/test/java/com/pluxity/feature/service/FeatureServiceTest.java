@@ -548,8 +548,10 @@ class FeatureServiceTest {
         Asset asset = createAndSaveTestAsset();
         Long assetId = asset.getId();
 
-        // when
-        FeatureResponse response = featureService.assignAssetToFeature(savedFeature.getId(), assetId);
+        // whe
+        featureService.assignAssetToFeature(savedFeature.getId(), assetId);
+
+        FeatureResponse response = FeatureResponse.from(featureRepository.findById(savedFeature.getId()).orElseThrow());
 
         // then
         assertNotNull(response);
@@ -621,9 +623,11 @@ class FeatureServiceTest {
         Long newAssetId = newAsset.getId();
 
         // when
-        FeatureResponse response = featureService.assignAssetToFeature(feature.getId(), newAssetId);
+        featureService.assignAssetToFeature(feature.getId(), newAssetId);
 
-        // then
+        FeatureResponse response = FeatureResponse.from(featureRepository.findById(feature.getId()).orElseThrow());
+
+                // then
         assertEquals(floorId, response.floorId());
 
         Feature updatedFeature = featureRepository.findById(feature.getId()).orElseThrow();

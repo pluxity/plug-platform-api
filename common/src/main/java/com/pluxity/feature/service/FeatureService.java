@@ -133,7 +133,7 @@ public class FeatureService {
     }
 
     @Transactional
-    public FeatureResponse assignAssetToFeature(String featureId, Long assetId) {
+    public void assignAssetToFeature(String featureId, Long assetId) {
         log.debug("피처에 에셋 할당: featureId={}, assetId={}", featureId, assetId);
 
         Feature feature = findFeatureById(featureId);
@@ -145,12 +145,10 @@ public class FeatureService {
         // 양방향 연관관계 설정 - 엔티티의 편의 메서드 사용
         feature.changeAsset(asset);
         log.debug("새 에셋과 피처 관계 설정: assetId={}, featureId={}", assetId, featureId);
-
-        return getFeatureResponse(feature);
     }
 
     @Transactional
-    public FeatureResponse removeAssetFromFeature(String featureId) {
+    public void removeAssetFromFeature(String featureId) {
         Feature feature = findFeatureById(featureId);
 
         if (feature.getAsset() == null) {
@@ -161,12 +159,10 @@ public class FeatureService {
         // 양방향 연관관계 제거 - 엔티티의 편의 메서드 사용
         feature.changeAsset(null);
         log.debug("피처에서 에셋 제거: featureId={}, assetId={}", featureId, assetId);
-
-        return getFeatureResponse(feature);
     }
 
     @Transactional
-    public FeatureResponse assignDeviceToFeature(String featureId, FeatureAssignDto assignDto) {
+    public void assignDeviceToFeature(String featureId, FeatureAssignDto assignDto) {
         log.debug("피처에 디바이스 할당: featureId={}, assignDto={}", featureId, assignDto);
 
         Feature feature = findFeatureById(featureId);
@@ -181,10 +177,6 @@ public class FeatureService {
         device.changeFeature(feature);
 
         log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
-
-        // 업데이트된 피처 조회 및 반환
-        feature = findFeatureById(featureId);
-        return getFeatureResponse(feature);
     }
 
     private Device findDeviceById(String deviceId) {
@@ -198,7 +190,7 @@ public class FeatureService {
     }
 
     @Transactional
-    public FeatureResponse removeDeviceFromFeature(String featureId, FeatureAssignDto assignDto) {
+    public void removeDeviceFromFeature(String featureId, FeatureAssignDto assignDto) {
         Feature feature = findFeatureById(featureId);
 
         if (feature.getDevice() == null) {
@@ -216,24 +208,6 @@ public class FeatureService {
         String deviceId = feature.getDevice().getId();
         feature.changeDevice(null);
         log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, deviceId);
-
-        return getFeatureResponse(feature);
-    }
-
-    // 기존 메서드 유지 (하위 호환성)
-    @Transactional
-    public FeatureResponse removeDeviceFromFeature(String featureId) {
-        Feature feature = findFeatureById(featureId);
-
-        if (feature.getDevice() == null) {
-            throw new CustomException(FEATURE_HAS_NOT_DEVICE, feature.getId());
-        }
-
-        String deviceId = feature.getDevice().getId();
-        feature.changeDevice(null);
-        log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, deviceId);
-
-        return getFeatureResponse(feature);
     }
 
     private FeatureResponse getFeatureResponse(Feature feature) {
