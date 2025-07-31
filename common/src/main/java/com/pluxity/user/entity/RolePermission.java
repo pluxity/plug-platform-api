@@ -22,7 +22,7 @@ public class RolePermission {
     private Role role;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_set_id")
+    @JoinColumn(name = "permission_group_id")
     private PermissionGroup permissionGroup;
 
     @Builder
