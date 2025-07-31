@@ -36,4 +36,14 @@ public class GsDevice extends Device {
             this.name = name;
         }
     }
+
+    public void updateCategory(DeviceCategory category) {
+        if (this.getCategory() != null) {
+            this.getCategory().getDevices().remove(this);
+        }
+        this.changeCategory(category);
+        if (category != null) {
+            category.addDevice(this);
+        }
+    }
 }

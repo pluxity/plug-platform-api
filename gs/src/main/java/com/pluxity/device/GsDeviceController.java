@@ -104,4 +104,37 @@ public class GsDeviceController {
         gsDeviceService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "디바이스에 카테고리 할당", description = "특정 디바이스에 카테고리를 할당(연결)합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "카테고리 할당 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "해당 ID의 디바이스 또는 카테고리를 찾을 수 없음",
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @PatchMapping("/{deviceId}/category/{categoryId}")
+    public ResponseEntity<Void> assignCategory(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String deviceId,
+            @Parameter(description = "할당할 카테고리 ID", required = true) @PathVariable Long categoryId) {
+        gsDeviceService.assignCategory(deviceId, categoryId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "디바이스의 카테고리 제거", description = "특정 디바이스에 할당된 카테고리를 제거(연결 해제)합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "카테고리 제거 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "해당 ID의 디바이스를 찾을 수 없거나, 디바이스에 할당된 카테고리가 없음",
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @DeleteMapping("/{deviceId}/category")
+    public ResponseEntity<Void> removeCategory(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String deviceId) {
+        gsDeviceService.removeCategory(deviceId);
+        return ResponseEntity.noContent().build();
+    }
 }

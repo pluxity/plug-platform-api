@@ -15,11 +15,13 @@ import com.pluxity.global.exception.CustomException;
 import com.pluxity.permission.ResourceType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GsDeviceService {
 
     private final GsDeviceRepository repository;
@@ -94,5 +96,26 @@ public class GsDeviceService {
         GsDevice device = getDevice(id);
         device.clearAllRelations();
         repository.delete(device);
+    }
+
+    @Transactional
+    public void assignCategory(String deviceId, Long categoryId) {
+        GsDevice device = getDevice(deviceId);
+        DeviceCategory deviceCategory = deviceCategoryService.findById(categoryId);
+
+        device.updateCategory(deviceCategory);
+        log.info("디바이스 [{}}에 카테고리 [{}]가 할당되었습니다.", deviceId, categoryId);
+    }
+
+    @Transactional
+    public void removeCategory(String deviceId) {
+        GsDevice device = getDevice(deviceId);
+
+        if (device.getCategory() == null) {
+            throw new CustomException(ErrorCode.NOT_FOUND_DEVICE_CATEGORY, deviceId);
+        }
+
+        device.updateCategory(null);
+        log.info("디바이스 [{}]에서 카테고리가 제거되었습니다.", deviceId);
     }
 }

@@ -20,8 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-// @RestController
-// @RequestMapping("/device-categories")
+@RestController
+@RequestMapping("/device-categories")
 @RequiredArgsConstructor
 @Tag(name = "Device Category Controller", description = "디바이스 카테고리 관리 API")
 public class DeviceCategoryController {
