@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.pluxity.building.Building;
 import com.pluxity.building.BuildingRepository;
+import com.pluxity.permission.dto.PermissionGroupCreateRequest;
+import com.pluxity.permission.dto.PermissionRequest;
+import com.pluxity.permission.dto.PermissionResponse;
 import com.pluxity.user.dto.*;
-import com.pluxity.user.entity.ResourceType;
-import com.pluxity.user.repository.PermissionRepository;
-import com.pluxity.user.service.PermissionService;
+import com.pluxity.permission.PermissionGroupRepository;
+import com.pluxity.permission.PermissionRepository;
+import com.pluxity.permission.PermissionGroupService;
 import com.pluxity.user.service.RoleService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,13 +32,15 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 class RoleServiceTest {
     @Autowired private RoleService roleService;
-    @Autowired private PermissionService permissionService;
+    @Autowired private PermissionGroupService permissionGroupService; // PermissionService -> PermissionGroupService
     @Autowired private PermissionRepository permissionRepository;
+    @Autowired private PermissionGroupRepository permissionGroupRepository; // 추가
     @Autowired private BuildingRepository buildingRepository;
     @Autowired private EntityManager em;
 
     private final List<Building> buildings = new ArrayList<>();
-    private final List<Long> permissionIds = new ArrayList<>();
+    // permissionIds -> permissionGroupIds
+    private final List<Long> permissionGroupIds = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
@@ -45,12 +50,17 @@ class RoleServiceTest {
                 buildings.add(buildingRepository.save(Building.builder().name("Building " + i).code("B" + i).build()))
         );
 
-        // 테스트에 사용할 권한(Permission) 미리 생성
-        permissionIds.clear();
+        // [수정] 테스트에 사용할 권한 그룹(PermissionGroup)을 미리 생성
+        permissionGroupIds.clear();
         buildings.forEach(building -> {
-            PermissionCreateRequest request = new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), String.valueOf(building.getId()));
-            Long permissionId = permissionService.create(request);
-            permissionIds.add(permissionId);
+            // 각 건물 ID에 대해 하나의 권한을 가진 그룹을 생성
+            PermissionGroupCreateRequest request = new PermissionGroupCreateRequest(
+                    "Building " + building.getId() + " Group",
+                    "Description for " + building.getName(),
+                    List.of(new PermissionRequest("시설", List.of(String.valueOf(building.getId()))))
+            );
+            Long groupId = permissionGroupService.create(request);
+            permissionGroupIds.add(groupId);
         });
 
         em.flush();
@@ -58,12 +68,12 @@ class RoleServiceTest {
     }
 
     @Test
-    @DisplayName("새로운 Role을 권한과 함께 생성하고, 생성된 Role을 서비스로 조회하여 검증한다")
-    void save_withPermissions_andVerifyWithService() {
+    @DisplayName("새로운 Role을 권한 그룹과 함께 생성하고, 생성된 Role을 서비스로 조회하여 검증한다")
+    void save_withPermissionGroups_andVerifyWithService() {
         // GIVEN
-        // 1번, 2번 건물에 대한 권한 ID만 사용하여 Role 생성
-        List<Long> initialPermissionIds = List.of(permissionIds.get(0), permissionIds.get(1));
-        RoleCreateRequest createRequest = new RoleCreateRequest("Test Role", "A role for testing", initialPermissionIds);
+        // 1번, 2번 건물에 대한 권한 그룹 ID만 사용하여 Role 생성
+        List<Long> initialGroupIds = List.of(permissionGroupIds.get(0), permissionGroupIds.get(1));
+        RoleCreateRequest createRequest = new RoleCreateRequest("Test Role", "A role for testing", initialGroupIds);
 
         // WHEN
         Long roleId = roleService.save(createRequest);
@@ -76,21 +86,23 @@ class RoleServiceTest {
         assertThat(response.name()).isEqualTo("Test Role");
         assertThat(response.description()).isEqualTo("A role for testing");
 
-        // [수정] Role이 개별 Permission 목록을 올바르게 포함하는지 검증
-        assertThat(response.permissions()).hasSize(2);
-
-        List<Long> responsePermissionIds = response.permissions().stream()
-                .map(PermissionResponse::id)
+        // Role이 가진 PermissionGroup 목록을 검증
+        // RoleResponse가 PermissionGroup ID 목록을 직접 반환한다고 가정
+        // (만약 아니라면, Role 엔티티를 직접 조회해서 확인해야 함)
+        List<Long> responseGroupIds = roleService.findRoleById(roleId).getRolePermissions().stream()
+                .map(rp -> rp.getPermissionGroup().getId())
                 .collect(Collectors.toList());
-        assertThat(responsePermissionIds).containsExactlyInAnyOrderElementsOf(initialPermissionIds);
+
+        assertThat(responseGroupIds).hasSize(2);
+        assertThat(responseGroupIds).containsExactlyInAnyOrderElementsOf(initialGroupIds);
     }
 
     @Test
-    @DisplayName("ID로 Role 조회 시, 할당된 모든 권한 정보까지 포함하여 반환한다")
-    void findById_returnsRoleWithAllPermissions() {
+    @DisplayName("ID로 Role 조회 시, 할당된 모든 권한 그룹의 상세 권한 정보까지 포함하여 반환한다")
+    void findById_returnsRoleWithAllPermissionsInGroups() {
         // GIVEN
-        List<Long> initialPermissionIds = List.of(permissionIds.get(0), permissionIds.get(1));
-        RoleCreateRequest createRequest = new RoleCreateRequest("Test Role", "For findById test", initialPermissionIds);
+        List<Long> initialGroupIds = List.of(permissionGroupIds.get(0), permissionGroupIds.get(1));
+        RoleCreateRequest createRequest = new RoleCreateRequest("Test Role", "For findById test", initialGroupIds);
         Long roleId = roleService.save(createRequest);
         em.flush();
         em.clear();
@@ -101,9 +113,9 @@ class RoleServiceTest {
         // THEN
         assertThat(response.name()).isEqualTo("Test Role");
         assertThat(response.permissions()).isNotNull();
+        // 각 그룹에 Permission이 1개씩 있으므로, 총 2개의 Permission이 조회되어야 함
         assertThat(response.permissions()).hasSize(2);
 
-        // 응답에 포함된 Permission의 resourceId가 실제 건물의 ID와 일치하는지 검증
         List<String> responseResourceIds = response.permissions().stream()
                 .map(PermissionResponse::resourceId)
                 .collect(Collectors.toList());
@@ -115,16 +127,16 @@ class RoleServiceTest {
     }
 
     @Test
-    @DisplayName("Role 업데이트 후, 서비스를 통해 조회하여 변경사항과 권한 동기화를 검증한다")
+    @DisplayName("Role 업데이트 후, 서비스를 통해 조회하여 변경사항과 권한 그룹 동기화를 검증한다")
     void update_andVerifyWithService() {
-        // GIVEN: 1, 2번 건물 권한을 가진 Role을 먼저 생성
-        Long roleId = roleService.save(new RoleCreateRequest("Initial Role", "Desc", List.of(permissionIds.get(0), permissionIds.get(1))));
+        // GIVEN: 1, 2번 건물 권한 그룹을 가진 Role을 먼저 생성
+        Long roleId = roleService.save(new RoleCreateRequest("Initial Role", "Desc", List.of(permissionGroupIds.get(0), permissionGroupIds.get(1))));
         em.flush();
         em.clear();
 
-        // 업데이트 요청: 1번은 삭제, 2번은 유지, 3번은 새로 추가 -> 최종 권한은 2, 3번 건물
-        List<Long> updatedPermissionIdList = List.of(permissionIds.get(1), permissionIds.get(2));
-        RoleUpdateRequest updateRequest = new RoleUpdateRequest("Updated Role", "Updated Description", updatedPermissionIdList);
+        // 업데이트 요청: 1번은 삭제, 2번은 유지, 3번은 새로 추가 -> 최종 권한 그룹은 2, 3번
+        List<Long> updatedGroupIdList = List.of(permissionGroupIds.get(1), permissionGroupIds.get(2));
+        RoleUpdateRequest updateRequest = new RoleUpdateRequest("Updated Role", "Updated Description", updatedGroupIdList);
 
         // WHEN
         roleService.update(roleId, updateRequest);
@@ -137,21 +149,23 @@ class RoleServiceTest {
         assertThat(response.name()).isEqualTo("Updated Role");
         assertThat(response.description()).isEqualTo("Updated Description");
 
-        // 최종 권한이 올바르게 동기화되었는지 검증
+        // 최종 권한이 올바르게 동기화되었는지 검증 (Permission 2개 확인)
         assertThat(response.permissions()).hasSize(2);
-        List<Long> finalPermissionIds = response.permissions().stream().map(PermissionResponse::id).collect(Collectors.toList());
-        assertThat(finalPermissionIds).containsExactlyInAnyOrderElementsOf(updatedPermissionIdList);
+        List<String> finalResourceIds = response.permissions().stream().map(PermissionResponse::resourceId).collect(Collectors.toList());
+        assertThat(finalResourceIds).containsExactlyInAnyOrder(
+                String.valueOf(buildings.get(1).getId()),
+                String.valueOf(buildings.get(2).getId())
+        );
     }
 
     @Test
     @DisplayName("Role 삭제 후, 서비스를 통해 조회 시 예외가 발생하는지 검증한다")
     void delete_andVerifyDeletionWithService() {
         // GIVEN
-        Long roleId = roleService.save(new RoleCreateRequest("Deletable Role", "Desc", List.of(permissionIds.get(0))));
-        assertThat(roleService.findById(roleId)).isNotNull(); // 삭제 전에는 조회가 가능해야 함
+        Long roleId = roleService.save(new RoleCreateRequest("Deletable Role", "Desc", List.of(permissionGroupIds.get(0))));
+        assertThat(roleService.findById(roleId)).isNotNull();
 
-        // Permission 엔티티 자체는 삭제되지 않는 것을 확인하기 위해 미리 개수 조회
-        long initialPermissionCount = permissionRepository.count();
+        long initialGroupCount = permissionGroupRepository.count();
 
         // WHEN
         roleService.delete(roleId);
@@ -159,11 +173,10 @@ class RoleServiceTest {
         em.clear();
 
         // THEN
-        // 1. 삭제된 Role ID로 조회 시도 시 EntityNotFoundException이 발생해야 함
         assertThrows(EntityNotFoundException.class, () -> roleService.findById(roleId));
 
-        // 2. [중요] Permission 엔티티 자체는 삭제되지 않고 그대로 남아있어야 함을 검증
-        assertThat(permissionRepository.count()).isEqualTo(initialPermissionCount);
+        // [중요] PermissionGroup 엔티티 자체는 삭제되지 않고 그대로 남아있어야 함을 검증
+        assertThat(permissionGroupRepository.count()).isEqualTo(initialGroupCount);
     }
 
     @Test

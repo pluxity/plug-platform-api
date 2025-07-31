@@ -1,12 +1,10 @@
-package com.pluxity.user.controller;
+package com.pluxity.permission;
 
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
-import com.pluxity.user.dto.PermissionCreateRequest;
-import com.pluxity.user.dto.PermissionResponse;
-import com.pluxity.user.dto.PermissionUpdateRequest;
-import com.pluxity.user.entity.ResourceType;
-import com.pluxity.user.service.PermissionService;
+import com.pluxity.permission.dto.PermissionCreateRequest;
+import com.pluxity.permission.dto.PermissionResponse;
+import com.pluxity.permission.dto.PermissionUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -45,7 +43,7 @@ public class PermissionController {
     public ResponseEntity<Void> createPermission(
             @Parameter(description = "권한 생성 정보", required = true) @Valid @RequestBody
                     PermissionCreateRequest request) {
-        Long permissionId = permissionService.create(request);
+        List<Long> permissionId = permissionService.create(request);
         URI location =
                 ServletUriComponentsBuilder.fromCurrentRequest()
                         .path("/{id}")

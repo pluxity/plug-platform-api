@@ -10,13 +10,23 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface RoleRepository extends JpaRepository<Role, Long> {
     Optional<Role> findByName(String name);
 
+    @EntityGraph(
+            attributePaths = {
+                "userRoles.user",
+                "userRoles.role",
+                "rolePermissions.permissionGroup.permissions"
+            })
     @Override
-    @EntityGraph(attributePaths = {"rolePermissions", "rolePermissions.permission"})
     @Nonnull
     Optional<Role> findById(@Nonnull Long id);
 
+    @EntityGraph(
+            attributePaths = {
+                "userRoles.user",
+                "userRoles.role",
+                "rolePermissions.permissionGroup.permissions"
+            })
     @Override
-    @EntityGraph(attributePaths = {"rolePermissions", "rolePermissions.permission"})
     @Nonnull
     List<Role> findAll();
 }

@@ -1,14 +1,11 @@
-package com.pluxity.user.service;
+package com.pluxity.permission;
 
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.SortUtils;
-import com.pluxity.user.dto.PermissionCreateRequest;
-import com.pluxity.user.dto.PermissionResponse;
-import com.pluxity.user.dto.PermissionUpdateRequest;
-import com.pluxity.user.entity.Permission;
-import com.pluxity.user.entity.ResourceType;
-import com.pluxity.user.repository.PermissionRepository;
+import com.pluxity.permission.dto.PermissionCreateRequest;
+import com.pluxity.permission.dto.PermissionResponse;
+import com.pluxity.permission.dto.PermissionUpdateRequest;
 import com.pluxity.user.repository.RolePermissionRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,17 +20,19 @@ public class PermissionService {
     private final RolePermissionRepository rolePermissionRepository;
 
     @Transactional
-    public Long create(PermissionCreateRequest request) {
+    public List<Long> create(PermissionCreateRequest request) {
         ResourceType resourceType = ResourceType.fromString(request.resourceName());
-        String resourceName = resourceType.getResourceName();
-        if (permissionRepository.existsByResourceNameAndResourceId(
-                resourceName, request.resourceId())) {
-            throw new CustomException(
-                    ErrorCode.DUPLICATE_PERMISSION_NAME_ID, resourceName, request.resourceId());
-        }
-        Permission permission =
-                Permission.builder().resourceName(resourceName).resourceId(request.resourceId()).build();
-        return permissionRepository.save(permission).getId();
+        String resourceName = resourceType.name();
+        List<String> resourceIds = request.resourceIds();
+
+        List<Permission> permissionsToSave =
+                resourceIds.stream()
+                        .map(id -> Permission.builder().resourceName(resourceName).resourceId(id).build())
+                        .toList();
+
+        List<Permission> savedPermissions = permissionRepository.saveAll(permissionsToSave);
+
+        return savedPermissions.stream().map(Permission::getId).toList();
     }
 
     @Transactional(readOnly = true)
@@ -62,7 +61,7 @@ public class PermissionService {
     @Transactional
     public void update(Long id, PermissionUpdateRequest request) {
         ResourceType resourceType = ResourceType.fromString(request.resourceName());
-        String resourceName = resourceType.getResourceName();
+        String resourceName = resourceType.name();
 
         Permission permission = findById(id);
 
@@ -77,7 +76,7 @@ public class PermissionService {
     @Transactional
     public void delete(Long id) {
         Permission permission = findById(id);
-        rolePermissionRepository.deleteAllByPermission(permission);
+        rolePermissionRepository.deleteAllByPermissionGroup(permission.getPermissionGroup());
         permissionRepository.delete(permission);
     }
 }

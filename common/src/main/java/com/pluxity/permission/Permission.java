@@ -1,10 +1,7 @@
-package com.pluxity.user.entity;
+package com.pluxity.permission;
 
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,8 +17,8 @@ public class Permission extends BaseEntity {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
-    private final Set<RolePermission> rolePermissions = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    private PermissionGroup permissionGroup;
 
     @Column(nullable = false)
     private String resourceName;
@@ -30,9 +27,10 @@ public class Permission extends BaseEntity {
     private String resourceId;
 
     @Builder
-    public Permission(String resourceName, String resourceId) {
+    public Permission(String resourceName, String resourceId, PermissionGroup permissionGroup) {
         this.resourceName = resourceName;
         this.resourceId = resourceId;
+        this.permissionGroup = permissionGroup;
     }
 
     public void changeResourceName(String resourceName) {
@@ -47,17 +45,17 @@ public class Permission extends BaseEntity {
         return this.resourceName.equalsIgnoreCase(resourceName) && this.resourceId.equals(resourceId);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Permission that = (Permission) o;
-        return Objects.equals(resourceName, that.resourceName)
-                && Objects.equals(resourceId, that.resourceId);
+    protected void changePermissionGroup(PermissionGroup permissionGroup) {
+        if (this.permissionGroup != null) {
+            this.permissionGroup.getPermissions().remove(this);
+        }
+        this.permissionGroup = permissionGroup;
+        if (permissionGroup != null && !permissionGroup.getPermissions().contains(this)) {
+            permissionGroup.getPermissions().add(this);
+        }
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(resourceName, resourceId);
+    protected void clearPermissionGroup() {
+        this.permissionGroup = null;
     }
 }

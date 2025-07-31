@@ -9,7 +9,7 @@ import com.pluxity.global.annotation.CheckPermissionAll;
 import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.config.SpelExpressionEvaluator;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.user.entity.ResourceType;
+import com.pluxity.permission.ResourceType;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.service.UserService;
 import java.lang.reflect.InvocationTargetException;

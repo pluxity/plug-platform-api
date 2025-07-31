@@ -18,8 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @EntityGraph(
             attributePaths = {
-                "userRoles",
-                "userRoles.role",
+                "userRoles.user",
+                "userRoles.role.rolePermissions.permissionGroup.permissions"
             })
     @NonNull
     Optional<User> findById(@NonNull Long id);

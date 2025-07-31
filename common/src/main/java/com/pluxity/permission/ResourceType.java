@@ -1,4 +1,4 @@
-package com.pluxity.user.entity;
+package com.pluxity.permission;
 
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
@@ -9,12 +9,11 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ResourceType {
-    FACILITY("Facility"),
-    BUILDING("Building"),
-    PARK("Park"),
-    DEVICE("Device");
+    FACILITY("시설", "facilities"),
+    DEVICE_CATEGORY("장비 분류", "device-categories");
 
     private final String resourceName;
+    private final String endpoint;
 
     public static ResourceType fromString(String resourceName) {
         return Arrays.stream(ResourceType.values())

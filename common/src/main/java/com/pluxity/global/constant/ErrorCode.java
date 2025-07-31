@@ -26,6 +26,8 @@ public enum ErrorCode implements Code {
     FAILED_TO_UPLOAD_FILE(INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
     FAILED_TO_PROCESS_SBM_FILE(BAD_REQUEST, "SBM 파일 처리에 실패했습니다."),
 
+    DUPLICATE_RESOURCE_ID(BAD_REQUEST, "중복된 리소스 ID가 포함되어 있습니다."),
+
     NOT_FOUND_USER(BAD_REQUEST, "해당 회원이 존재하지 않습니다."),
     NOT_AUTHORIZED(UNAUTHORIZED, "권한이 없습니다."),
     PERMISSION_DENIED(FORBIDDEN, "접근 권한이 없습니다."),
@@ -61,6 +63,7 @@ public enum ErrorCode implements Code {
     DUPLICATE_LINE_NAME(BAD_REQUEST, "이름이 %s인 노선이 이미 존재합니다."),
     DUPLICATE_PERMISSION_NAME_ID(BAD_REQUEST, "resource name이 %s이고 id가 %s인 Permission이 이미 존재합니다."),
     DUPLICATE_FACILITY_CATEGORY_CODE(BAD_REQUEST, "이름이 %s인 시설 카테고리가 이미 존재합니다."),
+    DUPLICATE_PERMISSION_GROUP_NAME(BAD_REQUEST, "이름이 %s인 권한 그룹이 이미 존재합니다"),
 
     NOT_FOUND_STATION(NOT_FOUND, "ID가 %s인 역을 찾을 수 없습니다."),
     NOT_FOUND_BUILDING(NOT_FOUND, "ID가 %s인 건물을 찾을 수 없습니다."),
@@ -84,6 +87,7 @@ public enum ErrorCode implements Code {
     NOT_FOUND_PERMISSION(NOT_FOUND, "ID가 %s인 Permission을 찾을 수 없습니다"),
     NOT_FOUND_PERMISSIONS(NOT_FOUND, "%s인 ids로 모든 권한을 찾을 수 없습니다"),
     NOT_FOUND_STATION_LINE(NOT_FOUND, "ID가 %s인 Station 또는 ID가 %s인 Line을 찾을 수 없습니다."),
+    NOT_FOUND_PERMISSION_GROUP(NOT_FOUND, "ID가 %s인 PermissionGroup을 찾을 수 없습니다."),
 
     INVALID_RESOURCE_IDS_INCLUDED(BAD_REQUEST, "요청한 리소스 ID %s 는 유효하지 않습니다.");
     private final HttpStatus httpStatus;

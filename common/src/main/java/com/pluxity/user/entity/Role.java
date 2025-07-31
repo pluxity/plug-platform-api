@@ -52,7 +52,20 @@ public class Role extends BaseEntity {
 
     public boolean hasPermissionFor(String resourceName, String resourceId) {
         return rolePermissions.stream()
-                .map(RolePermission::getPermission)
+                .map(RolePermission::getPermissionGroup)
+                .flatMap(permissionGroup -> permissionGroup.getPermissions().stream())
                 .anyMatch(permission -> permission.matches(resourceName, resourceId));
+    }
+
+    public void addRolePermission(RolePermission rolePermission) {
+        if (rolePermission != null) {
+            this.rolePermissions.add(rolePermission);
+        }
+    }
+
+    public void removeRolePermission(RolePermission rolePermission) {
+        if (rolePermission != null) {
+            this.rolePermissions.remove(rolePermission);
+        }
     }
 }

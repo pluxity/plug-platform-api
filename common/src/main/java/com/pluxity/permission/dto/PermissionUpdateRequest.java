@@ -1,4 +1,4 @@
-package com.pluxity.user.dto;
+package com.pluxity.permission.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

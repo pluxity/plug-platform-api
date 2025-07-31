@@ -1,31 +1,22 @@
 package com.pluxity.user;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.pluxity.building.Building;
 import com.pluxity.building.BuildingRepository;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.user.dto.PermissionCreateRequest;
+import com.pluxity.permission.dto.PermissionGroupCreateRequest; // PermissionCreateRequest -> PermissionGroupCreateRequest
+import com.pluxity.permission.dto.PermissionRequest;         // PermissionRequest DTO 추가
 import com.pluxity.user.dto.RoleCreateRequest;
 import com.pluxity.user.dto.UserRoleAssignRequest;
-import com.pluxity.user.entity.ResourceType;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
-import com.pluxity.user.repository.PermissionRepository;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
-import com.pluxity.user.service.PermissionService;
+import com.pluxity.permission.PermissionGroupService; // PermissionService -> PermissionGroupService
 import com.pluxity.user.service.RoleService;
 import com.pluxity.user.service.UserService;
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,6 +28,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
@@ -44,11 +44,10 @@ class UserRolePermissionIntegrationTest {
 
   @Autowired private UserService userService;
   @Autowired private RoleService roleService;
-  @Autowired private PermissionService permissionService; // PermissionService 주입
-  @Autowired private FacilityService facilityService; // 권한 테스트 대상 서비스
+  @Autowired private PermissionGroupService permissionGroupService; // 주입 변경
+  @Autowired private FacilityService facilityService;
   @Autowired private UserRepository userRepository;
   @Autowired private RoleRepository roleRepository;
-  @Autowired private PermissionRepository permissionRepository; // PermissionRepository 주입
   @Autowired private BuildingRepository buildingRepository;
   @Autowired private EntityManager em;
 
@@ -77,7 +76,6 @@ class UserRolePermissionIntegrationTest {
     IntStream.rangeClosed(1, 5)
             .forEach(
                     i -> {
-                      // Facility는 Building을 상속받지 않으므로 Building 생성 로직 제거
                       buildings.add(buildingRepository.save(Building.builder().name("Facility " + i).code("F" + i).build()));
                     });
 
@@ -97,21 +95,27 @@ class UserRolePermissionIntegrationTest {
   void userWithSpecificRole_canOnlyAccessPermittedResources() {
     // === GIVEN: '편집자' 사용자에게 1번, 3번 시설에 대한 접근 권한만 부여 ===
 
-    // 1. 관리자로 로그인하여 역할을 생성하고 사용자에게 할당합니다.
+    // 1. 관리자로 로그인
     setAuthentication(adminUser);
 
-    // 2. [수정] 1번, 3번 시설에 대한 Permission을 미리 생성합니다.
-    PermissionCreateRequest createPerm1Request = new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), String.valueOf(buildings.get(0).getId()));
-    PermissionCreateRequest createPerm3Request = new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), String.valueOf(buildings.get(2).getId()));
+    // 2. [수정] 1번, 3번 시설에 대한 PermissionGroup을 생성합니다.
+    PermissionGroupCreateRequest createGroup1Request = new PermissionGroupCreateRequest(
+            "1번 시설 그룹", "1번 시설 접근 권한",
+            List.of(new PermissionRequest("시설", List.of(String.valueOf(buildings.get(0).getId()))))
+    );
+    PermissionGroupCreateRequest createGroup3Request = new PermissionGroupCreateRequest(
+            "3번 시설 그룹", "3번 시설 접근 권한",
+            List.of(new PermissionRequest("시설", List.of(String.valueOf(buildings.get(2).getId()))))
+    );
 
-    Long permission1Id = permissionService.create(createPerm1Request);
-    Long permission3Id = permissionService.create(createPerm3Request);
+    Long group1Id = permissionGroupService.create(createGroup1Request);
+    Long group3Id = permissionGroupService.create(createGroup3Request);
 
-    List<Long> permittedPermissionIds = List.of(permission1Id, permission3Id);
+    List<Long> permittedGroupIds = List.of(group1Id, group3Id);
 
-    // 3. [수정] "시설 관리자" 역할을 생성하면서 위에서 생성한 Permission들의 ID 목록을 전달합니다.
+    // 3. [수정] "시설 관리자" 역할을 생성하면서 위에서 생성한 PermissionGroup들의 ID 목록을 전달합니다.
     RoleCreateRequest createRoleRequest =
-            new RoleCreateRequest("시설 관리자", "1, 3번 시설 접근 가능", permittedPermissionIds);
+            new RoleCreateRequest("시설 관리자", "1, 3번 시설 접근 가능", permittedGroupIds);
     Long newRoleId = roleService.save(createRoleRequest);
 
     // 4. 생성된 "시설 관리자" 역할을 '편집자' 사용자에게 할당합니다.
@@ -122,30 +126,26 @@ class UserRolePermissionIntegrationTest {
     em.clear();
 
     // === WHEN: '편집자' 사용자로 로그인하여 시설 목록을 조회 ===
-
-    // 5. 이제 '편집자'로 로그인한 상황을 시뮬레이션합니다.
     setAuthentication(editorUser);
 
-    // 6. 전체 시설 목록을 조회합니다. (AOP가 이 호출을 가로채 결과를 필터링할 것을 기대)
-    List<Facility> accessibleFacilities = facilityService.findAll();
+    // FacilityService가 Building 목록을 반환한다고 가정하고 수정
+    List<Facility> accessibleBuildings = facilityService.findAll();
 
     // === THEN: 오직 허가된 시설만 조회되어야 함 ===
+    assertThat(accessibleBuildings).hasSize(2);
 
-    // 7. 조회된 시설은 정확히 2개여야 합니다.
-    assertThat(accessibleFacilities).hasSize(2);
-
-    // 8. 조회된 시설 목록의 ID가 우리가 허가한 시설의 ID와 일치하는지 확인합니다.
-    List<Long> permittedFacilityIds = List.of(buildings.get(0).getId(), buildings.get(2).getId());
-    List<Long> accessibleIds = accessibleFacilities.stream()
+    List<Long> permittedBuildingIds = List.of(buildings.get(0).getId(), buildings.get(2).getId());
+    List<Long> accessibleIds = accessibleBuildings.stream()
             .map(Facility::getId)
             .collect(Collectors.toList());
-    assertThat(accessibleIds).containsExactlyInAnyOrderElementsOf(permittedFacilityIds);
+    assertThat(accessibleIds).containsExactlyInAnyOrderElementsOf(permittedBuildingIds);
 
-    // 9. 추가 검증: 허가된 시설(1번)에 ID로 직접 접근하면 성공해야 합니다.
+    // 추가 검증: 허가된 시설(1번)에 ID로 직접 접근하면 성공해야 합니다.
     Long permittedId = buildings.get(0).getId();
+    // FacilityService가 Building ID로 조회하는 메서드가 있다고 가정
     assertDoesNotThrow(() -> facilityService.findById(permittedId));
 
-    // 10. 추가 검증: 허가되지 않은 시설(2번)에 ID로 직접 접근하면 예외가 발생해야 합니다.
+    // 추가 검증: 허가되지 않은 시설(2번)에 ID로 직접 접근하면 예외가 발생해야 합니다.
     Long forbiddenId = buildings.get(1).getId();
     assertThrows(
             CustomException.class,

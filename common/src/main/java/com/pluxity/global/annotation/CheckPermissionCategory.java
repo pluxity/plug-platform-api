@@ -1,6 +1,6 @@
 package com.pluxity.global.annotation;
 
-import com.pluxity.user.entity.ResourceType;
+import com.pluxity.permission.ResourceType;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

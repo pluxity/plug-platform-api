@@ -1,5 +1,6 @@
 package com.pluxity.user.entity;
 
+import com.pluxity.permission.PermissionGroup;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -21,12 +22,16 @@ public class RolePermission {
     private Role role;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_id")
-    private Permission permission;
+    @JoinColumn(name = "permission_set_id")
+    private PermissionGroup permissionGroup;
 
     @Builder
-    public RolePermission(Role role, Permission permission) {
+    public RolePermission(Role role, PermissionGroup permissionGroup) {
         this.role = role;
-        this.permission = permission;
+        this.permissionGroup = permissionGroup;
+    }
+
+    public void changeRole(Role role) {
+        this.role = role;
     }
 }

@@ -7,14 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.pluxity.file.strategy.storage.StorageStrategy;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.user.dto.PermissionCreateRequest;
-import com.pluxity.user.dto.PermissionUpdateRequest;
-import com.pluxity.user.dto.RoleCreateRequest;
-import com.pluxity.user.entity.Permission;
-import com.pluxity.user.entity.ResourceType;
-import com.pluxity.user.repository.PermissionRepository;
+import com.pluxity.permission.Permission;
+import com.pluxity.permission.PermissionGroupService;
+import com.pluxity.permission.PermissionRepository;
+import com.pluxity.permission.PermissionService;
+import com.pluxity.permission.ResourceType;
+import com.pluxity.permission.dto.*;
+import com.pluxity.user.dto.*;
 import com.pluxity.user.repository.RolePermissionRepository;
-import com.pluxity.user.service.PermissionService;
 import com.pluxity.user.service.RoleService;
 import jakarta.persistence.EntityManager;
 import java.util.List;
@@ -37,6 +37,8 @@ public class PermissionServiceTest {
     @Autowired private RoleService roleService;
     @Autowired private RolePermissionRepository rolePermissionRepository;
     @Autowired private EntityManager em;
+    @Autowired
+    private PermissionGroupService permissionGroupService;
 
     @BeforeEach
     void setUp() {
@@ -51,39 +53,25 @@ public class PermissionServiceTest {
     @DisplayName("새로운 Permission을 생성하고, ID로 조회하여 검증한다")
     void create_andFindById_succeeds() {
         // GIVEN
-        PermissionCreateRequest request = new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "main");
+        PermissionCreateRequest request = new PermissionCreateRequest("test", ResourceType.FACILITY.getResourceName(), List.of("main"));
 
         // WHEN
-        Long permissionId = permissionService.create(request);
+        Long permissionId = permissionService.create(request).getFirst();
         em.flush();
         em.clear();
 
         // THEN
         Permission foundPermission = permissionService.findById(permissionId);
         assertThat(foundPermission.getId()).isEqualTo(permissionId);
-        assertThat(foundPermission.getResourceName()).isEqualTo(ResourceType.FACILITY.getResourceName());
+        assertThat(foundPermission.getResourceName()).isEqualTo(ResourceType.FACILITY.name());
         assertThat(foundPermission.getResourceId()).isEqualTo("main");
-    }
-
-    @Test
-    @DisplayName("중복된 ResourceName과 ResourceId로 Permission 생성을 시도하면 CustomException이 발생한다")
-    void create_duplicatePermission_throwsException() {
-        // GIVEN
-        PermissionCreateRequest request = new PermissionCreateRequest(ResourceType.BUILDING.getResourceName(), "1");
-        permissionService.create(request);
-        em.flush();
-        em.clear();
-
-        // WHEN & THEN
-        PermissionCreateRequest duplicateRequest = new PermissionCreateRequest(ResourceType.BUILDING.getResourceName(), "1");
-        assertThrows(CustomException.class, () -> permissionService.create(duplicateRequest));
     }
 
     @Test
     @DisplayName("Permission 정보 업데이트 후, 변경사항이 올바르게 반영되었는지 검증한다")
     void update_permission_andVerify() {
         // GIVEN
-        Long permissionId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "config"));
+        Long permissionId = permissionService.create(new PermissionCreateRequest("TEST", ResourceType.FACILITY.getResourceName(), List.of("config"))).getFirst();
         em.flush();
         em.clear();
 
@@ -97,20 +85,26 @@ public class PermissionServiceTest {
         // THEN
         Permission updatedPermission = permissionService.findById(permissionId);
         assertThat(updatedPermission.getResourceId()).isEqualTo("new_config_id");
-        assertThat(updatedPermission.getResourceName()).isEqualTo(ResourceType.FACILITY.getResourceName());
+        assertThat(updatedPermission.getResourceName()).isEqualTo(ResourceType.FACILITY.name());
     }
 
     @Test
     @DisplayName("Permission 삭제 시, 연관된 RolePermission도 함께 삭제되는지 검증한다")
     void delete_permission_andVerifyCascadeDelete() {
         // GIVEN
-        // 1. Permission 생성
-        Long permissionId =
-                permissionService.create(new PermissionCreateRequest(ResourceType.BUILDING.getResourceName(), "100"));
+        // 1. PermissionGroup 생성
+        Long permissionGroupId = permissionGroupService.create(new PermissionGroupCreateRequest("TEST", "TEST",
+                List.of(new PermissionRequest(
+                                ResourceType.FACILITY.getResourceName(),
+                                List.of("100")
+                        )
+                )));
+        PermissionGroupResponse permissionGroupResponse = permissionGroupService.findById(permissionGroupId);
+        Long permissionId = permissionGroupResponse.permissions().getFirst().id();
 
         // 2. Role 생성 및 위 Permission 할당
         Long roleId = roleService.save(
-                new RoleCreateRequest("RoleWithPermission", "Desc", List.of(permissionId)));
+                new RoleCreateRequest("RoleWithPermission", "Desc", List.of(permissionGroupId)));
         em.flush();
         em.clear();
 
@@ -147,7 +141,7 @@ public class PermissionServiceTest {
     @DisplayName("존재하지 않는 ID 목록으로 findAllByIds 조회 시 CustomException이 발생한다")
     void findAllByIds_withNonExistentId_throwsException() {
         // GIVEN
-        Long existingId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "1"));
+        Long existingId = permissionService.create(new PermissionCreateRequest("TEST", ResourceType.FACILITY.getResourceName(), List.of("1"))).getFirst();
         List<Long> ids = List.of(existingId, 9999L);
         em.flush();
         em.clear();

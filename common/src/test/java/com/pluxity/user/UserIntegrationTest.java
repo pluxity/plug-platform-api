@@ -1,19 +1,19 @@
 package com.pluxity.user;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
+import com.pluxity.global.exception.CustomException;
+import com.pluxity.permission.PermissionGroupRepository;
+import com.pluxity.permission.PermissionGroupService;
+import com.pluxity.permission.PermissionRepository;
+import com.pluxity.permission.ResourceType;
+import com.pluxity.permission.dto.PermissionGroupCreateRequest;
+import com.pluxity.permission.dto.PermissionRequest;
 import com.pluxity.user.dto.*;
-import com.pluxity.user.entity.ResourceType;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
-import com.pluxity.user.repository.RolePermissionRepository;
-import com.pluxity.user.repository.RoleRepository;
-import com.pluxity.user.repository.UserRepository;
-import com.pluxity.user.repository.UserRoleRepository;
-import com.pluxity.user.service.PermissionService;
+import com.pluxity.user.repository.*;
 import com.pluxity.user.service.RoleService;
 import com.pluxity.user.service.UserService;
 import jakarta.persistence.EntityManager;
@@ -27,265 +27,217 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@Transactional
-class UserIntegrationTest {
+        @Transactional
+        class UserIntegrationTest {
 
-    @Autowired private UserService userService;
-    @Autowired private RoleService roleService;
-    @Autowired private PermissionService permissionService;
+            @Autowired private UserService userService;
+            @Autowired private RoleService roleService;
+            @Autowired private PermissionGroupService permissionGroupService; // PermissionService -> PermissionGroupService
 
-    @Autowired private UserRepository userRepository;
-    @Autowired private UserRoleRepository userRoleRepository;
-    @Autowired private RoleRepository roleRepository;
-    @Autowired private RolePermissionRepository rolePermissionRepository;
+            @Autowired private UserRepository userRepository;
+            @Autowired private UserRoleRepository userRoleRepository;
+            @Autowired private RoleRepository roleRepository;
+            @Autowired private RolePermissionRepository rolePermissionRepository;
+            @Autowired private PermissionGroupRepository permissionGroupRepository; // 추가
+            @Autowired private PermissionRepository permissionRepository; // 추가
 
-    @Autowired private EntityManager em;
+            @Autowired private EntityManager em;
 
-    // 테스트 전체에서 사용할 고정된 ID
-    private Long adminUserId, operatorUserId;
-    private Long adminRoleId, operatorRoleId, viewerRoleId;
-    private Long userManagePermissionId, facilityReadPermissionId, facilityEditPermissionId;
+            // 테스트 전체에서 사용할 고정된 ID
+            private Long adminUserId, operatorUserId;
+            private Long adminRoleId, operatorRoleId, viewerRoleId;
+            // Permission ID -> PermissionGroup ID
+            private Long userManageGroupId, facilityReadGroupId, facilityEditGroupId;
 
-    /**
-     * 각 테스트 실행 전, 복잡하게 얽힌 상태를 미리 설정합니다.
-     *
-     * <pre>
-     * - Users: adminUser, operatorUser
-     * - Roles: ADMIN, OPERATOR, VIEWER
-     * - Permissions: USER_MANAGE, FACILITY_READ, FACILITY_EDIT
-     *
-     * - Relationships:
-     *   - adminUser -> ADMIN role
-     *   - operatorUser -> OPERATOR role
-     *
-     *   - ADMIN role -> USER_MANAGE, FACILITY_READ, FACILITY_EDIT permissions
-     *   - OPERATOR role -> FACILITY_READ, FACILITY_EDIT permissions
-     *   - VIEWER role -> FACILITY_READ permission
-     * </pre>
-     */
-    @BeforeEach
-    void setUp() {
-        userRepository.deleteAll();
-        userRoleRepository.deleteAll();
-        roleRepository.deleteAll();
-        rolePermissionRepository.deleteAll();
+            /**
+             * 각 테스트 실행 전, 복잡하게 얽힌 상태를 미리 설정합니다.
+             * (PermissionGroup 중심 구조로 변경)
+             */
+            @BeforeEach
+            void setUp() {
+                // 모든 테이블 초기화 (참조 무결성 순서 고려)
+                userRoleRepository.deleteAllInBatch();
+                rolePermissionRepository.deleteAllInBatch();
+                permissionRepository.deleteAllInBatch();
+                permissionGroupRepository.deleteAllInBatch();
+                userRepository.deleteAllInBatch();
+                roleRepository.deleteAllInBatch();
 
-        em.flush();
-        em.clear();
+                em.flush();
+                em.clear();
 
-        // 1. Permission 생성
-        userManagePermissionId = permissionService.create(new PermissionCreateRequest(ResourceType.BUILDING.getResourceName(), "*"));
-        facilityReadPermissionId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "READ"));
-        facilityEditPermissionId = permissionService.create(new PermissionCreateRequest(ResourceType.FACILITY.getResourceName(), "EDIT"));
+                // 1. PermissionGroup 생성
+                userManageGroupId = permissionGroupService.create(new PermissionGroupCreateRequest("사용자 관리 그룹", "모든 사용자 관리 권한",
+                        List.of(new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("*")))));
+                facilityReadGroupId = permissionGroupService.create(new PermissionGroupCreateRequest("시설 조회 그룹", "시설 조회 권한",
+                        List.of(new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("READ")))));
+                facilityEditGroupId = permissionGroupService.create(new PermissionGroupCreateRequest("시설 수정 그룹", "시설 수정 권한",
+                        List.of(new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("EDIT")))));
 
-        // 2. Role 생성 및 Permission 할당
-        adminRoleId = roleService.save(new RoleCreateRequest("ADMIN", "관리자",
-                List.of(userManagePermissionId, facilityReadPermissionId, facilityEditPermissionId)));
-        operatorRoleId = roleService.save(new RoleCreateRequest("OPERATOR", "운영자",
-                List.of(facilityReadPermissionId, facilityEditPermissionId)));
-        viewerRoleId = roleService.save(new RoleCreateRequest("VIEWER", "조회자",
-                List.of(facilityReadPermissionId)));
+                // 2. Role 생성 및 PermissionGroup 할당
+                adminRoleId = roleService.save(new RoleCreateRequest("ADMIN", "관리자",
+                        List.of(userManageGroupId, facilityReadGroupId, facilityEditGroupId)));
+                operatorRoleId = roleService.save(new RoleCreateRequest("OPERATOR", "운영자",
+                        List.of(facilityReadGroupId, facilityEditGroupId)));
+                viewerRoleId = roleService.save(new RoleCreateRequest("VIEWER", "조회자",
+                        List.of(facilityReadGroupId)));
 
-        // 3. User 생성 및 Role 할당
-        adminUserId = userService.save(new UserCreateRequest("admin", "pw", "Admin User", null, null, null, List.of(adminRoleId))).id();
-        operatorUserId = userService.save(new UserCreateRequest("operator", "pw", "Operator User", null, null, null, List.of(operatorRoleId))).id();
+                // 3. User 생성 및 Role 할당
+                adminUserId = userService.save(new UserCreateRequest("admin", "pw", "Admin User", null, null, null, List.of(adminRoleId))).id();
+                operatorUserId = userService.save(new UserCreateRequest("operator", "pw", "Operator User", null, null, null, List.of(operatorRoleId))).id();
 
-        // 영속성 컨텍스트 초기화로 모든 변경사항을 DB에 반영하고, 캐시를 비움
-        em.flush();
-        em.clear();
-    }
+                em.flush();
+                em.clear();
+            }
 
+            @Test
+            @DisplayName("[연쇄 삭제 검증 1] 특정 Role 삭제 시, 해당 Role을 가진 User는 유지되지만 UserRole 연결은 끊어져야 한다")
+            void deleteRole_shouldOnlyRemoveRoleAndUserRoleLink_notUser() {
+                // 이 테스트는 Permission 모델 변경과 직접적인 관련이 없으므로, GIVEN 블록을 명확히 재설정하여 그대로 테스트
+                // GIVEN
+                rolePermissionRepository.deleteAllInBatch();
+                userRoleRepository.deleteAllInBatch();
+                roleRepository.deleteAllInBatch();
+                userRepository.deleteAllInBatch();
+                em.flush();
+                em.clear();
 
-    @Test
-    @DisplayName("[연쇄 삭제 검증 1] 특정 Role 삭제 시, 해당 Role을 가진 User는 유지되지만 UserRole 연결은 끊어져야 한다")
-    void deleteRole_shouldOnlyRemoveRoleAndUserRoleLink_notUser() {
-        // GIVEN: 이 테스트만을 위한 독립적이고 명확한 데이터 설정
-        rolePermissionRepository.deleteAll();
-        userRoleRepository.deleteAll();
-        roleRepository.deleteAll();
-        userRepository.deleteAll();
+                Role roleToDelete = roleRepository.save(new Role("DELETABLE_ROLE", "곧 삭제될 역할"));
+                Role roleToKeep = roleRepository.save(new Role("KEEPER_ROLE", "유지될 역할"));
 
-        em.flush();
-        em.clear();
+                User userWithTwoRoles = User.builder().username("multiRoleUser").password("pw").name("다중역할사용자").build();
+                userWithTwoRoles.addRole(roleToDelete);
+                userWithTwoRoles.addRole(roleToKeep);
+                userRepository.save(userWithTwoRoles);
 
-        // 1. 두 개의 독립적인 Role을 생성하고 영속화합니다.
-        Role roleToDelete = roleRepository.save(new Role("DELETABLE_ROLE", "곧 삭제될 역할"));
-        Role roleToKeep = roleRepository.save(new Role("KEEPER_ROLE", "유지될 역할"));
+                User userWithOneRole = User.builder().username("singleRoleUser").password("pw").name("단일역할사용자").build();
+                userWithOneRole.addRole(roleToDelete);
+                userRepository.save(userWithOneRole);
 
-        // 2. 두 명의 User를 생성합니다.
-        // 첫 번째 User는 '삭제될 역할'과 '유지될 역할' 두 가지를 모두 가집니다.
-        User userWithTwoRoles = User.builder().username("multiRoleUser").password("pw").name("다중역할사용자").build();
-        userWithTwoRoles.addRole(roleToDelete);
-        userWithTwoRoles.addRole(roleToKeep);
-        userRepository.save(userWithTwoRoles);
+                em.flush();
+                em.clear();
+                assertThat(userRoleRepository.count()).isEqualTo(3);
 
-        // 두 번째 User는 '삭제될 역할'만 가집니다.
-        User userWithOneRole = User.builder().username("singleRoleUser").password("pw").name("단일역할사용자").build();
-        userWithOneRole.addRole(roleToDelete);
-        userRepository.save(userWithOneRole);
+                // WHEN
+                roleService.delete(roleToDelete.getId());
+                em.flush();
+                em.clear();
 
-        // 3. 영속성 컨텍스트를 초기화하여 GIVEN 단계가 DB에 완전히 반영되었음을 보장합니다.
-        em.flush();
-        em.clear();
+                // THEN
+                assertThat(roleRepository.findById(roleToDelete.getId())).isEmpty();
+                assertThat(roleRepository.findById(roleToKeep.getId())).isPresent();
+                assertThat(userRepository.count()).isEqualTo(2);
+                assertThat(userRoleRepository.count()).isEqualTo(1);
 
-        // 4. 초기 상태를 검증합니다. (Optional, 하지만 좋은 습관)
-        assertThat(userRepository.count()).isEqualTo(2);
-        assertThat(roleRepository.count()).isEqualTo(2);
-        assertThat(userRoleRepository.count()).isEqualTo(3); // user1->role1, user1->role2, user2->role1
+                User survivingUser1 = userRepository.findByUsername("multiRoleUser").orElseThrow();
+                User survivingUser2 = userRepository.findByUsername("singleRoleUser").orElseThrow();
+                assertThat(survivingUser1.getRoles()).hasSize(1);
+                assertThat(survivingUser1.getRoles().get(0).getId()).isEqualTo(roleToKeep.getId());
+                assertThat(survivingUser2.getRoles()).isEmpty();
+            }
 
+            @Test
+            @DisplayName("[연쇄 삭제 검증 2] 특정 PermissionGroup 삭제 시, Role들은 유지되지만 RolePermission 연결은 끊어져야 한다")
+            void deletePermissionGroup_shouldOnlyRemoveGroupAndRolePermissionLink_notRole() {
+                // GIVEN
+                long initialRoleCount = roleRepository.count();
+                long initialRolePermissionCount = rolePermissionRepository.count(); // ADMIN=3, OPERATOR=2, VIEWER=1 -> 6
+                Role adminRoleBeforeDelete = roleRepository.findById(adminRoleId).get();
+                Role operatorRoleBeforeDelete = roleRepository.findById(operatorRoleId).get();
+                assertThat(adminRoleBeforeDelete.getRolePermissions()).hasSize(3);
+                assertThat(operatorRoleBeforeDelete.getRolePermissions()).hasSize(2);
 
-        // WHEN: '삭제될 역할' (roleToDelete)을 삭제합니다.
-        roleService.delete(roleToDelete.getId());
-        em.flush();
-        em.clear();
+                // WHEN: 운영자와 관리자 모두 가진 '시설 수정 그룹' 삭제
+                permissionGroupService.delete(facilityEditGroupId);
+                em.flush();
+                em.clear();
 
-        // THEN: 삭제 후 상태를 검증합니다.
+                // THEN
+                assertThrows(CustomException.class, () -> permissionGroupService.findById(facilityEditGroupId));
+                assertThat(roleRepository.count()).isEqualTo(initialRoleCount);
+                assertThat(rolePermissionRepository.count()).isEqualTo(initialRolePermissionCount - 2);
 
-        // 1. '삭제될 역할'은 DB에서 완전히 사라졌는가?
-        assertThat(roleRepository.findById(roleToDelete.getId())).isEmpty();
+                Role adminRoleAfterDelete = roleRepository.findById(adminRoleId).get();
+                Role operatorRoleAfterDelete = roleRepository.findById(operatorRoleId).get();
+                assertThat(adminRoleAfterDelete.getRolePermissions()).hasSize(2);
+                assertThat(operatorRoleAfterDelete.getRolePermissions()).hasSize(1);
+            }
 
-        // 2. '유지될 역할'은 그대로 남아있는가?
-        assertThat(roleRepository.findById(roleToKeep.getId())).isPresent();
+            @Test
+            @DisplayName("[연쇄 삭제 검증 3] User 삭제 시, User와 UserRole만 삭제되고 Role 자체는 유지되어야 한다")
+            void deleteUser_shouldOnlyRemoveUserAndUserRoleLink_notRole() {
+                // 이 테스트는 Permission 모델 변경과 관련 없으므로 그대로 유효
+                // GIVEN
+                long initialRoleCount = roleRepository.count();
+                long initialUserRoleCount = userRoleRepository.count();
 
-        // 3. User들은 삭제되지 않고 모두 살아있는가?
-        User survivingUser1 = userRepository.findByUsername("multiRoleUser").orElseThrow();
-        User survivingUser2 = userRepository.findByUsername("singleRoleUser").orElseThrow();
-        assertThat(survivingUser1).isNotNull();
-        assertThat(survivingUser2).isNotNull();
+                // WHEN
+                userService.delete(operatorUserId);
+                em.flush();
+                em.clear();
 
-        // 4. User와 Role의 연결(UserRole)이 정확하게 끊어졌는가?
-        // 'roleToDelete'와 연결된 2개의 UserRole이 삭제되고, 'roleToKeep'과 연결된 1개만 남아야 합니다.
-        assertThat(userRoleRepository.count()).isEqualTo(1);
+                // THEN
+                assertThrows(EntityNotFoundException.class, () -> userService.findById(operatorUserId));
+                assertThat(userRoleRepository.count()).isEqualTo(initialUserRoleCount - 1);
+                assertThat(roleRepository.count()).isEqualTo(initialRoleCount);
+            }
 
-        // 5. 각 User의 Role 상태를 상세히 검증합니다.
-        // - userWithTwoRoles는 이제 'roleToKeep' 하나만 가져야 합니다.
-        assertThat(survivingUser1.getRoles()).hasSize(1);
-        assertThat(survivingUser1.getRoles().get(0).getId()).isEqualTo(roleToKeep.getId());
+            @Test
+            @DisplayName("[복합 업데이트 1] User의 Role을 완전히 다른 것으로 교체 (OPERATOR -> VIEWER)")
+            void updateUserRole_fromOneToAnother() {
+                // 이 테스트는 Permission 모델 변경과 관련 없으므로 그대로 유효
+                // GIVEN
+                User user = userRepository.findById(operatorUserId).get();
+                assertThat(user.getRoles().get(0).getId()).isEqualTo(operatorRoleId);
 
-        // - userWithOneRole은 이제 어떤 Role도 가지지 않아야 합니다.
-        assertThat(survivingUser2.getRoles()).isEmpty();
-    }
+                // WHEN
+                UserUpdateRequest request = new UserUpdateRequest(null, null, null, null, List.of(viewerRoleId));
+                userService.update(operatorUserId, request);
+                em.flush();
+                em.clear();
 
-    @Test
-    @DisplayName("[연쇄 삭제 검증 2] 특정 Permission 삭제 시, 해당 Permission을 가진 Role들은 유지되지만 RolePermission 연결은 끊어져야 한다")
-    void deletePermission_shouldOnlyRemovePermissionAndRolePermissionLink_notRole() {
-        // GIVEN
-        long initialRoleCount = roleRepository.count();
-        long initialRolePermissionCount = rolePermissionRepository.count();
-        Role adminRoleBeforeDelete = roleRepository.findById(adminRoleId).get();
-        Role operatorRoleBeforeDelete = roleRepository.findById(operatorRoleId).get();
-        // ADMIN은 3개, OPERATOR는 2개의 권한을 가짐
-        assertThat(adminRoleBeforeDelete.getRolePermissions()).hasSize(3);
-        assertThat(operatorRoleBeforeDelete.getRolePermissions()).hasSize(2);
-
-        // WHEN: 운영자와 관리자 모두 가진 'FACILITY_EDIT' 권한 삭제
-        permissionService.delete(facilityEditPermissionId);
-        em.flush();
-        em.clear();
-        // THEN
-        // 1. Permission은 삭제되었는가?
-        assertThrows(Exception.class, () -> permissionService.findById(facilityEditPermissionId));
-
-        // 2. Role들은 삭제되지 않았는가?
-        assertThat(roleRepository.count()).isEqualTo(initialRoleCount);
-
-        // 3. Role과 Permission의 연결(RolePermission)은 끊어졌는가?
-        // 총 2개의 RolePermission(ADMIN->EDIT, OPERATOR->EDIT)이 삭제되어야 함
-        assertThat(rolePermissionRepository.count()).isEqualTo(initialRolePermissionCount - 2);
-
-        // 4. 각 Role의 권한 개수가 올바르게 줄었는가?
-        Role adminRoleAfterDelete = roleRepository.findById(adminRoleId).get();
-        Role operatorRoleAfterDelete = roleRepository.findById(operatorRoleId).get();
-        assertThat(adminRoleAfterDelete.getRolePermissions()).hasSize(2);
-        assertThat(operatorRoleAfterDelete.getRolePermissions()).hasSize(1);
-    }
-
-    @Test
-    @DisplayName("[연쇄 삭제 검증 3] User 삭제 시, User와 UserRole만 삭제되고 Role 자체는 유지되어야 한다")
-    void deleteUser_shouldOnlyRemoveUserAndUserRoleLink_notRole() {
-        // GIVEN
-        long initialRoleCount = roleRepository.count();
-        long initialUserRoleCount = userRoleRepository.count();
-
-        // WHEN
-        userService.delete(operatorUserId);
-        em.flush();
-        em.clear();
-
-        // THEN
-        // 1. User는 삭제되었는가?
-        assertThrows(EntityNotFoundException.class, () -> userService.findById(operatorUserId));
-
-        // 2. User와 Role의 연결(UserRole)은 끊어졌는가? (orphanRemoval=true)
-        assertThat(userRoleRepository.count()).isEqualTo(initialUserRoleCount - 1);
-
-        // 3. Role 자체는 영향을 받지 않았는가?
-        assertThat(roleRepository.count()).isEqualTo(initialRoleCount);
-        assertThat(roleRepository.findById(operatorRoleId)).isPresent();
-    }
+                // THEN
+                User updatedUser = userRepository.findById(operatorUserId).get();
+                assertThat(updatedUser.getRoles()).hasSize(1);
+                assertThat(updatedUser.getRoles().get(0).getId()).isEqualTo(viewerRoleId);
+            }
 
     @Test
-    @DisplayName("[복합 업데이트 1] User의 Role을 완전히 다른 것으로 교체 (OPERATOR -> VIEWER)")
-    void updateUserRole_fromOneToAnother() {
-        // GIVEN
-        User user = userRepository.findById(operatorUserId).get();
-        assertThat(user.getRoles().get(0).getId()).isEqualTo(operatorRoleId);
-
-        // WHEN: 운영자(operator)의 역할을 조회자(viewer)로 변경
-        UserUpdateRequest request = new UserUpdateRequest(null, null, null, null, List.of(viewerRoleId));
-        userService.update(operatorUserId, request);
-        em.flush();
-        em.clear();
-
-        // THEN
-        User updatedUser = userRepository.findById(operatorUserId).get();
-        assertThat(updatedUser.getRoles()).hasSize(1);
-        assertThat(updatedUser.getRoles().get(0).getId()).isEqualTo(viewerRoleId);
-        assertTrue(updatedUser.hasRole(roleRepository.findById(viewerRoleId).get()));
-    }
-
-    @Test
-    @DisplayName("[복합 업데이트 2] Role의 Permission 목록을 변경하면, 해당 Role을 가진 모든 User의 접근 권한이 즉시 변경되어야 한다")
+    @DisplayName("[복합 업데이트 2] Role의 PermissionGroup 목록을 변경하면 User의 접근 권한이 즉시 변경되어야 한다")
     void updateRolePermissions_shouldReflectOnAllUsersWithThatRole() {
         // GIVEN
         User operator = userRepository.findById(operatorUserId).get();
-        // 초기 상태: OPERATOR는 FACILITY_EDIT 권한을 가지고 있음
+        // canAccess 메서드를 사용하여 권한 확인
         assertTrue(operator.canAccess("FACILITY", "EDIT"));
 
-        // WHEN: OPERATOR 역할에서 FACILITY_EDIT 권한을 제거 (FACILITY_READ만 남김)
-        roleService.update(operatorRoleId, new RoleUpdateRequest(null, null, List.of(facilityReadPermissionId)));
+        // WHEN: OPERATOR 역할에서 '시설 수정 그룹'을 제거하고 '사용자 관리 그룹'을 추가
+        roleService.update(operatorRoleId, new RoleUpdateRequest("운영자", "권한 변경된 운영자",
+                List.of(facilityReadGroupId, userManageGroupId)));
         em.flush();
         em.clear();
 
         // THEN
         User updatedOperator = userRepository.findById(operatorUserId).get();
-        Role updatedOperatorRole = roleRepository.findById(operatorRoleId).get();
-
-        // 1. Role의 권한이 1개로 줄었는지 확인
-        assertThat(updatedOperatorRole.getRolePermissions()).hasSize(1);
-
-        // 2. User의 접근 권한이 변경되었는지 확인
-        // 더 이상 FACILITY_EDIT 권한이 없어야 함
-        assertThat(updatedOperator.canAccess("FACILITY", "EDIT")).isFalse();
-        // FACILITY_READ 권한은 여전히 가지고 있어야 함
-        assertTrue(updatedOperator.canAccess("FACILITY", "READ"));
+        assertFalse(updatedOperator.canAccess("FACILITY", "EDIT")); // 수정 권한 없어짐
+        assertTrue(updatedOperator.canAccess("FACILITY", "READ")); // 조회 권한 유지
+        // userManageGroupId는 FACILITY ResourceType에 대해 '*' 권한을 가지므로, 아래와 같이 검증
+        assertTrue(updatedOperator.canAccess("FACILITY", "*")); // 사용자 관리 권한 생김
     }
 
     @Test
-    @DisplayName("[전체 시나리오] Permission 삭제 -> Role 권한 변경 -> User 역할 변경 -> User 삭제 순으로 실행해도 데이터 정합성이 깨지지 않는다")
+    @DisplayName("[전체 시나리오] PermissionGroup 삭제 -> User 역할 변경 -> Role 삭제 -> User 삭제 순으로 실행해도 데이터 정합성이 깨지지 않는다")
     void fullScenario_deletePermissionThenUpdateRoleThenUpdateUserThenDeleteUser() {
-        // === GIVEN: setUp()에서 설정된 초기 상태 ===
-
-        // === 1. Permission 삭제 (facility_edit) ===
-        permissionService.delete(facilityEditPermissionId);
+        // === 1. PermissionGroup 삭제 (facility_edit) ===
+        permissionGroupService.delete(facilityEditGroupId);
         em.flush();
         em.clear();
 
         // THEN 1
         Role operatorRole1 = roleRepository.findById(operatorRoleId).get();
-        assertThat(operatorRole1.getRolePermissions()).hasSize(1); // 2 -> 1
+        assertThat(operatorRole1.getRolePermissions()).hasSize(1);
         User operator1 = userRepository.findById(operatorUserId).get();
-        assertThat(operator1.canAccess("FACILITY", "EDIT")).isFalse();
+        // canAccess 메서드를 사용하여 권한 확인
+        assertFalse(operator1.canAccess("FACILITY", "EDIT"));
 
         // === 2. User의 Role 변경 (operator -> viewer) ===
         userService.update(operatorUserId, new UserUpdateRequest(null, null, null, null, List.of(viewerRoleId)));
@@ -295,8 +247,8 @@ class UserIntegrationTest {
         // THEN 2
         User operator2 = userRepository.findById(operatorUserId).get();
         assertThat(operator2.getRoles().get(0).getName()).isEqualTo("VIEWER");
-        // VIEWER는 READ 권한만 있으므로, 이제 EDIT/READ 모두 접근 불가/가능
-        assertThat(operator2.canAccess("FACILITY", "EDIT")).isFalse();
+        // canAccess 메서드를 사용하여 권한 확인
+        assertFalse(operator2.canAccess("FACILITY", "EDIT"));
         assertTrue(operator2.canAccess("FACILITY", "READ"));
 
         // === 3. Role 삭제 (이제 아무도 쓰지 않는 OPERATOR Role) ===
@@ -306,7 +258,7 @@ class UserIntegrationTest {
 
         // THEN 3
         assertThrows(EntityNotFoundException.class, () -> roleService.findById(operatorRoleId));
-        assertThat(roleRepository.count()).isEqualTo(2); // 3 -> 2
+        assertThat(roleRepository.count()).isEqualTo(2);
 
         // === 4. User 삭제 (operator) ===
         userService.delete(operatorUserId);
@@ -315,11 +267,12 @@ class UserIntegrationTest {
 
         // THEN 4
         assertThrows(EntityNotFoundException.class, () -> userService.findById(operatorUserId));
-        assertThat(userRepository.count()).isEqualTo(1); // 2 -> 1
-        assertThat(userRoleRepository.count()).isEqualTo(1); // admin의 userrole만 남음
+        assertThat(userRepository.count()).isEqualTo(1);
+        assertThat(userRoleRepository.count()).isEqualTo(1);
 
         // FINAL: admin 유저와 관련 데이터는 모두 온전해야 함
         assertThat(userRepository.findById(adminUserId)).isPresent();
         assertThat(roleRepository.findById(adminRoleId)).isPresent();
+        assertThat(permissionGroupRepository.findById(userManageGroupId)).isPresent();
     }
-}
+        }

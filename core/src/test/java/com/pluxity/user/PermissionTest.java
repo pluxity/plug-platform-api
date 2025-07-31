@@ -10,7 +10,7 @@ import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
-import com.pluxity.user.service.PermissionService;
+import com.pluxity.permission.PermissionService;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;

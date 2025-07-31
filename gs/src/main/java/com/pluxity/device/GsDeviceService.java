@@ -12,7 +12,7 @@ import com.pluxity.feature.service.FeatureService;
 import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.user.entity.ResourceType;
+import com.pluxity.permission.ResourceType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class GsDeviceService {
     }
 
     @Transactional(readOnly = true)
-    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE)
+    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
     public GsDeviceResponse findById(String id) {
         GsDevice gsDevice = getDevice(id);
         return createResponse(gsDevice);
@@ -56,7 +56,7 @@ public class GsDeviceService {
     }
 
     @Transactional(readOnly = true)
-    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE)
+    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
     public List<GsDeviceResponse> findAll() {
         List<GsDevice> gsDevices = repository.findAll();
         return gsDevices.stream().map(GsDeviceService::createResponse).toList();
