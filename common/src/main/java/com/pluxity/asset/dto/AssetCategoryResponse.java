@@ -23,7 +23,7 @@ public record AssetCategoryResponse(
         @Schema(description = "소속 에셋 ID 목록") List<Long> assetIds,
         @Schema(description = "생성일시") LocalDateTime createdAt,
         @Schema(description = "수정일시") LocalDateTime updatedAt,
-        @Schema(description = "depth") int depth) {
+        @Schema(description = "depth", example = "1") int depth) {
     public static AssetCategoryResponse from(AssetCategory category) {
         return new AssetCategoryResponse(
                 category.getId(),

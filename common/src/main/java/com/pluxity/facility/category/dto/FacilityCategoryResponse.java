@@ -20,7 +20,7 @@ public record FacilityCategoryResponse(
         @Schema(description = "아이콘 파일 정보") FileResponse thumbnail,
         @Schema(description = "생성일시") LocalDateTime createdAt,
         @Schema(description = "수정일시") LocalDateTime updatedAt,
-        @Schema(description = "depth") int depth) {
+        @Schema(description = "depth", example = "1") int depth) {
     public static FacilityCategoryResponse from(FacilityCategory category) {
         return new FacilityCategoryResponse(
                 category.getId(),
