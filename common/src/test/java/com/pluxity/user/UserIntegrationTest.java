@@ -68,11 +68,11 @@ import org.springframework.transaction.annotation.Transactional;
 
                 // 1. PermissionGroup 생성
                 userManageGroupId = permissionGroupService.create(new PermissionGroupCreateRequest("사용자 관리 그룹", "모든 사용자 관리 권한",
-                        List.of(new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("*")))));
+                        List.of(new PermissionRequest(ResourceType.FACILITY.name(), List.of("*")))));
                 facilityReadGroupId = permissionGroupService.create(new PermissionGroupCreateRequest("시설 조회 그룹", "시설 조회 권한",
-                        List.of(new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("READ")))));
+                        List.of(new PermissionRequest(ResourceType.FACILITY.name(), List.of("READ")))));
                 facilityEditGroupId = permissionGroupService.create(new PermissionGroupCreateRequest("시설 수정 그룹", "시설 수정 권한",
-                        List.of(new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("EDIT")))));
+                        List.of(new PermissionRequest(ResourceType.FACILITY.name(), List.of("EDIT")))));
 
                 // 2. Role 생성 및 PermissionGroup 할당
                 adminRoleId = roleService.save(new RoleCreateRequest("ADMIN", "관리자",

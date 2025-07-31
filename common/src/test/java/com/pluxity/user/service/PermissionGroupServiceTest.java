@@ -45,8 +45,8 @@ class PermissionGroupServiceTest {
                         "기본 시설 관리 그룹",
                         "시설에 대한 기본 권한",
                         List.of(
-                                new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("READ", "LIST")),
-                                new PermissionRequest(ResourceType.DEVICE_CATEGORY.getResourceName(), List.of("READ"))));
+                                new PermissionRequest(ResourceType.FACILITY.name(), List.of("READ", "LIST")),
+                                new PermissionRequest(ResourceType.DEVICE_CATEGORY.name(), List.of("READ"))));
     }
 
     @Nested
@@ -114,7 +114,7 @@ class PermissionGroupServiceTest {
             // when & then
             CustomException exception = assertThrows(CustomException.class,
                     () -> permissionGroupService.create(duplicateRequest));
-            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_RESOURCE_TYPE);
+            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_RESOURCE_ID);
         }
     }
 
@@ -168,10 +168,10 @@ class PermissionGroupServiceTest {
                     "기본 시설 관리 그룹",
                     "시설 및 장비 분류에 대한 기본 권한",
                     List.of(
-                            // getResourceName()을 사용하여 "시설" 문자열을 전달
-                            new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("READ", "LIST")),
-                            // getResourceName()을 사용하여 "장비 분류" 문자열을 전달
-                            new PermissionRequest(ResourceType.DEVICE_CATEGORY.getResourceName(), List.of("READ"))
+                            // name()을 사용하여 "시설" 문자열을 전달
+                            new PermissionRequest(ResourceType.FACILITY.name(), List.of("READ", "LIST")),
+                            // name()을 사용하여 "장비 분류" 문자열을 전달
+                            new PermissionRequest(ResourceType.DEVICE_CATEGORY.name(), List.of("READ"))
                     )
             );
             groupId = permissionGroupService.create(createRequest);
@@ -189,9 +189,9 @@ class PermissionGroupServiceTest {
                     "수정된 설명입니다.",
                     List.of(
                             // "시설" 문자열로 요청
-                            new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("EDIT", "LIST")),
+                            new PermissionRequest(ResourceType.FACILITY.name(), List.of("EDIT", "LIST")),
                             // "장비 분류" 문자열로 요청
-                            new PermissionRequest(ResourceType.DEVICE_CATEGORY.getResourceName(), List.of("CREATE"))
+                            new PermissionRequest(ResourceType.DEVICE_CATEGORY.name(), List.of("CREATE"))
                     )
             );
 
@@ -231,7 +231,7 @@ class PermissionGroupServiceTest {
             // 비교 대상 그룹 생성
             PermissionGroupCreateRequest anotherRequest = new PermissionGroupCreateRequest(
                     "다른 그룹", "다른 설명",
-                    List.of(new PermissionRequest(ResourceType.FACILITY.getResourceName(), List.of("P1")))
+                    List.of(new PermissionRequest(ResourceType.FACILITY.name(), List.of("P1")))
             );
             permissionGroupService.create(anotherRequest);
 

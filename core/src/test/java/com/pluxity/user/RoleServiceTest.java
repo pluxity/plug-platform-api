@@ -5,13 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.pluxity.building.Building;
 import com.pluxity.building.BuildingRepository;
+import com.pluxity.permission.PermissionGroupRepository;
+import com.pluxity.permission.PermissionGroupService;
+import com.pluxity.permission.PermissionRepository;
+import com.pluxity.permission.ResourceType;
 import com.pluxity.permission.dto.PermissionGroupCreateRequest;
 import com.pluxity.permission.dto.PermissionRequest;
 import com.pluxity.permission.dto.PermissionResponse;
 import com.pluxity.user.dto.*;
-import com.pluxity.permission.PermissionGroupRepository;
-import com.pluxity.permission.PermissionRepository;
-import com.pluxity.permission.PermissionGroupService;
 import com.pluxity.user.service.RoleService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -52,15 +53,19 @@ class RoleServiceTest {
 
         // [수정] 테스트에 사용할 권한 그룹(PermissionGroup)을 미리 생성
         permissionGroupIds.clear();
-        buildings.forEach(building -> {
-            // 각 건물 ID에 대해 하나의 권한을 가진 그룹을 생성
-            PermissionGroupCreateRequest request = new PermissionGroupCreateRequest(
-                    "Building " + building.getId() + " Group",
-                    "Description for " + building.getName(),
-                    List.of(new PermissionRequest("시설", List.of(String.valueOf(building.getId()))))
-            );
-            Long groupId = permissionGroupService.create(request);
-            permissionGroupIds.add(groupId);
+    buildings.forEach(
+        building -> {
+          // 각 건물 ID에 대해 하나의 권한을 가진 그룹을 생성
+          PermissionGroupCreateRequest request =
+              new PermissionGroupCreateRequest(
+                  "Building " + building.getId() + " Group",
+                  "Description for " + building.getName(),
+                  List.of(
+                      new PermissionRequest(
+                          ResourceType.FACILITY.name(),
+                          List.of(String.valueOf(building.getId())))));
+          Long groupId = permissionGroupService.create(request);
+          permissionGroupIds.add(groupId);
         });
 
         em.flush();

@@ -53,7 +53,7 @@ public class PermissionServiceTest {
     @DisplayName("새로운 Permission을 생성하고, ID로 조회하여 검증한다")
     void create_andFindById_succeeds() {
         // GIVEN
-        PermissionCreateRequest request = new PermissionCreateRequest("test", ResourceType.FACILITY.getResourceName(), List.of("main"));
+        PermissionCreateRequest request = new PermissionCreateRequest("test", ResourceType.FACILITY.name(), List.of("main"));
 
         // WHEN
         Long permissionId = permissionService.create(request).getFirst();
@@ -71,13 +71,13 @@ public class PermissionServiceTest {
     @DisplayName("Permission 정보 업데이트 후, 변경사항이 올바르게 반영되었는지 검증한다")
     void update_permission_andVerify() {
         // GIVEN
-        Long permissionId = permissionService.create(new PermissionCreateRequest("TEST", ResourceType.FACILITY.getResourceName(), List.of("config"))).getFirst();
+        Long permissionId = permissionService.create(new PermissionCreateRequest("TEST", ResourceType.FACILITY.name(), List.of("config"))).getFirst();
         em.flush();
         em.clear();
 
         // WHEN
         PermissionUpdateRequest updateRequest =
-                new PermissionUpdateRequest(ResourceType.FACILITY.getResourceName(), "new_config_id");
+                new PermissionUpdateRequest(ResourceType.FACILITY.name(), "new_config_id");
         permissionService.update(permissionId, updateRequest);
         em.flush();
         em.clear();
@@ -95,7 +95,7 @@ public class PermissionServiceTest {
         // 1. PermissionGroup 생성
         Long permissionGroupId = permissionGroupService.create(new PermissionGroupCreateRequest("TEST", "TEST",
                 List.of(new PermissionRequest(
-                                ResourceType.FACILITY.getResourceName(),
+                                ResourceType.FACILITY.name(),
                                 List.of("100")
                         )
                 )));
@@ -141,7 +141,7 @@ public class PermissionServiceTest {
     @DisplayName("존재하지 않는 ID 목록으로 findAllByIds 조회 시 CustomException이 발생한다")
     void findAllByIds_withNonExistentId_throwsException() {
         // GIVEN
-        Long existingId = permissionService.create(new PermissionCreateRequest("TEST", ResourceType.FACILITY.getResourceName(), List.of("1"))).getFirst();
+        Long existingId = permissionService.create(new PermissionCreateRequest("TEST", ResourceType.FACILITY.name(), List.of("1"))).getFirst();
         List<Long> ids = List.of(existingId, 9999L);
         em.flush();
         em.clear();

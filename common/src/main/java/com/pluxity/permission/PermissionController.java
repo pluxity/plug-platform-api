@@ -1,6 +1,5 @@
 package com.pluxity.permission;
 
-import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
 import com.pluxity.permission.dto.PermissionCreateRequest;
 import com.pluxity.permission.dto.PermissionResponse;
@@ -14,16 +13,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-@RestController
-@RequestMapping("/permissions")
+// @RestController
+// @RequestMapping("/permissions")
 @RequiredArgsConstructor
 @Tag(name = "Permission Controller", description = "권한 관리 API")
 public class PermissionController {
@@ -110,26 +107,5 @@ public class PermissionController {
             @Parameter(description = "권한 ID", required = true) @PathVariable Long id) {
         permissionService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @Operation(
-            summary = "권한 설정 가능 리소스 타입 목록 조회",
-            description = "역할에 부여할 수 있는 모든 리소스 타입의 키(key) 목록을 조회합니다. (예: [\"FACILITY\", \"DEVICE\"])")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "리소스 타입 목록 조회 성공"),
-                @ApiResponse(
-                        responseCode = "401",
-                        description = "인증되지 않은 요청",
-                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/resource-types")
-    public ResponseEntity<DataResponseBody<List<String>>> getAvailableResourceTypes() {
-        List<String> resourceTypeKeys =
-                Arrays.stream(ResourceType.values())
-                        .map(ResourceType::getResourceName)
-                        .collect(Collectors.toList());
-
-        return ResponseEntity.ok(DataResponseBody.of(resourceTypeKeys));
     }
 }

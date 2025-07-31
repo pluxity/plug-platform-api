@@ -5,6 +5,7 @@ import com.pluxity.building.BuildingRepository;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.permission.ResourceType;
 import com.pluxity.permission.dto.PermissionGroupCreateRequest; // PermissionCreateRequest -> PermissionGroupCreateRequest
 import com.pluxity.permission.dto.PermissionRequest;         // PermissionRequest DTO 추가
 import com.pluxity.user.dto.RoleCreateRequest;
@@ -101,12 +102,16 @@ class UserRolePermissionIntegrationTest {
     // 2. [수정] 1번, 3번 시설에 대한 PermissionGroup을 생성합니다.
     PermissionGroupCreateRequest createGroup1Request = new PermissionGroupCreateRequest(
             "1번 시설 그룹", "1번 시설 접근 권한",
-            List.of(new PermissionRequest("시설", List.of(String.valueOf(buildings.get(0).getId()))))
+            List.of(new PermissionRequest(ResourceType.FACILITY.name(), List.of(String.valueOf(buildings.get(0).getId()))))
     );
-    PermissionGroupCreateRequest createGroup3Request = new PermissionGroupCreateRequest(
-            "3번 시설 그룹", "3번 시설 접근 권한",
-            List.of(new PermissionRequest("시설", List.of(String.valueOf(buildings.get(2).getId()))))
-    );
+    PermissionGroupCreateRequest createGroup3Request =
+        new PermissionGroupCreateRequest(
+            "3번 시설 그룹",
+            "3번 시설 접근 권한",
+            List.of(
+                new PermissionRequest(
+                    ResourceType.FACILITY.name(),
+                    List.of(String.valueOf(buildings.get(2).getId())))));
 
     Long group1Id = permissionGroupService.create(createGroup1Request);
     Long group3Id = permissionGroupService.create(createGroup3Request);
