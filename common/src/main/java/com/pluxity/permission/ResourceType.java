@@ -9,11 +9,10 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ResourceType {
-    FACILITY("시설", "facilities"),
-    DEVICE_CATEGORY("장비 분류", "device-categories");
+    FACILITY("시설"),
+    DEVICE_CATEGORY("장비 분류");
 
     private final String resourceName;
-    private final String endpoint;
 
     public static ResourceType fromString(String resourceName) {
         return Arrays.stream(ResourceType.values())

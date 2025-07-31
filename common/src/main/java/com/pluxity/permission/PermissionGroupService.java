@@ -116,6 +116,7 @@ public class PermissionGroupService {
                 (key, permission) -> {
                     if (!requestedPermissionKeys.contains(key)) {
                         permissionGroup.removePermission(permission);
+                        permissionRepository.delete(permission);
                     }
                 });
 
@@ -145,6 +146,7 @@ public class PermissionGroupService {
     public void delete(Long id) {
         PermissionGroup permissionGroup = findPermissionGroupById(id);
         rolePermissionRepository.deleteAllByPermissionGroup(permissionGroup);
+        permissionRepository.deleteAll(permissionGroup.getPermissions());
         permissionGroupRepository.delete(permissionGroup);
     }
 
