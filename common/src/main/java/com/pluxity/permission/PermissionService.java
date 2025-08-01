@@ -2,9 +2,7 @@ package com.pluxity.permission;
 
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.SortUtils;
 import com.pluxity.permission.dto.PermissionCreateRequest;
-import com.pluxity.permission.dto.PermissionResponse;
 import com.pluxity.permission.dto.PermissionUpdateRequest;
 import com.pluxity.user.repository.RolePermissionRepository;
 import java.util.List;
@@ -42,12 +40,12 @@ public class PermissionService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_PERMISSION, id));
     }
 
-    @Transactional(readOnly = true)
-    public List<PermissionResponse> findAll() {
-        return permissionRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
-                .map(PermissionResponse::from)
-                .toList();
-    }
+    //    @Transactional(readOnly = true)
+    //    public List<PermissionResponse> findAll() {
+    //        return permissionRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
+    //                .map(PermissionResponse::from)
+    //                .toList();
+    //    }
 
     @Transactional(readOnly = true)
     public List<Permission> findAllByIds(List<Long> ids) {

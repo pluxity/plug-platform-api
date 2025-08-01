@@ -1,23 +1,24 @@
 package com.pluxity.user.dto;
 
-import com.pluxity.permission.dto.PermissionResponse;
+import com.pluxity.permission.dto.PermissionGroupResponse;
 import com.pluxity.user.entity.Role;
+import com.pluxity.user.entity.RolePermission;
 import java.util.Collections;
 import java.util.List;
 
 public record RoleResponse(
-        Long id, String name, String description, List<PermissionResponse> permissions) {
+        Long id, String name, String description, List<PermissionGroupResponse> permissions) {
     public static RoleResponse from(Role role) {
         if (role == null) {
             return null;
         }
 
-        List<PermissionResponse> permissionResponses;
+        List<PermissionGroupResponse> permissionResponses;
         if (role.getRolePermissions() != null) {
             permissionResponses =
                     role.getRolePermissions().stream()
-                            .flatMap(rp -> rp.getPermissionGroup().getPermissions().stream())
-                            .map(PermissionResponse::from)
+                            .map(RolePermission::getPermissionGroup)
+                            .map(PermissionGroupResponse::from)
                             .toList();
         } else {
             permissionResponses = Collections.emptyList();

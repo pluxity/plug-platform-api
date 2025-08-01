@@ -1,10 +1,5 @@
 package com.pluxity.permission.dto;
 
-import com.pluxity.permission.Permission;
+import java.util.List;
 
-public record PermissionResponse(Long id, String resourceName, String resourceId) {
-    public static PermissionResponse from(Permission permission) {
-        return new PermissionResponse(
-                permission.getId(), permission.getResourceName(), permission.getResourceId());
-    }
-}
+public record PermissionResponse(String resourceType, List<String> resourceIds) {}
