@@ -18,7 +18,6 @@ import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.SortUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
@@ -92,8 +91,9 @@ public class FeatureService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeatureResponse> getFeatures() {
-        List<Feature> features = featureRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
+    public List<FeatureResponse> getFeatures(Long facilityId) {
+        Facility facility = facilityService.findById(facilityId);
+        List<Feature> features = featureRepository.findByFacilityOrderByCreatedAtDesc(facility);
         return features.stream().map(this::getFeatureResponse).toList();
     }
 

@@ -267,9 +267,9 @@ class FeatureServiceTest {
     void getFeatures_WithNoFeatures_ReturnsEmptyList() {
         // given
         featureRepository.deleteAll();
-        
+        Station facility = createAndSaveTestFacility();
         // when
-        List<FeatureResponse> responses = featureService.getFeatures();
+        List<FeatureResponse> responses = featureService.getFeatures(facility.getId());
         
         // then
         assertTrue(responses.isEmpty());

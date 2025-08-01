@@ -58,7 +58,12 @@ public class FeatureController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "피처 목록 조회", description = "모든 피처 목록을 조회합니다")
+    @Operation(
+            summary = "피처 목록 조회",
+            description = "모든 피처 목록을 조회합니다",
+            parameters = {
+                @Parameter(name = "facilityId", description = "시설 아이디", required = true, example = "1")
+            })
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
@@ -71,8 +76,9 @@ public class FeatureController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<List<FeatureResponse>>> getFeatures() {
-        List<FeatureResponse> responses = featureService.getFeatures();
+    public ResponseEntity<DataResponseBody<List<FeatureResponse>>> getFeatures(
+            @RequestParam("facilityId") Long facilityId) {
+        List<FeatureResponse> responses = featureService.getFeatures(facilityId);
         return ResponseEntity.ok(DataResponseBody.of(responses));
     }
 
