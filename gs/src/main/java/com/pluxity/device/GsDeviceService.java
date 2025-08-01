@@ -14,6 +14,7 @@ import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.permission.ResourceType;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,7 @@ public class GsDeviceService {
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
     public List<GsDeviceResponse> findAll() {
         List<GsDevice> gsDevices = repository.findAll();
-        return gsDevices.stream().map(GsDeviceService::createResponse).toList();
+        return gsDevices.stream().map(GsDeviceService::createResponse).collect(Collectors.toList());
     }
 
     private static GsDeviceResponse createResponse(GsDevice gsDevice) {
