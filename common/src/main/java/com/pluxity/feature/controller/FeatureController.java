@@ -169,42 +169,6 @@ public class FeatureController {
         return ResponseEntity.noContent().build();
     }
 
-    // Feature에 Asset 할당 API
-    @Operation(summary = "피처에 에셋 할당", description = "특정 피처에 에셋을 할당(연결)합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "에셋 할당 성공",
-                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
-                @ApiResponse(responseCode = "404", description = "피처 또는 에셋을 찾을 수 없음")
-            })
-    @PatchMapping("/{featureId}/assets/{assetId}")
-    public ResponseEntity<Void> assignAssetToFeature(
-            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
-            @Parameter(description = "에셋 ID (Long)", required = true) @PathVariable Long assetId) {
-        featureService.assignAssetToFeature(featureId, assetId);
-        return ResponseEntity.noContent().build();
-    }
-
-    // Feature에서 Asset 연결 해제 API
-    @Operation(summary = "피처에서 에셋 연결 해제", description = "특정 피처에 할당된 에셋과의 연결을 해제합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "에셋 연결 해제 성공",
-                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
-                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처에 에셋이 할당되지 않음)"),
-                @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
-            })
-    @DeleteMapping("/{featureId}/assets")
-    public ResponseEntity<Void> removeAssetFromFeature(
-            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId) {
-        featureService.removeAssetFromFeature(featureId);
-        return ResponseEntity.noContent().build();
-    }
-
     @Operation(summary = "피처에 디바이스 할당", description = "특정 피처에 디바이스를 할당(연결)합니다.")
     @ApiResponses(
             value = {

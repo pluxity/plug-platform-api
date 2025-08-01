@@ -3,11 +3,9 @@ package com.pluxity.feature.service;
 import static com.pluxity.global.constant.ErrorCode.*;
 
 import com.pluxity.asset.entity.Asset;
-import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.asset.service.AssetService;
 import com.pluxity.device.entity.Device;
 import com.pluxity.facility.Facility;
-import com.pluxity.facility.FacilityRepository;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.feature.dto.FeatureAssignDto;
 import com.pluxity.feature.dto.FeatureCreateRequest;
@@ -15,8 +13,6 @@ import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.repository.FeatureRepository;
-import com.pluxity.file.dto.FileResponse;
-import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -34,11 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeatureService {
 
     private final FeatureRepository featureRepository;
-    private final AssetRepository assetRepository;
-    private final FacilityRepository facilityRepository;
     private final FacilityService facilityService;
     private final AssetService assetService;
-    private final FileService fileService;
     @PersistenceContext private EntityManager entityManager;
 
     @Transactional
@@ -71,17 +64,7 @@ public class FeatureService {
         Feature savedFeature = featureRepository.save(feature);
         log.debug("피처 저장 완료: id={}", savedFeature.getId());
 
-        FileResponse assetFileResponse = assetService.getFileResponse(asset);
-        FileResponse assetthumbnailFileResponse = assetService.getThumbnailFileResponse(asset);
-        FileResponse facilityDrawingFileResponse = facilityService.getDrawingFileResponse(facility);
-        FileResponse facilityThumbnailFileResponse = facilityService.getThumbnailFileResponse(facility);
-
-        return FeatureResponse.from(
-                savedFeature,
-                assetFileResponse,
-                assetthumbnailFileResponse,
-                facilityDrawingFileResponse,
-                facilityThumbnailFileResponse);
+        return getFeatureResponse(savedFeature);
     }
 
     @Transactional(readOnly = true)
@@ -118,11 +101,6 @@ public class FeatureService {
         featureRepository.delete(feature);
     }
 
-    @Transactional
-    public void deleteFeatureWithRelations(String id) {
-        deleteFeature(id);
-    }
-
     @Transactional(readOnly = true)
     public Feature findFeatureById(String id) {
         return featureRepository.findById(id).orElseThrow(featureNotFound(id));
@@ -130,35 +108,6 @@ public class FeatureService {
 
     private static Supplier<CustomException> featureNotFound(String id) {
         return () -> new CustomException(NOT_FOUND_FEATURE, id);
-    }
-
-    @Transactional
-    public void assignAssetToFeature(String featureId, Long assetId) {
-        log.debug("피처에 에셋 할당: featureId={}, assetId={}", featureId, assetId);
-
-        Feature feature = findFeatureById(featureId);
-        Asset asset =
-                assetRepository
-                        .findById(assetId)
-                        .orElseThrow(() -> new CustomException(NOT_FOUND_ASSET, assetId));
-
-        // 양방향 연관관계 설정 - 엔티티의 편의 메서드 사용
-        feature.changeAsset(asset);
-        log.debug("새 에셋과 피처 관계 설정: assetId={}, featureId={}", assetId, featureId);
-    }
-
-    @Transactional
-    public void removeAssetFromFeature(String featureId) {
-        Feature feature = findFeatureById(featureId);
-
-        if (feature.getAsset() == null) {
-            throw new CustomException(INVALID_FEATURE_ASSIGN_ASSET, featureId);
-        }
-
-        Long assetId = feature.getAsset().getId();
-        // 양방향 연관관계 제거 - 엔티티의 편의 메서드 사용
-        feature.changeAsset(null);
-        log.debug("피처에서 에셋 제거: featureId={}, assetId={}", featureId, assetId);
     }
 
     @Transactional
@@ -211,19 +160,7 @@ public class FeatureService {
     }
 
     private FeatureResponse getFeatureResponse(Feature feature) {
-        FileResponse assetFileResponse = assetService.getFileResponse(feature.getAsset());
-        FileResponse assetthumbnailFileResponse =
-                assetService.getThumbnailFileResponse(feature.getAsset());
-        FileResponse facilityDrawingFileResponse =
-                facilityService.getDrawingFileResponse(feature.getFacility());
-        FileResponse facilityThumbnailFileResponse =
-                facilityService.getThumbnailFileResponse(feature.getFacility());
-        return FeatureResponse.from(
-                feature,
-                assetFileResponse,
-                assetthumbnailFileResponse,
-                facilityDrawingFileResponse,
-                facilityThumbnailFileResponse);
+        return FeatureResponse.from(feature);
     }
 
     @Transactional
