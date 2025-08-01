@@ -1,8 +1,10 @@
 package com.pluxity.park;
 
 import com.pluxity.facility.Facility;
+import com.pluxity.facility.FacilityProvider;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.facility.dto.FacilityResponse;
+import com.pluxity.facility.dto.FacilityResponseKey;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
@@ -21,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class ParkService {
+public class ParkService implements FacilityProvider {
 
     private final FileService fileService;
     private final FacilityService facilityService;
@@ -99,8 +101,14 @@ public class ParkService {
         facilityService.deleteFacility(id);
     }
 
+    @Override
+    public FacilityResponseKey getResponseKey() {
+        return FacilityResponseKey.PARK;
+    }
+
+    @Override
     @Transactional(readOnly = true)
-    public List<FacilityResponse> findAllFacilities() {
+    public List<FacilityResponse> getAllFacilities() {
         List<Park> parks = parkRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
         return MappingUtils.mapWithFiles(parks, fileService);
     }

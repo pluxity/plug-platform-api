@@ -6,11 +6,14 @@ import com.pluxity.global.response.ErrorResponseBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +24,25 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Facility Controller", description = "시설 관리 API")
-public class FacilityApiController {
+public class FacilityController {
 
-    private final FacilityApiService facilityService;
+    private final FacilityService facilityService;
+    private final FacilityProviderService facilityProviderService;
 
     @Operation(summary = "시설 목록 조회", description = "모든 시설 목록을 조회합니다")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "목록 조회 성공",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = FacilityResponse.class),
+                                        examples =
+                                                @ExampleObject(
+                                                        value =
+                                                                "{\"timestamp\": \"string\", \"status\": 0, \"message\": \"string\", \"data\":{\"buildings\": [{\"id\": 0, \"code\": \"string\", \"name\": \"string\", \"description\": \"string\", \"drawing\": {\"id\": 0, \"url\": \"string\", \"originalFileName\": \"string\", \"contentType\": \"string\", \"fileStatus\": \"string\", \"createdAt\": \"string\", \"createdBy\": \"string\", \"updatedAt\": \"string\", \"updatedBy\": \"string\"},\"thumbnail\": {\"id\": 0, \"url\": \"string\", \"originalFileName\": \"string\", \"contentType\": \"string\", \"fileStatus\": \"string\", \"createdAt\": \"string\", \"createdBy\": \"string\", \"updatedAt\": \"string\", \"updatedBy\": \"string\"},\"paths\": [{\"id\": 0, \"name\": \"string\", \"type\": \"string\", \"path\": \"string\"}],\"lon\": 0, \"lat\": 0, \"locationMeta\": \"string\", \"createdAt\": \"string\", \"createdBy\": \"string\", \"updatedAt\": \"string\", \"updatedBy\": \"string\"}],\"stations\": [{\"id\": 0, \"code\": \"string\", \"name\": \"string\"}],\"parks\": [{\"id\": 0, \"code\": \"string\", \"name\": \"string\"}]}}"))),
                 @ApiResponse(
                         responseCode = "500",
                         description = "서버 오류",
@@ -38,8 +52,8 @@ public class FacilityApiController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<FacilityAllResponse>> getFacilities() {
-        return ResponseEntity.ok(DataResponseBody.of(facilityService.findAll()));
+    public ResponseEntity<DataResponseBody<Map<String, List<FacilityResponse>>>> getFacilities() {
+        return ResponseEntity.ok(DataResponseBody.of(facilityProviderService.findAllFacilities()));
     }
 
     @Operation(summary = "시설 도면 정보 수정", description = "시설 도면 정보를 수정합니다")
@@ -143,7 +157,7 @@ public class FacilityApiController {
             @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
             @Parameter(description = "경로 정보", required = true) @Valid @RequestBody
                     FacilityPathSaveRequest request) {
-        facilityService.addPath(facilityId, request);
+        facilityService.savePath(facilityId, request);
         return ResponseEntity.noContent().build();
     }
 

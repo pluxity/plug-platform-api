@@ -2,9 +2,7 @@ package com.pluxity.facility;
 
 import static com.pluxity.global.constant.ErrorCode.*;
 
-import com.pluxity.facility.dto.FacilityCreateRequest;
-import com.pluxity.facility.dto.FacilityHistoryResponse;
-import com.pluxity.facility.dto.FacilityUpdateRequest;
+import com.pluxity.facility.dto.*;
 import com.pluxity.facility.history.FacilityHistoryService;
 import com.pluxity.facility.path.FacilityPathService;
 import com.pluxity.file.dto.FileResponse;
@@ -195,22 +193,22 @@ public class FacilityService {
     }
 
     @Transactional
-    public void updateDrawingFile(Long id, Long drawingFileId, String comment) {
+    public void updateDrawingFile(Long id, FacilityDrawingUpdateRequest request) {
         Facility facility = findById(id);
         String filePath = PREFIX + facility.getId() + "/";
-        facility.updateDrawingFileId(fileService.finalizeUpload(drawingFileId, filePath));
-        facilityHistoryService.save(drawingFileId, facility.getId(), comment);
+        facility.updateDrawingFileId(fileService.finalizeUpload(request.drawingFileId(), filePath));
+        facilityHistoryService.save(request.drawingFileId(), facility.getId(), request.comment());
     }
 
     @Transactional
-    public void savePath(Long facilityId, String name, String type, String path) {
-        facilityPathService.save(findById(facilityId), name, type, path);
+    public void savePath(Long facilityId, FacilityPathSaveRequest request) {
+        facilityPathService.save(findById(facilityId), request.name(), request.type(), request.path());
     }
 
     @Transactional
-    public void updatePath(Long facilityId, Long pathId, String name, String type, String path) {
+    public void updatePath(Long facilityId, Long pathId, FacilityPathUpdateRequest request) {
         findById(facilityId);
-        facilityPathService.update(pathId, name, type, path);
+        facilityPathService.update(pathId, request.name(), request.type(), request.path());
     }
 
     @Transactional
@@ -220,9 +218,13 @@ public class FacilityService {
     }
 
     @Transactional
-    public void updateLocation(Long facilityId, Double lon, Double lat, String locationMeta) {
+    public void updateLocation(Long facilityId, FacilityLocationUpdateRequest request) {
         Facility facility = findById(facilityId);
         facility.updatePosition(
-                FacilityPosition.builder().lon(lon).lat(lat).locationMeta(locationMeta).build());
+                FacilityPosition.builder()
+                        .lon(request.lon())
+                        .lat(request.lat())
+                        .locationMeta(request.locationMeta())
+                        .build());
     }
 }
