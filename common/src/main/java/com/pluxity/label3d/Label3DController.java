@@ -76,7 +76,7 @@ public class Label3DController {
     @ApiResponses(
             value = {
                 @ApiResponse(
-                        responseCode = "200",
+                        responseCode = "204",
                         description = "수정 성공",
                         content = @Content(schema = @Schema(implementation = Label3DResponse.class))),
                 @ApiResponse(responseCode = "404", description = "Label3D를 찾을 수 없음")
@@ -84,8 +84,8 @@ public class Label3DController {
     public ResponseEntity<DataResponseBody<Label3DResponse>> update(
             @Parameter(description = "Label3D ID") @PathVariable String id,
             @Valid @RequestBody Label3DUpdateRequest request) {
-        Label3DResponse response = label3DService.updateLabel3D(id, request);
-        return ResponseEntity.ok(DataResponseBody.of(response));
+        label3DService.updateLabel3D(id, request);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

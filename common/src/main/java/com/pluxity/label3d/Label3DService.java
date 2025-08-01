@@ -59,14 +59,12 @@ public class Label3DService {
     }
 
     @Transactional
-    public Label3DResponse updateLabel3D(String id, Label3DUpdateRequest request) {
+    public void updateLabel3D(String id, Label3DUpdateRequest request) {
         Label3D label3D = findLabel3DById(id);
 
         FeatureUpdateRequest featureUpdateRequest =
                 new FeatureUpdateRequest(request.position(), request.rotation(), request.scale());
         label3D.getFeature().update(featureUpdateRequest);
-
-        return Label3DResponse.from(label3D);
     }
 
     @Transactional

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -90,5 +91,15 @@ public class CustomExceptionHandler {
                         detailMessage // 클라이언트에게 보여줄 메시지
                         );
         return new ResponseEntity<>(errorResponseBody, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponseBody> handleMissingServletRequestParameterException(
+            MissingServletRequestParameterException ex) {
+        LOGGER.error("handleMissingServletRequestParameterException: {}", ex.getMessage());
+        String paramName = ex.getParameterName();
+        String message = String.format("필수 요청 파라미터(%s)가 누락되었습니다.", paramName);
+        return new ResponseEntity<>(
+                ErrorResponseBody.of(HttpStatus.BAD_REQUEST, message), HttpStatus.BAD_REQUEST);
     }
 }

@@ -60,13 +60,20 @@ public class FeatureController {
 
     @Operation(
             summary = "피처 목록 조회",
-            description = "모든 피처 목록을 조회합니다",
+            description = "시설에 해당하는 모든 피처 목록을 조회합니다",
             parameters = {
                 @Parameter(name = "facilityId", description = "시설 아이디", required = true, example = "1")
             })
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "파라미터 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
                 @ApiResponse(
                         responseCode = "500",
                         description = "서버 오류",
@@ -111,7 +118,7 @@ public class FeatureController {
     @Operation(summary = "피처 정보 수정", description = "ID로 피처 정보를 수정합니다")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "200", description = "피처 수정 성공"),
+                @ApiResponse(responseCode = "204", description = "피처 수정 성공"),
                 @ApiResponse(
                         responseCode = "400",
                         description = "잘못된 요청",
@@ -139,8 +146,8 @@ public class FeatureController {
             @Parameter(description = "피처 ID", required = true) @PathVariable String id,
             @Parameter(description = "피처 수정 정보", required = true) @Valid @RequestBody
                     FeatureUpdateRequest request) {
-        FeatureResponse response = featureService.updateFeature(id, request);
-        return ResponseEntity.ok(response);
+        featureService.updateFeature(id, request);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "피처 삭제", description = "ID로 피처를 삭제합니다")
@@ -173,7 +180,7 @@ public class FeatureController {
     @ApiResponses(
             value = {
                 @ApiResponse(
-                        responseCode = "200",
+                        responseCode = "204",
                         description = "디바이스 할당 성공",
                         content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
                 @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스에 할당됨)"),
@@ -192,7 +199,7 @@ public class FeatureController {
     @ApiResponses(
             value = {
                 @ApiResponse(
-                        responseCode = "200",
+                        responseCode = "204",
                         description = "디바이스 연결 해제 성공",
                         content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
                 @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처에 디바이스가 할당되지 않음)"),
