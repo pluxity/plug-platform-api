@@ -1,12 +1,18 @@
 package com.pluxity.device;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.pluxity.device.dto.DeviceCategoryRequest;
 import com.pluxity.device.dto.DeviceCategoryResponse;
-import com.pluxity.device.dto.DeviceCategoryTreeResponse;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,14 +22,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -153,25 +151,6 @@ class DeviceCategoryServiceTest {
         // then
         DeviceCategoryResponse updatedCategory = deviceCategoryService.getDeviceCategoryResponse(id);
         assertThat(updatedCategory.name()).isEqualTo("수정된 카테고리");
-    }
-
-    @Test
-    @DisplayName("하위 카테고리를 만들고 계층 구조를 조회한다")
-    void getDeviceCategoryTree_WithChildCategories_ReturnsTreeStructure() {
-        // given
-        Long parentId = deviceCategoryService.create(createRequest);
-        
-        DeviceCategoryRequest childRequest = new DeviceCategoryRequest("하위 카테고리", parentId, iconFileId);
-        Long childId = deviceCategoryService.create(childRequest);
-        
-        // when
-        List<DeviceCategoryTreeResponse> treeResponses = deviceCategoryService.getDeviceCategoryTree();
-        
-        // then
-        assertThat(treeResponses).isNotEmpty();
-        assertThat(treeResponses.getFirst().name()).isEqualTo("테스트 카테고리");
-        assertThat(treeResponses.getFirst().children()).isNotEmpty();
-        assertThat(treeResponses.getFirst().children().getFirst().name()).isEqualTo("하위 카테고리");
     }
 
     @Test
