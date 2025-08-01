@@ -4,21 +4,20 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
-import com.pluxity.asset.service.AssetService;
 import com.pluxity.device.entity.Device;
 import com.pluxity.facility.FacilityRepository;
-import com.pluxity.facility.FacilityService;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.Spatial;
 import com.pluxity.feature.repository.FeatureRepository;
-import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.station.Station;
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -39,19 +38,13 @@ class FeatureServiceTest {
     private AssetRepository assetRepository;
     
     @Autowired
-    private FacilityService facilityService;
-    
-    @Autowired
-    private AssetService assetService;
-    
-    @Autowired
-    private FileService fileService;
-    
-    @Autowired
     private FacilityRepository facilityRepository;
 
     @Autowired
     private FeatureService featureService;
+
+    @Autowired
+    private EntityManager em;
 
     private Asset createAndSaveTestAsset() {
         Asset asset = Asset.builder().name("Test Asset").code("T01").build();
@@ -108,8 +101,8 @@ class FeatureServiceTest {
         Feature savedFeature = featureRepository.findById(featureId).orElse(null);
         assertNotNull(savedFeature);
         assertEquals(featureId, savedFeature.getId());
-        assertNotNull(savedFeature.getAsset());
-        assertEquals(assetId, savedFeature.getAsset().getId());
+        assertNotNull(savedFeature.getAssetId());
+        assertEquals(assetId, savedFeature.getAssetId());
         assertNotNull(savedFeature.getFacility());
         assertEquals(facilityId, savedFeature.getFacility().getId());
         assertEquals(floorId, savedFeature.getFloorId());
@@ -155,7 +148,7 @@ class FeatureServiceTest {
 
         Feature savedFeature = featureRepository.findById(featureId).orElse(null);
         assertNotNull(savedFeature);
-        assertNotNull(savedFeature.getAsset());
+        assertNotNull(savedFeature.getAssetId());
         assertNotNull(savedFeature.getFacility());
         assertEquals(floorId, savedFeature.getFloorId());
     }
@@ -178,7 +171,7 @@ class FeatureServiceTest {
                 .position(position)
                 .rotation(rotation)
                 .scale(scale)
-                .asset(asset)
+                .assetId(asset.getId())
                 .facility(facility)
                 .floorId(floorId)
                 .build();
@@ -293,7 +286,7 @@ class FeatureServiceTest {
                 .position(originalPosition)
                 .rotation(originalRotation)
                 .scale(originalScale)
-                .asset(testAsset)
+                .assetId(testAsset.getId())
                 .facility(facility)
                 .floorId(floorId)
                 .build();
@@ -328,7 +321,7 @@ class FeatureServiceTest {
         assertEquals(newPosition.getX(), updatedFeatureFromDb.getPosition().getX());
         assertEquals(newRotation.getY(), updatedFeatureFromDb.getRotation().getY());
         assertEquals(originalScale.getZ(), updatedFeatureFromDb.getScale().getZ());
-        assertNotNull(updatedFeatureFromDb.getAsset());
+        assertNotNull(updatedFeatureFromDb.getAssetId());
         assertNotNull(updatedFeatureFromDb.getFacility());
         assertEquals(floorId, updatedFeatureFromDb.getFloorId());
     }
@@ -351,7 +344,7 @@ class FeatureServiceTest {
                 .position(originalPosition)
                 .rotation(originalRotation)
                 .scale(originalScale)
-                .asset(testAsset)
+                .assetId(testAsset.getId())
                 .facility(facility)
                 .floorId(floorId)
                 .build();
@@ -379,7 +372,7 @@ class FeatureServiceTest {
         assertEquals(originalPosition.getX(), updatedFeature.getPosition().getX());
         assertEquals(originalRotation.getY(), updatedFeature.getRotation().getY());
         assertEquals(newScale.getZ(), updatedFeature.getScale().getZ());
-        assertNotNull(updatedFeature.getAsset());
+        assertNotNull(updatedFeature.getAssetId());
         assertNotNull(updatedFeature.getFacility());
     }
     
@@ -409,7 +402,7 @@ class FeatureServiceTest {
         
         Feature feature = Feature.builder()
                 .id(featureId)
-                .asset(asset)
+                .assetId(asset.getId())
                 .facility(facility)
                 .floorId(floorId)
                 .build();
@@ -458,40 +451,7 @@ class FeatureServiceTest {
         assertEquals(1.0, defaultScale.getY());
         assertEquals(1.0, defaultScale.getZ());
     }
-    
-    @Test
-    @DisplayName("Feature와 Asset의 양방향 연관관계 설정 테스트")
-    void testFeatureAssetBidirectionalRelationship() {
-        // given
-        String featureId = UUID.randomUUID().toString();
-        Asset asset = createAndSaveTestAsset();
-        Long assetId = asset.getId();
-        Station facility = createAndSaveTestFacility();
-        String floorId = "1";
 
-        Feature feature = Feature.builder()
-                .id(featureId)
-                .position(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .facility(facility)
-                .floorId(floorId)
-                .build();
-
-        // when
-        feature.changeAsset(asset);
-        featureRepository.save(feature);
-
-        // then
-        Feature savedFeature = featureRepository.findById(featureId).orElse(null);
-        assertNotNull(savedFeature);
-        assertNotNull(savedFeature.getAsset());
-        assertEquals(assetId, savedFeature.getAsset().getId());
-
-        Asset retrievedAsset = assetRepository.findById(assetId).orElse(null);
-        assertNotNull(retrievedAsset);
-    }
-    
     @Test
     @DisplayName("Asset을 가진 Feature 생성 테스트")
     void createFeature_WithAsset_CreatesFeatureWithAsset() {
@@ -521,8 +481,8 @@ class FeatureServiceTest {
 
         Feature savedFeature = featureRepository.findById(featureId).orElse(null);
         assertNotNull(savedFeature);
-        assertNotNull(savedFeature.getAsset());
-        assertEquals(assetId, savedFeature.getAsset().getId());
+        assertNotNull(savedFeature.getAssetId());
+        assertEquals(assetId, savedFeature.getAssetId());
         assertNotNull(savedFeature.getFacility());
         assertEquals(facilityId, savedFeature.getFacility().getId());
         assertEquals(floorId, savedFeature.getFloorId());
@@ -586,7 +546,7 @@ class FeatureServiceTest {
                 .position(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
                 .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
                 .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .asset(asset)
+                .assetId(asset.getId())
                 .facility(facility)
                 .floorId("1")
                 .build();
@@ -600,7 +560,7 @@ class FeatureServiceTest {
         
         // 관계가 모두 설정되었는지 확인
         savedFeature = featureRepository.findById(featureId).orElseThrow();
-        assertNotNull(savedFeature.getAsset());
+        assertNotNull(savedFeature.getAssetId());
         assertNotNull(savedFeature.getFacility());
         assertNotNull(savedFeature.getDevice());
         
@@ -610,117 +570,12 @@ class FeatureServiceTest {
         // then
         // 1. 피처가 삭제되었는지 확인
         assertFalse(featureRepository.findById(featureId).isPresent());
-        
+        em.flush();
         // 2. Asset에서 관계가 제거되었는지 확인
         Asset updatedAsset = assetRepository.findById(asset.getId()).orElseThrow();
-        assertFalse(updatedAsset.getFeatures().stream()
-                .anyMatch(f -> f.getId().equals(featureId)));
+        assertFalse(featureService.findFeatureIdsByAssetId(updatedAsset.getId()).stream()
+                .anyMatch(f -> f.equals(featureId)));
                 
-        // 디바이스에서 피처 제거 호출 검증 (clearFeatureOnly 메서드 호출 검증)
-        Mockito.verify(device).clearFeatureOnly();
-    }
-    
-    @Test
-    @DisplayName("clearAllRelations 메소드 단위 테스트")
-    void clearAllRelations_RemovesAllRelationsFromFeature() {
-        // given
-        String featureId = UUID.randomUUID().toString();
-        Asset asset = createAndSaveTestAsset();
-        Station facility = createAndSaveTestFacility();
-        
-        // 1. 디바이스 생성 - 모킹을 통해 구현
-        Device device = Mockito.mock(Device.class);
-        
-        // 2. 피처 생성 및 관계 설정
-        Feature feature = Feature.builder()
-                .id(featureId)
-                .position(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .asset(asset)
-                .facility(facility)
-                .floorId("1")
-                .build();
-        
-        // 피처 저장
-        Feature savedFeature = featureRepository.save(feature);
-        
-        // 피처와 디바이스 간의 양방향 관계 설정
-        ReflectionTestUtils.setField(savedFeature, "device", device);
-        Mockito.when(device.getFeature()).thenReturn(savedFeature);
-        
-        // 관계가 모두 설정되었는지 확인
-        savedFeature = featureRepository.findById(featureId).orElseThrow();
-        assertNotNull(savedFeature.getAsset());
-        assertNotNull(savedFeature.getFacility());
-        assertNotNull(savedFeature.getDevice());
-        
-        // when
-        // clearAllRelations 메소드 직접 호출
-        savedFeature.clearAllRelations();
-        featureRepository.save(savedFeature);
-        
-        // then
-        // 모든 관계가 제거되었는지 확인
-        Feature updatedFeature = featureRepository.findById(featureId).orElseThrow();
-        assertNull(updatedFeature.getAsset());
-        assertNull(updatedFeature.getFacility());
-        assertNull(updatedFeature.getDevice());
-        
-        // 연관 엔티티들에서도 관계가 제거되었는지 확인
-        Asset updatedAsset = assetRepository.findById(asset.getId()).orElseThrow();
-        assertFalse(updatedAsset.getFeatures().stream()
-                .anyMatch(f -> f.getId().equals(featureId)));
-                
-        // 디바이스에서 피처 제거 호출 검증 (clearFeatureOnly 메서드 호출 검증)
-        Mockito.verify(device).clearFeatureOnly();
     }
 
-    @Test
-    @DisplayName("삭제 시 하나의 관계라도 제거 실패하면 예외 발생")
-    void deleteFeature_ThrowsExceptionWhenRelationRemovalFails() {
-        // given
-        String featureId = UUID.randomUUID().toString();
-        Asset asset = createAndSaveTestAsset();
-        
-        // 실제 Feature 엔티티 생성 및 Asset 연결
-        Feature feature = Feature.builder()
-                .id(featureId)
-                .position(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .rotation(Spatial.builder().x(0.0).y(0.0).z(0.0).build())
-                .scale(Spatial.builder().x(1.0).y(1.0).z(1.0).build())
-                .asset(asset)
-                .build();
-        
-        // 피처 저장
-        featureRepository.save(feature);
-        
-        // 관계가 설정되었는지 확인
-        Feature savedFeature = featureRepository.findById(featureId).orElseThrow();
-        assertNotNull(savedFeature.getAsset());
-        
-        // Feature를 스파이로 감싸서 clearAllRelations 호출 시 예외 발생하도록 설정
-        Feature spyFeature = Mockito.spy(savedFeature);
-        Mockito.doThrow(new RuntimeException("관계 제거 실패")).when(spyFeature).clearAllRelations();
-        
-        // FeatureRepository의 findById 메소드를 목으로 대체하여 스파이 객체 반환하도록 설정
-        FeatureRepository mockRepo = Mockito.mock(FeatureRepository.class);
-        Mockito.when(mockRepo.findById(featureId)).thenReturn(java.util.Optional.of(spyFeature));
-        
-        // 원본 repository 저장
-        FeatureRepository originalRepo = (FeatureRepository) ReflectionTestUtils.getField(
-                featureService, "featureRepository");
-        
-        // 목 주입
-        ReflectionTestUtils.setField(featureService, "featureRepository", mockRepo);
-        
-        try {
-            // when & then
-            assertThrows(RuntimeException.class, () -> featureService.deleteFeature(featureId));
-            
-        } finally {
-            // 원래 레포지토리 복원
-            ReflectionTestUtils.setField(featureService, "featureRepository", originalRepo);
-        }
-    }
 }

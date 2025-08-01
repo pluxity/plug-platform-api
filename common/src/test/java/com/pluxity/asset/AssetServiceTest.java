@@ -8,8 +8,6 @@ import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.asset.service.AssetCategoryService;
 import com.pluxity.asset.service.AssetService;
-import com.pluxity.feature.repository.FeatureRepository;
-import com.pluxity.feature.service.FeatureService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,12 +45,6 @@ class AssetServiceTest {
 
     @Autowired
     private FileService fileService;
-
-    @Autowired
-    private FeatureService featureService;
-
-    @Autowired
-    private FeatureRepository featureRepository;
 
     private Long assetFileId;
     private Long thumbnailFileId;
@@ -110,7 +102,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // 생성 요청 객체 업데이트
         AssetCreateRequest request = new AssetCreateRequest(
                 createRequest.name(),
@@ -119,7 +111,7 @@ class AssetServiceTest {
                 newThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         // when
         Long id = assetService.createAsset(request);
 
@@ -144,7 +136,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // 생성 요청 객체 업데이트
         AssetCreateRequest request = new AssetCreateRequest(
                 createRequest.name(),
@@ -153,7 +145,7 @@ class AssetServiceTest {
                 newThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         // given
         assetService.createAsset(request);
 
@@ -174,7 +166,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // 생성 요청 객체 업데이트
         AssetCreateRequest request = new AssetCreateRequest(
                 createRequest.name(),
@@ -183,7 +175,7 @@ class AssetServiceTest {
                 newThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         // given
         Long id = assetService.createAsset(request);
 
@@ -219,7 +211,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성 (에셋 생성용)
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // 생성 요청 객체 업데이트
         AssetCreateRequest request = new AssetCreateRequest(
                 createRequest.name(),
@@ -228,7 +220,7 @@ class AssetServiceTest {
                 newThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         // given
         Long id = assetService.createAsset(request);
 
@@ -273,7 +265,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // 생성 요청 객체 업데이트
         AssetCreateRequest request = new AssetCreateRequest(
                 createRequest.name(),
@@ -282,7 +274,7 @@ class AssetServiceTest {
                 newThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         // given
         Long id = assetService.createAsset(request);
         AssetResponse response = assetService.getAsset(id);
@@ -301,7 +293,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // given
         // 카테고리 없이 에셋 생성
         AssetCreateRequest requestWithoutCategory = new AssetCreateRequest(
@@ -331,7 +323,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // 생성 요청 객체 업데이트
         AssetCreateRequest request = new AssetCreateRequest(
                 createRequest.name(),
@@ -340,7 +332,7 @@ class AssetServiceTest {
                 newThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         // given
         Long assetId = assetService.createAsset(request);
         AssetResponse asset = assetService.getAsset(assetId);
@@ -362,7 +354,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // given
         AssetCreateRequest requestWithoutCategory = new AssetCreateRequest(
                 "카테고리 없는 에셋",
@@ -385,7 +377,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성 (첫 번째 에셋용)
         Long firstAssetFileId = createNewFileId();
         Long firstThumbnailFileId = createNewFileId();
-        
+
         // 첫 번째 에셋 생성 요청
         AssetCreateRequest firstRequest = new AssetCreateRequest(
                 createRequest.name(),
@@ -394,14 +386,14 @@ class AssetServiceTest {
                 firstThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         // 1. 첫 번째 에셋 생성
         Long id1 = assetService.createAsset(firstRequest);
 
         // 새로운 파일 ID 생성 (두 번째 에셋용)
         Long secondAssetFileId = createNewFileId();
         Long secondThumbnailFileId = createNewFileId();
-        
+
         // 2. 동일한 코드로 두 번째 에셋 생성 시도
         AssetCreateRequest duplicateRequest = new AssetCreateRequest(
                 "다른 에셋",
@@ -437,7 +429,7 @@ class AssetServiceTest {
     void createAsset_WithInvalidThumbnailFileId_ThrowsCustomException() throws IOException {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
-        
+
         // given
         Long invalidThumbnailId = 9999L;
         AssetCreateRequest invalidRequest = new AssetCreateRequest(
@@ -458,7 +450,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // given
         Long invalidCategoryId = 9999L;
         AssetCreateRequest invalidRequest = new AssetCreateRequest(
@@ -479,7 +471,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성 (첫 번째 에셋용)
         Long firstAssetFileId = createNewFileId();
         Long firstThumbnailFileId = createNewFileId();
-        
+
         // 첫 번째 에셋 생성
         AssetCreateRequest firstRequest = new AssetCreateRequest(
                 "첫 번째 에셋",
@@ -493,7 +485,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성 (두 번째 에셋용)
         Long secondAssetFileId = createNewFileId();
         Long secondThumbnailFileId = createNewFileId();
-        
+
         // 두 번째 에셋 생성
         AssetCreateRequest secondRequest = new AssetCreateRequest(
                 "두 번째 에셋",
@@ -507,7 +499,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성 (업데이트용)
         Long updateAssetFileId = createNewFileId();
         Long updateThumbnailFileId = createNewFileId();
-        
+
         // 두 번째 에셋을 첫 번째 에셋과 동일한 코드로 업데이트 시도
         AssetUpdateRequest updateRequest = new AssetUpdateRequest(
                 "수정된 에셋",
@@ -527,7 +519,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // given
         Long nonExistingId = 9999L;
         AssetUpdateRequest updateRequest = new AssetUpdateRequest(
@@ -558,7 +550,7 @@ class AssetServiceTest {
         // 첫 번째 에셋 생성용 파일 ID
         Long firstAssetFileId = createNewFileId();
         Long firstThumbnailFileId = createNewFileId();
-        
+
         // 1. 첫 번째 카테고리의 에셋 생성
         AssetCreateRequest firstAssetRequest = new AssetCreateRequest(
                 "첫 번째 에셋",
@@ -581,7 +573,7 @@ class AssetServiceTest {
         // 두 번째 에셋 생성용 파일 ID
         Long secondAssetFileId = createNewFileId();
         Long secondThumbnailFileId = createNewFileId();
-        
+
         // 3. 두 번째 카테고리의 에셋 생성
         AssetCreateRequest secondAssetRequest = new AssetCreateRequest(
                 "두 번째 에셋",
@@ -612,7 +604,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // 생성 요청 객체 업데이트
         AssetCreateRequest request = new AssetCreateRequest(
                 createRequest.name(),
@@ -621,7 +613,7 @@ class AssetServiceTest {
                 newThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         // given
         Long assetId = assetService.createAsset(request);
         Long nonExistingCategoryId = 9999L;
@@ -636,7 +628,7 @@ class AssetServiceTest {
         // 새로운 파일 ID 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         // 생성 요청 객체 업데이트
         AssetCreateRequest request = new AssetCreateRequest(
                 createRequest.name(),
@@ -645,7 +637,7 @@ class AssetServiceTest {
                 newThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         // given
         Long id = assetService.createAsset(request);
         String assetCode = "TES";
@@ -736,7 +728,7 @@ class AssetServiceTest {
         // 1. 에셋 생성
         Long newAssetFileId = createNewFileId();
         Long newThumbnailFileId = createNewFileId();
-        
+
         AssetCreateRequest request = new AssetCreateRequest(
                 "예외 테스트 에셋",
                 "EXC",
@@ -744,31 +736,31 @@ class AssetServiceTest {
                 newThumbnailFileId,
                 createRequest.categoryId()
         );
-        
+
         Long assetId = assetService.createAsset(request);
-        
+
         // 에셋 스파이 생성
         Asset asset = assetRepository.findById(assetId).orElseThrow();
         Asset spyAsset = Mockito.spy(asset);
-        
+
         // clearAllRelations 호출 시 예외 발생하도록 설정
         Mockito.doThrow(new RuntimeException("관계 제거 실패")).when(spyAsset).clearAllRelations();
-        
+
         // 목 레포지토리 설정
         AssetRepository mockRepo = Mockito.mock(AssetRepository.class);
         Mockito.when(mockRepo.findById(assetId)).thenReturn(java.util.Optional.of(spyAsset));
-        
+
         // 원본 레포지토리 저장
         AssetRepository originalRepo = (AssetRepository) ReflectionTestUtils.getField(
                 assetService, "assetRepository");
-        
+
         // 목 주입
         ReflectionTestUtils.setField(assetService, "assetRepository", mockRepo);
-        
+
         try {
             // when & then
             assertThrows(RuntimeException.class, () -> assetService.deleteAsset(assetId));
-            
+
         } finally {
             // 원래 레포지토리 복원
             ReflectionTestUtils.setField(assetService, "assetRepository", originalRepo);

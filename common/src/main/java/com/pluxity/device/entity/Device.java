@@ -28,9 +28,6 @@ public abstract class Device extends BaseEntity {
     protected Device(String id, Feature feature, DeviceCategory category) {
         this.id = id;
         this.feature = feature;
-        if (this.feature != null) {
-            this.feature.changeDevice(this);
-        }
         this.category = category;
         if (this.category != null) {
             this.category.addDevice(this);

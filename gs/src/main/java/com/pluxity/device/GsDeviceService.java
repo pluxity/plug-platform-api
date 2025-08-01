@@ -30,18 +30,16 @@ public class GsDeviceService {
 
     @Transactional
     public String save(GsDeviceCreateRequest request) {
-        GsDevice gsDevice = createGsDevice(request);
-        return repository.save(gsDevice).getId();
-    }
-
-    private GsDevice createGsDevice(GsDeviceCreateRequest request) {
         DeviceCategory category =
                 request.categoryId() != null ? deviceCategoryService.findById(request.categoryId()) : null;
 
         Feature feature =
                 request.featureId() != null ? featureService.findFeatureById(request.featureId()) : null;
 
-        return new GsDevice(request.id(), feature, category, request.name());
+        GsDevice saveDevice =
+                repository.save(new GsDevice(request.id(), feature, category, request.name()));
+        saveDevice.changeFeature(feature);
+        return saveDevice.getId();
     }
 
     @Transactional(readOnly = true)

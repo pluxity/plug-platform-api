@@ -2,7 +2,6 @@ package com.pluxity.feature.service;
 
 import static com.pluxity.global.constant.ErrorCode.*;
 
-import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.service.AssetService;
 import com.pluxity.device.entity.Device;
 import com.pluxity.facility.Facility;
@@ -51,17 +50,10 @@ public class FeatureService {
 
         // 먼저 관련 엔티티 조회
         Facility facility = facilityService.findById(request.facilityId());
-        Asset asset = assetService.findById(request.assetId());
-
-        // Feature 엔티티 생성
-        Feature feature = Feature.create(request, featureId);
-
-        // 양방향 연관관계 설정 - 엔티티의 편의 메서드 사용
-        feature.changeFacility(facility);
-        feature.changeAsset(asset);
+        assetService.findById(request.assetId());
 
         // 저장
-        Feature savedFeature = featureRepository.save(feature);
+        Feature savedFeature = featureRepository.save(Feature.create(request, featureId, facility));
         log.debug("피처 저장 완료: id={}", savedFeature.getId());
 
         return getFeatureResponse(savedFeature);
@@ -90,14 +82,9 @@ public class FeatureService {
     @Transactional
     public void deleteFeature(String id) {
         Feature feature = findFeatureById(id);
-
-        // 로깅 추가
-        log.info("피처 [{}] 삭제 전 연관관계 정리 시작", id);
-
-        // 모든 연관관계 제거
-        feature.clearAllRelations();
-
-        log.info("피처 [{}]의 모든 연관관계 제거 완료, 삭제 진행", id);
+        log.info("피처 [{}] 삭제 전 Device 연관관계 정리 시작", id);
+        feature.changeDevice(null);
+        log.info("피처 [{}]의 Device 연관관계 제거 완료, 삭제 진행", id);
         featureRepository.delete(feature);
     }
 
@@ -166,5 +153,10 @@ public class FeatureService {
     @Transactional
     public Feature saveFeature(Feature feature) {
         return featureRepository.save(feature);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> findFeatureIdsByAssetId(Long assetId) {
+        return featureRepository.findByAssetId(assetId).stream().map(Feature::getId).toList();
     }
 }

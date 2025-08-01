@@ -84,4 +84,12 @@ public class CommonApiConfig {
                 .pathsToMatch("/features/**", "/label-3d/**")
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi deviceApiByPath() {
+        return GroupedOpenApi.builder()
+                .group("8. Device 관리 API")
+                .pathsToMatch("/devices/**", "/device-categories/**")
+                .build();
+    }
 }

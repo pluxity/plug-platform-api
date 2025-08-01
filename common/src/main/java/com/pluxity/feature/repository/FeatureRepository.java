@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FeatureRepository extends JpaRepository<Feature, String> {
     List<Feature> findByFacilityOrderByCreatedAtDesc(Facility facility);
+
+    List<Feature> findByAssetId(Long assetId);
 }

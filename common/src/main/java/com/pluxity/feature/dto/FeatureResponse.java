@@ -18,7 +18,7 @@ public record FeatureResponse(
                 feature.getPosition(),
                 feature.getRotation(),
                 feature.getScale(),
-                feature.getAsset().getId(),
+                feature.getAssetId(),
                 feature.getFloorId(),
                 feature.getDevice() != null ? feature.getDevice().getId() : null);
     }

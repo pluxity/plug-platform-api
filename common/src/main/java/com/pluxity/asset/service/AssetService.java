@@ -9,7 +9,6 @@ import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.asset.repository.AssetRepository;
-import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.service.FeatureService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.entity.FileEntity;
@@ -205,7 +204,7 @@ public class AssetService {
     public void deleteAsset(Long id) {
         Asset asset = findById(id);
 
-        List<String> featureIds = asset.getAllFeatures().stream().map(Feature::getId).toList();
+        List<String> featureIds = featureService.findFeatureIdsByAssetId(id);
         int featureCount = featureIds.size();
 
         log.info("에셋 [{}] 삭제 전 연관관계 정리 시작 (연결된 피처: {}개)", id, featureCount);
