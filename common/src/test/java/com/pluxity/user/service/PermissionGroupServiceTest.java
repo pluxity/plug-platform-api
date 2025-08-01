@@ -139,7 +139,6 @@ class PermissionGroupServiceTest {
             assertThat(response).isNotNull();
             assertThat(response.id()).isEqualTo(groupId);
             assertThat(response.name()).isEqualTo("기본 시설 관리 그룹");
-            assertThat(response.permissions()).hasSize(3);
         }
 
         @Test

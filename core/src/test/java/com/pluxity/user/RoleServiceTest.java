@@ -122,7 +122,9 @@ class RoleServiceTest {
         assertThat(response.permissions()).hasSize(2);
 
         List<String> responseResourceIds = response.permissions().stream()
-                .map(PermissionResponse::resourceId)
+                .flatMap(group -> group.permissions().stream())
+                .map(PermissionResponse::resourceIds)
+                .flatMap(List::stream)
                 .collect(Collectors.toList());
 
         assertThat(responseResourceIds).containsExactlyInAnyOrder(
@@ -156,7 +158,11 @@ class RoleServiceTest {
 
         // 최종 권한이 올바르게 동기화되었는지 검증 (Permission 2개 확인)
         assertThat(response.permissions()).hasSize(2);
-        List<String> finalResourceIds = response.permissions().stream().map(PermissionResponse::resourceId).collect(Collectors.toList());
+        List<String> finalResourceIds = response.permissions().stream()
+                .flatMap(group -> group.permissions().stream())
+                .map(PermissionResponse::resourceIds)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
         assertThat(finalResourceIds).containsExactlyInAnyOrder(
                 String.valueOf(buildings.get(1).getId()),
                 String.valueOf(buildings.get(2).getId())
