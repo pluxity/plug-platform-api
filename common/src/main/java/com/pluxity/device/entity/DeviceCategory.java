@@ -30,11 +30,6 @@ public class DeviceCategory extends Category<DeviceCategory> {
         this.validateDepth();
     }
 
-    @Override
-    public int getMaxDepth() {
-        return 3;
-    }
-
     public void updateIconFileId(Long iconFileId) {
         this.iconFileId = iconFileId;
     }

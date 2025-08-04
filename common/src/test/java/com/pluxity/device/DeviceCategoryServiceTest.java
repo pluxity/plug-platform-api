@@ -225,12 +225,8 @@ class DeviceCategoryServiceTest {
         DeviceCategoryRequest level2Request = new DeviceCategoryRequest("레벨2 카테고리", rootId, iconFileId);
         Long level2Id = deviceCategoryService.create(level2Request);
         
-        // 세 번째 레벨 카테고리 생성
-        DeviceCategoryRequest level3Request = new DeviceCategoryRequest("레벨3 카테고리", level2Id, iconFileId);
-        Long level3Id = deviceCategoryService.create(level3Request);
-        
-        // 네 번째 레벨 카테고리 생성 시도 (일반적으로 최대 3단계로 제한되는 경우)
-        DeviceCategoryRequest level4Request = new DeviceCategoryRequest("레벨4 카테고리", level3Id, iconFileId);
+        // 네 번째 레벨 카테고리 생성 시도 (일반적으로 최대 2단계로 제한되는 경우)
+        DeviceCategoryRequest level4Request = new DeviceCategoryRequest("레벨3 카테고리", level2Id, iconFileId);
         
         // when & then
         assertThrows(CustomException.class, () -> deviceCategoryService.create(level4Request));

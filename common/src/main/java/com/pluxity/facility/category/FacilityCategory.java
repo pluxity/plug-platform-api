@@ -43,9 +43,4 @@ public class FacilityCategory extends Category<FacilityCategory> {
     public void updateImageFile(Long imageFileId) {
         this.imageFileId = imageFileId;
     }
-
-    @Override
-    public int getMaxDepth() {
-        return 3;
-    }
 }

@@ -27,7 +27,9 @@ public abstract class Category<T extends Category<T>> extends BaseEntity {
     @OneToMany(mappedBy = "parent", orphanRemoval = true)
     protected List<T> children = new ArrayList<>();
 
-    public abstract int getMaxDepth();
+    public int getMaxDepth() {
+        return 2;
+    }
 
     public boolean isRoot() {
         return parent == null;

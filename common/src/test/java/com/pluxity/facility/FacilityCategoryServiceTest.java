@@ -291,20 +291,14 @@ class FacilityCategoryServiceTest {
                 rootResponse.id()
         ));
 
-        // 3단계: 루트 -> 자식1 -> 자식2
-        FacilityCategoryResponse child2Response = categoryService.create(new FacilityCategoryCreateRequest(
-                "자식 카테고리 2",
-                child1Response.id()
-        ));
-
-        // 4단계: 루트 -> 자식1 -> 자식2 -> 자식3 (최대 깊이 초과 가정)
+        // 3단계: 루트 -> 자식1 -> 자식2(최대 깊이 초과 가정)
         FacilityCategoryCreateRequest exceedDepthRequest = new FacilityCategoryCreateRequest(
                 "최대 깊이 초과 카테고리",
-                child2Response.id()
+                child1Response.id()
         );
 
         // when & then
-        // 최대 깊이(일반적으로 3단계)를 초과하는 카테고리 생성 시도
+        // 최대 깊이(일반적으로 2단계)를 초과하는 카테고리 생성 시도
         assertThrows(CustomException.class, () -> categoryService.create(exceedDepthRequest));
     }
 

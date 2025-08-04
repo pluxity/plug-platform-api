@@ -36,11 +36,6 @@ public class AssetCategory extends Category<AssetCategory> {
         this.validateDepth();
     }
 
-    @Override
-    public int getMaxDepth() {
-        return 3;
-    }
-
     public void updateIconFileId(Long iconFileId) {
         this.iconFileId = iconFileId;
     }
