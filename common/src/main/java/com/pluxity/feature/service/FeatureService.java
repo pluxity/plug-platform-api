@@ -2,7 +2,7 @@ package com.pluxity.feature.service;
 
 import static com.pluxity.global.constant.ErrorCode.*;
 
-import com.pluxity.asset.service.AssetService;
+import com.pluxity.asset.service.AssetValidator;
 import com.pluxity.device.entity.Device;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
@@ -30,7 +30,7 @@ public class FeatureService {
 
     private final FeatureRepository featureRepository;
     private final FacilityService facilityService;
-    private final AssetService assetService;
+    private final AssetValidator assetValidator;
     @PersistenceContext private EntityManager entityManager;
 
     @Transactional
@@ -50,7 +50,7 @@ public class FeatureService {
 
         // 먼저 관련 엔티티 조회
         Facility facility = facilityService.findById(request.facilityId());
-        assetService.findById(request.assetId());
+        assetValidator.validateAssetId(request.assetId());
 
         // 저장
         Feature savedFeature = featureRepository.save(Feature.create(request, featureId, facility));
