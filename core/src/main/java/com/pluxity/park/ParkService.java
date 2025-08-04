@@ -3,8 +3,8 @@ package com.pluxity.park;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityProvider;
 import com.pluxity.facility.FacilityService;
+import com.pluxity.facility.dto.FacilityApiType;
 import com.pluxity.facility.dto.FacilityResponse;
-import com.pluxity.facility.dto.FacilityResponseKey;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
@@ -102,8 +102,8 @@ public class ParkService implements FacilityProvider {
     }
 
     @Override
-    public FacilityResponseKey getResponseKey() {
-        return FacilityResponseKey.PARK;
+    public FacilityApiType getFacilityApiType() {
+        return FacilityApiType.PARK;
     }
 
     @Override

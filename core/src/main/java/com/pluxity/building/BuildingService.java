@@ -6,9 +6,8 @@ import com.pluxity.building.dto.BuildingUpdateRequest;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityProvider;
 import com.pluxity.facility.FacilityService;
-import com.pluxity.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.dto.FacilityApiType;
 import com.pluxity.facility.dto.FacilityResponse;
-import com.pluxity.facility.dto.FacilityResponseKey;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.file.dto.FileResponse;
@@ -84,11 +83,6 @@ public class BuildingService implements FacilityProvider {
                 .build();
     }
 
-    @Transactional(readOnly = true)
-    public List<FacilityHistoryResponse> findFacilityHistories(Long id) {
-        return facilityService.findFacilityHistories(id);
-    }
-
     @Transactional
     public void update(Long id, BuildingUpdateRequest request) {
         Building building = findBuilding(id);
@@ -119,8 +113,8 @@ public class BuildingService implements FacilityProvider {
     }
 
     @Override
-    public FacilityResponseKey getResponseKey() {
-        return FacilityResponseKey.BUILDING;
+    public FacilityApiType getFacilityApiType() {
+        return FacilityApiType.BUILDING;
     }
 
     @Override

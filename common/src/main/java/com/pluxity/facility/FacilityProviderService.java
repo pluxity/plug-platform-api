@@ -16,7 +16,7 @@ public class FacilityProviderService {
     public Map<String, List<FacilityResponse>> findAllFacilities() {
         Map<String, List<FacilityResponse>> ret = new HashMap<>();
         for (FacilityProvider facilityProvider : facilityProviders) {
-            ret.put(facilityProvider.getResponseKey().getKey(), facilityProvider.getAllFacilities());
+            ret.put(facilityProvider.getFacilityApiType().getKey(), facilityProvider.getAllFacilities());
         }
         return ret;
     }

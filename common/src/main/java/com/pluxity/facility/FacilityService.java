@@ -5,13 +5,11 @@ import static com.pluxity.global.constant.ErrorCode.*;
 import com.pluxity.facility.dto.*;
 import com.pluxity.facility.history.FacilityHistoryService;
 import com.pluxity.facility.path.FacilityPathService;
-import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.annotation.CheckPermission;
 import com.pluxity.global.annotation.CheckPermissionAfter;
 import com.pluxity.global.annotation.CheckPermissionAll;
 import com.pluxity.global.exception.CustomException;
-import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +29,7 @@ public class FacilityService {
     private final FacilityPathService facilityPathService;
 
     @Transactional
-    public Facility save(Facility facility, @Valid FacilityCreateRequest request) {
+    public Facility save(Facility facility, FacilityCreateRequest request) {
         // 코드 중복 검사
         if (request.code() != null && !request.code().isEmpty()) {
             checkDuplicateCode(request.code());
@@ -89,7 +87,7 @@ public class FacilityService {
     }
 
     @Transactional
-    public void update(Long id, @Valid FacilityUpdateRequest request) {
+    public void update(Long id, FacilityUpdateRequest request) {
         if (request == null) {
             return;
         }
@@ -119,7 +117,7 @@ public class FacilityService {
     }
 
     @Transactional
-    public void putUpdate(Long id, @Valid FacilityUpdateRequest request) {
+    public void putUpdate(Long id, FacilityUpdateRequest request) {
         Facility facility = findById(id);
 
         if (request.code() != null && !request.code().equals(facility.getCode())) {
@@ -166,30 +164,6 @@ public class FacilityService {
                 .findById(facilityId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY, facilityId));
         return facilityHistoryService.findByFacilityId(facilityId);
-    }
-
-    public FileResponse getDrawingFileResponse(Facility facility) {
-        if (facility.getDrawingFileId() == null) {
-            return FileResponse.empty();
-        }
-        try {
-            return fileService.getFileResponse(facility.getDrawingFileId());
-        } catch (Exception e) {
-            log.error("Failed to get drawing file: {}", e.getMessage());
-            return FileResponse.empty();
-        }
-    }
-
-    public FileResponse getThumbnailFileResponse(Facility facility) {
-        if (facility.getThumbnailFileId() == null) {
-            return FileResponse.empty();
-        }
-        try {
-            return fileService.getFileResponse(facility.getThumbnailFileId());
-        } catch (Exception e) {
-            log.error("Failed to get thumbnail file: {}", e.getMessage());
-            return FileResponse.empty();
-        }
     }
 
     @Transactional

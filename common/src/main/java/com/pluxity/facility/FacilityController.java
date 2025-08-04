@@ -230,4 +230,29 @@ public class FacilityController {
         facilityService.deletePath(facilityId, pathId);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "시설물 이력 조회", description = "특정 ID를 가진 시설물의 이력 목록을 조회합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "이력 조회 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "해당 ID의 시설물을 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/{id}/history")
+    public ResponseEntity<DataResponseBody<List<FacilityHistoryResponse>>> getFacilityHistoryById(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(DataResponseBody.of(facilityService.findFacilityHistories(id)));
+    }
 }

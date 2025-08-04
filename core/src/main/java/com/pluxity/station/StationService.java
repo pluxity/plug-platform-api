@@ -3,9 +3,8 @@ package com.pluxity.station;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityProvider;
 import com.pluxity.facility.FacilityService;
-import com.pluxity.facility.dto.FacilityHistoryResponse;
+import com.pluxity.facility.dto.FacilityApiType;
 import com.pluxity.facility.dto.FacilityResponse;
-import com.pluxity.facility.dto.FacilityResponseKey;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.feature.dto.FeatureResponse;
@@ -114,11 +113,6 @@ public class StationService implements FacilityProvider {
         return stationRepository
                 .findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_STATION, id));
-    }
-
-    @Transactional(readOnly = true)
-    public List<FacilityHistoryResponse> findFacilityHistories(Long id) {
-        return facilityService.findFacilityHistories(id);
     }
 
     @Transactional
@@ -238,8 +232,8 @@ public class StationService implements FacilityProvider {
     }
 
     @Override
-    public FacilityResponseKey getResponseKey() {
-        return FacilityResponseKey.STATION;
+    public FacilityApiType getFacilityApiType() {
+        return FacilityApiType.STATION;
     }
 
     @Override

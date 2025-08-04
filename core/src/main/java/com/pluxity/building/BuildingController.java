@@ -3,7 +3,6 @@ package com.pluxity.building;
 import com.pluxity.building.dto.BuildingCreateRequest;
 import com.pluxity.building.dto.BuildingResponse;
 import com.pluxity.building.dto.BuildingUpdateRequest;
-import com.pluxity.facility.dto.FacilityHistoryResponse;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -98,31 +97,6 @@ public class BuildingController {
     public ResponseEntity<DataResponseBody<BuildingResponse>> get(
             @Parameter(description = "건물 ID", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(DataResponseBody.of(service.findById(id)));
-    }
-
-    @Operation(summary = "특정 건물 이력 조회", description = "특정 ID를 가진 건물의 이력 목록을 조회합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "이력 조회 성공"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "해당 ID의 건물을 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/{id}/history")
-    public ResponseEntity<DataResponseBody<List<FacilityHistoryResponse>>> getBuildingHistoryById(
-            @PathVariable Long id) {
-        return ResponseEntity.ok(DataResponseBody.of(service.findFacilityHistories(id)));
     }
 
     @Operation(summary = "건물 수정", description = "기존 건물의 정보를 수정합니다")
