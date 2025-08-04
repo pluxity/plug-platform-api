@@ -56,8 +56,8 @@ public class PermissionGroupController {
     @Operation(summary = "권한 목록 조회", description = "모든 권한 목록을 조회합니다.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "목록 조회 성공")})
     @GetMapping
-    public ResponseEntity<List<PermissionGroupResponse>> getPermissionGroups() {
-        return ResponseEntity.ok(permissionGroupService.findAll());
+    public ResponseEntity<DataResponseBody<List<PermissionGroupResponse>>> getPermissionGroups() {
+        return ResponseEntity.ok(DataResponseBody.of(permissionGroupService.findAll()));
     }
 
     @Operation(summary = "권한 상세 조회", description = "ID로 특정 권한의 상세 정보를 조회합니다.")
@@ -70,9 +70,9 @@ public class PermissionGroupController {
                         content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping("/{id}")
-    public ResponseEntity<PermissionGroupResponse> getPermissionGroup(
+    public ResponseEntity<DataResponseBody<PermissionGroupResponse>> getPermissionGroup(
             @Parameter(description = "권한 ID", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(permissionGroupService.findById(id));
+        return ResponseEntity.ok(DataResponseBody.of(permissionGroupService.findById(id)));
     }
 
     @Operation(summary = "권한 정보 수정", description = "ID로 특정 권한의 정보를 수정합니다. (PATCH 방식)")
