@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.pluxity.device.dto.DeviceCategoryRequest;
 import com.pluxity.device.dto.DeviceCategoryResponse;
+import com.pluxity.device.dto.DeviceCategoryUpdateRequest;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.file.service.FileService;
@@ -86,8 +87,8 @@ class DeviceCategoryServiceTest {
                 "new_icon.png", "new_icon.png", "image/png", fileContent);
         
         Long newIconFileId = fileService.initiateUpload(newIconFile);
-        
-        DeviceCategoryRequest updateRequest = new DeviceCategoryRequest("수정된 카테고리", null, newIconFileId);
+
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("수정된 카테고리", null, newIconFileId);
 
         // when
         deviceCategoryService.update(id, updateRequest);
@@ -143,7 +144,7 @@ class DeviceCategoryServiceTest {
     void update_WithValidRequest_UpdatesCategory() {
         // given
         Long id = deviceCategoryService.create(createRequest);
-        DeviceCategoryRequest updateRequest = new DeviceCategoryRequest("수정된 카테고리", null, iconFileId);
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("수정된 카테고리", null, iconFileId);
 
         // when
         deviceCategoryService.update(id, updateRequest);
@@ -190,7 +191,7 @@ class DeviceCategoryServiceTest {
     void update_WithNonExistingId_ThrowsCustomException() {
         // given
         Long nonExistingId = 9999L;
-        DeviceCategoryRequest updateRequest = new DeviceCategoryRequest("수정된 카테고리", null, iconFileId);
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("수정된 카테고리", null, iconFileId);
 
         // when & then
         assertThrows(CustomException.class, () -> deviceCategoryService.update(nonExistingId, updateRequest));

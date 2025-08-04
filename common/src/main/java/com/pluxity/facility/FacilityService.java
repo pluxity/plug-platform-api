@@ -5,6 +5,7 @@ import static com.pluxity.global.constant.ErrorCode.*;
 import com.pluxity.facility.dto.*;
 import com.pluxity.facility.history.FacilityHistoryService;
 import com.pluxity.facility.path.FacilityPathService;
+import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.annotation.CheckPermission;
 import com.pluxity.global.annotation.CheckPermissionAfter;
@@ -27,6 +28,7 @@ public class FacilityService {
     private final String PREFIX = "facilities/";
     private final FacilityHistoryService facilityHistoryService;
     private final FacilityPathService facilityPathService;
+    private final FloorService floorService;
 
     @Transactional
     public Facility save(Facility facility, FacilityCreateRequest request) {
@@ -200,5 +202,11 @@ public class FacilityService {
                         .lat(request.lat())
                         .locationMeta(request.locationMeta())
                         .build());
+    }
+
+    @Transactional
+    public void updateFloor(Long facilityId, FacilityFloorUpdateRequest request) {
+        Facility facility = findById(facilityId);
+        floorService.update(facility, request.floors());
     }
 }

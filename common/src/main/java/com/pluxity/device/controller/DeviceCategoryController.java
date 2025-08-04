@@ -3,6 +3,7 @@ package com.pluxity.device.controller;
 import com.pluxity.device.dto.DeviceCategoryAllResponse;
 import com.pluxity.device.dto.DeviceCategoryRequest;
 import com.pluxity.device.dto.DeviceCategoryResponse;
+import com.pluxity.device.dto.DeviceCategoryUpdateRequest;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
@@ -135,11 +136,11 @@ public class DeviceCategoryController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Void> update(
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id,
             @Parameter(description = "카테고리 수정 정보", required = true) @Valid @RequestBody
-                    DeviceCategoryRequest request) {
+                    DeviceCategoryUpdateRequest request) {
         deviceCategoryService.update(id, request);
         return ResponseEntity.noContent().build();
     }

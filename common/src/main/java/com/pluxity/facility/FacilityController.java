@@ -255,4 +255,39 @@ public class FacilityController {
             @PathVariable Long id) {
         return ResponseEntity.ok(DataResponseBody.of(facilityService.findFacilityHistories(id)));
     }
+
+    @Operation(summary = "시설 층 정보 수정", description = "시설 층 정보를 수정합니다")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "층 정보 수정 성공"),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "잘못된 요청",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "시설을 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @PatchMapping("/{facilityId}/floors")
+    public ResponseEntity<Void> patchFloors(
+            @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
+            @Parameter(description = "층 수정 정보", required = true) @Valid @RequestBody
+                    FacilityFloorUpdateRequest request) {
+        facilityService.updateFloor(facilityId, request);
+        return ResponseEntity.noContent().build();
+    }
 }

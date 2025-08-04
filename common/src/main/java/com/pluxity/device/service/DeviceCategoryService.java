@@ -4,6 +4,7 @@ import com.pluxity.category.service.CategoryService;
 import com.pluxity.device.dto.DeviceCategoryAllResponse;
 import com.pluxity.device.dto.DeviceCategoryRequest;
 import com.pluxity.device.dto.DeviceCategoryResponse;
+import com.pluxity.device.dto.DeviceCategoryUpdateRequest;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.file.dto.FileResponse;
@@ -109,7 +110,7 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     }
 
     @Transactional
-    public void update(Long id, DeviceCategoryRequest request) {
+    public void update(Long id, DeviceCategoryUpdateRequest request) {
         DeviceCategory deviceCategory = findById(id);
 
         if (request.getName() != null) {
