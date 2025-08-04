@@ -96,28 +96,14 @@ public class AssetCategoryService {
     @Transactional
     public void updateAssetCategory(Long id, AssetCategoryUpdateRequest request) {
         AssetCategory category = findById(id);
-
-        if (request.code() != null && !request.code().equals(category.getCode())) {
+        if (!category.getCode().equals(request.code())) {
             validateCodeUniqueness(request.code());
-            category.updateCode(request.code());
         }
-
-        if (request.name() != null) {
-            category.updateName(request.name());
-        }
-
-        if (request.thumbnailFileId() != null
-                && !request.thumbnailFileId().equals(category.getIconFileId())) {
-            category.updateIconFileId(request.thumbnailFileId());
-        }
-
-        if (request.parentId() == null) {
-            category.assignToParent(null);
-            return;
-        }
-
-        AssetCategory parent = findById(request.parentId());
-        if (parent.getId().equals(category.getId())) {
+        category.updateCode(request.code());
+        category.updateName(request.name());
+        category.updateIconFileId(request.thumbnailFileId());
+        AssetCategory parent = request.parentId() != null ? findById(request.parentId()) : null;
+        if (parent != null && parent.getId().equals(category.getId())) {
             throw new CustomException(INVALID_PARENT_CATEGORY);
         }
         category.assignToParent(parent);
