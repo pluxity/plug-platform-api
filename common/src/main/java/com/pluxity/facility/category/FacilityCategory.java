@@ -20,13 +20,7 @@ public class FacilityCategory extends Category<FacilityCategory> {
     private final List<Facility> facilities = new ArrayList<>();
 
     @Builder
-    public FacilityCategory(String name, FacilityCategory parent) {
+    public FacilityCategory(String name) {
         this.name = name;
-        if (parent != null) {
-            this.assignToParent(parent);
-        } else {
-            this.parent = null;
-        }
-        this.validateDepth();
     }
 }

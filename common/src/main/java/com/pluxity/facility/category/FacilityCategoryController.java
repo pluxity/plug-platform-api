@@ -54,8 +54,7 @@ public class FacilityCategoryController {
     public ResponseEntity<Long> createFacilityCategory(
             @Parameter(description = "시설 카테고리 생성 정보", required = true) @Valid @RequestBody
                     FacilityCategoryCreateRequest req) {
-        FacilityCategoryResponse response = service.create(req);
-        return ResponseEntity.ok(response.id());
+        return ResponseEntity.ok(service.create(req));
     }
 
     @Operation(summary = "시설 카테고리 목록 조회", description = "모든 시설 카테고리 목록을 조회합니다.")

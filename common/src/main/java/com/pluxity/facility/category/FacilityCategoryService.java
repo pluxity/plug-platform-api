@@ -29,8 +29,7 @@ public class FacilityCategoryService extends CategoryService<FacilityCategory> {
     }
 
     @Transactional
-    public FacilityCategoryResponse create(FacilityCategoryCreateRequest request) {
-        FacilityCategory parent = null;
+    public Long create(FacilityCategoryCreateRequest request) {
         if (request.parentId() != null) {
             repository
                     .findByNameAndParentId(request.name(), request.parentId())
@@ -38,21 +37,12 @@ public class FacilityCategoryService extends CategoryService<FacilityCategory> {
                             existingCategory -> {
                                 throw new CustomException(ErrorCode.INVALID_REFERENCE, request.name());
                             });
-
-            parent =
-                    repository
-                            .findById(request.parentId())
-                            .orElseThrow(
-                                    () ->
-                                            new CustomException(
-                                                    ErrorCode.NOT_FOUND_FACILITY_PARENT_CATEGORY, request.parentId()));
         }
+        FacilityCategory entity = FacilityCategory.builder().name(request.name()).build();
+        FacilityCategory parent =
+                MappingUtils.getParentCategoryIfExists(request.parentId(), super::findById);
 
-        FacilityCategory entity =
-                FacilityCategory.builder().name(request.name()).parent(parent).build();
-        repository.save(entity);
-
-        return FacilityCategoryResponse.from(entity);
+        return super.create(entity, parent);
     }
 
     @Transactional(readOnly = true)
