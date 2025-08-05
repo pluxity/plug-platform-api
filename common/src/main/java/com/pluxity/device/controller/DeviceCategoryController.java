@@ -136,7 +136,7 @@ public class DeviceCategoryController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Void> update(
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id,
             @Parameter(description = "카테고리 수정 정보", required = true) @Valid @RequestBody

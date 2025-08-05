@@ -38,16 +38,14 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     @Transactional
     public Long create(DeviceCategoryRequest request) {
         DeviceCategory parent = null;
-        if (request.getParentId() != null) {
-            parent = findById(request.getParentId());
+        if (request.parentId() != null) {
+            parent = findById(request.parentId());
         }
 
         DeviceCategory deviceCategory =
-                DeviceCategory.builder().name(request.getName()).parent(parent).build();
+                DeviceCategory.builder().name(request.name()).parent(parent).build();
 
-        if (request.getThumbnailFileId() != null) {
-            deviceCategory.updateIconFileId(request.getThumbnailFileId());
-        }
+        deviceCategory.updateIconFileId(request.thumbnailFileId());
 
         return deviceCategoryRepository.save(deviceCategory).getId();
     }
@@ -112,20 +110,8 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     @Transactional
     public void update(Long id, DeviceCategoryUpdateRequest request) {
         DeviceCategory deviceCategory = findById(id);
-
-        if (request.getName() != null) {
-            deviceCategory.setName(request.getName());
-        }
-
-        if (request.getThumbnailFileId() != null
-                && !request.getThumbnailFileId().equals(deviceCategory.getIconFileId())) {
-            deviceCategory.updateIconFileId(request.getThumbnailFileId());
-        }
-
-        if (request.getParentId() != null) {
-            DeviceCategory parent = findById(request.getParentId());
-            deviceCategory.assignToParent(parent);
-        }
+        super.update(id, request.name(), request.parentId());
+        deviceCategory.updateIconFileId(request.thumbnailFileId());
     }
 
     @Transactional
