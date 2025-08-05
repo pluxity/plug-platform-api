@@ -1,31 +1,32 @@
 package com.pluxity.facility.category;
 
 import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CATEGORY;
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_PARENT_CATEGORY;
 
+import com.pluxity.category.service.CategoryService;
 import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
 import com.pluxity.facility.category.dto.FacilityCategoryResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
-import com.pluxity.file.dto.FileResponse;
-import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class FacilityCategoryService {
+public class FacilityCategoryService extends CategoryService<FacilityCategory> {
     private final FacilityCategoryRepository repository;
-    private final FileService fileService;
+
+    @Override
+    protected JpaRepository<FacilityCategory, Long> getRepository() {
+        return repository;
+    }
 
     @Transactional
     public FacilityCategoryResponse create(FacilityCategoryCreateRequest request) {
@@ -56,13 +57,9 @@ public class FacilityCategoryService {
 
     @Transactional(readOnly = true)
     public FacilityCategoryAllResponse findAll() {
-        List<FacilityCategory> allCategories = repository.findAll(SortUtils.getOrderByCreatedAtDesc());
-        Map<Long, FileResponse> fileMap =
-                MappingUtils.getFileMapByIds(
-                        allCategories, v -> Stream.of(v.getImageFileId()), fileService);
         List<FacilityCategoryResponse> list =
-                allCategories.stream()
-                        .map(v -> FacilityCategoryResponse.from(v, fileMap.get(v.getImageFileId())))
+                repository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
+                        .map(FacilityCategoryResponse::from)
                         .collect(Collectors.toList());
 
         return FacilityCategoryAllResponse.of(
@@ -75,7 +72,7 @@ public class FacilityCategoryService {
     }
 
     @Transactional(readOnly = true)
-    public FacilityCategoryResponse findById(Long id) {
+    public FacilityCategoryResponse getFacilityCategory(Long id) {
         FacilityCategory entity =
                 repository
                         .findById(id)
@@ -85,28 +82,8 @@ public class FacilityCategoryService {
 
     @Transactional
     public void update(Long id, FacilityCategoryUpdateRequest request) {
-        FacilityCategory category =
-                repository
-                        .findById(id)
-                        .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CATEGORY, id));
-
-        if (request.name() != null) category.setName(request.name());
-        if (request.parentId() != null) {
-
-            if (request.parentId().equals(id)) {
-                throw new CustomException(ErrorCode.INVALID_PARENT_CATEGORY);
-            }
-            FacilityCategory parent =
-                    repository
-                            .findById(request.parentId())
-                            .orElseThrow(
-                                    () ->
-                                            new CustomException(NOT_FOUND_FACILITY_PARENT_CATEGORY, request.parentId()));
-
-            category.assignToParent(parent);
-        }
-
-        repository.save(category);
+        repository.findById(id).orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CATEGORY, id));
+        super.update(id, request.name(), request.parentId());
     }
 
     @Transactional

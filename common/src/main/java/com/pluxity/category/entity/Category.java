@@ -39,6 +39,10 @@ public abstract class Category<T extends Category<T>> extends BaseEntity {
         return isRoot() ? 1 : parent.getDepth() + 1;
     }
 
+    public void updateName(String name) {
+        this.name = name;
+    }
+
     public void assignToParent(T newParent) {
         if (this.parent != null) {
             this.parent.getChildren().remove(this);

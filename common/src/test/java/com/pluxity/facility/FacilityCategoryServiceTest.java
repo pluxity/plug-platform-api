@@ -116,7 +116,7 @@ class FacilityCategoryServiceTest {
         FacilityCategoryResponse savedCategory = categoryService.create(createRequest);
 
         // when
-        FacilityCategoryResponse response = categoryService.findById(savedCategory.id());
+        FacilityCategoryResponse response = categoryService.getFacilityCategory(savedCategory.id());
 
         // then
         assertThat(response).isNotNull();
@@ -149,9 +149,8 @@ class FacilityCategoryServiceTest {
         categoryService.update(savedCategory.id(), updateRequest);
 
         // then
-        FacilityCategoryResponse updatedCategory = categoryService.findById(savedCategory.id());
+        FacilityCategoryResponse updatedCategory = categoryService.getFacilityCategory(savedCategory.id());
         assertThat(updatedCategory.name()).isEqualTo("수정된 카테고리");
-        assertThat(updatedCategory.parentId()).isEqualTo(parentCategoryId); // 부모는 변경하지 않았으므로 그대로
     }
 
     @Test
@@ -176,7 +175,7 @@ class FacilityCategoryServiceTest {
         categoryService.update(savedCategory.id(), updateRequest);
 
         // then
-        FacilityCategoryResponse updatedCategory = categoryService.findById(savedCategory.id());
+        FacilityCategoryResponse updatedCategory = categoryService.getFacilityCategory(savedCategory.id());
         assertThat(updatedCategory.parentId()).isEqualTo(newParentResponse.id());
     }
 
@@ -205,7 +204,7 @@ class FacilityCategoryServiceTest {
         categoryService.delete(savedCategory.id());
         
         // then
-        assertThrows(CustomException.class, () -> categoryService.findById(savedCategory.id()));
+        assertThrows(CustomException.class, () -> categoryService.getFacilityCategory(savedCategory.id()));
     }
 
     @Test
@@ -320,44 +319,21 @@ class FacilityCategoryServiceTest {
     }
 
     @Test
-    @DisplayName("이름만 업데이트하고 부모는 그대로 유지되는지 확인한다")
-    void update_WithNameOnly_PreservesParent() {
+    @DisplayName("이름 업데이트하고 부모는 그대로 유지되는지 확인한다")
+    void update_WithNameAndParent() {
         // given
         FacilityCategoryResponse savedCategory = categoryService.create(createRequest);
         FacilityCategoryUpdateRequest updateRequest = new FacilityCategoryUpdateRequest(
-                "새 이름만 업데이트",
-                null // 부모 ID 변경 없음
+                "새 이름 업데이트",
+                savedCategory.parentId()
         );
 
         // when
         categoryService.update(savedCategory.id(), updateRequest);
 
         // then
-        FacilityCategoryResponse updatedCategory = categoryService.findById(savedCategory.id());
-        assertThat(updatedCategory.name()).isEqualTo("새 이름만 업데이트");
-        assertThat(updatedCategory.parentId()).isEqualTo(parentCategoryId); // 부모 ID는 변경되지 않아야 함
-    }
-
-    @Test
-    @DisplayName("부모만 업데이트하고 이름은 그대로 유지되는지 확인한다")
-    void update_WithParentOnly_PreservesName() {
-        // given
-        FacilityCategoryResponse savedCategory = categoryService.create(createRequest);
-        
-        // 새 부모 생성
-        FacilityCategoryResponse newParent = categoryService.create(new FacilityCategoryCreateRequest("새 부모", null));
-        
-        FacilityCategoryUpdateRequest updateRequest = new FacilityCategoryUpdateRequest(
-                null, // 이름 변경 없음
-                newParent.id() // 부모만 변경
-        );
-
-        // when
-        categoryService.update(savedCategory.id(), updateRequest);
-
-        // then
-        FacilityCategoryResponse updatedCategory = categoryService.findById(savedCategory.id());
-        assertThat(updatedCategory.name()).isEqualTo("테스트 카테고리"); // 이름은 변경되지 않아야 함
-        assertThat(updatedCategory.parentId()).isEqualTo(newParent.id()); // 부모 ID만 변경됨
+        FacilityCategoryResponse updatedCategory = categoryService.getFacilityCategory(savedCategory.id());
+        assertThat(updatedCategory.name()).isEqualTo("새 이름 업데이트");
+        assertThat(updatedCategory.parentId()).isEqualTo(updateRequest.parentId()); // 부모 ID는 변경되지 않아야 함
     }
 }

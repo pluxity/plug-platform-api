@@ -118,7 +118,7 @@ public class FacilityCategoryController {
     @GetMapping("/{id}")
     public ResponseEntity<DataResponseBody<FacilityCategoryResponse>> getFacilityCategory(
             @Parameter(description = "시설 카테고리 ID", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(DataResponseBody.of(service.findById(id)));
+        return ResponseEntity.ok(DataResponseBody.of(service.getFacilityCategory(id)));
     }
 
     @Operation(summary = "시설 카테고리 수정", description = "ID를 기반으로 시설 카테고리를 수정합니다.")
@@ -147,7 +147,7 @@ public class FacilityCategoryController {
                                         mediaType = "application/json",
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Void> patchFacilityCategory(
             @Parameter(description = "시설 카테고리 ID", required = true) @PathVariable Long id,
             @Parameter(description = "시설 카테고리 수정 정보", required = true) @Valid @RequestBody

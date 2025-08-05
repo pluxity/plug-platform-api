@@ -1,5 +1,6 @@
 package com.pluxity.category.service;
 
+import static com.pluxity.global.constant.ErrorCode.INVALID_PARENT_CATEGORY;
 import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_CATEGORY;
 
 import com.pluxity.category.dto.CategoryResponse;
@@ -16,6 +17,16 @@ public abstract class CategoryService<T extends Category<T>> {
     public Long create(T category, T parent) {
         category.assignToParent(parent);
         return getRepository().save(category).getId();
+    }
+
+    public void update(Long id, String name, Long parentId) {
+        T category = findById(id);
+        category.updateName(name);
+        T parent = parentId != null ? findById(parentId) : null;
+        if (parent != null && parent.getId().equals(category.getId())) {
+            throw new CustomException(INVALID_PARENT_CATEGORY);
+        }
+        category.assignToParent(parent);
     }
 
     public T findById(Long id) {

@@ -8,6 +8,7 @@ import com.pluxity.asset.dto.AssetCategoryResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.asset.repository.AssetCategoryRepository;
+import com.pluxity.category.service.CategoryService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
@@ -19,16 +20,22 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AssetCategoryService {
+public class AssetCategoryService extends CategoryService<AssetCategory> {
 
     private final AssetCategoryRepository assetCategoryRepository;
     private final FileService fileService;
+
+    @Override
+    protected JpaRepository<AssetCategory, Long> getRepository() {
+        return assetCategoryRepository;
+    }
 
     @Transactional(readOnly = true)
     public AssetCategoryResponse getAssetCategory(Long id) {
@@ -99,14 +106,9 @@ public class AssetCategoryService {
         if (!category.getCode().equals(request.code())) {
             validateCodeUniqueness(request.code());
         }
+        super.update(id, request.name(), request.parentId());
         category.updateCode(request.code());
-        category.updateName(request.name());
         category.updateIconFileId(request.thumbnailFileId());
-        AssetCategory parent = request.parentId() != null ? findById(request.parentId()) : null;
-        if (parent != null && parent.getId().equals(category.getId())) {
-            throw new CustomException(INVALID_PARENT_CATEGORY);
-        }
-        category.assignToParent(parent);
     }
 
     @Transactional

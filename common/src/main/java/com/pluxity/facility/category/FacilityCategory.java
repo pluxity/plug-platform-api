@@ -19,28 +19,14 @@ public class FacilityCategory extends Category<FacilityCategory> {
     @OneToMany(mappedBy = "category")
     private final List<Facility> facilities = new ArrayList<>();
 
-    @Column(name = "image_file_id")
-    private Long imageFileId;
-
     @Builder
     public FacilityCategory(String name, FacilityCategory parent) {
         this.name = name;
-        changeParent(parent);
-        this.validateDepth();
-    }
-
-    private void changeParent(FacilityCategory parent) {
-        if (this.parent != null) {
-            this.parent.getChildren().remove(this);
-        }
-        this.parent = parent;
         if (parent != null) {
-            parent.getChildren().add(this);
+            this.assignToParent(parent);
+        } else {
+            this.parent = null;
         }
         this.validateDepth();
-    }
-
-    public void updateImageFile(Long imageFileId) {
-        this.imageFileId = imageFileId;
     }
 }
