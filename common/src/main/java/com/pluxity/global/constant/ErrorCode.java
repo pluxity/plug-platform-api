@@ -42,12 +42,10 @@ public enum ErrorCode implements Code {
 
     INVALID_PARENT_CATEGORY(BAD_REQUEST, "카테고리는 자기 자신을 부모로 가질 수 없습니다."),
 
+    CATEGORY_HAS_CHILDREN(BAD_REQUEST, "카테고리에 하위 카테고리가 있어 삭제할 수 없습니다."),
     ASSET_CATEGORY_HAS_ASSET(BAD_REQUEST, "에셋 카테고리에 에셋이 있어 삭제할 수 없습니다."),
-    ASSET_CATEGORY_HAS_CHILDREN(BAD_REQUEST, "에셋 카테고리에 하위 카테고리가 있어 삭제할 수 없습니다."),
     FACILITY_CATEGORY_HAS_FACILITY(BAD_REQUEST, "시설 카테고리에 시설이 있어 삭제할 수 없습니다."),
-    FACILITY_CATEGORY_HAS_CHILDREN(BAD_REQUEST, "시설 카테고리에 하위 카테고리가 있어 삭제할 수 없습니다."),
     CCTV_CATEGORY_HAS_CCTV(BAD_REQUEST, "CCTV 카테고리에 CCTV가 있어 삭제할 수 없습니다."),
-    CCTV_CATEGORY_HAS_CHILDREN(BAD_REQUEST, "CCTV 카테고리에 하위 카테고리가 있어 삭제할 수 없습니다."),
 
     DEVICE_ALREADY_HAS_FEATURE(BAD_REQUEST, "디바이스는 이미 %s Feature를 가지고 있습니다."),
     FEATURE_HAS_NOT_DEVICE(BAD_REQUEST, "%s Feature에 할당된 디바이스가 존재하지 않습니다."),

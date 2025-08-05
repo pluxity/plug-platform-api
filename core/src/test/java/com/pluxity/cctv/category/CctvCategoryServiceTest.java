@@ -1,14 +1,10 @@
-package com.pluxity.facility;
+package com.pluxity.cctv.category;
 
-import com.pluxity.facility.category.FacilityCategory;
-import com.pluxity.facility.category.FacilityCategoryRepository;
-import com.pluxity.facility.category.FacilityCategoryService;
-import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
-import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
-import com.pluxity.facility.category.dto.FacilityCategoryResponse;
-import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
+import com.pluxity.cctv.category.dto.CctvCategoryAllResponse;
+import com.pluxity.cctv.category.dto.CctvCategoryCreateRequest;
+import com.pluxity.cctv.category.dto.CctvCategoryResponse;
+import com.pluxity.cctv.category.dto.CctvCategoryUpdateRequest;
 import com.pluxity.global.exception.CustomException;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,28 +19,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
-class FacilityCategoryServiceTest {
+class CctvCategoryServiceTest {
 
     @Autowired
-    private FacilityCategoryService categoryService;
+    private CctvCategoryService categoryService;
 
-    private FacilityCategoryCreateRequest createRequest;
+    private CctvCategoryCreateRequest createRequest;
     private Long parentCategoryId;
 
     @BeforeEach
     void setUp() {
         // 부모 카테고리 생성
-        FacilityCategoryCreateRequest parentRequest = new FacilityCategoryCreateRequest(
-                "부모 카테고리",
-                null
-        );
+        CctvCategoryCreateRequest parentRequest = new CctvCategoryCreateRequest("부모 카테고리", null);
         parentCategoryId = categoryService.create(parentRequest);
 
-        // 테스트용 카테고리 요청 준비
-        createRequest = new FacilityCategoryCreateRequest(
-                "테스트 카테고리",
-                parentCategoryId
-        );
+        createRequest = new CctvCategoryCreateRequest("테스트 카테고리", parentCategoryId);
     }
 
     @Test
@@ -52,7 +41,7 @@ class FacilityCategoryServiceTest {
     void create_WithValidRequest_SavesCategory() {
         // when
         Long categoryId = categoryService.create(createRequest);
-        FacilityCategory category = categoryService.findById(categoryId);
+        CctvCategory category = categoryService.findById(categoryId);
 
         // then
         assertThat(category).isNotNull();
@@ -64,27 +53,27 @@ class FacilityCategoryServiceTest {
     @DisplayName("부모 카테고리 없이 카테고리 생성 시 카테고리가 저장된다")
     void create_WithoutParentCategory_SavesCategory() {
         // given
-        FacilityCategoryCreateRequest requestWithoutParent = new FacilityCategoryCreateRequest(
+        CctvCategoryCreateRequest requestWithoutParent = new CctvCategoryCreateRequest(
                 "부모 없는 카테고리",
                 null
         );
 
         // when
         Long categoryId = categoryService.create(requestWithoutParent);
-        FacilityCategory category = categoryService.findById(categoryId);
+        CctvCategory category = categoryService.findById(categoryId);
 
         // then
         assertThat(category).isNotNull();
         assertThat(category.getName()).isEqualTo("부모 없는 카테고리");
         assertThat(category.getParent()).isNull();
     }
-
+    
     @Test
     @DisplayName("존재하지 않는 부모 카테고리로 생성 시 예외가 발생한다")
     void create_WithNonExistingParentId_ThrowsCustomException() {
         // given
         Long nonExistingParentId = 9999L;
-        FacilityCategoryCreateRequest invalidRequest = new FacilityCategoryCreateRequest(
+        CctvCategoryCreateRequest invalidRequest = new CctvCategoryCreateRequest(
                 "실패할 카테고리",
                 nonExistingParentId
         );
@@ -100,8 +89,8 @@ class FacilityCategoryServiceTest {
         categoryService.create(createRequest);
 
         // when
-        FacilityCategoryAllResponse allResponse = categoryService.findAll();
-        List<FacilityCategoryResponse> responses = allResponse.list();
+        CctvCategoryAllResponse allResponse = categoryService.findAll();
+        List<CctvCategoryResponse> responses = allResponse.list();
 
         // then
         assertThat(responses).isNotEmpty();
@@ -123,7 +112,7 @@ class FacilityCategoryServiceTest {
     void update_WithValidRequest_UpdatesCategory() {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
-        FacilityCategoryUpdateRequest updateRequest = new FacilityCategoryUpdateRequest(
+        CctvCategoryUpdateRequest updateRequest = new CctvCategoryUpdateRequest(
                 "수정된 카테고리",
                 null
         );
@@ -132,7 +121,7 @@ class FacilityCategoryServiceTest {
         categoryService.update(savedCategoryId, updateRequest);
 
         // then
-        FacilityCategory category = categoryService.findById(savedCategoryId);
+        CctvCategory category = categoryService.findById(savedCategoryId);
         assertThat(category.getName()).isEqualTo("수정된 카테고리");
     }
 
@@ -142,12 +131,12 @@ class FacilityCategoryServiceTest {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
         // 새로운 부모 카테고리 생성
-        FacilityCategoryCreateRequest newParentRequest = new FacilityCategoryCreateRequest(
+        CctvCategoryCreateRequest newParentRequest = new CctvCategoryCreateRequest(
                 "새 부모 카테고리",
                 null
         );
         Long newParentId = categoryService.create(newParentRequest);
-        FacilityCategoryUpdateRequest updateRequest = new FacilityCategoryUpdateRequest(
+        CctvCategoryUpdateRequest updateRequest = new CctvCategoryUpdateRequest(
                 "카테고리",
                 newParentId
         );
@@ -156,7 +145,7 @@ class FacilityCategoryServiceTest {
         categoryService.update(savedCategoryId, updateRequest);
 
         // then
-        FacilityCategory category = categoryService.findById(savedCategoryId);
+        CctvCategory category = categoryService.findById(savedCategoryId);
         assertThat(category.getParent().getId()).isEqualTo(newParentId);
     }
 
@@ -166,7 +155,7 @@ class FacilityCategoryServiceTest {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
         Long nonExistingParentId = 9999L;
-        FacilityCategoryUpdateRequest invalidRequest = new FacilityCategoryUpdateRequest(
+        CctvCategoryUpdateRequest invalidRequest = new CctvCategoryUpdateRequest(
                 null,
                 nonExistingParentId
         );
@@ -180,33 +169,12 @@ class FacilityCategoryServiceTest {
     void delete_RemovesCategoryFromDatabase() {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
-        
+
         // when
         categoryService.delete(savedCategoryId);
-        
+
         // then
         assertThrows(CustomException.class, () -> categoryService.findById(savedCategoryId));
-    }
-
-    @Test
-    @DisplayName("빈 이름으로 카테고리 생성 시 예외가 발생한다")
-    void create_WithEmptyName_ThrowsCustomException() {
-        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
-        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
-    }
-
-    @Test
-    @DisplayName("null 이름으로 카테고리 생성 시 예외가 발생한다")
-    void create_WithNullName_ThrowsCustomException() {
-        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
-        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
-    }
-
-    @Test
-    @DisplayName("카테고리 업데이트 시 이름이 비어있으면서 부모 ID도 null이면 예외가 발생한다")
-    void update_WithEmptyNameAndNullParentId_ThrowsCustomException() {
-        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
-        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
     }
 
     @Test
@@ -214,7 +182,7 @@ class FacilityCategoryServiceTest {
     void update_WithSelfAsParent_ThrowsCustomException() {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
-        FacilityCategoryUpdateRequest invalidRequest = new FacilityCategoryUpdateRequest(
+        CctvCategoryUpdateRequest invalidRequest = new CctvCategoryUpdateRequest(
                 null,
                 savedCategoryId  // 자기 자신을 부모로 설정
         );
@@ -238,13 +206,13 @@ class FacilityCategoryServiceTest {
     void delete_WithChildCategories_ThrowsCustomException() {
         // given
         // 부모 -> 자식 구조 생성
-        Long parentResponseId = categoryService.create(new FacilityCategoryCreateRequest(
+        Long parentResponseId = categoryService.create(new CctvCategoryCreateRequest(
                 "새로운 부모",
                 null
         ));
 
         // 자식 카테고리 생성
-        Long childResponseId = categoryService.create(new FacilityCategoryCreateRequest(
+        Long childResponseId = categoryService.create(new CctvCategoryCreateRequest(
                 "자식 카테고리",
                 parentResponseId
         ));
@@ -260,19 +228,19 @@ class FacilityCategoryServiceTest {
     void create_ExceedingMaxDepth_ThrowsCustomException() {
         // given
         // 1단계: 루트
-        Long rootResponseId = categoryService.create(new FacilityCategoryCreateRequest(
+        Long rootResponseId = categoryService.create(new CctvCategoryCreateRequest(
                 "루트 카테고리",
                 null
         ));
 
         // 2단계: 루트 -> 자식1
-        Long child1ResponseId = categoryService.create(new FacilityCategoryCreateRequest(
+        Long child1ResponseId = categoryService.create(new CctvCategoryCreateRequest(
                 "자식 카테고리 1",
                 rootResponseId
         ));
 
         // 3단계: 루트 -> 자식1 -> 자식2(최대 깊이 초과 가정)
-        FacilityCategoryCreateRequest exceedDepthRequest = new FacilityCategoryCreateRequest(
+        CctvCategoryCreateRequest exceedDepthRequest = new CctvCategoryCreateRequest(
                 "최대 깊이 초과 카테고리",
                 child1ResponseId
         );
@@ -283,28 +251,11 @@ class FacilityCategoryServiceTest {
     }
 
     @Test
-    @DisplayName("동일한 이름의 형제 카테고리 생성 시 문제가 발생하지 않는다.")
-    void create_WithDuplicateNameInSameLevel_ThrowsCustomException() {
-        // given
-        // 첫 번째 자식 카테고리 생성
-        categoryService.create(createRequest);
-
-        // 동일한 이름, 동일한 부모를 가진 카테고리 생성 시도
-        FacilityCategoryCreateRequest duplicateRequest = new FacilityCategoryCreateRequest(
-                "테스트 카테고리", // 동일한 이름
-                parentCategoryId  // 동일한 부모
-        );
-
-        // when & then
-        assertThrows(CustomException.class, () -> categoryService.create(duplicateRequest));
-    }
-
-    @Test
     @DisplayName("이름 업데이트하고 부모는 그대로 유지되는지 확인한다")
     void update_WithNameAndParent() {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
-        FacilityCategoryUpdateRequest updateRequest = new FacilityCategoryUpdateRequest(
+        CctvCategoryUpdateRequest updateRequest = new CctvCategoryUpdateRequest(
                 "새 이름 업데이트",
                 parentCategoryId
         );
@@ -313,7 +264,7 @@ class FacilityCategoryServiceTest {
         categoryService.update(savedCategoryId, updateRequest);
 
         // then
-        FacilityCategory updatedCategory = categoryService.findById(savedCategoryId);
+        CctvCategory updatedCategory = categoryService.findById(savedCategoryId);
         assertThat(updatedCategory.getName()).isEqualTo("새 이름 업데이트");
         assertThat(updatedCategory.getParent().getId()).isEqualTo(updateRequest.parentId());
     }

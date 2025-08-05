@@ -16,7 +16,6 @@ import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,15 +34,6 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
     @Override
     protected JpaRepository<AssetCategory, Long> getRepository() {
         return assetCategoryRepository;
-    }
-
-    @Transactional(readOnly = true)
-    public AssetCategoryResponse getAssetCategory(Long id) {
-        AssetCategoryAllResponse allCategories = getAllCategories();
-        return allCategories.list().stream()
-                .filter(v -> v.id().equals(id))
-                .findFirst()
-                .orElseThrow(notFoundAssetCategory(id));
     }
 
     @Transactional(readOnly = true)
@@ -83,21 +73,15 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
     @Transactional
     public Long createAssetCategory(AssetCategoryCreateRequest request) {
         validateCodeUniqueness(request.code());
-
-        AssetCategory parent = null;
-        if (request.parentId() != null) {
-            parent = findById(request.parentId());
-        }
-
         AssetCategory category =
-                AssetCategory.builder().name(request.name()).code(request.code()).parent(parent).build();
-
-        if (request.thumbnailFileId() != null) {
-            category.updateIconFileId(request.thumbnailFileId());
-        }
-
-        AssetCategory savedCategory = assetCategoryRepository.save(category);
-        return savedCategory.getId();
+                AssetCategory.builder()
+                        .name(request.name())
+                        .code(request.code())
+                        .iconFileId(request.thumbnailFileId())
+                        .build();
+        AssetCategory parent =
+                MappingUtils.getParentCategoryIfExists(request.parentId(), super::findById);
+        return super.create(category, parent);
     }
 
     @Transactional
@@ -120,19 +104,10 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
         }
 
         if (!category.getChildren().isEmpty()) {
-            throw new CustomException(ASSET_CATEGORY_HAS_CHILDREN);
+            throw new CustomException(CATEGORY_HAS_CHILDREN);
         }
 
         assetCategoryRepository.delete(category);
-    }
-
-    @Transactional
-    public AssetCategory findById(Long id) {
-        return assetCategoryRepository.findById(id).orElseThrow(notFoundAssetCategory(id));
-    }
-
-    private Supplier<CustomException> notFoundAssetCategory(Long id) {
-        return () -> new CustomException(NOT_FOUND_ASSET_CATEGORY, id);
     }
 
     private void validateCodeUniqueness(String code) {

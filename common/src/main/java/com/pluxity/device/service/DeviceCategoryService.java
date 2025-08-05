@@ -1,5 +1,7 @@
 package com.pluxity.device.service;
 
+import static com.pluxity.global.constant.ErrorCode.*;
+
 import com.pluxity.category.service.CategoryService;
 import com.pluxity.device.dto.DeviceCategoryAllResponse;
 import com.pluxity.device.dto.DeviceCategoryRequest;
@@ -9,13 +11,11 @@ import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
-import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -37,17 +37,11 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
 
     @Transactional
     public Long create(DeviceCategoryRequest request) {
-        DeviceCategory parent = null;
-        if (request.parentId() != null) {
-            parent = findById(request.parentId());
-        }
-
         DeviceCategory deviceCategory =
-                DeviceCategory.builder().name(request.name()).parent(parent).build();
-
-        deviceCategory.updateIconFileId(request.thumbnailFileId());
-
-        return deviceCategoryRepository.save(deviceCategory).getId();
+                DeviceCategory.builder().name(request.name()).iconFileId(request.thumbnailFileId()).build();
+        DeviceCategory parent =
+                MappingUtils.getParentCategoryIfExists(request.parentId(), super::findById);
+        return super.create(deviceCategory, parent);
     }
 
     @Transactional(readOnly = true)
@@ -56,7 +50,7 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         return allCategories.list().stream()
                 .filter(v -> v.id().equals(id))
                 .findFirst()
-                .orElseThrow(notFoundDeviceCategory(id));
+                .orElseThrow(() -> new CustomException(NOT_FOUND_DEVICE_CATEGORY, id));
     }
 
     @Transactional(readOnly = true)
@@ -103,10 +97,6 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         return DeviceCategoryResponse.fromWithoutChildren(category, iconFile);
     }
 
-    private Supplier<CustomException> notFoundDeviceCategory(Long id) {
-        return () -> new CustomException(ErrorCode.NOT_FOUND_DEVICE_CATEGORY, id);
-    }
-
     @Transactional
     public void update(Long id, DeviceCategoryUpdateRequest request) {
         DeviceCategory deviceCategory = findById(id);
@@ -119,7 +109,11 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         DeviceCategory deviceCategory = findById(id);
 
         if (!deviceCategory.getChildren().isEmpty()) {
-            throw new CustomException(ErrorCode.CATEGORY_HAS_DEVICES);
+            throw new CustomException(CATEGORY_HAS_CHILDREN);
+        }
+
+        if (!deviceCategory.getDevices().isEmpty()) {
+            throw new CustomException(CATEGORY_HAS_DEVICES);
         }
 
         deviceCategoryRepository.delete(deviceCategory);
@@ -130,11 +124,6 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         return getRootCategories().stream()
                 .map(this::createDeviceCategoryResponse)
                 .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public DeviceCategoryResponse getDeviceCategoryResponse(Long id) {
-        return createDeviceCategoryResponse(findById(id));
     }
 
     protected DeviceCategoryResponse createDeviceCategoryResponse(DeviceCategory deviceCategory) {

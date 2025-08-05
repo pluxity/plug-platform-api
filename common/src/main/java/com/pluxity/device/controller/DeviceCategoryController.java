@@ -91,25 +91,6 @@ public class DeviceCategoryController {
                 DataResponseBody.of(deviceCategoryService.getChildDeviceCategories(id)));
     }
 
-    @Operation(summary = "디바이스 카테고리 상세 조회", description = "ID로 특정 디바이스 카테고리의 상세 정보를 조회합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "카테고리 조회 성공"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "카테고리를 찾을 수 없음",
-                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/{id}")
-    public ResponseEntity<DataResponseBody<DeviceCategoryResponse>> getDeviceCategory(
-            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(DataResponseBody.of(deviceCategoryService.getDeviceCategory(id)));
-    }
-
     @Operation(summary = "카테고리 수정", description = "기존 카테고리의 정보를 수정합니다")
     @ApiResponses(
             value = {

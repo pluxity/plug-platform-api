@@ -4,6 +4,7 @@ import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
 import com.pluxity.asset.dto.AssetCategoryAllResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
+import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.asset.service.AssetCategoryService;
 import com.pluxity.file.service.FileService;
@@ -61,25 +62,10 @@ class AssetCategoryServiceTest {
         assertThat(id).isNotNull();
 
         // 저장된 카테고리 확인
-        AssetCategoryResponse savedCategory = assetCategoryService.getAssetCategory(id);
+        AssetCategory savedCategory = assetCategoryService.findById(id);
         assertThat(savedCategory).isNotNull();
-        assertThat(savedCategory.name()).isEqualTo("테스트 카테고리");
-        assertThat(savedCategory.code()).isEqualTo("TC1");
-    }
-
-    @Test
-    @DisplayName("ID로 에셋 카테고리 조회 시 카테고리 정보가 반환된다")
-    void getAssetCategory_WithExistingId_ReturnsCategoryResponse() {
-        // given
-        Long id = assetCategoryService.createAssetCategory(createRequest);
-
-        // when
-        AssetCategoryResponse response = assetCategoryService.getAssetCategory(id);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.name()).isEqualTo("테스트 카테고리");
-        assertThat(response.code()).isEqualTo("TC1");
+        assertThat(savedCategory.getName()).isEqualTo("테스트 카테고리");
+        assertThat(savedCategory.getCode()).isEqualTo("TC1");
     }
 
     @Test
@@ -89,7 +75,7 @@ class AssetCategoryServiceTest {
         Long nonExistingId = 9999L;
 
         // when & then
-        assertThrows(CustomException.class, () -> assetCategoryService.getAssetCategory(nonExistingId));
+        assertThrows(CustomException.class, () -> assetCategoryService.findById(nonExistingId));
     }
 
     @Test
@@ -147,9 +133,9 @@ class AssetCategoryServiceTest {
         assetCategoryService.updateAssetCategory(id, updateRequest);
 
         // then
-        AssetCategoryResponse updatedCategory = assetCategoryService.getAssetCategory(id);
-        assertThat(updatedCategory.name()).isEqualTo("수정된 카테고리");
-        assertThat(updatedCategory.code()).isEqualTo("UC1");
+        AssetCategory updatedCategory = assetCategoryService.findById(id);
+        assertThat(updatedCategory.getName()).isEqualTo("수정된 카테고리");
+        assertThat(updatedCategory.getCode()).isEqualTo("UC1");
     }
 
     @Test
@@ -179,7 +165,7 @@ class AssetCategoryServiceTest {
         assetCategoryService.deleteAssetCategory(id);
 
         // then
-        assertThrows(CustomException.class, () -> assetCategoryService.getAssetCategory(id));
+        assertThrows(CustomException.class, () -> assetCategoryService.findById(id));
     }
 
     @Test

@@ -2,7 +2,6 @@ package com.pluxity.facility.category;
 
 import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
-import com.pluxity.facility.category.dto.FacilityCategoryResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
@@ -86,38 +85,6 @@ public class FacilityCategoryController {
     @GetMapping
     public ResponseEntity<DataResponseBody<FacilityCategoryAllResponse>> getFacilityCategories() {
         return ResponseEntity.ok(DataResponseBody.of(service.findAll()));
-    }
-
-    @Operation(summary = "시설 카테고리 상세 조회", description = "ID를 기반으로 시설 카테고리의 상세 정보를 조회합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "시설 카테고리 상세 조회 성공"),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "파라미터 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "카테고리를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/{id}")
-    public ResponseEntity<DataResponseBody<FacilityCategoryResponse>> getFacilityCategory(
-            @Parameter(description = "시설 카테고리 ID", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(DataResponseBody.of(service.getFacilityCategory(id)));
     }
 
     @Operation(summary = "시설 카테고리 수정", description = "ID를 기반으로 시설 카테고리를 수정합니다.")

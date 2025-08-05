@@ -1,13 +1,13 @@
 package com.pluxity.facility.category;
 
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CATEGORY;
+import static com.pluxity.global.constant.ErrorCode.*;
+import static com.pluxity.global.constant.ErrorCode.INVALID_REFERENCE;
 
 import com.pluxity.category.service.CategoryService;
 import com.pluxity.facility.category.dto.FacilityCategoryAllResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest;
 import com.pluxity.facility.category.dto.FacilityCategoryResponse;
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest;
-import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
@@ -35,7 +35,7 @@ public class FacilityCategoryService extends CategoryService<FacilityCategory> {
                     .findByNameAndParentId(request.name(), request.parentId())
                     .ifPresent(
                             existingCategory -> {
-                                throw new CustomException(ErrorCode.INVALID_REFERENCE, request.name());
+                                throw new CustomException(INVALID_REFERENCE, request.name());
                             });
         }
         FacilityCategory entity = FacilityCategory.builder().name(request.name()).build();
@@ -61,34 +61,21 @@ public class FacilityCategoryService extends CategoryService<FacilityCategory> {
                         FacilityCategoryResponse::children));
     }
 
-    @Transactional(readOnly = true)
-    public FacilityCategoryResponse getFacilityCategory(Long id) {
-        FacilityCategory entity =
-                repository
-                        .findById(id)
-                        .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CATEGORY, id));
-        return FacilityCategoryResponse.from(entity);
-    }
-
     @Transactional
     public void update(Long id, FacilityCategoryUpdateRequest request) {
-        repository.findById(id).orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CATEGORY, id));
         super.update(id, request.name(), request.parentId());
     }
 
     @Transactional
     public void delete(Long id) {
-        FacilityCategory facility =
-                repository
-                        .findById(id)
-                        .orElseThrow(() -> new CustomException(NOT_FOUND_FACILITY_CATEGORY, id));
+        FacilityCategory facility = findById(id);
 
         if (!facility.getChildren().isEmpty()) {
-            throw new CustomException(ErrorCode.FACILITY_CATEGORY_HAS_CHILDREN);
+            throw new CustomException(CATEGORY_HAS_CHILDREN);
         }
 
         if (!facility.getFacilities().isEmpty()) {
-            throw new CustomException(ErrorCode.FACILITY_CATEGORY_HAS_FACILITY);
+            throw new CustomException(FACILITY_CATEGORY_HAS_FACILITY);
         }
 
         repository.delete(facility);

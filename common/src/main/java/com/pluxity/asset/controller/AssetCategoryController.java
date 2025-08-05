@@ -73,31 +73,6 @@ public class AssetCategoryController {
         return ResponseEntity.ok(DataResponseBody.of(service.getChildCategories(id)));
     }
 
-    @Operation(summary = "에셋 카테고리 상세 조회", description = "ID로 특정 에셋 카테고리의 상세 정보를 조회합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "카테고리 조회 성공"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "카테고리를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/{id}")
-    public ResponseEntity<DataResponseBody<AssetCategoryResponse>> getAssetCategory(
-            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(DataResponseBody.of(service.getAssetCategory(id)));
-    }
-
     @Operation(summary = "에셋 카테고리 생성", description = "새로운 에셋 카테고리를 생성합니다")
     @ApiResponses(
             value = {

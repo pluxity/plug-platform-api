@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.pluxity.device.dto.DeviceCategoryRequest;
 import com.pluxity.device.dto.DeviceCategoryResponse;
 import com.pluxity.device.dto.DeviceCategoryUpdateRequest;
+import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.file.service.FileService;
@@ -67,10 +68,10 @@ class DeviceCategoryServiceTest {
         assertThat(id).isNotNull();
         
         // 저장된 카테고리 확인
-        DeviceCategoryResponse savedCategory = deviceCategoryService.getDeviceCategoryResponse(id);
+        DeviceCategory savedCategory = deviceCategoryService.findById(id);
         assertThat(savedCategory).isNotNull();
-        assertThat(savedCategory.name()).isEqualTo("테스트 카테고리");
-        assertThat(savedCategory.thumbnailFile().id()).isEqualTo(iconFileId);
+        assertThat(savedCategory.getName()).isEqualTo("테스트 카테고리");
+        assertThat(savedCategory.getIconFileId()).isEqualTo(iconFileId);
     }
 
     @Test
@@ -94,9 +95,9 @@ class DeviceCategoryServiceTest {
         deviceCategoryService.update(id, updateRequest);
 
         // then
-        DeviceCategoryResponse updatedCategory = deviceCategoryService.getDeviceCategoryResponse(id);
-        assertThat(updatedCategory.name()).isEqualTo("수정된 카테고리");
-        assertThat(updatedCategory.thumbnailFile().id()).isEqualTo(newIconFileId);
+        DeviceCategory updatedCategory = deviceCategoryService.findById(id);
+        assertThat(updatedCategory.getName()).isEqualTo("수정된 카테고리");
+        assertThat(updatedCategory.getIconFileId()).isEqualTo(newIconFileId);
     }
 
     @Test
@@ -115,28 +116,13 @@ class DeviceCategoryServiceTest {
     }
 
     @Test
-    @DisplayName("ID로 카테고리 조회 시 카테고리 정보가 반환된다")
-    void getDeviceCategoryResponse_WithExistingId_ReturnsCategoryResponse() {
-        // given
-        Long id = deviceCategoryService.create(createRequest);
-
-        // when
-        DeviceCategoryResponse response = deviceCategoryService.getDeviceCategoryResponse(id);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.name()).isEqualTo("테스트 카테고리");
-        assertThat(response.thumbnailFile().id()).isEqualTo(iconFileId);
-    }
-
-    @Test
     @DisplayName("존재하지 않는 ID로 카테고리 조회 시 예외가 발생한다")
     void getDeviceCategoryResponse_WithNonExistingId_ThrowsCustomException() {
         // given
         Long nonExistingId = 9999L;
 
         // when and then
-        assertThrows(CustomException.class, () -> deviceCategoryService.getDeviceCategoryResponse(nonExistingId));
+        assertThrows(CustomException.class, () -> deviceCategoryService.findById(nonExistingId));
     }
 
     @Test
@@ -150,8 +136,8 @@ class DeviceCategoryServiceTest {
         deviceCategoryService.update(id, updateRequest);
 
         // then
-        DeviceCategoryResponse updatedCategory = deviceCategoryService.getDeviceCategoryResponse(id);
-        assertThat(updatedCategory.name()).isEqualTo("수정된 카테고리");
+        DeviceCategory updatedCategory = deviceCategoryService.findById(id);
+        assertThat(updatedCategory.getName()).isEqualTo("수정된 카테고리");
     }
 
     @Test
@@ -165,7 +151,7 @@ class DeviceCategoryServiceTest {
         
         // then
         // 삭제 후에는 해당 ID로 카테고리를 찾을 수 없어야 함
-        assertThrows(CustomException.class, () -> deviceCategoryService.getDeviceCategoryResponse(id));
+        assertThrows(CustomException.class, () -> deviceCategoryService.findById(id));
     }
     
     @Test

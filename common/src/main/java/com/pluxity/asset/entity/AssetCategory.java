@@ -25,15 +25,10 @@ public class AssetCategory extends Category<AssetCategory> {
     private Long iconFileId;
 
     @Builder
-    public AssetCategory(String name, String code, AssetCategory parent) {
+    public AssetCategory(String name, String code, Long iconFileId) {
         this.name = name;
         this.code = code;
-        if (parent != null) {
-            this.assignToParent(parent);
-        } else {
-            this.parent = null;
-        }
-        this.validateDepth();
+        this.iconFileId = iconFileId;
     }
 
     public void updateIconFileId(Long iconFileId) {
@@ -42,10 +37,6 @@ public class AssetCategory extends Category<AssetCategory> {
 
     public void updateCode(String code) {
         this.code = code;
-    }
-
-    public void updateName(String name) {
-        this.name = name;
     }
 
     public void addAsset(Asset asset) {

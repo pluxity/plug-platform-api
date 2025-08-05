@@ -2,7 +2,6 @@ package com.pluxity.cctv.category;
 
 import com.pluxity.cctv.category.dto.CctvCategoryAllResponse;
 import com.pluxity.cctv.category.dto.CctvCategoryCreateRequest;
-import com.pluxity.cctv.category.dto.CctvCategoryResponse;
 import com.pluxity.cctv.category.dto.CctvCategoryUpdateRequest;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
@@ -86,38 +85,6 @@ public class CctvCategoryController {
     @GetMapping
     public ResponseEntity<DataResponseBody<CctvCategoryAllResponse>> getCctvCategories() {
         return ResponseEntity.ok(DataResponseBody.of(cctvCategoryService.findAll()));
-    }
-
-    @Operation(summary = "CCTV 카테고리 상세 조회", description = "ID를 기반으로 CCTV 카테고리의 상세 정보를 조회합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "CCTV 카테고리 상세 조회 성공"),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "파라미터 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "카테고리를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/{id}")
-    public ResponseEntity<DataResponseBody<CctvCategoryResponse>> getCctvCategory(
-            @Parameter(description = "시설 카테고리 ID", required = true) @PathVariable Long id) {
-        return ResponseEntity.ok(DataResponseBody.of(cctvCategoryService.getCctvCategory(id)));
     }
 
     @Operation(summary = "CCTV 카테고리 수정", description = "ID를 기반으로 CCTV 카테고리를 수정합니다.")

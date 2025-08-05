@@ -24,10 +24,9 @@ public class DeviceCategory extends Category<DeviceCategory> {
     private Long iconFileId;
 
     @Builder
-    public DeviceCategory(String name, DeviceCategory parent) {
+    public DeviceCategory(String name, Long iconFileId) {
         this.name = name;
-        changeParent(parent);
-        this.validateDepth();
+        this.iconFileId = iconFileId;
     }
 
     public void updateIconFileId(Long iconFileId) {
@@ -44,28 +43,5 @@ public class DeviceCategory extends Category<DeviceCategory> {
         if (device != null) {
             this.devices.remove(device);
         }
-    }
-
-    public void changeParent(DeviceCategory newParent) {
-        if (this.parent != null) {
-            this.parent.getChildren().remove(this);
-        }
-        this.parent = newParent;
-        if (newParent != null) {
-            newParent.getChildren().add(this);
-        }
-        this.validateDepth();
-    }
-
-    public void clearAllDevices() {
-        List<Device> devicesToRemove = new ArrayList<>(this.devices);
-
-        // 각 디바이스와의 연관관계 제거
-        for (Device device : devicesToRemove) {
-            device.changeCategory(null);
-        }
-
-        // 컬렉션 비우기 (이미 updateCategory에서 처리되지만 명시적으로 수행)
-        this.devices.clear();
     }
 }
