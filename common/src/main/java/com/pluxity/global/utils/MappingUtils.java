@@ -1,13 +1,11 @@
 package com.pluxity.global.utils;
 
+import com.pluxity.category.entity.Category;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,5 +54,10 @@ public class MappingUtils {
             }
         }
         return roots;
+    }
+
+    public static <T extends Category<T>> T getParentCategoryIfExists(
+            Long parentId, Function<Long, T> categoryGetter) {
+        return Optional.ofNullable(parentId).map(categoryGetter).orElse(null);
     }
 }

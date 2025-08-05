@@ -89,7 +89,7 @@ public class CommonApiConfig {
     public GroupedOpenApi deviceApiByPath() {
         return GroupedOpenApi.builder()
                 .group("8. Device 관리 API")
-                .pathsToMatch("/devices/**", "/device-categories/**")
+                .pathsToMatch("/devices/**", "/device-categories/**", "/cctvs/**", "/cctv-categories/**")
                 .build();
     }
 }
