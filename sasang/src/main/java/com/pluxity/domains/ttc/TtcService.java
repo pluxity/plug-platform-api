@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -57,7 +55,7 @@ public class TtcService {
                     + "0200133FB1001906020E020A6C028686216021620101310903"
                     + "0200133EB3001906020E020977028686215421560101227303";
 
-    @EventListener(ApplicationReadyEvent.class)
+    //    @EventListener(ApplicationReadyEvent.class)
     public void initializeTtcConnections() {
         isRunning.set(true);
         CompletableFuture.runAsync(

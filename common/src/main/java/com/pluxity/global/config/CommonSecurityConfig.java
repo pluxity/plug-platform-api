@@ -123,7 +123,7 @@ public class CommonSecurityConfig {
         configuration.setAllowedOriginPatterns(
                 List.of("http://localhost:*", "http://app.plug-platform:*", "http://101.254.21.120:*"));
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // OPTIONS도 명시적으로 허용하는 것이 좋음
+                List.of("GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS")); // OPTIONS도 명시적으로 허용하는 것이 좋음
         configuration.setAllowedHeaders(List.of("*")); // 와일드카드 또는 필요한 헤더 명시
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L); // pre-flight 요청 캐시 시간
