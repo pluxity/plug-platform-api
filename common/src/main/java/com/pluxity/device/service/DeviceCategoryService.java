@@ -39,8 +39,7 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     public Long create(DeviceCategoryRequest request) {
         DeviceCategory deviceCategory =
                 DeviceCategory.builder().name(request.name()).iconFileId(request.thumbnailFileId()).build();
-        DeviceCategory parent =
-                MappingUtils.getParentCategoryIfExists(request.parentId(), super::findById);
+        DeviceCategory parent = MappingUtils.findByIdIfExists(request.parentId(), super::findById);
         return super.create(deviceCategory, parent);
     }
 

@@ -31,8 +31,7 @@ public class CctvCategoryService extends CategoryService<CctvCategory> {
     @Transactional
     public Long create(CctvCategoryCreateRequest request) {
         CctvCategory saveCategory = CctvCategory.builder().name(request.name()).build();
-        CctvCategory parent =
-                MappingUtils.getParentCategoryIfExists(request.parentId(), super::findById);
+        CctvCategory parent = MappingUtils.findByIdIfExists(request.parentId(), super::findById);
         return super.create(saveCategory, parent);
     }
 

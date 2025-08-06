@@ -1,6 +1,5 @@
 package com.pluxity.global.utils;
 
-import com.pluxity.category.entity.Category;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.file.dto.FileResponse;
@@ -56,8 +55,7 @@ public class MappingUtils {
         return roots;
     }
 
-    public static <T extends Category<T>> T getParentCategoryIfExists(
-            Long parentId, Function<Long, T> categoryGetter) {
-        return Optional.ofNullable(parentId).map(categoryGetter).orElse(null);
+    public static <ID, E> E findByIdIfExists(ID id, Function<ID, E> getter) {
+        return Optional.ofNullable(id).map(getter).orElse(null);
     }
 }

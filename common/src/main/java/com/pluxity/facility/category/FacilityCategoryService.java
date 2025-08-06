@@ -39,8 +39,7 @@ public class FacilityCategoryService extends CategoryService<FacilityCategory> {
                             });
         }
         FacilityCategory entity = FacilityCategory.builder().name(request.name()).build();
-        FacilityCategory parent =
-                MappingUtils.getParentCategoryIfExists(request.parentId(), super::findById);
+        FacilityCategory parent = MappingUtils.findByIdIfExists(request.parentId(), super::findById);
 
         return super.create(entity, parent);
     }

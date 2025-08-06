@@ -7,6 +7,7 @@ import com.pluxity.category.dto.CategoryResponse;
 import com.pluxity.category.dto.CategoryTreeResponse;
 import com.pluxity.category.entity.Category;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.MappingUtils;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -22,7 +23,7 @@ public abstract class CategoryService<T extends Category<T>> {
     public void update(Long id, String name, Long parentId) {
         T category = findById(id);
         category.updateName(name);
-        T parent = parentId != null ? findById(parentId) : null;
+        T parent = MappingUtils.findByIdIfExists(parentId, this::findById);
         if (parent != null && parent.getId().equals(category.getId())) {
             throw new CustomException(INVALID_PARENT_CATEGORY);
         }

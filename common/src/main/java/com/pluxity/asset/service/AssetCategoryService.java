@@ -79,8 +79,7 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
                         .code(request.code())
                         .iconFileId(request.thumbnailFileId())
                         .build();
-        AssetCategory parent =
-                MappingUtils.getParentCategoryIfExists(request.parentId(), super::findById);
+        AssetCategory parent = MappingUtils.findByIdIfExists(request.parentId(), super::findById);
         return super.create(category, parent);
     }
 
