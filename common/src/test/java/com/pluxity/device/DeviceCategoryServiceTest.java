@@ -3,9 +3,8 @@ package com.pluxity.device;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.pluxity.device.dto.DeviceCategoryRequest;
-import com.pluxity.device.dto.DeviceCategoryResponse;
-import com.pluxity.device.dto.DeviceCategoryUpdateRequest;
+import com.pluxity.device.dto.*;
+import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.service.DeviceCategoryService;
@@ -141,6 +140,26 @@ class DeviceCategoryServiceTest {
     }
 
     @Test
+    @DisplayName("하위 카테고리를 만들고 계층 구조를 조회한다")
+    void getDeviceCategoryTree_WithChildCategories_ReturnsTreeStructure() {
+        // given
+        Long parentId = deviceCategoryService.create(createRequest);
+
+        DeviceCategoryRequest childRequest = new DeviceCategoryRequest("하위 카테고리", parentId, iconFileId);
+        Long childId = deviceCategoryService.create(childRequest);
+
+        // when
+        DeviceCategory deviceCategoryResponse = deviceCategoryRepository.findById(parentId).orElseThrow();
+
+        // then
+
+        assertThat(deviceCategoryResponse.getChildren()).isNotEmpty();
+        assertThat(deviceCategoryResponse.getName()).isEqualTo("테스트 카테고리");
+        assertThat(deviceCategoryResponse.getChildren().getFirst()).isNotNull();
+        assertThat(deviceCategoryResponse.getChildren().getFirst().getName()).isEqualTo("하위 카테고리");
+    }
+
+    @Test
     @DisplayName("디바이스가 없는 카테고리 삭제 시 정상적으로 삭제된다")
     void delete_WithEmptyCategory_DeletesCategory() {
         // given
@@ -152,13 +171,6 @@ class DeviceCategoryServiceTest {
         // then
         // 삭제 후에는 해당 ID로 카테고리를 찾을 수 없어야 함
         assertThrows(CustomException.class, () -> deviceCategoryService.findById(id));
-    }
-    
-    @Test
-    @DisplayName("빈 이름으로 카테고리 생성 시 예외가 발생한다")
-    void create_WithEmptyName_ThrowsCustomException() {
-        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
-        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
     }
 
     @Test
@@ -211,8 +223,8 @@ class DeviceCategoryServiceTest {
         DeviceCategoryRequest level2Request = new DeviceCategoryRequest("레벨2 카테고리", rootId, iconFileId);
         Long level2Id = deviceCategoryService.create(level2Request);
         
-        // 네 번째 레벨 카테고리 생성 시도 (일반적으로 최대 2단계로 제한되는 경우)
-        DeviceCategoryRequest level4Request = new DeviceCategoryRequest("레벨3 카테고리", level2Id, iconFileId);
+        // 네 번째 레벨 카테고리 생성 시도 (일반적으로 최대 3단계로 제한되는 경우)
+        DeviceCategoryRequest level4Request = new DeviceCategoryRequest("레벨4 카테고리", level2Id, iconFileId);
         
         // when & then
         assertThrows(CustomException.class, () -> deviceCategoryService.create(level4Request));
@@ -233,5 +245,84 @@ class DeviceCategoryServiceTest {
         // 자식이 있는 부모 카테고리 삭제 시도
         assertThrows(CustomException.class, () -> deviceCategoryService.delete(parentId));
     }
+
+    @Test
+    @DisplayName("성공: 부모 카테고리를 다른 카테고리로 변경한다")
+    void update_changeParentCategory_shouldSucceed() {
+        // GIVEN
+        Long root1Id = deviceCategoryService.create(new DeviceCategoryRequest("루트1", null, null));
+        Long root2Id = deviceCategoryService.create(new DeviceCategoryRequest("루트2", null, null));
+        Long childId = deviceCategoryService.create(new DeviceCategoryRequest("자식", root1Id, null));
+
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("이름변경", root2Id, null);
+
+        // WHEN
+        deviceCategoryService.update(childId, updateRequest);
+
+        // THEN
+        DeviceCategory child = deviceCategoryService.findById(childId);
+        assertThat(child.getParent()).isNotNull();
+        assertThat(child.getParent().getId()).isEqualTo(root2Id);
+    }
+
+    @Test
+    @DisplayName("성공: 자식 카테고리를 최상위 카테고리로 변경한다")
+    void update_changeToRootCategory_shouldSucceed() {
+        // GIVEN
+        Long parentId = deviceCategoryService.create(new DeviceCategoryRequest("부모", null, null));
+        Long childId = deviceCategoryService.create(new DeviceCategoryRequest("자식", parentId, null));
+
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("이제루트", null, null);
+
+        // WHEN
+        deviceCategoryService.update(childId, updateRequest);
+
+        // THEN
+        DeviceCategory category = deviceCategoryService.findById(childId);
+        assertThat(category.getParent()).isNull();
+        assertThat(category.getDepth()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("실패: 자기 자신을 부모 카테고리로 지정 시 예외가 발생한다")
+    void update_setSelfAsParent_shouldThrowException() {
+        // GIVEN
+        Long categoryId = deviceCategoryService.create(createRequest);
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("이름변경", categoryId, null);
+
+        // WHEN & THEN
+        CustomException exception = assertThrows(CustomException.class,
+                () -> deviceCategoryService.update(categoryId, updateRequest));
+        assertThat(exception.getMessage()).contains("카테고리는 자기 자신을 부모로 가질 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("실패: 자신의 자식을 부모 카테고리로 지정(순환참조) 시 예외가 발생한다")
+    void update_setChildAsParent_shouldThrowException() {
+        // GIVEN
+        Long parentId = deviceCategoryService.create(createRequest);
+        Long childId = deviceCategoryService.create(new DeviceCategoryRequest("자식", parentId, null));
+
+        // 부모(parentId)의 부모를 자식(childId)으로 변경하려는 시도
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("순환참조", childId, null);
+
+        // WHEN & THEN
+        CustomException exception = assertThrows(CustomException.class,
+                () -> deviceCategoryService.update(parentId, updateRequest));
+        assertThat(exception.getMessage()).contains("하위 카테고리를 부모 카테고리로 지정할 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("성공: 카테고리가 하나도 없을 때 전체 트리 조회 시 빈 리스트를 반환한다")
+    void getDeviceCategoryTree_whenNoCategories_shouldReturnEmptyList() {
+        // GIVEN: 아무 데이터도 없는 상태
+        deviceCategoryRepository.deleteAll();
+
+        // WHEN
+        DeviceCategoryAllResponse deviceCategories = deviceCategoryService.getDeviceCategories();
+
+        // THEN
+        assertThat(deviceCategories.list()).isNotNull().isEmpty();
+    }
+
 }
-//test

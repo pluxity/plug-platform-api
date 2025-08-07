@@ -1,7 +1,6 @@
 package com.pluxity.category.service;
 
-import static com.pluxity.global.constant.ErrorCode.INVALID_PARENT_CATEGORY;
-import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_CATEGORY;
+import static com.pluxity.global.constant.ErrorCode.*;
 
 import com.pluxity.category.dto.CategoryResponse;
 import com.pluxity.category.dto.CategoryTreeResponse;
@@ -21,13 +20,29 @@ public abstract class CategoryService<T extends Category<T>> {
     }
 
     public void update(Long id, String name, Long parentId) {
-        T category = findById(id);
-        category.updateName(name);
-        T parent = MappingUtils.findByIdIfExists(parentId, this::findById);
-        if (parent != null && parent.getId().equals(category.getId())) {
+        T categoryToUpdate = findById(id);
+        T newParent = MappingUtils.findByIdIfExists(parentId, this::findById);
+
+        if (categoryToUpdate.getId().equals(parentId)) {
             throw new CustomException(INVALID_PARENT_CATEGORY);
         }
-        category.assignToParent(parent);
+
+        if (isCircularReference(categoryToUpdate, newParent)) {
+            throw new CustomException(CIRCULAR_REFERENCE_CATEGORY);
+        }
+
+        categoryToUpdate.updateName(name);
+        categoryToUpdate.assignToParent(newParent);
+    }
+
+    private boolean isCircularReference(T source, T target) {
+        while (target != null) {
+            if (target.getId().equals(source.getId())) {
+                return true;
+            }
+            target = target.getParent();
+        }
+        return false;
     }
 
     public T findById(Long id) {

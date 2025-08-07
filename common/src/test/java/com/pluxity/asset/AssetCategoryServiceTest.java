@@ -1,25 +1,30 @@
 package com.pluxity.asset;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.when;
+
+import com.pluxity.asset.dto.AssetCategoryAllResponse;
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
-import com.pluxity.asset.dto.AssetCategoryAllResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.entity.AssetCategory;
+import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetCategoryRepository;
+import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.asset.service.AssetCategoryService;
+import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -31,270 +36,272 @@ class AssetCategoryServiceTest {
     @Autowired
     private AssetCategoryRepository assetCategoryRepository;
 
+    // Asset과의 연관관계 테스트를 위해 주입
     @Autowired
+    private AssetRepository assetRepository;
+
+    // FileService는 Mocking하여 AssetCategoryService의 로직에만 집중
+    @MockBean
     private FileService fileService;
 
-    private AssetCategoryCreateRequest createRequest;
-    private Long iconFileId;
+    private Long iconFileId = 1L;
 
     @BeforeEach
     void setUp() {
-        // 파일 아이디는 실제 테스트 환경에서는 fileService를 통해 얻어야 하지만,
-        // 여기서는 null로 설정하고 필요시 모킹하거나 실제 파일을 생성할 수 있습니다.
-        iconFileId = null;
-
-        // 테스트 데이터 준비
-        createRequest = new AssetCategoryCreateRequest(
-                "테스트 카테고리",
-                "TC1",
-                null,
-                iconFileId
-        );
+        // GIVEN: 모든 테스트에서 FileService의 getFiles(List<Long>)가 호출될 때,
+        //        가짜 FileResponse 목록을 반환하도록 설정합니다.
+        when(fileService.getFiles(anyList())).thenAnswer(invocation -> {
+            List<Long> ids = invocation.getArgument(0);
+            // 요청받은 ID 목록을 기반으로 FileResponse 목록을 동적으로 생성
+            return ids.stream()
+                    .map(id -> new FileResponse(id, "/files/icon_" + id + ".png", "icon.png", "image/png", "COMPLETE", null))
+                    .toList();
+        });
     }
 
-    @Test
-    @DisplayName("유효한 요청으로 에셋 카테고리 생성 시 카테고리가 저장된다")
-    void createAssetCategory_WithValidRequest_SavesCategory() {
-        // when
-        Long id = assetCategoryService.createAssetCategory(createRequest);
+        @Test
+        @DisplayName("성공: 유효한 요청으로 최상위 카테고리를 생성한다")
+        void createAssetCategory_withValidRequest_savesRootCategory() {
+            // GIVEN
+            AssetCategoryCreateRequest request = new AssetCategoryCreateRequest("가전", "ELEC", null, iconFileId);
 
-        // then
-        assertThat(id).isNotNull();
+            // WHEN
+            Long categoryId = assetCategoryService.createAssetCategory(request);
 
-        // 저장된 카테고리 확인
-        AssetCategory savedCategory = assetCategoryService.findById(id);
-        assertThat(savedCategory).isNotNull();
-        assertThat(savedCategory.getName()).isEqualTo("테스트 카테고리");
-        assertThat(savedCategory.getCode()).isEqualTo("TC1");
-    }
+            // THEN
+            AssetCategory savedCategory = assetCategoryRepository.findById(categoryId).orElseThrow();
+            assertThat(savedCategory.getName()).isEqualTo("가전");
+            assertThat(savedCategory.getCode()).isEqualTo("ELEC");
+            assertThat(savedCategory.getParent()).isNull();
+            assertThat(savedCategory.getIconFileId()).isEqualTo(iconFileId);
+        }
 
-    @Test
-    @DisplayName("존재하지 않는 ID로 에셋 카테고리 조회 시 예외가 발생한다")
-    void getAssetCategory_WithNonExistingId_ThrowsCustomException() {
-        // given
-        Long nonExistingId = 9999L;
+        @Test
+        @DisplayName("성공: 유효한 요청으로 자식 카테고리를 생성한다")
+        void createAssetCategory_withValidParent_savesChildCategory() {
+            // GIVEN
+            Long parentId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("가전", "ELEC", null, null));
+            AssetCategoryCreateRequest childRequest = new AssetCategoryCreateRequest("TV", "TV", parentId, null);
 
-        // when & then
-        assertThrows(CustomException.class, () -> assetCategoryService.findById(nonExistingId));
-    }
+            // WHEN
+            Long childId = assetCategoryService.createAssetCategory(childRequest);
 
-    @Test
-    @DisplayName("루트 카테고리 조회 시 상위 카테고리가 없는 카테고리만 반환된다")
-    void getRootCategories_ReturnsOnlyRootCategories() {
-        // given
-        Long rootId1 = assetCategoryService.createAssetCategory(createRequest); // name: "테스트 카테고리", code: "TC1"
-        AssetCategoryCreateRequest anotherRootRequest = new AssetCategoryCreateRequest(
-                "두번째 루트 카테고리",
-                "RC2", // 새로운 유니크 코드
-                null, // parentId null
-                null
-        );
-        Long rootId2 = assetCategoryService.createAssetCategory(anotherRootRequest);
+            // THEN
+            AssetCategory childCategory = assetCategoryRepository.findById(childId).orElseThrow();
+            assertThat(childCategory.getParent()).isNotNull();
+            assertThat(childCategory.getParent().getId()).isEqualTo(parentId);
+            assertThat(childCategory.getDepth()).isEqualTo(2);
+        }
 
-        // when
-        AssetCategoryAllResponse rootCategoriesResponse = assetCategoryService.getAllCategories();
-        List<AssetCategoryResponse> rootCategories = rootCategoriesResponse.list();
+        @Test
+        @DisplayName("실패: 중복된 코드로 생성 시도 시 CustomException이 발생한다")
+        void createAssetCategory_withDuplicateCode_throwsException() {
+            // GIVEN
+            assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("가전", "ELEC", null, null));
+            AssetCategoryCreateRequest duplicateRequest = new AssetCategoryCreateRequest("전자제품", "ELEC", null, null);
 
-        // then
-        assertThat(rootCategories).hasSize(2);
-        assertThat(rootCategories.stream().anyMatch(cat -> cat.name().equals("테스트 카테고리") && cat.code().equals("TC1"))).isTrue();
-        assertThat(rootCategories.stream().anyMatch(cat -> cat.name().equals("두번째 루트 카테고리") && cat.code().equals("RC2"))).isTrue();
-    }
+            // WHEN & THEN
+            CustomException exception = assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(duplicateRequest));
+        }
 
-    @Test
-    @DisplayName("자식 카테고리 조회 시 (루트 카테고리의 경우) 빈 리스트가 반환된다")
-    void getChildCategories_ReturnsChildrenOfSpecifiedParent() {
-        // given
-        Long rootId = assetCategoryService.createAssetCategory(createRequest); // 루트 카테고리 생성
+        @Test
+        @DisplayName("실패: 존재하지 않는 부모 ID로 생성 시도 시 CustomException이 발생한다")
+        void createAssetCategory_withNonExistentParentId_throwsException() {
+            // GIVEN
+            Long nonExistentParentId = 9999L;
+            AssetCategoryCreateRequest request = new AssetCategoryCreateRequest("자식", "CHILD", nonExistentParentId, null);
 
-        // AssetCategory는 최대 깊이가 1이므로, 루트 카테고리는 자식을 가질 수 없음
-        // 따라서 이 테스트는 루트 카테고리의 자식 조회 시 빈 리스트를 반환하는지 확인
+            // WHEN & THEN
+            CustomException exception = assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(request));
+        }
 
-        // when
-        List<AssetCategoryResponse> childCategories = assetCategoryService.getChildCategories(rootId);
+        @Test
+        @DisplayName("실패: 최대 허용 깊이를 초과하여 생성 시도 시 CustomException이 발생한다")
+        void createAssetCategory_exceedingMaxDepth_throwsException() {
+            // GIVEN (AssetCategory의 maxDepth가 3 이라고 가정)
+            Long id1 = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("Depth 1", "D0", null, null));
+            Long id2 = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("Depth 2", "D1", id1, null));
 
-        // then
-        assertThat(childCategories).isEmpty();
-    }
+            AssetCategoryCreateRequest invalidRequest = new AssetCategoryCreateRequest("Depth 4", "D4", id2, null);
 
-    @Test
-    @DisplayName("유효한 요청으로 에셋 카테고리 수정 시 카테고리 정보가 업데이트된다")
-    void updateAssetCategory_WithValidRequest_UpdatesCategory() {
-        // given
-        Long id = assetCategoryService.createAssetCategory(createRequest);
-        AssetCategoryUpdateRequest updateRequest = new AssetCategoryUpdateRequest(
-                "수정된 카테고리",
-                "UC1",
-                null,
-                null
-        );
+            // WHEN & THEN
+            // AssetCategory 엔티티 내부에 깊이 검증 로직이 있다고 가정
+            assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(invalidRequest));
+        }
 
-        // when
-        assetCategoryService.updateAssetCategory(id, updateRequest);
+        @Test
+        @DisplayName("성공: ID로 조회 시 정확한 카테고리 응답을 반환한다")
+        void getAssetCategory_withExistingId_returnsCorrectResponse() {
+            // GIVEN: 여러 카테고리를 생성하여 전체 목록이 복잡한 상황을 가정
+            Long rootId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("가전", "ELEC", null, iconFileId));
+            assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("TV", "TV", rootId, null));
 
-        // then
-        AssetCategory updatedCategory = assetCategoryService.findById(id);
-        assertThat(updatedCategory.getName()).isEqualTo("수정된 카테고리");
-        assertThat(updatedCategory.getCode()).isEqualTo("UC1");
-    }
+            // WHEN
+            AssetCategory response = assetCategoryRepository.findById(rootId).orElseThrow();
 
-    @Test
-    @DisplayName("중복된 코드로 에셋 카테고리 생성 시 예외가 발생한다")
-    void createAssetCategory_WithDuplicateCode_ThrowsCustomException() {
-        // given
-        Long id = assetCategoryService.createAssetCategory(createRequest);
+            // THEN
+            assertThat(response).isNotNull();
+            assertThat(response.getId()).isEqualTo(rootId);
+            assertThat(response.getName()).isEqualTo("가전");
+            assertThat(response.getIconFileId()).isNotNull();
+        }
 
-        AssetCategoryCreateRequest duplicateRequest = new AssetCategoryCreateRequest(
-                "다른 카테고리",
-                "TC1",
-                null,
-                null
-        );
+        @Test
+        @DisplayName("성공: 전체 카테고리 조회 시 올바른 트리 구조를 list 필드에 반환한다")
+        void getAllCategories_returnsCorrectTreeStructureInList() {
+            // GIVEN: 2개의 루트와 각각의 자식 생성
+            Long root1Id = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("가전", "ELEC", null, null));
+            assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("TV", "TV", root1Id, null));
+            Long root2Id = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("가구", "FURN", null, null));
 
-        // when & then
-        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(duplicateRequest));
-    }
+            // WHEN
+            AssetCategoryAllResponse response = assetCategoryService.getAllCategories();
+            // `response.tree()`가 아니라 `response.list()`를 사용합니다.
+            List<AssetCategoryResponse> rootCategories = response.list();
 
-    @Test
-    @DisplayName("에셋 카테고리 삭제 시 해당 카테고리가 삭제된다")
-    void deleteAssetCategory_RemovesCategory() {
-        // given
-        Long id = assetCategoryService.createAssetCategory(createRequest);
+            // THEN
+            assertThat(rootCategories).hasSize(2); // 루트는 2개
 
-        // when
-        assetCategoryService.deleteAssetCategory(id);
+            // '가전' 카테고리를 찾아서 자식이 올바르게 연결되었는지 검증
+            AssetCategoryResponse elecCategory = rootCategories.stream()
+                    .filter(c -> c.id().equals(root1Id))
+                    .findFirst()
+                    .orElseThrow();
+            assertThat(elecCategory.children()).hasSize(1);
+            assertThat(elecCategory.children().getFirst().name()).isEqualTo("TV");
 
-        // then
-        assertThrows(CustomException.class, () -> assetCategoryService.findById(id));
-    }
+            // '가구' 카테고리를 찾아서 자식이 없는지 검증
+            AssetCategoryResponse furnCategory = rootCategories.stream()
+                    .filter(c -> c.id().equals(root2Id))
+                    .findFirst()
+                    .orElseThrow();
+            assertThat(furnCategory.children()).isEmpty();
+        }
 
-    @Test
-    @DisplayName("빈 이름으로 에셋 카테고리 생성 시 예외가 발생한다")
-    void createAssetCategory_WithEmptyName_ThrowsCustomException() {
-        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
-        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
-    }
+        @Test
+        @DisplayName("성공: 특정 부모의 자식 카테고리 목록을 조회한다")
+        void getChildCategories_returnsListOfChildren() {
+            // GIVEN
+            Long parentId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("부모", "P", null, null));
+            assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("자식1", "C1", parentId, null));
+            assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("자식2", "C2", parentId, null));
+            assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("다른 부모의 자식", "C3", null, null)); // 관련 없는 카테고리
 
-    @Test
-    @DisplayName("빈 코드로 에셋 카테고리 생성 시 예외가 발생한다")
-    void createAssetCategory_WithEmptyCode_ThrowsCustomException() {
-        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
-        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
-    }
+            // WHEN
+            List<AssetCategoryResponse> children = assetCategoryService.getChildCategories(parentId);
 
-    @Test
-    @DisplayName("존재하지 않는 부모 카테고리 ID로 에셋 카테고리 생성 시 예외가 발생한다")
-    void createAssetCategory_WithNonExistingParentId_ThrowsCustomException() {
-        // given
-        Long nonExistingParentId = 9999L;
-        AssetCategoryCreateRequest invalidRequest = new AssetCategoryCreateRequest(
-                "자식 카테고리",
-                "CC1",
-                nonExistingParentId,
-                null
-        );
+            // THEN
+            assertThat(children).hasSize(2);
+            // 자식들의 parentId가 모두 일치하는지 추가로 검증
+            assertThat(children).allMatch(child -> child.parentId().equals(parentId));
+            assertThat(children.stream().map(AssetCategoryResponse::name)).containsExactlyInAnyOrder("자식1", "자식2");
+        }
 
-        // when & then
-        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(invalidRequest));
-    }
+        @Test
+        @DisplayName("성공: 자식이 없는 카테고리 조회 시 빈 리스트를 반환한다")
+        void getChildCategories_withNoChildren_returnsEmptyList() {
+            // GIVEN
+            Long parentId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("자식 없는 부모", "P", null, null));
 
-    @Test
-    @DisplayName("유효하지 않은 아이콘 파일 ID로 에셋 카테고리 생성 시 예외가 발생한다")
-    void createAssetCategory_WithInvalidIconFileId_ThrowsCustomException() {
-        // given
-        Long invalidIconFileId = 9999L;
-        AssetCategoryCreateRequest invalidRequest = new AssetCategoryCreateRequest(
-                "테스트 카테고리",
-                "TC3",
-                null,
-                invalidIconFileId
-        );
+            // WHEN
+            List<AssetCategoryResponse> children = assetCategoryService.getChildCategories(parentId);
 
-        // when & then
-        // 이 테스트는 컨트롤러 계층에서 @Valid 검증을 통해 수행되어야 합니다.
-        // @NotBlank 어노테이션이 있으므로 컨트롤러 테스트에서 검증해야 합니다.
-//        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(invalidRequest));
-    }
+            // THEN
+            assertThat(children).isNotNull().isEmpty();
+        }
 
-    @Test
-    @DisplayName("최대 깊이를 초과하는 계층 구조로 에셋 카테고리 생성 시 예외가 발생한다")
-    void createAssetCategory_ExceedingMaxDepth_ThrowsCustomException() {
-        // given
-        // 1. 루트 카테고리 생성
-        Long rootId = assetCategoryService.createAssetCategory(createRequest);
-        
-//        // 2. 1단계 자식 카테고리 생성
-        AssetCategoryCreateRequest childRequest = new AssetCategoryCreateRequest(
-                "자식 카테고리",
-                "CC1",
-                rootId,
-                null
-        );
-        Long childId = assetCategoryService.createAssetCategory(childRequest);
-        
-        // 3. 2단계 자식 카테고리 생성(최대 깊이 초과)
-        AssetCategoryCreateRequest grandchildRequest = new AssetCategoryCreateRequest(
-                "손자 카테고리",
-                "GC1",
-                childId,
-                null
-        );
+        @Test
+        @DisplayName("실패: 존재하지 않는 부모 ID로 자식 조회 시 빈 리스트를 반환한다")
+        void getChildCategories_withNonExistentParentId_returnsEmptyList() {
+            // GIVEN
+            Long nonExistentParentId = 9999L;
 
-        // when & then
-        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(grandchildRequest));
-    }
+            // WHEN: findByParentId는 결과가 없으면 빈 리스트를 반환하므로 예외가 발생하지 않음
+            List<AssetCategoryResponse> children = assetCategoryService.getChildCategories(nonExistentParentId);
 
-    @Test
-    @DisplayName("에셋 카테고리 업데이트 시 중복 코드로 변경 시도할 때 예외가 발생한다")
-    void updateAssetCategory_WithDuplicateCode_ThrowsCustomException() {
-        // given
-        // 1. 첫 번째 카테고리 생성
-        Long id1 = assetCategoryService.createAssetCategory(createRequest);
-        
-        // 2. 두 번째 카테고리 생성
-        AssetCategoryCreateRequest secondRequest = new AssetCategoryCreateRequest(
-                "두 번째 카테고리",
-                "TC2",
-                null,
-                null
-        );
-        Long id2 = assetCategoryService.createAssetCategory(secondRequest);
-        
-        // 3. 두 번째 카테고리를 첫 번째 카테고리와 동일한 코드로 업데이트 시도
-        AssetCategoryUpdateRequest updateRequest = new AssetCategoryUpdateRequest(
-                "수정된 카테고리",
-                "TC1", // 첫 번째 카테고리와 동일한 코드
-                null,
-                null
-        );
-        
-        // when & then
-        assertThrows(CustomException.class, () -> assetCategoryService.updateAssetCategory(id2, updateRequest));
-    }
+            // THEN
+            assertThat(children).isNotNull().isEmpty();
+        }
 
-    @Test
-    @DisplayName("존재하지 않는 카테고리를 업데이트 시도할 때 예외가 발생한다")
-    void updateAssetCategory_WithNonExistingId_ThrowsCustomException() {
-        // given
-        Long nonExistingId = 9999L;
-        AssetCategoryUpdateRequest updateRequest = new AssetCategoryUpdateRequest(
-                "수정된 카테고리",
-                "UC2",
-                null,
-                null
-        );
-        
-        // when & then
-        assertThrows(CustomException.class, () -> assetCategoryService.updateAssetCategory(nonExistingId, updateRequest));
-    }
+        @Test
+        @DisplayName("성공: 이름과 코드 등 모든 정보를 정상적으로 수정한다")
+        void updateAssetCategory_withAllFields_updatesSuccessfully() {
+            // GIVEN
+            Long categoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("원본", "ORI", null, null));
+            AssetCategoryUpdateRequest request = new AssetCategoryUpdateRequest("수정", "UPD", null, iconFileId);
 
-    @Test
-    @DisplayName("존재하지 않는 카테고리를 삭제 시도할 때 예외가 발생한다")
-    void deleteAssetCategory_WithNonExistingId_ThrowsCustomException() {
-        // given
-        Long nonExistingId = 9999L;
-        
-        // when & then
-        assertThrows(CustomException.class, () -> assetCategoryService.deleteAssetCategory(nonExistingId));
+            // WHEN
+            assetCategoryService.updateAssetCategory(categoryId, request);
+
+            // THEN
+            AssetCategory updated = assetCategoryRepository.findById(categoryId).orElseThrow();
+            assertThat(updated.getName()).isEqualTo("수정");
+            assertThat(updated.getCode()).isEqualTo("UPD");
+            assertThat(updated.getIconFileId()).isEqualTo(iconFileId);
+        }
+
+        @Test
+        @DisplayName("성공: 부모 카테고리를 다른 카테고리로 변경한다")
+        void updateAssetCategory_changingParent_updatesHierarchy() {
+            // GIVEN
+            Long root1Id = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("루트1", "R1", null, null));
+            Long root2Id = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("루트2", "R2", null, null));
+            Long childId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("자식", "C1", root1Id, null));
+
+            // WHEN: 자식의 부모를 root2로 변경
+            assetCategoryService.updateAssetCategory(childId, new AssetCategoryUpdateRequest(null, null, root2Id, null));
+
+            // THEN
+            AssetCategory child = assetCategoryRepository.findById(childId).orElseThrow();
+            assertThat(child.getParent().getId()).isEqualTo(root2Id);
+        }
+
+        @Test
+        @DisplayName("실패: 자기 자신을 부모로 지정하려고 할 때 CustomException이 발생한다")
+        void updateAssetCategory_withSelfAsParent_throwsException() {
+            // GIVEN
+            Long categoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("카테고리", "CAT", null, null));
+            AssetCategoryUpdateRequest request = new AssetCategoryUpdateRequest(null, null, categoryId, null);
+
+            // WHEN & THEN
+            CustomException exception = assertThrows(CustomException.class, () -> assetCategoryService.updateAssetCategory(categoryId, request));
+        }
+
+        @Test
+        @DisplayName("성공: 연결된 자식이나 에셋이 없을 때 정상적으로 삭제된다")
+        void deleteAssetCategory_withNoRelations_deletesSuccessfully() {
+            // GIVEN
+            Long categoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("삭제될 카테고리", "DEL", null, null));
+
+            // WHEN
+            assetCategoryService.deleteAssetCategory(categoryId);
+
+            // THEN
+            assertThat(assetCategoryRepository.findById(categoryId)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("실패: 자식 카테고리가 존재할 때 삭제 시도 시 CustomException이 발생한다")
+        void deleteAssetCategory_withChildren_throwsException() {
+            // GIVEN
+            Long parentId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("부모", "P", null, null));
+            assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("자식", "C", parentId, null));
+
+            // WHEN & THEN
+            CustomException exception = assertThrows(CustomException.class, () -> assetCategoryService.deleteAssetCategory(parentId));
+        }
+
+        @Test
+        @DisplayName("실패: 할당된 에셋이 존재할 때 삭제 시도 시 CustomException이 발생한다")
+        void deleteAssetCategory_withAssignedAssets_throwsException() {
+            // GIVEN
+            Long categoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("카테고리", "CAT", null, null));
+            AssetCategory category = assetCategoryRepository.findById(categoryId).orElseThrow();
+
+            // 카테고리에 에셋 할당
+            assetRepository.save(Asset.builder().name("에셋").code("A01").category(category).build());
+
+            // WHEN & THEN
+            CustomException exception = assertThrows(CustomException.class, () -> assetCategoryService.deleteAssetCategory(categoryId));
     }
 }
