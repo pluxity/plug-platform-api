@@ -7,7 +7,8 @@ import com.pluxity.device.dto.GsDeviceUpdateRequest;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.feature.dto.FeatureResponse;
-import com.pluxity.feature.service.FeatureService;
+import com.pluxity.feature.entity.Feature;
+import com.pluxity.feature.service.FeatureFacade;
 import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
@@ -25,8 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class GsDeviceService {
 
     private final GsDeviceRepository repository;
-    private final FeatureService featureService;
     private final DeviceCategoryService deviceCategoryService;
+    private final FeatureFacade featureFacade;
 
     @Transactional
     public String save(GsDeviceCreateRequest request) {
@@ -118,5 +119,16 @@ public class GsDeviceService {
 
         device.updateCategory(null);
         log.info("디바이스 [{}]에서 카테고리가 제거되었습니다.", deviceId);
+    }
+
+    @Transactional(readOnly = true)
+    public GsDeviceResponse getByFeatureId(String featureId) {
+        Feature feature = featureFacade.findById(featureId);
+        GsDevice gsDevice =
+                repository
+                        .findByFeature(feature)
+                        .orElseThrow(
+                                () -> new CustomException(ErrorCode.NOT_FOUND_DEVICE_BY_FEATURE, featureId));
+        return createResponse(gsDevice);
     }
 }

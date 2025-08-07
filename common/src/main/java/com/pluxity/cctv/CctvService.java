@@ -9,6 +9,7 @@ import com.pluxity.cctv.dto.CctvUpdateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.FeatureType;
+import com.pluxity.feature.service.FeatureFacade;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
@@ -24,6 +25,7 @@ public class CctvService {
 
     private final CctvRepository cctvRepository;
     private final CctvCategoryService cctvCategoryService;
+    private final FeatureFacade featureFacade;
 
     @Transactional
     public String create(@Valid CctvCreateRequest request) {
@@ -44,6 +46,21 @@ public class CctvService {
     public List<CctvResponse> findAll() {
         List<Cctv> list = cctvRepository.findAll();
         return list.stream().map(this::createResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CctvResponse getById(String id) {
+        return createResponse(findById(id));
+    }
+
+    @Transactional(readOnly = true)
+    public CctvResponse getByFeatureId(String featureId) {
+        Feature feature = featureFacade.findById(featureId);
+        Cctv cctv =
+                cctvRepository
+                        .findByFeature(feature)
+                        .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CCTV_BY_FEATURE, featureId));
+        return createResponse(cctv);
     }
 
     private CctvResponse createResponse(Cctv cctv) {

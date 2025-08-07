@@ -52,6 +52,36 @@ public class CctvController {
         return ResponseEntity.ok(DataResponseBody.of(cctvService.findAll()));
     }
 
+    @Operation(summary = "CCTV 상세 조회", description = "ID로 특정 CCTV의 상세 정보를 조회합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "CCTV 조회 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "해당 ID의 디바이스를 찾을 수 없음",
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/{id}")
+    public ResponseEntity<DataResponseBody<CctvResponse>> getById(
+            @Parameter(description = "CCTV ID", required = true) @PathVariable String id) {
+        return ResponseEntity.ok(DataResponseBody.of(cctvService.getById(id)));
+    }
+
+    @Operation(summary = "CCTV 상세 조회", description = "Feature ID로 특정 CCTV의 상세 정보를 조회합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "CCTV 조회 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "해당 ID의 디바이스를 찾을 수 없음",
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/features/{featureId}")
+    public ResponseEntity<DataResponseBody<CctvResponse>> getByFeatureId(
+            @Parameter(description = "Feature ID", required = true) @PathVariable String featureId) {
+        return ResponseEntity.ok(DataResponseBody.of(cctvService.getByFeatureId(featureId)));
+    }
+
     @Operation(summary = "CCTV 정보 수정", description = "ID로 특정 CCTV의 정보를 수정합니다.")
     @ApiResponses(
             value = {

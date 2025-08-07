@@ -12,12 +12,12 @@ import com.pluxity.feature.dto.*;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.feature.repository.FeatureRepository;
+import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -89,11 +89,9 @@ public class FeatureService {
 
     @Transactional(readOnly = true)
     public Feature findFeatureById(String id) {
-        return featureRepository.findById(id).orElseThrow(featureNotFound(id));
-    }
-
-    private static Supplier<CustomException> featureNotFound(String id) {
-        return () -> new CustomException(NOT_FOUND_FEATURE, id);
+        return featureRepository
+                .findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_FEATURE, id));
     }
 
     @Transactional
