@@ -7,7 +7,6 @@ import com.pluxity.device.dto.GsDeviceUpdateRequest;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.feature.dto.FeatureResponse;
-import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.service.FeatureService;
 import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.constant.ErrorCode;
@@ -34,13 +33,7 @@ public class GsDeviceService {
         DeviceCategory category =
                 request.categoryId() != null ? deviceCategoryService.findById(request.categoryId()) : null;
 
-        Feature feature =
-                request.featureId() != null ? featureService.findFeatureById(request.featureId()) : null;
-
-        GsDevice saveDevice =
-                repository.save(new GsDevice(request.id(), feature, category, request.name()));
-        saveDevice.changeFeature(feature);
-        return saveDevice.getId();
+        return repository.save(new GsDevice(request.id(), category, request.name())).getId();
     }
 
     @Transactional(readOnly = true)
@@ -80,13 +73,22 @@ public class GsDeviceService {
         GsDevice device = getDevice(id);
         device.update(request.name());
 
-        if (request.featureId() != null) {
-            Feature feature = featureService.findFeatureById(request.featureId());
-            device.changeFeature(feature);
-        }
         if (request.categoryId() != null) {
             DeviceCategory deviceCategory = deviceCategoryService.findById(request.categoryId());
             device.changeCategory(deviceCategory);
+        }
+    }
+
+    @Transactional
+    public void putUpdate(String id, GsDeviceUpdateRequest request) {
+        GsDevice device = getDevice(id);
+        device.putUpdate(request.name());
+
+        if (request.categoryId() != null) {
+            DeviceCategory deviceCategory = deviceCategoryService.findById(request.categoryId());
+            device.updateCategory(deviceCategory);
+        } else {
+            device.updateCategory(null);
         }
     }
 

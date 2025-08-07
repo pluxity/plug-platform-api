@@ -2,7 +2,6 @@ package com.pluxity.device;
 
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
-import com.pluxity.feature.entity.Feature;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -26,8 +25,8 @@ public class GsDevice extends Device {
     }
 
     @Builder
-    public GsDevice(String id, Feature feature, DeviceCategory category, String name) {
-        super(id, feature, category);
+    public GsDevice(String id, DeviceCategory category, String name) {
+        super(id, category);
         this.name = name;
     }
 
@@ -37,13 +36,11 @@ public class GsDevice extends Device {
         }
     }
 
+    public void putUpdate(String name) {
+        this.name = name;
+    }
+
     public void updateCategory(DeviceCategory category) {
-        if (this.getCategory() != null) {
-            this.getCategory().getDevices().remove(this);
-        }
         this.changeCategory(category);
-        if (category != null) {
-            category.addDevice(this);
-        }
     }
 }
