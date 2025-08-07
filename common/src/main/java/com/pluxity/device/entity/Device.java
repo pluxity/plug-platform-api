@@ -26,9 +26,8 @@ public abstract class Device extends BaseEntity {
     @JoinColumn(name = "category_id")
     private DeviceCategory category;
 
-    protected Device(String id, Feature feature, DeviceCategory category) {
+    protected Device(String id, DeviceCategory category) {
         this.id = id;
-        this.feature = feature;
         this.category = category;
         if (this.category != null) {
             this.category.addDevice(this);

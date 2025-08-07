@@ -80,12 +80,12 @@ public class GsDeviceController {
                         description = "해당 ID의 디바이스를 찾을 수 없음",
                         content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Void> update(
             @Parameter(description = "디바이스 ID", required = true) @PathVariable String id,
             @Parameter(description = "디바이스 수정 정보", required = true) @Valid @RequestBody
                     GsDeviceUpdateRequest request) {
-        gsDeviceService.update(id, request);
+        gsDeviceService.putUpdate(id, request);
         return ResponseEntity.noContent().build();
     }
 

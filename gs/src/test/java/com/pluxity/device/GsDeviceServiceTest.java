@@ -10,8 +10,10 @@ import com.pluxity.device.dto.GsDeviceResponse;
 import com.pluxity.device.dto.GsDeviceUpdateRequest;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
+import com.pluxity.feature.dto.FeatureAssignDto;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.repository.FeatureRepository;
+import com.pluxity.feature.service.FeatureService;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
 import java.util.List;
@@ -39,10 +41,12 @@ class GsDeviceServiceTest {
     private EntityManager em;
 
     private GsDeviceCreateRequest createRequest;
+    @Autowired
+    private FeatureService featureService;
 
     @BeforeEach
     void setUp() {
-        createRequest = new GsDeviceCreateRequest(UUID.randomUUID().toString(), "Test Device", null, null);
+        createRequest = new GsDeviceCreateRequest(UUID.randomUUID().toString(), "Test Device",  null);
     }
 
     @Test
@@ -107,9 +111,10 @@ class GsDeviceServiceTest {
         Feature updatedFeature = featureRepository.save(Feature.builder().id(UUID.randomUUID().toString()).build());
         DeviceCategory updatedCategory = deviceCategoryRepository.save(DeviceCategory.builder().name("Updated Category").build());
 
-        GsDeviceUpdateRequest updateRequest = new GsDeviceUpdateRequest("Updated Name", updatedFeature.getId(), updatedCategory.getId());
+        GsDeviceUpdateRequest updateRequest = new GsDeviceUpdateRequest("Updated Name", updatedCategory.getId());
 
         // when
+        featureService.assignDeviceToFeature(updatedFeature.getId(), new FeatureAssignDto(savedId));
         assertDoesNotThrow(() -> gsDeviceService.update(savedId, updateRequest));
         em.flush();
         em.clear();
