@@ -3,14 +3,14 @@ package com.pluxity.feature.service;
 import static com.pluxity.global.constant.ErrorCode.*;
 
 import com.pluxity.asset.service.AssetValidator;
+import com.pluxity.cctv.Cctv;
+import com.pluxity.cctv.CctvService;
 import com.pluxity.device.entity.Device;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
-import com.pluxity.feature.dto.FeatureAssignDto;
-import com.pluxity.feature.dto.FeatureCreateRequest;
-import com.pluxity.feature.dto.FeatureResponse;
-import com.pluxity.feature.dto.FeatureUpdateRequest;
+import com.pluxity.feature.dto.*;
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.global.exception.CustomException;
 import jakarta.persistence.EntityManager;
@@ -32,6 +32,7 @@ public class FeatureService {
     private final FacilityService facilityService;
     private final AssetValidator assetValidator;
     @PersistenceContext private EntityManager entityManager;
+    private final CctvService cctvService;
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
@@ -53,7 +54,8 @@ public class FeatureService {
         assetValidator.validateAssetId(request.assetId());
 
         // 저장
-        Feature savedFeature = featureRepository.save(Feature.create(request, featureId, facility));
+        Feature savedFeature =
+                featureRepository.save(Feature.create(request, featureId, facility, FeatureType.NONE));
         log.debug("피처 저장 완료: id={}", savedFeature.getId());
 
         return getFeatureResponse(savedFeature);
@@ -82,9 +84,6 @@ public class FeatureService {
     @Transactional
     public void deleteFeature(String id) {
         Feature feature = findFeatureById(id);
-        log.info("피처 [{}] 삭제 전 Device 연관관계 정리 시작", id);
-        feature.changeDevice(null);
-        log.info("피처 [{}]의 Device 연관관계 제거 완료, 삭제 진행", id);
         featureRepository.delete(feature);
     }
 
@@ -111,6 +110,7 @@ public class FeatureService {
         }
 
         device.changeFeature(feature);
+        feature.updateFeatureType(FeatureType.DEVICE);
 
         log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
     }
@@ -128,21 +128,19 @@ public class FeatureService {
     @Transactional
     public void removeDeviceFromFeature(String featureId, FeatureAssignDto assignDto) {
         Feature feature = findFeatureById(featureId);
-
-        if (feature.getDevice() == null) {
-            throw new CustomException(FEATURE_HAS_NOT_DEVICE, featureId);
-        }
+        Device device = findDeviceById(assignDto.id());
 
         // 특정 디바이스 ID로 검증
-        boolean isMatchingDevice = assignDto.id().equals(feature.getDevice().getId());
+        String deviceId = device.getId();
+        boolean isMatchingDevice = assignDto.id().equals(deviceId);
 
         // 일치하는 디바이스가 아닌 경우 예외 발생
         if (!isMatchingDevice) {
             throw new CustomException(DEVICE_MISMATCH);
         }
 
-        String deviceId = feature.getDevice().getId();
-        feature.changeDevice(null);
+        device.changeFeature(null);
+        feature.updateFeatureType(FeatureType.NONE);
         log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, deviceId);
     }
 
@@ -158,5 +156,41 @@ public class FeatureService {
     @Transactional(readOnly = true)
     public List<String> findFeatureIdsByAssetId(Long assetId) {
         return featureRepository.findByAssetId(assetId).stream().map(Feature::getId).toList();
+    }
+
+    @Transactional
+    public void assignCctvToFeature(String featureId, CctvAssignDto assignDto) {
+        log.debug("피처에 CCTV 할당: featureId={}, assignDto={}", featureId, assignDto);
+
+        Feature feature = findFeatureById(featureId);
+        Cctv cctv = cctvService.findById(assignDto.id());
+
+        if (cctv.getFeature() != null) {
+            throw new CustomException(CCTV_ALREADY_HAS_FEATURE, cctv.getFeature().getId());
+        }
+
+        cctv.changeFeature(feature);
+        feature.updateFeatureType(FeatureType.CCTV);
+
+        log.debug("CCTV와 피처 관계 설정 완료: cctvId={}, featureId={}", cctv.getId(), featureId);
+    }
+
+    @Transactional
+    public void removeCctvFromFeature(String featureId, CctvAssignDto assignDto) {
+        Feature feature = findFeatureById(featureId);
+        Cctv cctv = cctvService.findById(assignDto.id());
+
+        // 특정 CCTV ID로 검증
+        String cctvId = cctv.getId();
+        boolean isMatchingCctv = assignDto.id().equals(cctvId);
+
+        // 일치하는 CCTV가 아닌 경우 예외 발생
+        if (!isMatchingCctv) {
+            throw new CustomException(CCTV_MISMATCH);
+        }
+
+        cctv.changeFeature(null);
+        feature.updateFeatureType(FeatureType.NONE);
+        log.debug("피처에서 디바이스 제거: featureId={}, cctvId={}", featureId, cctvId);
     }
 }

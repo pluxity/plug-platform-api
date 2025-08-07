@@ -10,6 +10,7 @@ import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.feature.entity.Spatial;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.global.exception.CustomException;
@@ -174,6 +175,7 @@ class FeatureServiceTest {
                 .assetId(asset.getId())
                 .facility(facility)
                 .floorId(floorId)
+                .type(FeatureType.NONE)
                 .build();
         
         featureRepository.save(feature);
@@ -289,6 +291,7 @@ class FeatureServiceTest {
                 .assetId(testAsset.getId())
                 .facility(facility)
                 .floorId(floorId)
+                .type(FeatureType.NONE)
                 .build();
         
         Feature savedFeature = featureRepository.save(featureToSave);
@@ -347,6 +350,7 @@ class FeatureServiceTest {
                 .assetId(testAsset.getId())
                 .facility(facility)
                 .floorId(floorId)
+                .type(FeatureType.NONE)
                 .build();
         
         featureRepository.save(feature);
@@ -549,20 +553,16 @@ class FeatureServiceTest {
                 .assetId(asset.getId())
                 .facility(facility)
                 .floorId("1")
+                .type(FeatureType.NONE)
                 .build();
-                
+
         // 피처 저장
-        Feature savedFeature = featureRepository.save(feature);
-        
-        // 피처와 디바이스 간의 양방향 관계 설정
-        ReflectionTestUtils.setField(savedFeature, "device", device);
-        Mockito.when(device.getFeature()).thenReturn(savedFeature);
+        featureRepository.save(feature);
         
         // 관계가 모두 설정되었는지 확인
-        savedFeature = featureRepository.findById(featureId).orElseThrow();
+        Feature savedFeature = featureRepository.findById(featureId).orElseThrow();
         assertNotNull(savedFeature.getAssetId());
         assertNotNull(savedFeature.getFacility());
-        assertNotNull(savedFeature.getDevice());
         
         // when
         featureService.deleteFeature(featureId);

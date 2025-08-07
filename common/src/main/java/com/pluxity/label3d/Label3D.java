@@ -28,9 +28,6 @@ public class Label3D extends BaseEntity {
     public Label3D(Feature feature, String displayText) {
         this.feature = feature;
         this.displayText = displayText;
-        if (this.feature != null) {
-            this.feature.changeDevice(null);
-        }
     }
 
     public static Label3D create(String displayText) {
@@ -44,28 +41,6 @@ public class Label3D extends BaseEntity {
     public void update(String displayText) {
         if (displayText != null) {
             this.displayText = displayText;
-        }
-    }
-
-    public void changeFeature(Feature feature) {
-        if (this.feature != null && this.feature != feature) {
-            this.feature.changeDevice(null);
-        }
-
-        this.feature = feature;
-
-        if (feature != null) {
-            feature.changeDevice(null);
-        }
-    }
-
-    public void clearFeatureOnly() {
-        this.feature = null;
-    }
-
-    public void clearAllRelations() {
-        if (this.feature != null) {
-            this.changeFeature(null);
         }
     }
 }

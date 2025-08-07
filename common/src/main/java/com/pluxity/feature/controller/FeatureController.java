@@ -1,9 +1,6 @@
 package com.pluxity.feature.controller;
 
-import com.pluxity.feature.dto.FeatureAssignDto;
-import com.pluxity.feature.dto.FeatureCreateRequest;
-import com.pluxity.feature.dto.FeatureResponse;
-import com.pluxity.feature.dto.FeatureUpdateRequest;
+import com.pluxity.feature.dto.*;
 import com.pluxity.feature.service.FeatureService;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -89,32 +86,6 @@ public class FeatureController {
         return ResponseEntity.ok(DataResponseBody.of(responses));
     }
 
-    @Operation(summary = "피처 상세 조회", description = "ID로 특정 피처의 상세 정보를 조회합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "피처 조회 성공"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "피처를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/{id}")
-    public ResponseEntity<FeatureResponse> getFeature(
-            @Parameter(description = "피처 ID", required = true) @PathVariable String id) {
-        FeatureResponse response = featureService.getFeature(id);
-        return ResponseEntity.ok(response);
-    }
-
     @Operation(summary = "피처 정보 수정", description = "ID로 피처 정보를 수정합니다")
     @ApiResponses(
             value = {
@@ -189,7 +160,7 @@ public class FeatureController {
     @PatchMapping("/{featureId}/assign-device")
     public ResponseEntity<Void> assignDeviceToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
-            @Parameter(description = "디바이스 할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
+            @Parameter(description = "할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
                     FeatureAssignDto assignDto) {
         featureService.assignDeviceToFeature(featureId, assignDto);
         return ResponseEntity.noContent().build();
@@ -208,9 +179,47 @@ public class FeatureController {
     @DeleteMapping("/{featureId}/revoke-device")
     public ResponseEntity<Void> removeDeviceFromFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
-            @Parameter(description = "제거할 디바이스 정보 (id 또는 code)", required = true) @Valid @RequestBody
+            @Parameter(description = "디바이스 정보 (id 또는 code)", required = true) @Valid @RequestBody
                     FeatureAssignDto assignDto) {
         featureService.removeDeviceFromFeature(featureId, assignDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "피처에 CCTV 할당", description = "특정 피처에 CCTV를 할당(연결)합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "204",
+                        description = "CCTV 할당 성공",
+                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 CCTV에 할당됨)"),
+                @ApiResponse(responseCode = "404", description = "피처 또는 CCTV를 찾을 수 없음")
+            })
+    @PatchMapping("/{featureId}/assign-cctv")
+    public ResponseEntity<Void> assignCctvToFeature(
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
+            @Parameter(description = "CCTV 정보 (id)", required = true) @Valid @RequestBody
+                    CctvAssignDto assignDto) {
+        featureService.assignCctvToFeature(featureId, assignDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "피처에서 CCTV 연결 해제", description = "특정 피처에 할당된 CCTV와의 연결을 해제합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "204",
+                        description = "CCTV 연결 해제 성공",
+                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처에 CCTV가 할당되지 않음)"),
+                @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
+            })
+    @DeleteMapping("/{featureId}/revoke-cctv")
+    public ResponseEntity<Void> removeCctvFromFeature(
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
+            @Parameter(description = "CCTV 정보 (id)", required = true) @Valid @RequestBody
+                    CctvAssignDto assignDto) {
+        featureService.removeCctvFromFeature(featureId, assignDto);
         return ResponseEntity.noContent().build();
     }
 }

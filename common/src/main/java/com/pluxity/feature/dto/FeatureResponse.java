@@ -1,6 +1,7 @@
 package com.pluxity.feature.dto;
 
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.feature.entity.Spatial;
 
 public record FeatureResponse(
@@ -10,7 +11,7 @@ public record FeatureResponse(
         Spatial scale,
         Long assetId,
         String floorId,
-        String deviceId) {
+        FeatureType featureType) {
 
     public static FeatureResponse from(Feature feature) {
         return new FeatureResponse(
@@ -20,6 +21,6 @@ public record FeatureResponse(
                 feature.getScale(),
                 feature.getAssetId(),
                 feature.getFloorId(),
-                feature.getDevice() != null ? feature.getDevice().getId() : null);
+                feature.getType());
     }
 }

@@ -1,6 +1,5 @@
 package com.pluxity.feature.entity;
 
-import com.pluxity.device.entity.Device;
 import com.pluxity.facility.Facility;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
@@ -40,9 +39,6 @@ public class Feature extends BaseEntity {
     @AttributeOverride(name = "z", column = @Column(name = "scale_z"))
     private Spatial scale;
 
-    @OneToOne(mappedBy = "feature")
-    private Device device;
-
     private Long assetId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -53,6 +49,9 @@ public class Feature extends BaseEntity {
     @Column(name = "floor_id")
     private String floorId;
 
+    @Enumerated(EnumType.STRING)
+    private FeatureType type;
+
     @Builder
     public Feature(
             String id,
@@ -61,6 +60,7 @@ public class Feature extends BaseEntity {
             Spatial scale,
             Long assetId,
             Facility facility,
+            FeatureType type,
             String floorId) {
         this.id = id;
         this.position = position;
@@ -68,10 +68,12 @@ public class Feature extends BaseEntity {
         this.scale = scale;
         this.floorId = floorId;
         this.assetId = assetId;
+        this.type = type;
         this.facility = facility;
     }
 
-    public static Feature create(FeatureCreateRequest request, String uuid, Facility facility) {
+    public static Feature create(
+            FeatureCreateRequest request, String uuid, Facility facility, FeatureType type) {
         return Feature.builder()
                 .id(uuid)
                 .position(request.position() != null ? request.position() : new Spatial(0.0, 0.0, 0.0))
@@ -80,6 +82,7 @@ public class Feature extends BaseEntity {
                 .assetId(request.assetId())
                 .floorId(request.floorId())
                 .facility(facility)
+                .type(type)
                 .build();
     }
 
@@ -95,15 +98,7 @@ public class Feature extends BaseEntity {
         }
     }
 
-    public void changeDevice(Device device) {
-        if (this.device != null && this.device.getFeature() != null) {
-            this.device.clearFeatureOnly();
-        }
-
-        this.device = device;
-
-        if (device != null && device.getFeature() != this) {
-            device.changeFeature(this);
-        }
+    public void updateFeatureType(FeatureType type) {
+        this.type = type;
     }
 }

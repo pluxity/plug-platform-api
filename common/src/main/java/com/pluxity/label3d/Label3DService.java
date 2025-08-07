@@ -3,6 +3,7 @@ package com.pluxity.label3d;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.feature.service.FeatureService;
 import com.pluxity.global.utils.SortUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -30,6 +31,7 @@ public class Label3DService {
                                 .position(request.position())
                                 .rotation(request.rotation())
                                 .scale(request.scale())
+                                .type(FeatureType.LABEL)
                                 .build());
 
         Label3D label3D = Label3D.createWithFeature(feature, request.displayText());
@@ -70,7 +72,7 @@ public class Label3DService {
     @Transactional
     public void deleteLabel3D(String id) {
         Label3D label3D = findLabel3DById(id);
-        label3D.clearAllRelations();
+        featureService.deleteFeature(label3D.getFeature().getId());
         label3DRepository.delete(label3D);
     }
 

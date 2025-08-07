@@ -1,6 +1,7 @@
 package com.pluxity.device.entity;
 
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -35,15 +36,7 @@ public abstract class Device extends BaseEntity {
     }
 
     public void changeFeature(Feature feature) {
-        if (this.feature != null && this.feature != feature) {
-            this.feature.changeDevice(null);
-        }
-
         this.feature = feature;
-
-        if (feature != null && feature.getDevice() != this) {
-            feature.changeDevice(this);
-        }
     }
 
     public void clearFeatureOnly() {
@@ -63,6 +56,7 @@ public abstract class Device extends BaseEntity {
     public void clearAllRelations() {
         if (this.feature != null) {
             this.changeFeature(null);
+            this.feature.updateFeatureType(FeatureType.NONE);
         }
 
         if (this.category != null) {
