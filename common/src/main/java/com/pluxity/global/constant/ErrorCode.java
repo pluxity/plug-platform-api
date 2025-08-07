@@ -41,6 +41,7 @@ public enum ErrorCode implements Code {
     INVALID_REFERENCE(BAD_REQUEST, "요청 된 참조가 유효하지 않습니다."),
 
     INVALID_PARENT_CATEGORY(BAD_REQUEST, "카테고리는 자기 자신을 부모로 가질 수 없습니다."),
+    CIRCULAR_REFERENCE_CATEGORY(BAD_REQUEST, "하위 카테고리를 부모 카테고리로 지정할 수 없습니다."),
 
     ASSET_CATEGORY_HAS_ASSET(BAD_REQUEST, "에셋 카테고리에 에셋이 있어 삭제할 수 없습니다."),
     ASSET_CATEGORY_HAS_CHILDREN(BAD_REQUEST, "에셋 카테고리에 하위 카테고리가 있어 삭제할 수 없습니다."),
