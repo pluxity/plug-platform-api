@@ -5,4 +5,7 @@ import lombok.Builder;
 
 @Builder
 public record GsDeviceResponse(
-        String id, String name, FeatureResponse feature, DeviceCategoryResponse deviceCategory) {}
+        String id,
+        String name,
+        FeatureResponse feature,
+        DeviceCategoryResponseWithoutChildren deviceCategory) {}

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.pluxity.device.dto.*;
 import com.pluxity.device.entity.DeviceCategory;
-import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.file.service.FileService;
@@ -39,6 +38,8 @@ class DeviceCategoryServiceTest {
 
     private DeviceCategoryRequest createRequest;
     private Long iconFileId;
+    private Long iconFileId2;
+    private Long iconFileId3;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -49,9 +50,17 @@ class DeviceCategoryServiceTest {
         // MockMultipartFile 생성
         MultipartFile iconFile = new MockMultipartFile(
                 "icon.png", "icon.png", "image/png", fileContent);
+
+        MultipartFile iconFile2 = new MockMultipartFile(
+                "icon.png", "icon.png", "image/png", fileContent);
+
+        MultipartFile iconFile3 = new MockMultipartFile(
+                "icon.png", "icon.png", "image/png", fileContent);
         
         // 파일 업로드 초기화
         iconFileId = fileService.initiateUpload(iconFile);
+        iconFileId2 = fileService.initiateUpload(iconFile2);
+        iconFileId3 = fileService.initiateUpload(iconFile3);
 
         // 테스트 데이터 준비
         createRequest = new DeviceCategoryRequest("테스트 카테고리", null, iconFileId);
@@ -129,7 +138,7 @@ class DeviceCategoryServiceTest {
     void update_WithValidRequest_UpdatesCategory() {
         // given
         Long id = deviceCategoryService.create(createRequest);
-        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("수정된 카테고리", null, iconFileId);
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("수정된 카테고리", null, iconFileId2);
 
         // when
         deviceCategoryService.update(id, updateRequest);
@@ -145,7 +154,7 @@ class DeviceCategoryServiceTest {
         // given
         Long parentId = deviceCategoryService.create(createRequest);
 
-        DeviceCategoryRequest childRequest = new DeviceCategoryRequest("하위 카테고리", parentId, iconFileId);
+        DeviceCategoryRequest childRequest = new DeviceCategoryRequest("하위 카테고리", parentId, iconFileId2);
         Long childId = deviceCategoryService.create(childRequest);
 
         // when
@@ -220,11 +229,11 @@ class DeviceCategoryServiceTest {
         Long rootId = deviceCategoryService.create(createRequest);
         
         // 두 번째 레벨 카테고리 생성
-        DeviceCategoryRequest level2Request = new DeviceCategoryRequest("레벨2 카테고리", rootId, iconFileId);
+        DeviceCategoryRequest level2Request = new DeviceCategoryRequest("레벨2 카테고리", rootId, iconFileId2);
         Long level2Id = deviceCategoryService.create(level2Request);
         
         // 네 번째 레벨 카테고리 생성 시도 (일반적으로 최대 3단계로 제한되는 경우)
-        DeviceCategoryRequest level4Request = new DeviceCategoryRequest("레벨4 카테고리", level2Id, iconFileId);
+        DeviceCategoryRequest level4Request = new DeviceCategoryRequest("레벨4 카테고리", level2Id, iconFileId3);
         
         // when & then
         assertThrows(CustomException.class, () -> deviceCategoryService.create(level4Request));
@@ -238,7 +247,7 @@ class DeviceCategoryServiceTest {
         Long parentId = deviceCategoryService.create(createRequest);
         
         // 자식 카테고리 생성
-        DeviceCategoryRequest childRequest = new DeviceCategoryRequest("자식 카테고리", parentId, iconFileId);
+        DeviceCategoryRequest childRequest = new DeviceCategoryRequest("자식 카테고리", parentId, iconFileId2);
         Long childId = deviceCategoryService.create(childRequest);
         
         // when & then
