@@ -8,6 +8,7 @@ import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.domains.device.dto.*;
 import com.pluxity.domains.device.entity.Nflux;
 import com.pluxity.domains.device.entity.NfluxCategory;
+import com.pluxity.domains.device.repository.NfluxCategoryRepository;
 import com.pluxity.domains.device.repository.NfluxRepository;
 import com.pluxity.facility.station.Station;
 import com.pluxity.facility.station.StationRepository;
@@ -17,6 +18,7 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.response.BaseResponse;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,7 @@ public class NfluxService {
     private final FeatureRepository featureRepository;
     private final StationRepository stationRepository;
     private final FileService fileService;
+    private final NfluxCategoryRepository nfluxCategoryRepository;
 
     @Transactional(readOnly = true)
     public NfluxResponse findDeviceById(String id) {
@@ -213,7 +216,7 @@ public class NfluxService {
     }
 
     private List<NfluxCategoryGroupResponse> getNfluxCategoryGroupResponses(Long stationId) {
-        List<Nflux> devices =
+        List<Nflux> devicesInStation =
                 repository.findAll().stream()
                         .filter(
                                 nflux ->
@@ -223,26 +226,26 @@ public class NfluxService {
                                                 && nflux.getFeature().getFacility().getId().equals(stationId))
                         .toList();
 
-        // 카테고리별로 그룹화
-        Map<DeviceCategory, List<Nflux>> devicesByCategory =
-                devices.stream()
+        // 디바이스 목록을 카테고리별로 그룹화하여 조회용 맵(Map) 생성
+        Map<DeviceCategory, List<Nflux>> devicesByCategoryMap =
+                devicesInStation.stream()
                         .filter(nflux -> nflux.getCategory() != null)
                         .collect(Collectors.groupingBy(Nflux::getCategory));
 
-        // 응답 객체 생성 및 정렬
-        return devicesByCategory.entrySet().stream()
-                // 1. 카테고리 ID 오름차순 정렬
-                .sorted(Comparator.comparing(entry -> entry.getKey().getId()))
-                .map(
-                        entry -> {
-                            DeviceCategory category = entry.getKey();
-                            List<Nflux> categoryDevices = entry.getValue();
-                            String contextPath = null;
-                            FileResponse iconFile = null;
+        // 모든 Nflux 카테고리를 조회 (로직의 기준점)
+        List<NfluxCategory> allNfluxCategories = nfluxCategoryRepository.findAll();
 
-                            if (category instanceof NfluxCategory nfluxCategory) {
-                                contextPath = nfluxCategory.getContextPath();
-                            }
+        // 모든 카테고리를 기준으로 응답 객체 생성
+        return allNfluxCategories.stream()
+                .sorted(Comparator.comparing(NfluxCategory::getId))
+                .map(
+                        category -> {
+                            // 조회용 맵에서 현재 카테고리에 해당하는 디바이스 목록을 가져옴.
+                            List<Nflux> categoryDevices =
+                                    devicesByCategoryMap.getOrDefault(category, Collections.emptyList());
+
+                            String contextPath = category.getContextPath();
+                            FileResponse iconFile = null;
 
                             if (category.getIconFileId() != null) {
                                 iconFile = fileService.getFileResponse(category.getIconFileId());
