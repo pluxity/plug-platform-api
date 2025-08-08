@@ -1,6 +1,7 @@
 package com.pluxity.feature.controller;
 
 import com.pluxity.feature.dto.*;
+import com.pluxity.feature.service.FeatureFacade;
 import com.pluxity.feature.service.FeatureService;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class FeatureController {
 
     private final FeatureService featureService;
+    private final FeatureFacade featureFacade;
 
     @Operation(summary = "피처 생성", description = "새로운 피처를 생성합니다")
     @ApiResponses(
@@ -200,7 +202,7 @@ public class FeatureController {
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "CCTV 정보 (id)", required = true) @Valid @RequestBody
                     CctvAssignDto assignDto) {
-        featureService.assignCctvToFeature(featureId, assignDto);
+        featureFacade.assignCctvToFeature(featureId, assignDto);
         return ResponseEntity.noContent().build();
     }
 
@@ -219,7 +221,7 @@ public class FeatureController {
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "CCTV 정보 (id)", required = true) @Valid @RequestBody
                     CctvAssignDto assignDto) {
-        featureService.removeCctvFromFeature(featureId, assignDto);
+        featureFacade.removeCctvFromFeature(featureId, assignDto);
         return ResponseEntity.noContent().build();
     }
 }

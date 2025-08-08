@@ -41,14 +41,8 @@ public class Label3DService {
     }
 
     @Transactional(readOnly = true)
-    public Label3DResponse getLabel3DByFeatureId(String featureId) {
-        Feature feature = featureService.findFeatureById(featureId);
-        Label3D label3D =
-                label3DRepository
-                        .findByFeature(feature)
-                        .orElseThrow(
-                                () ->
-                                        new EntityNotFoundException("Label3D not found with feature id: " + featureId));
+    public Label3DResponse getLabel3DById(String id) {
+        Label3D label3D = findLabel3DById(id);
         return Label3DResponse.from(label3D);
     }
 

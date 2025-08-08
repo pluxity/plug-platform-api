@@ -1,8 +1,6 @@
 package com.pluxity.label3d;
 
-import com.pluxity.feature.entity.Feature;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +17,4 @@ public interface Label3DRepository extends JpaRepository<Label3D, String> {
     @EntityGraph(attributePaths = {"feature.asset"})
     @NonNull
     List<Label3D> findAll();
-
-    @EntityGraph(attributePaths = {"feature"})
-    Optional<Label3D> findByFeature(Feature feature);
 }

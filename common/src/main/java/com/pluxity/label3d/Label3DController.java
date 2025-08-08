@@ -46,8 +46,8 @@ public class Label3DController {
         return ResponseEntity.ok(DataResponseBody.of(responses));
     }
 
-    @GetMapping("/features/{featureId}")
-    @Operation(summary = "Label3D 상세 조회", description = "Feature ID로 특정 Label3D를 조회합니다.")
+    @GetMapping("/{id}")
+    @Operation(summary = "Label3D 조회", description = "ID로 특정 Label3D를 조회합니다.")
     @ApiResponses(
             value = {
                 @ApiResponse(
@@ -57,8 +57,8 @@ public class Label3DController {
                 @ApiResponse(responseCode = "404", description = "Label3D를 찾을 수 없음")
             })
     public ResponseEntity<DataResponseBody<Label3DResponse>> get(
-            @Parameter(description = "Feature ID") @PathVariable String featureId) {
-        Label3DResponse response = label3DService.getLabel3DByFeatureId(featureId);
+            @Parameter(description = "Label3D ID") @PathVariable String id) {
+        Label3DResponse response = label3DService.getLabel3DById(id);
         return ResponseEntity.ok(DataResponseBody.of(response));
     }
 

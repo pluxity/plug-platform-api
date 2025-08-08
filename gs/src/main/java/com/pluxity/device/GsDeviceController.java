@@ -140,21 +140,6 @@ public class GsDeviceController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "디바이스 상세 조회", description = "Feature ID로 특정 디바이스의 상세 정보를 조회합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "디바이스 조회 성공"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "해당 ID의 디바이스를 찾을 수 없음",
-                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/features/{featureId}")
-    public ResponseEntity<DataResponseBody<GsDeviceResponse>> getByFeatureId(
-            @Parameter(description = "Feature ID", required = true) @PathVariable String featureId) {
-        return ResponseEntity.ok(DataResponseBody.of(gsDeviceService.getByFeatureId(featureId)));
-    }
-
     @Operation(summary = "디바이스에 연결된 CCTV 조회", description = "디바이스에 연결된 CCTV 정보를 조회합니다.")
     @ApiResponses(
             value = {
