@@ -116,28 +116,6 @@ public class StationService implements FacilityProvider {
     }
 
     @Transactional
-    public void update(Long id, StationUpdateRequest request) {
-        Station station = findStationById(id);
-
-        facilityService.update(id, request.facility());
-        floorService.update(station, request.floors());
-
-        if (request.lineIds() != null) {
-            stationLineService.deleteByStation(station);
-            for (Long lineId : request.lineIds()) {
-                Line line = lineService.findLineById(lineId);
-                stationLineService.save(station, line);
-            }
-        }
-        if (request.stationCodes() != null) {
-            stationCodeService.deleteByStation(station);
-            for (String code : request.stationCodes()) {
-                stationCodeService.save(station, code);
-            }
-        }
-    }
-
-    @Transactional
     public void putUpdate(Long id, StationUpdateRequest request) {
         Station station = findStationById(id);
 
@@ -145,16 +123,16 @@ public class StationService implements FacilityProvider {
         floorService.update(station, request.floors());
 
         stationLineService.deleteByStation(station);
-        if (request.lineIds() != null) {
-            for (Long lineId : request.lineIds()) {
+        if (request.stationInfo().lineIds() != null) {
+            for (Long lineId : request.stationInfo().lineIds()) {
                 Line line = lineService.findLineById(lineId);
                 stationLineService.save(station, line);
             }
         }
 
         stationCodeService.deleteByStation(station);
-        if (request.stationCodes() != null) {
-            for (String code : request.stationCodes()) {
+        if (request.stationInfo().stationCodes() != null) {
+            for (String code : request.stationInfo().stationCodes()) {
                 stationCodeService.save(station, code);
             }
         }

@@ -8,5 +8,4 @@ import java.util.List;
 public record StationUpdateRequest(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) FacilityUpdateRequest facility,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<FloorRequest> floors,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<Long> lineIds,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<String> stationCodes) {}
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) StationUpdateInfo stationInfo) {}
