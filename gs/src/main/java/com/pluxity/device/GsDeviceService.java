@@ -1,10 +1,12 @@
 package com.pluxity.device;
 
-import com.pluxity.device.dto.DeviceCategoryResponse;
-import com.pluxity.device.dto.GsDeviceCreateRequest;
-import com.pluxity.device.dto.GsDeviceResponse;
-import com.pluxity.device.dto.GsDeviceUpdateRequest;
+import com.pluxity.cctv.CctvService;
+import com.pluxity.cctv.category.dto.CctvCategoryResponse;
+import com.pluxity.cctv.dto.CctvResponse;
+import com.pluxity.device.dto.*;
 import com.pluxity.device.entity.DeviceCategory;
+import com.pluxity.device.entity.DeviceCctv;
+import com.pluxity.device.repository.DeviceCctvRepository;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
@@ -13,6 +15,7 @@ import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.permission.ResourceType;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,8 @@ public class GsDeviceService {
     private final GsDeviceRepository repository;
     private final DeviceCategoryService deviceCategoryService;
     private final FeatureFacade featureFacade;
+    private final DeviceCctvRepository deviceCctvRepository;
+    private final CctvService cctvService;
 
     @Transactional
     public String save(GsDeviceCreateRequest request) {
@@ -130,5 +135,59 @@ public class GsDeviceService {
                         .orElseThrow(
                                 () -> new CustomException(ErrorCode.NOT_FOUND_DEVICE_BY_FEATURE, featureId));
         return createResponse(gsDevice);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CctvResponse> getCctvByDeviceId(String deviceId) {
+        GsDevice device = getDevice(deviceId);
+        List<DeviceCctv> deviceCctvs = deviceCctvRepository.findByDevice(device);
+        return deviceCctvs.stream()
+                .map(
+                        deviceCctv ->
+                                CctvResponse.builder()
+                                        .id(deviceCctv.getCctv().getId())
+                                        .name(deviceCctv.getCctv().getName())
+                                        .url(deviceCctv.getCctv().getUrl())
+                                        .feature(
+                                                deviceCctv.getCctv().getFeature() != null
+                                                        ? FeatureResponse.from(deviceCctv.getCctv().getFeature())
+                                                        : null)
+                                        .cctvCategory(
+                                                deviceCctv.getCctv().getCategory() != null
+                                                        ? CctvCategoryResponse.from(deviceCctv.getCctv().getCategory())
+                                                        : null)
+                                        .build())
+                .toList();
+    }
+
+    @Transactional
+    public void assignCctvToDevice(String deviceId, GsDeviceCctvUpdateRequest request) {
+        GsDevice device = getDevice(deviceId);
+        List<String> existIds =
+                deviceCctvRepository.findByDevice(device).stream().map(v -> v.getCctv().getId()).toList();
+
+        List<String> requestIds = new ArrayList<>(request.cctvIds());
+
+        // 추가할 cctv id
+        List<DeviceCctv> saveList =
+                requestIds.stream()
+                        .filter(id -> !existIds.contains(id))
+                        .map(
+                                cctvId ->
+                                        DeviceCctv.builder().cctv(cctvService.findById(cctvId)).device(device).build())
+                        .toList();
+
+        // 삭제할 cctv id
+        List<String> removeList = existIds.stream().filter(id -> !requestIds.contains(id)).toList();
+
+        // 추가
+        if (!saveList.isEmpty()) {
+            deviceCctvRepository.saveAll(saveList);
+        }
+
+        // 삭제
+        if (!removeList.isEmpty()) {
+            deviceCctvRepository.deleteByCctvIdIn(removeList);
+        }
     }
 }

@@ -1,5 +1,7 @@
 package com.pluxity.device;
 
+import com.pluxity.cctv.dto.CctvResponse;
+import com.pluxity.device.dto.GsDeviceCctvUpdateRequest;
 import com.pluxity.device.dto.GsDeviceCreateRequest;
 import com.pluxity.device.dto.GsDeviceResponse;
 import com.pluxity.device.dto.GsDeviceUpdateRequest;
@@ -151,5 +153,35 @@ public class GsDeviceController {
     public ResponseEntity<DataResponseBody<GsDeviceResponse>> getByFeatureId(
             @Parameter(description = "Feature ID", required = true) @PathVariable String featureId) {
         return ResponseEntity.ok(DataResponseBody.of(gsDeviceService.getByFeatureId(featureId)));
+    }
+
+    @Operation(summary = "디바이스에 연결된 CCTV 조회", description = "디바이스에 연결된 CCTV 정보를 조회합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "CCTV 정보 조회 성공"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "해당 ID의 디바이스를 찾을 수 없음",
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/{deviceId}/cctvs")
+    public ResponseEntity<DataResponseBody<List<CctvResponse>>> getCctvByDeviceId(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String deviceId) {
+        return ResponseEntity.ok(DataResponseBody.of(gsDeviceService.getCctvByDeviceId(deviceId)));
+    }
+
+    @Operation(summary = "디바이스에 CCTV 설정", description = "특정 디바이스에 CCTV를 연결 및 해제 합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "CCTV 설정 성공"),
+                @ApiResponse(responseCode = "404", description = "디바이스 또는 CCTV를 찾을 수 없음")
+            })
+    @PutMapping("/{deviceId}/cctvs")
+    public ResponseEntity<Void> assignCctvToDevice(
+            @Parameter(description = "디바이스 ID", required = true) @PathVariable String deviceId,
+            @Parameter(description = "설정 CCTV 정보", required = true) @RequestBody
+                    GsDeviceCctvUpdateRequest request) {
+        gsDeviceService.assignCctvToDevice(deviceId, request);
+        return ResponseEntity.noContent().build();
     }
 }
