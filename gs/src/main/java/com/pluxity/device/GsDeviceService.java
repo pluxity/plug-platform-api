@@ -66,7 +66,7 @@ public class GsDeviceService {
                 .feature(gsDevice.getFeature() != null ? FeatureResponse.from(gsDevice.getFeature()) : null)
                 .deviceCategory(
                         gsDevice.getCategory() != null
-                                ? DeviceCategoryResponse.from(gsDevice.getCategory())
+                                ? DeviceCategoryResponseWithoutChildren.from(gsDevice.getCategory())
                                 : null)
                 .build();
     }

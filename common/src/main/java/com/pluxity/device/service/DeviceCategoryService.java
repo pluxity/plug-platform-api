@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DeviceCategoryService extends CategoryService<DeviceCategory> {
 
+    public static final String DEVICE_CATEGORIES = "device-categories/";
     private final DeviceCategoryRepository deviceCategoryRepository;
     private final FileService fileService;
 
@@ -40,7 +41,16 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         DeviceCategory deviceCategory =
                 DeviceCategory.builder().name(request.name()).iconFileId(request.thumbnailFileId()).build();
         DeviceCategory parent = MappingUtils.findByIdIfExists(request.parentId(), super::findById);
-        return super.create(deviceCategory, parent);
+
+        Long deviceCategoryId = super.create(deviceCategory, parent);
+
+        if (request.thumbnailFileId() != null) {
+            deviceCategory.updateIconFileId(request.thumbnailFileId());
+            fileService.finalizeUpload(
+                    request.thumbnailFileId(), DEVICE_CATEGORIES + deviceCategoryId + "/");
+        }
+
+        return deviceCategoryId;
     }
 
     @Transactional(readOnly = true)
@@ -100,6 +110,13 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     public void update(Long id, DeviceCategoryUpdateRequest request) {
         DeviceCategory deviceCategory = findById(id);
         super.update(id, request.name(), request.parentId());
+
+        if (request.thumbnailFileId() != null) {
+            deviceCategory.updateIconFileId(request.thumbnailFileId());
+            fileService.finalizeUpload(
+                    request.thumbnailFileId(), DEVICE_CATEGORIES + deviceCategory.getId() + "/");
+        }
+
         deviceCategory.updateIconFileId(request.thumbnailFileId());
     }
 
