@@ -11,7 +11,6 @@ import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
-import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
@@ -54,8 +53,7 @@ public class FeatureService {
         assetValidator.validateAssetId(request.assetId());
 
         // 저장
-        Feature savedFeature =
-                featureRepository.save(Feature.create(request, featureId, facility, FeatureType.NONE));
+        Feature savedFeature = featureRepository.save(Feature.create(request, featureId, facility));
         log.debug("피처 저장 완료: id={}", savedFeature.getId());
 
         return getFeatureResponse(savedFeature);
@@ -108,7 +106,6 @@ public class FeatureService {
         }
 
         device.changeFeature(feature);
-        feature.updateFeatureType(FeatureType.DEVICE);
 
         log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
     }
@@ -138,7 +135,6 @@ public class FeatureService {
         }
 
         device.changeFeature(null);
-        feature.updateFeatureType(FeatureType.NONE);
         log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, deviceId);
     }
 

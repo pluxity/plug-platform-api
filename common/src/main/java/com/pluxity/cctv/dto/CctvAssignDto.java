@@ -1,4 +1,4 @@
-package com.pluxity.feature.dto;
+package com.pluxity.cctv.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

@@ -10,7 +10,6 @@ import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.dto.FeatureUpdateRequest;
 import com.pluxity.feature.entity.Feature;
-import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.feature.entity.Spatial;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.global.exception.CustomException;
@@ -175,7 +174,6 @@ class FeatureServiceTest {
                 .assetId(asset.getId())
                 .facility(facility)
                 .floorId(floorId)
-                .type(FeatureType.NONE)
                 .build();
         
         featureRepository.save(feature);
@@ -291,7 +289,6 @@ class FeatureServiceTest {
                 .assetId(testAsset.getId())
                 .facility(facility)
                 .floorId(floorId)
-                .type(FeatureType.NONE)
                 .build();
         
         Feature savedFeature = featureRepository.save(featureToSave);
@@ -350,7 +347,6 @@ class FeatureServiceTest {
                 .assetId(testAsset.getId())
                 .facility(facility)
                 .floorId(floorId)
-                .type(FeatureType.NONE)
                 .build();
         
         featureRepository.save(feature);
@@ -553,7 +549,6 @@ class FeatureServiceTest {
                 .assetId(asset.getId())
                 .facility(facility)
                 .floorId("1")
-                .type(FeatureType.NONE)
                 .build();
 
         // 피처 저장

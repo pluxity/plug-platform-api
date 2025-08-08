@@ -1,5 +1,6 @@
 package com.pluxity.feature.controller;
 
+import com.pluxity.cctv.dto.CctvAssignDto;
 import com.pluxity.feature.dto.*;
 import com.pluxity.feature.service.FeatureFacade;
 import com.pluxity.feature.service.FeatureService;

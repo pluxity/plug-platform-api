@@ -5,9 +5,8 @@ import static com.pluxity.global.constant.ErrorCode.CCTV_MISMATCH;
 
 import com.pluxity.cctv.Cctv;
 import com.pluxity.cctv.CctvService;
-import com.pluxity.feature.dto.CctvAssignDto;
+import com.pluxity.cctv.dto.CctvAssignDto;
 import com.pluxity.feature.entity.Feature;
-import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,6 @@ public class FeatureFacade {
         }
 
         cctv.changeFeature(feature);
-        feature.updateFeatureType(FeatureType.CCTV);
 
         log.debug("CCTV와 피처 관계 설정 완료: cctvId={}, featureId={}", cctv.getId(), featureId);
     }
@@ -54,7 +52,6 @@ public class FeatureFacade {
         }
 
         cctv.changeFeature(null);
-        feature.updateFeatureType(FeatureType.NONE);
         log.debug("피처에서 CCTV 제거: featureId={}, cctvId={}", featureId, cctvId);
     }
 }

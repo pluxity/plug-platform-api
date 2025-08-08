@@ -8,7 +8,6 @@ import com.pluxity.cctv.dto.CctvResponse;
 import com.pluxity.cctv.dto.CctvUpdateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
-import com.pluxity.feature.entity.FeatureType;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
@@ -74,7 +73,6 @@ public class CctvService {
     public void delete(String id) {
         Cctv cctv = findById(id);
         Feature feature = cctv.getFeature();
-        feature.updateFeatureType(FeatureType.NONE);
         cctvRepository.delete(cctv);
     }
 

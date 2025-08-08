@@ -49,9 +49,6 @@ public class Feature extends BaseEntity {
     @Column(name = "floor_id")
     private String floorId;
 
-    @Enumerated(EnumType.STRING)
-    private FeatureType type;
-
     @Builder
     public Feature(
             String id,
@@ -60,7 +57,6 @@ public class Feature extends BaseEntity {
             Spatial scale,
             Long assetId,
             Facility facility,
-            FeatureType type,
             String floorId) {
         this.id = id;
         this.position = position;
@@ -68,12 +64,10 @@ public class Feature extends BaseEntity {
         this.scale = scale;
         this.floorId = floorId;
         this.assetId = assetId;
-        this.type = type;
         this.facility = facility;
     }
 
-    public static Feature create(
-            FeatureCreateRequest request, String uuid, Facility facility, FeatureType type) {
+    public static Feature create(FeatureCreateRequest request, String uuid, Facility facility) {
         return Feature.builder()
                 .id(uuid)
                 .position(request.position() != null ? request.position() : new Spatial(0.0, 0.0, 0.0))
@@ -82,7 +76,6 @@ public class Feature extends BaseEntity {
                 .assetId(request.assetId())
                 .floorId(request.floorId())
                 .facility(facility)
-                .type(type)
                 .build();
     }
 
@@ -96,9 +89,5 @@ public class Feature extends BaseEntity {
         if (request.scale() != null) {
             this.scale = request.scale();
         }
-    }
-
-    public void updateFeatureType(FeatureType type) {
-        this.type = type;
     }
 }
