@@ -135,9 +135,9 @@ public class FacilityService {
             String filePath = PREFIX + facility.getId() + "/";
             facility.updateThumbnailFileId(
                     fileService.finalizeUpload(request.thumbnailFileId(), filePath));
-        } else {
-            facility.updateThumbnailFileId((Long) null);
         }
+        facility.updateThumbnailFileId(request.thumbnailFileId());
+
         facility.updatePosition(request.lon(), request.lat(), request.locationMeta());
     }
 
