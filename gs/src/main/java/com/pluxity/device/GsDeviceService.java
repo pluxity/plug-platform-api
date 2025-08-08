@@ -9,12 +9,15 @@ import com.pluxity.device.entity.DeviceCctv;
 import com.pluxity.device.repository.DeviceCctvRepository;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.feature.dto.FeatureResponse;
+import com.pluxity.file.dto.FileResponse;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.permission.ResourceType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,7 @@ public class GsDeviceService {
     private final DeviceCategoryService deviceCategoryService;
     private final DeviceCctvRepository deviceCctvRepository;
     private final CctvService cctvService;
+    private final FileService fileService;
 
     @Transactional
     public String save(GsDeviceCreateRequest request) {
@@ -43,7 +47,14 @@ public class GsDeviceService {
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
     public GsDeviceResponse findById(String id) {
         GsDevice gsDevice = getDevice(id);
-        return createResponse(gsDevice);
+        return createResponse(gsDevice, getThumbnailFile(gsDevice));
+    }
+
+    private FileResponse getThumbnailFile(GsDevice gsDevice) {
+        return Optional.ofNullable(gsDevice.getCategory())
+                .map(DeviceCategory::getIconFileId)
+                .map(fileService::getFileResponse)
+                .orElse(null);
     }
 
     private GsDevice getDevice(String id) {
@@ -56,19 +67,25 @@ public class GsDeviceService {
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
     public List<GsDeviceResponse> findAll() {
         List<GsDevice> gsDevices = repository.findAll();
-        return gsDevices.stream().map(GsDeviceService::createResponse).collect(Collectors.toList());
+        return gsDevices.stream()
+                .map(gsDevice -> createResponse(gsDevice, getThumbnailFile(gsDevice)))
+                .collect(Collectors.toList());
     }
 
-    private static GsDeviceResponse createResponse(GsDevice gsDevice) {
+    private static GsDeviceResponse createResponse(GsDevice gsDevice, FileResponse thumbnailFile) {
         return GsDeviceResponse.builder()
                 .id(gsDevice.getId())
                 .name(gsDevice.getName())
                 .feature(gsDevice.getFeature() != null ? FeatureResponse.from(gsDevice.getFeature()) : null)
                 .deviceCategory(
                         gsDevice.getCategory() != null
-                                ? DeviceCategoryResponseWithoutChildren.from(gsDevice.getCategory())
+                                ? DeviceCategoryResponseWithoutChildren.from(gsDevice.getCategory(), thumbnailFile)
                                 : null)
                 .build();
+    }
+
+    private static GsDeviceResponse createResponse(GsDevice gsDevice) {
+        return createResponse(gsDevice, null);
     }
 
     @Transactional
