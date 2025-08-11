@@ -50,4 +50,9 @@ public class AssetCategory extends Category<AssetCategory> {
             this.assets.remove(asset);
         }
     }
+
+    @Override
+    public int getMaxDepth() {
+        return 1;
+    }
 }

@@ -99,18 +99,7 @@ public class FeatureService {
 
         // 디바이스 조회 - id로 조회
         Device device = findDeviceById(assignDto.id());
-
-        if (device.getFeature() != null) {
-            throw new CustomException(DEVICE_ALREADY_HAS_FEATURE, device.getFeature().getId());
-        }
-
-        deviceRepository
-                .findByFeature(feature)
-                .ifPresent(
-                        v -> {
-                            throw new CustomException(DUPLICATE_ASSIGN_OTHER_DEVICE, feature.getId(), v.getId());
-                        });
-
+        deviceRepository.updateFeatureByFeature(feature);
         device.changeFeature(feature);
 
         log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
