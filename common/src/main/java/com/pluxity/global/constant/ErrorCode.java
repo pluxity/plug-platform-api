@@ -66,7 +66,8 @@ public enum ErrorCode implements Code {
     DUPLICATE_LINE_NAME(BAD_REQUEST, "이름이 %s인 노선이 이미 존재합니다."),
     DUPLICATE_PERMISSION_NAME_ID(BAD_REQUEST, "resource name이 %s이고 id가 %s인 Permission이 이미 존재합니다."),
     DUPLICATE_FACILITY_CATEGORY_CODE(BAD_REQUEST, "이름이 %s인 시설 카테고리가 이미 존재합니다."),
-    DUPLICATE_PERMISSION_GROUP_NAME(BAD_REQUEST, "이름이 %s인 권한 그룹이 이미 존재합니다"),
+    DUPLICATE_PERMISSION_GROUP_NAME(BAD_REQUEST, "이름이 %s인 권한 그룹이 이미 존재합니다."),
+    DUPLICATE_ASSIGN_OTHER_DEVICE(BAD_REQUEST, "아이디가 %s인 Feature는 이미 다른 디바이스(ID=%s)에 할당되어 있습니다."),
 
     NOT_FOUND_STATION(NOT_FOUND, "ID가 %s인 역을 찾을 수 없습니다."),
     NOT_FOUND_BUILDING(NOT_FOUND, "ID가 %s인 건물을 찾을 수 없습니다."),

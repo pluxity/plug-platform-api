@@ -1,6 +1,6 @@
-package com.pluxity.device.entity;
+package com.pluxity.cctv.entity;
 
-import com.pluxity.cctv.Cctv;
+import com.pluxity.device.entity.Device;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

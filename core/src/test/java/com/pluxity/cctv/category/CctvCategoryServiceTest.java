@@ -1,9 +1,9 @@
 package com.pluxity.cctv.category;
 
-import com.pluxity.cctv.category.dto.CctvCategoryAllResponse;
-import com.pluxity.cctv.category.dto.CctvCategoryCreateRequest;
-import com.pluxity.cctv.category.dto.CctvCategoryResponse;
-import com.pluxity.cctv.category.dto.CctvCategoryUpdateRequest;
+import com.pluxity.device.dto.DeviceCategoryRequest;
+import com.pluxity.device.dto.DeviceCategoryUpdateRequest;
+import com.pluxity.device.entity.DeviceCategory;
+import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.global.exception.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -22,18 +20,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class CctvCategoryServiceTest {
 
     @Autowired
-    private CctvCategoryService categoryService;
+    private DeviceCategoryService categoryService;
 
-    private CctvCategoryCreateRequest createRequest;
+    private DeviceCategoryRequest createRequest;
     private Long parentCategoryId;
 
     @BeforeEach
     void setUp() {
         // 부모 카테고리 생성
-        CctvCategoryCreateRequest parentRequest = new CctvCategoryCreateRequest("부모 카테고리", null);
+        DeviceCategoryRequest parentRequest = new DeviceCategoryRequest("부모 카테고리", null, null);
         parentCategoryId = categoryService.create(parentRequest);
 
-        createRequest = new CctvCategoryCreateRequest("테스트 카테고리", parentCategoryId);
+        createRequest = new DeviceCategoryRequest("테스트 카테고리", parentCategoryId, null);
     }
 
     @Test
@@ -41,7 +39,7 @@ class CctvCategoryServiceTest {
     void create_WithValidRequest_SavesCategory() {
         // when
         Long categoryId = categoryService.create(createRequest);
-        CctvCategory category = categoryService.findById(categoryId);
+        DeviceCategory category = categoryService.findById(categoryId);
 
         // then
         assertThat(category).isNotNull();
@@ -53,14 +51,15 @@ class CctvCategoryServiceTest {
     @DisplayName("부모 카테고리 없이 카테고리 생성 시 카테고리가 저장된다")
     void create_WithoutParentCategory_SavesCategory() {
         // given
-        CctvCategoryCreateRequest requestWithoutParent = new CctvCategoryCreateRequest(
+        DeviceCategoryRequest requestWithoutParent = new DeviceCategoryRequest(
                 "부모 없는 카테고리",
+                null,
                 null
         );
 
         // when
         Long categoryId = categoryService.create(requestWithoutParent);
-        CctvCategory category = categoryService.findById(categoryId);
+        DeviceCategory category = categoryService.findById(categoryId);
 
         // then
         assertThat(category).isNotNull();
@@ -73,28 +72,14 @@ class CctvCategoryServiceTest {
     void create_WithNonExistingParentId_ThrowsCustomException() {
         // given
         Long nonExistingParentId = 9999L;
-        CctvCategoryCreateRequest invalidRequest = new CctvCategoryCreateRequest(
+        DeviceCategoryRequest invalidRequest = new DeviceCategoryRequest(
                 "실패할 카테고리",
-                nonExistingParentId
+                nonExistingParentId,
+                null
         );
 
         // when & then
         assertThrows(CustomException.class, () -> categoryService.create(invalidRequest));
-    }
-
-    @Test
-    @DisplayName("모든 카테고리 조회 시 카테고리 목록이 계층형구조로 반환된다")
-    void findAll_ReturnsListOfCategoryResponses() {
-        // given
-        categoryService.create(createRequest);
-
-        // when
-        CctvCategoryAllResponse allResponse = categoryService.findAll();
-        List<CctvCategoryResponse> responses = allResponse.list();
-
-        // then
-        assertThat(responses).isNotEmpty();
-        assertThat(responses.size()).isGreaterThanOrEqualTo(1);
     }
 
     @Test
@@ -112,8 +97,9 @@ class CctvCategoryServiceTest {
     void update_WithValidRequest_UpdatesCategory() {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
-        CctvCategoryUpdateRequest updateRequest = new CctvCategoryUpdateRequest(
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest(
                 "수정된 카테고리",
+                null,
                 null
         );
 
@@ -121,7 +107,7 @@ class CctvCategoryServiceTest {
         categoryService.update(savedCategoryId, updateRequest);
 
         // then
-        CctvCategory category = categoryService.findById(savedCategoryId);
+        DeviceCategory category = categoryService.findById(savedCategoryId);
         assertThat(category.getName()).isEqualTo("수정된 카테고리");
     }
 
@@ -131,21 +117,23 @@ class CctvCategoryServiceTest {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
         // 새로운 부모 카테고리 생성
-        CctvCategoryCreateRequest newParentRequest = new CctvCategoryCreateRequest(
+        DeviceCategoryRequest newParentRequest = new DeviceCategoryRequest(
                 "새 부모 카테고리",
+                null,
                 null
         );
         Long newParentId = categoryService.create(newParentRequest);
-        CctvCategoryUpdateRequest updateRequest = new CctvCategoryUpdateRequest(
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest(
                 "카테고리",
-                newParentId
+                newParentId,
+                null
         );
 
         // when
         categoryService.update(savedCategoryId, updateRequest);
 
         // then
-        CctvCategory category = categoryService.findById(savedCategoryId);
+        DeviceCategory category = categoryService.findById(savedCategoryId);
         assertThat(category.getParent().getId()).isEqualTo(newParentId);
     }
 
@@ -155,9 +143,10 @@ class CctvCategoryServiceTest {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
         Long nonExistingParentId = 9999L;
-        CctvCategoryUpdateRequest invalidRequest = new CctvCategoryUpdateRequest(
+        DeviceCategoryUpdateRequest invalidRequest = new DeviceCategoryUpdateRequest(
                 null,
-                nonExistingParentId
+                nonExistingParentId,
+                null
         );
 
         // when & then
@@ -182,9 +171,10 @@ class CctvCategoryServiceTest {
     void update_WithSelfAsParent_ThrowsCustomException() {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
-        CctvCategoryUpdateRequest invalidRequest = new CctvCategoryUpdateRequest(
+        DeviceCategoryUpdateRequest invalidRequest = new DeviceCategoryUpdateRequest(
                 null,
-                savedCategoryId  // 자기 자신을 부모로 설정
+                savedCategoryId,  // 자기 자신을 부모로 설정
+                null
         );
 
         // when & then
@@ -206,15 +196,17 @@ class CctvCategoryServiceTest {
     void delete_WithChildCategories_ThrowsCustomException() {
         // given
         // 부모 -> 자식 구조 생성
-        Long parentResponseId = categoryService.create(new CctvCategoryCreateRequest(
+        Long parentResponseId = categoryService.create(new DeviceCategoryRequest(
                 "새로운 부모",
+                null,
                 null
         ));
 
         // 자식 카테고리 생성
-        Long childResponseId = categoryService.create(new CctvCategoryCreateRequest(
+        Long childResponseId = categoryService.create(new DeviceCategoryRequest(
                 "자식 카테고리",
-                parentResponseId
+                parentResponseId,
+                null
         ));
 
         // when & then
@@ -228,21 +220,24 @@ class CctvCategoryServiceTest {
     void create_ExceedingMaxDepth_ThrowsCustomException() {
         // given
         // 1단계: 루트
-        Long rootResponseId = categoryService.create(new CctvCategoryCreateRequest(
+        Long rootResponseId = categoryService.create(new DeviceCategoryRequest(
                 "루트 카테고리",
+                null,
                 null
         ));
 
         // 2단계: 루트 -> 자식1
-        Long child1ResponseId = categoryService.create(new CctvCategoryCreateRequest(
+        Long child1ResponseId = categoryService.create(new DeviceCategoryRequest(
                 "자식 카테고리 1",
-                rootResponseId
+                rootResponseId,
+                null
         ));
 
         // 3단계: 루트 -> 자식1 -> 자식2(최대 깊이 초과 가정)
-        CctvCategoryCreateRequest exceedDepthRequest = new CctvCategoryCreateRequest(
+        DeviceCategoryRequest exceedDepthRequest = new DeviceCategoryRequest(
                 "최대 깊이 초과 카테고리",
-                child1ResponseId
+                child1ResponseId,
+                null
         );
 
         // when & then
@@ -255,16 +250,17 @@ class CctvCategoryServiceTest {
     void update_WithNameAndParent() {
         // given
         Long savedCategoryId = categoryService.create(createRequest);
-        CctvCategoryUpdateRequest updateRequest = new CctvCategoryUpdateRequest(
+        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest(
                 "새 이름 업데이트",
-                parentCategoryId
+                parentCategoryId,
+                null
         );
 
         // when
         categoryService.update(savedCategoryId, updateRequest);
 
         // then
-        CctvCategory updatedCategory = categoryService.findById(savedCategoryId);
+        DeviceCategory updatedCategory = categoryService.findById(savedCategoryId);
         assertThat(updatedCategory.getName()).isEqualTo("새 이름 업데이트");
         assertThat(updatedCategory.getParent().getId()).isEqualTo(updateRequest.parentId());
     }

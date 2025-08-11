@@ -1,8 +1,6 @@
 package com.pluxity.feature.controller;
 
-import com.pluxity.cctv.dto.CctvAssignDto;
 import com.pluxity.feature.dto.*;
-import com.pluxity.feature.service.FeatureFacade;
 import com.pluxity.feature.service.FeatureService;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -29,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 public class FeatureController {
 
     private final FeatureService featureService;
-    private final FeatureFacade featureFacade;
 
     @Operation(summary = "피처 생성", description = "새로운 피처를 생성합니다")
     @ApiResponses(
@@ -185,44 +182,6 @@ public class FeatureController {
             @Parameter(description = "디바이스 정보 (id 또는 code)", required = true) @Valid @RequestBody
                     FeatureAssignDto assignDto) {
         featureService.removeDeviceFromFeature(featureId, assignDto);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "피처에 CCTV 할당", description = "특정 피처에 CCTV를 할당(연결)합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "204",
-                        description = "CCTV 할당 성공",
-                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
-                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 CCTV에 할당됨)"),
-                @ApiResponse(responseCode = "404", description = "피처 또는 CCTV를 찾을 수 없음")
-            })
-    @PatchMapping("/{featureId}/assign-cctv")
-    public ResponseEntity<Void> assignCctvToFeature(
-            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
-            @Parameter(description = "CCTV 정보 (id)", required = true) @Valid @RequestBody
-                    CctvAssignDto assignDto) {
-        featureFacade.assignCctvToFeature(featureId, assignDto);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "피처에서 CCTV 연결 해제", description = "특정 피처에 할당된 CCTV와의 연결을 해제합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "204",
-                        description = "CCTV 연결 해제 성공",
-                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
-                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처에 CCTV가 할당되지 않음)"),
-                @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
-            })
-    @DeleteMapping("/{featureId}/revoke-cctv")
-    public ResponseEntity<Void> removeCctvFromFeature(
-            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
-            @Parameter(description = "CCTV 정보 (id)", required = true) @Valid @RequestBody
-                    CctvAssignDto assignDto) {
-        featureFacade.removeCctvFromFeature(featureId, assignDto);
         return ResponseEntity.noContent().build();
     }
 }

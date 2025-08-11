@@ -4,6 +4,7 @@ import static com.pluxity.global.constant.ErrorCode.*;
 
 import com.pluxity.asset.service.AssetValidator;
 import com.pluxity.device.entity.Device;
+import com.pluxity.device.repository.DeviceRepository;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.feature.dto.FeatureAssignDto;
@@ -14,8 +15,6 @@ import com.pluxity.feature.entity.Feature;
 import com.pluxity.feature.repository.FeatureRepository;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,7 @@ public class FeatureService {
     private final FeatureRepository featureRepository;
     private final FacilityService facilityService;
     private final AssetValidator assetValidator;
-    @PersistenceContext private EntityManager entityManager;
+    private final DeviceRepository deviceRepository;
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
@@ -105,19 +104,22 @@ public class FeatureService {
             throw new CustomException(DEVICE_ALREADY_HAS_FEATURE, device.getFeature().getId());
         }
 
+        deviceRepository
+                .findByFeature(feature)
+                .ifPresent(
+                        v -> {
+                            throw new CustomException(DUPLICATE_ASSIGN_OTHER_DEVICE, feature.getId(), v.getId());
+                        });
+
         device.changeFeature(feature);
 
         log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
     }
 
     private Device findDeviceById(String deviceId) {
-        Device device = entityManager.find(Device.class, deviceId);
-
-        if (device == null) {
-            throw new CustomException(NOT_FOUND_DEVICE, deviceId);
-        }
-
-        return device;
+        return deviceRepository
+                .findById(deviceId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_DEVICE, deviceId));
     }
 
     @Transactional

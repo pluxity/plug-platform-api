@@ -1,6 +1,6 @@
 package com.pluxity.cctv.dto;
 
-import com.pluxity.cctv.category.dto.CctvCategoryResponse;
+import com.pluxity.device.dto.DeviceCategoryResponseWithoutChildren;
 import com.pluxity.feature.dto.FeatureResponse;
 import lombok.Builder;
 
@@ -10,4 +10,4 @@ public record CctvResponse(
         String name,
         String url,
         FeatureResponse feature,
-        CctvCategoryResponse cctvCategory) {}
+        DeviceCategoryResponseWithoutChildren deviceCategory) {}
