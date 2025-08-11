@@ -5,11 +5,11 @@ import com.pluxity.cctv.dto.CctvResponse;
 import com.pluxity.cctv.dto.CctvUpdateRequest;
 import com.pluxity.cctv.entity.Cctv;
 import com.pluxity.cctv.repository.CctvRepository;
+import com.pluxity.cctv.repository.DeviceCctvRepository;
 import com.pluxity.device.dto.DeviceCategoryResponseWithoutChildren;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.feature.dto.FeatureResponse;
-import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
@@ -29,6 +29,7 @@ public class CctvService {
     private final CctvRepository cctvRepository;
     private final DeviceCategoryService deviceCategoryService;
     private final FileService fileService;
+    private final DeviceCctvRepository deviceCctvRepository;
 
     @Transactional
     public String create(@Valid CctvCreateRequest request) {
@@ -83,7 +84,7 @@ public class CctvService {
     @Transactional
     public void delete(String id) {
         Cctv cctv = findById(id);
-        Feature feature = cctv.getFeature();
+        deviceCctvRepository.deleteByCctvIdIn(List.of(cctv.getId()));
         cctvRepository.delete(cctv);
     }
 

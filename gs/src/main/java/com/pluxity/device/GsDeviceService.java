@@ -116,6 +116,7 @@ public class GsDeviceService {
     public void delete(String id) {
         GsDevice device = getDevice(id);
         device.clearAllRelations();
+        deviceCctvRepository.deleteByDevice(device);
         repository.delete(device);
     }
 
