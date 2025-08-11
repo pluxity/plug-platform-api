@@ -1,12 +1,12 @@
 package com.pluxity.device;
 
 import com.pluxity.cctv.CctvService;
-import com.pluxity.cctv.category.dto.CctvCategoryResponse;
 import com.pluxity.cctv.dto.CctvResponse;
+import com.pluxity.cctv.entity.DeviceCctv;
+import com.pluxity.cctv.repository.DeviceCctvRepository;
 import com.pluxity.device.dto.*;
+import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
-import com.pluxity.device.entity.DeviceCctv;
-import com.pluxity.device.repository.DeviceCctvRepository;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.file.dto.FileResponse;
@@ -50,7 +50,7 @@ public class GsDeviceService {
         return createResponse(gsDevice, getThumbnailFile(gsDevice));
     }
 
-    private FileResponse getThumbnailFile(GsDevice gsDevice) {
+    private FileResponse getThumbnailFile(Device gsDevice) {
         return Optional.ofNullable(gsDevice.getCategory())
                 .map(DeviceCategory::getIconFileId)
                 .map(fileService::getFileResponse)
@@ -145,19 +145,19 @@ public class GsDeviceService {
         GsDevice device = getDevice(deviceId);
         List<DeviceCctv> deviceCctvs = deviceCctvRepository.findByDevice(device);
         return deviceCctvs.stream()
+                .map(DeviceCctv::getCctv)
                 .map(
-                        deviceCctv ->
+                        cctv ->
                                 CctvResponse.builder()
-                                        .id(deviceCctv.getCctv().getId())
-                                        .name(deviceCctv.getCctv().getName())
-                                        .url(deviceCctv.getCctv().getUrl())
+                                        .id(cctv.getId())
+                                        .name(cctv.getName())
+                                        .url(cctv.getUrl())
                                         .feature(
-                                                deviceCctv.getCctv().getFeature() != null
-                                                        ? FeatureResponse.from(deviceCctv.getCctv().getFeature())
-                                                        : null)
-                                        .cctvCategory(
-                                                deviceCctv.getCctv().getCategory() != null
-                                                        ? CctvCategoryResponse.from(deviceCctv.getCctv().getCategory())
+                                                cctv.getFeature() != null ? FeatureResponse.from(cctv.getFeature()) : null)
+                                        .deviceCategory(
+                                                cctv.getCategory() != null
+                                                        ? DeviceCategoryResponseWithoutChildren.from(
+                                                                cctv.getCategory(), getThumbnailFile(cctv))
                                                         : null)
                                         .build())
                 .toList();

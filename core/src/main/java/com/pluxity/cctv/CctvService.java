@@ -1,18 +1,23 @@
 package com.pluxity.cctv;
 
-import com.pluxity.cctv.category.CctvCategory;
-import com.pluxity.cctv.category.CctvCategoryService;
-import com.pluxity.cctv.category.dto.CctvCategoryResponse;
 import com.pluxity.cctv.dto.CctvCreateRequest;
 import com.pluxity.cctv.dto.CctvResponse;
 import com.pluxity.cctv.dto.CctvUpdateRequest;
+import com.pluxity.cctv.entity.Cctv;
+import com.pluxity.cctv.repository.CctvRepository;
+import com.pluxity.device.dto.DeviceCategoryResponseWithoutChildren;
+import com.pluxity.device.entity.DeviceCategory;
+import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.feature.entity.Feature;
+import com.pluxity.file.dto.FileResponse;
+import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,12 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class CctvService {
 
     private final CctvRepository cctvRepository;
-    private final CctvCategoryService cctvCategoryService;
+    private final DeviceCategoryService deviceCategoryService;
+    private final FileService fileService;
 
     @Transactional
     public String create(@Valid CctvCreateRequest request) {
-        CctvCategory category =
-                MappingUtils.findByIdIfExists(request.categoryId(), cctvCategoryService::findById);
+        DeviceCategory category =
+                MappingUtils.findByIdIfExists(request.categoryId(), deviceCategoryService::findById);
+
         return cctvRepository
                 .save(
                         Cctv.builder()
@@ -51,13 +58,16 @@ public class CctvService {
     }
 
     private CctvResponse createResponse(Cctv cctv) {
+        FileResponse thumbnailFile = getThumbnailFile(cctv);
         return CctvResponse.builder()
                 .id(cctv.getId())
                 .name(cctv.getName())
                 .url(cctv.getUrl())
                 .feature(cctv.getFeature() != null ? FeatureResponse.from(cctv.getFeature()) : null)
-                .cctvCategory(
-                        cctv.getCategory() != null ? CctvCategoryResponse.from(cctv.getCategory()) : null)
+                .deviceCategory(
+                        cctv.getCategory() != null
+                                ? DeviceCategoryResponseWithoutChildren.from(cctv.getCategory(), thumbnailFile)
+                                : null)
                 .build();
     }
 
@@ -65,7 +75,8 @@ public class CctvService {
     public void update(String id, CctvUpdateRequest request) {
         Cctv cctv = findById(id);
         cctv.updateCctv(request);
-        CctvCategory category = cctvCategoryService.findById(request.categoryId());
+        DeviceCategory category =
+                MappingUtils.findByIdIfExists(request.categoryId(), deviceCategoryService::findById);
         cctv.changeCategory(category);
     }
 
@@ -81,5 +92,12 @@ public class CctvService {
         return cctvRepository
                 .findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_CCTV, id));
+    }
+
+    private FileResponse getThumbnailFile(Cctv cctv) {
+        return Optional.ofNullable(cctv.getCategory())
+                .map(DeviceCategory::getIconFileId)
+                .map(fileService::getFileResponse)
+                .orElse(null);
     }
 }

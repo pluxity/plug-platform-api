@@ -1,7 +1,8 @@
-package com.pluxity.cctv;
+package com.pluxity.cctv.entity;
 
-import com.pluxity.cctv.category.CctvCategory;
 import com.pluxity.cctv.dto.CctvUpdateRequest;
+import com.pluxity.device.entity.Device;
+import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.feature.entity.Feature;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -11,9 +12,10 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@DiscriminatorValue("cctv")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Cctv {
-    @Id private String id;
+public class Cctv extends Device {
+
     private String name;
 
     @Column(length = 1000)
@@ -23,16 +25,11 @@ public class Cctv {
     @JoinColumn(name = "feature_id")
     private Feature feature;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private CctvCategory category;
-
     @Builder
-    public Cctv(String id, String name, String url, CctvCategory category, Feature feature) {
-        this.id = id;
+    public Cctv(String id, String name, String url, DeviceCategory category, Feature feature) {
+        super(id, category);
         this.name = name;
         this.url = url;
-        this.category = category;
         this.feature = feature;
     }
 
@@ -41,11 +38,8 @@ public class Cctv {
         this.url = request.url();
     }
 
-    public void changeFeature(Feature feature) {
-        this.feature = feature;
-    }
-
-    public void changeCategory(CctvCategory category) {
-        this.category = category;
+    @Override
+    public String getName() {
+        return this.name;
     }
 }

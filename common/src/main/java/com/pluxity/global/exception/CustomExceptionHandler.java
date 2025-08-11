@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -101,5 +102,13 @@ public class CustomExceptionHandler {
         String message = String.format("필수 요청 파라미터(%s)가 누락되었습니다.", paramName);
         return new ResponseEntity<>(
                 ErrorResponseBody.of(HttpStatus.BAD_REQUEST, message), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseBody> handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex) {
+        LOGGER.error("handleDataIntegrityViolationException: {}", ex.getMessage());
+        return new ResponseEntity<>(
+                ErrorResponseBody.of(ErrorCode.DUPLICATE_RESOURCE_ID), HttpStatus.BAD_REQUEST);
     }
 }
