@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,7 +23,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -50,24 +47,23 @@ public class CommonSecurityConfig {
                 .authorizeHttpRequests(
                         auth ->
                                 auth.requestMatchers(
-                                                new AntPathRequestMatcher("/actuator/**"),
-                                                new AntPathRequestMatcher("/health"),
-                                                new AntPathRequestMatcher("/info"),
-                                                new AntPathRequestMatcher("/prometheus"),
-                                                new AntPathRequestMatcher("/error"),
-                                                new AntPathRequestMatcher("/swagger-ui/**"),
-                                                new AntPathRequestMatcher("/swagger-ui.html"),
-                                                new AntPathRequestMatcher("/api-docs/**"),
-                                                new AntPathRequestMatcher("/swagger-config/**"),
-                                                new AntPathRequestMatcher("/docs/**"))
+                                                "/actuator/**",
+                                                "/health",
+                                                "/info",
+                                                "/prometheus",
+                                                "/error",
+                                                "/swagger-ui/**",
+                                                "/swagger-ui.html",
+                                                "/api-docs/**",
+                                                "/swagger-config/**",
+                                                "/docs/**")
                                         .permitAll()
                                         // .requestMatchers("/admin/**").hasRole("ADMIN") // TODO: 구현 완료 시 적용
-                                        .requestMatchers(new AntPathRequestMatcher("/auth/**"))
+                                        .requestMatchers("/auth/**")
                                         .permitAll() // GET 외의 /auth/** 경로도 허용
                                         .anyRequest()
                                         .authenticated() // 나머지 모든 (GET이 아닌) 요청은 인증 필요
                         )
-                .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         sessionManagement ->
@@ -89,14 +85,6 @@ public class CommonSecurityConfig {
                         .findByUsername(username)
                         .map(CustomUserDetails::new)
                         .orElseThrow(() -> new CustomException(NOT_FOUND_USER));
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService());
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        return authenticationProvider;
     }
 
     @Bean

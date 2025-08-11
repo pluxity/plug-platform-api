@@ -25,8 +25,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -40,7 +40,7 @@ class FileServiceTest {
     private FileRepository fileRepository;
 
     // 실제 파일 시스템/S3 대신 가짜 객체로 대체하여 테스트
-    @MockBean
+    @MockitoBean
     private StorageStrategy storageStrategy;
 
     private MockMultipartFile testFile;
