@@ -7,6 +7,7 @@ import com.pluxity.cctv.entity.Cctv;
 import com.pluxity.cctv.repository.CctvRepository;
 import com.pluxity.cctv.repository.DeviceCctvRepository;
 import com.pluxity.device.dto.DeviceCategoryResponseWithoutChildren;
+import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.feature.dto.FeatureResponse;
@@ -15,9 +16,11 @@ import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
-import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +35,7 @@ public class CctvService {
     private final DeviceCctvRepository deviceCctvRepository;
 
     @Transactional
-    public String create(@Valid CctvCreateRequest request) {
+    public String create(CctvCreateRequest request) {
         DeviceCategory category =
                 MappingUtils.findByIdIfExists(request.categoryId(), deviceCategoryService::findById);
 
@@ -50,16 +53,26 @@ public class CctvService {
     @Transactional(readOnly = true)
     public List<CctvResponse> findAll() {
         List<Cctv> list = cctvRepository.findAll();
-        return list.stream().map(this::createResponse).toList();
+        List<DeviceCategory> categoryList =
+                list.stream().map(Device::getCategory).filter(Objects::nonNull).toList();
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(categoryList, v -> Stream.of(v.getIconFileId()), fileService);
+        return list.stream()
+                .map(
+                        v ->
+                                createResponse(
+                                        v,
+                                        v.getCategory() != null ? fileMap.get(v.getCategory().getIconFileId()) : null))
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public CctvResponse getById(String id) {
-        return createResponse(findById(id));
+        Cctv cctv = findById(id);
+        return createResponse(cctv, getThumbnailFile(cctv));
     }
 
-    private CctvResponse createResponse(Cctv cctv) {
-        FileResponse thumbnailFile = getThumbnailFile(cctv);
+    private CctvResponse createResponse(Cctv cctv, FileResponse thumbnailFile) {
         return CctvResponse.builder()
                 .id(cctv.getId())
                 .name(cctv.getName())

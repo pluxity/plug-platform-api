@@ -14,11 +14,11 @@ import com.pluxity.file.service.FileService;
 import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.permission.ResourceType;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -67,8 +67,18 @@ public class GsDeviceService {
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
     public List<GsDeviceResponse> findAll() {
         List<GsDevice> gsDevices = repository.findAll();
+        List<DeviceCategory> categoryList =
+                gsDevices.stream().map(Device::getCategory).filter(Objects::nonNull).toList();
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(categoryList, v -> Stream.of(v.getIconFileId()), fileService);
         return gsDevices.stream()
-                .map(gsDevice -> createResponse(gsDevice, getThumbnailFile(gsDevice)))
+                .map(
+                        gsDevice ->
+                                createResponse(
+                                        gsDevice,
+                                        gsDevice.getCategory() != null
+                                                ? fileMap.get(gsDevice.getCategory().getIconFileId())
+                                                : null))
                 .collect(Collectors.toList());
     }
 
@@ -82,10 +92,6 @@ public class GsDeviceService {
                                 ? DeviceCategoryResponseWithoutChildren.from(gsDevice.getCategory(), thumbnailFile)
                                 : null)
                 .build();
-    }
-
-    private static GsDeviceResponse createResponse(GsDevice gsDevice) {
-        return createResponse(gsDevice, null);
     }
 
     @Transactional
@@ -103,13 +109,9 @@ public class GsDeviceService {
     public void putUpdate(String id, GsDeviceUpdateRequest request) {
         GsDevice device = getDevice(id);
         device.putUpdate(request.name());
-
-        if (request.categoryId() != null) {
-            DeviceCategory deviceCategory = deviceCategoryService.findById(request.categoryId());
-            device.updateCategory(deviceCategory);
-        } else {
-            device.updateCategory(null);
-        }
+        DeviceCategory category =
+                MappingUtils.findByIdIfExists(request.categoryId(), deviceCategoryService::findById);
+        device.changeCategory(category);
     }
 
     @Transactional
@@ -125,7 +127,7 @@ public class GsDeviceService {
         GsDevice device = getDevice(deviceId);
         DeviceCategory deviceCategory = deviceCategoryService.findById(categoryId);
 
-        device.updateCategory(deviceCategory);
+        device.changeCategory(deviceCategory);
         log.info("디바이스 [{}}에 카테고리 [{}]가 할당되었습니다.", deviceId, categoryId);
     }
 
@@ -137,7 +139,7 @@ public class GsDeviceService {
             throw new CustomException(ErrorCode.NOT_FOUND_DEVICE_CATEGORY, deviceId);
         }
 
-        device.updateCategory(null);
+        device.changeCategory(null);
         log.info("디바이스 [{}]에서 카테고리가 제거되었습니다.", deviceId);
     }
 

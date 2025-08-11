@@ -39,8 +39,4 @@ public class GsDevice extends Device {
     public void putUpdate(String name) {
         this.name = name;
     }
-
-    public void updateCategory(DeviceCategory category) {
-        this.changeCategory(category);
-    }
 }
