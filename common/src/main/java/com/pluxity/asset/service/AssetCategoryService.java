@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class AssetCategoryService extends CategoryService<AssetCategory> {
 
+    public static final String ASSET_CATEGORIES = "asset-categories/";
     private final AssetCategoryRepository assetCategoryRepository;
     private final FileService fileService;
 
@@ -80,6 +81,13 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
                         .iconFileId(request.thumbnailFileId())
                         .build();
         AssetCategory parent = MappingUtils.findByIdIfExists(request.parentId(), super::findById);
+
+        if (request.thumbnailFileId() != null) {
+            category.updateIconFileId(request.thumbnailFileId());
+            fileService.finalizeUpload(
+                    request.thumbnailFileId(), ASSET_CATEGORIES + category.getId() + "/");
+        }
+
         return super.create(category, parent);
     }
 
@@ -92,6 +100,11 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
         super.update(id, request.name(), request.parentId());
         category.updateCode(request.code());
         category.updateIconFileId(request.thumbnailFileId());
+
+        if (request.thumbnailFileId() != null) {
+            fileService.finalizeUpload(
+                    request.thumbnailFileId(), ASSET_CATEGORIES + category.getId() + "/");
+        }
     }
 
     @Transactional
