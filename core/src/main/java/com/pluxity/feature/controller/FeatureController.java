@@ -212,27 +212,11 @@ public class FeatureController {
     public ResponseEntity<Void> assignDeviceToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "디바이스 할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
-                    FeatureAssignDto assignDto) {
-        FeatureResponse response = featureService.assignDeviceToFeature(featureId, assignDto);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "피처에 디바이스 할당", description = "특정 피처에 디바이스를 할당(연결)합니다.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "디바이스 할당 성공",
-                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
-                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스에 할당됨)"),
-                @ApiResponse(responseCode = "404", description = "피처 또는 디바이스를 찾을 수 없음")
-            })
-    @PutMapping("/{featureId}/force-assign-device")
-    public ResponseEntity<Void> forceAssignDeviceToFeature(
-            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
-            @Parameter(description = "디바이스 할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
-                    FeatureAssignDto assignDto) {
-        FeatureResponse response = featureService.forceAssignDeviceToFeature(featureId, assignDto);
+                    FeatureAssignDto assignDto,
+            @Parameter(description = "이미 할당된 디바이스가 있을 경우 강제로 재할당할지 여부")
+                    @RequestParam(required = false, defaultValue = "false")
+                    boolean force) {
+        FeatureResponse response = featureService.assignDeviceToFeature(featureId, assignDto, force);
         return ResponseEntity.noContent().build();
     }
 

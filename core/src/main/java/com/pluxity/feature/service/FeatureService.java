@@ -171,7 +171,8 @@ public class FeatureService {
     }
 
     @Transactional
-    public FeatureResponse assignDeviceToFeature(String featureId, FeatureAssignDto assignDto) {
+    public FeatureResponse assignDeviceToFeature(
+            String featureId, FeatureAssignDto assignDto, boolean force) {
         log.debug("피처에 디바이스 할당: featureId={}, assignDto={}", featureId, assignDto);
 
         Feature feature = findFeatureById(featureId);
@@ -179,7 +180,7 @@ public class FeatureService {
         // 디바이스 조회 - id로 조회
         Device device = findDeviceById(assignDto.id());
 
-        if (device.getFeature() != null) {
+        if (!force && device.getFeature() != null) {
             throw new CustomException(
                     "Device already assigned to another feature",
                     HttpStatus.BAD_REQUEST,
@@ -189,24 +190,6 @@ public class FeatureService {
         device.changeFeature(feature);
 
         log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
-
-        // 업데이트된 피처 조회 및 반환
-        feature = findFeatureById(featureId);
-        return getFeatureResponse(feature);
-    }
-
-    @Transactional
-    public FeatureResponse forceAssignDeviceToFeature(String featureId, FeatureAssignDto assignDto) {
-        log.debug("[Force] 피처에 디바이스 할당: featureId={}, assignDto={}", featureId, assignDto);
-
-        Feature feature = findFeatureById(featureId);
-
-        // 디바이스 조회 - id로 조회
-        Device device = findDeviceById(assignDto.id());
-
-        device.changeFeature(feature);
-
-        log.debug("[Force] 디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
 
         // 업데이트된 피처 조회 및 반환
         feature = findFeatureById(featureId);
