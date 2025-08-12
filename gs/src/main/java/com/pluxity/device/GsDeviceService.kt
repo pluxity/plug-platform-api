@@ -61,7 +61,7 @@ class GsDeviceService(
         val fileMap =
             MappingUtils.getFileMapByIds(
                 categoryList,
-                { v: DeviceCategory? -> Stream.of(v?.iconFileId) },
+                { v: DeviceCategory -> Stream.of(v.iconFileId) },
                 fileService
             )
         return gsDevices.map { gsDevice: GsDevice ->

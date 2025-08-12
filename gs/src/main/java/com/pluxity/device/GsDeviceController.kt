@@ -107,7 +107,7 @@ class GsDeviceController(
     )
     @DeleteMapping("/{id}")
     fun delete(
-        @Parameter(description = "`디바이스 ID", required = true) @PathVariable id: String
+        @Parameter(description = "디바이스 ID", required = true) @PathVariable id: String
     ): ResponseEntity<Void> {
         gsDeviceService.delete(id)
         return ResponseEntity.noContent().build()
