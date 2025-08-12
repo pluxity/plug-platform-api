@@ -6,6 +6,7 @@ import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.device.dto.GsDeviceCctvUpdateRequest
 import com.pluxity.device.dto.GsDeviceCreateRequest
 import com.pluxity.device.dto.GsDeviceUpdateRequest
+import com.pluxity.device.dto.dummyCreateGsDeviceRequest
 import com.pluxity.device.entity.*
 import com.pluxity.device.service.DeviceCategoryService
 import com.pluxity.file.service.FileService
@@ -29,8 +30,7 @@ class GsDeviceServiceKoTest : BehaviorSpec({
     Given("디바이스 생성을 진행할 때") {
         When("유효한 요청으로 GS 디바이스 생성 요청") {
             val id = UUID.randomUUID().toString()
-            val createRequest =
-                GsDeviceCreateRequest(id, "Test Device", null)
+            val createRequest = dummyCreateGsDeviceRequest().copy(id = id)
 
             every {
                 repository.save(any())
