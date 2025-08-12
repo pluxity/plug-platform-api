@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/devices")
 @Tag(name = "Device Controller", description = "디바이스 관리 API")
 class GsDeviceController(
-    val gsDeviceService: GsDeviceService
+   private val gsDeviceService: GsDeviceService
 ) {
     @Operation(summary = "디바이스 생성", description = "새로운 디바이스를 생성합니다.")
     @ApiResponses(
@@ -40,10 +40,7 @@ class GsDeviceController(
     @ResponseCreated(path = "/devices/{id}")
     fun create(
         @Parameter(description = "디바이스 생성 정보", required = true) @RequestBody request: @Valid GsDeviceCreateRequest
-    ): ResponseEntity<String> {
-        val id = gsDeviceService.save(request)
-        return ResponseEntity.ok(id)
-    }
+    ): ResponseEntity<String> = ResponseEntity.ok(gsDeviceService.save(request))
 
     @GetMapping
     @ApiResponses(
@@ -71,13 +68,7 @@ class GsDeviceController(
     @GetMapping("/{id}")
     fun getById(
         @Parameter(description = "디바이스 ID", required = true) @PathVariable id: String
-    ): ResponseEntity<DataResponseBody<GsDeviceResponse?>?> {
-        return ResponseEntity.ok<DataResponseBody<GsDeviceResponse?>?>(
-            DataResponseBody.of<GsDeviceResponse?>(
-                gsDeviceService.findById(id)
-            )
-        )
-    }
+    ): ResponseEntity<DataResponseBody<GsDeviceResponse>> = ResponseEntity.ok(DataResponseBody.of(gsDeviceService.findById(id)))
 
     @Operation(summary = "디바이스 정보 수정", description = "ID로 특정 디바이스의 정보를 수정합니다.")
     @ApiResponses(

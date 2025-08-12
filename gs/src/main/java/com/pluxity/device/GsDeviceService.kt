@@ -27,11 +27,11 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class GsDeviceService(
-    val repository: GsDeviceRepository,
-    val deviceCategoryService: DeviceCategoryService,
-    val deviceCctvRepository: DeviceCctvRepository,
-    val cctvService: CctvService,
-    val fileService: FileService,
+    private val repository: GsDeviceRepository,
+    private val deviceCategoryService: DeviceCategoryService,
+    private val deviceCctvRepository: DeviceCctvRepository,
+    private val cctvService: CctvService,
+    private val fileService: FileService,
 ) {
     @Transactional
     fun save(request: GsDeviceCreateRequest): String {
