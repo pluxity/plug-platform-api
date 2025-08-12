@@ -179,10 +179,34 @@ public class FeatureService {
         // 디바이스 조회 - id로 조회
         Device device = findDeviceById(assignDto.id());
 
-        // FIXED: device에 feature가 있으면 Exception 발생 시켰는데 수정 안된다고 바꾸라함.
+        if (device.getFeature() != null) {
+            throw new CustomException(
+                    "Device already assigned to another feature",
+                    HttpStatus.BAD_REQUEST,
+                    String.format("디바이스 ID [%s]는 이미 다른 피처에 할당되어 있습니다", assignDto.id()));
+        }
+
         device.changeFeature(feature);
 
         log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
+
+        // 업데이트된 피처 조회 및 반환
+        feature = findFeatureById(featureId);
+        return getFeatureResponse(feature);
+    }
+
+    @Transactional
+    public FeatureResponse forceAssignDeviceToFeature(String featureId, FeatureAssignDto assignDto) {
+        log.debug("[Force] 피처에 디바이스 할당: featureId={}, assignDto={}", featureId, assignDto);
+
+        Feature feature = findFeatureById(featureId);
+
+        // 디바이스 조회 - id로 조회
+        Device device = findDeviceById(assignDto.id());
+
+        device.changeFeature(feature);
+
+        log.debug("[Force] 디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
 
         // 업데이트된 피처 조회 및 반환
         feature = findFeatureById(featureId);
