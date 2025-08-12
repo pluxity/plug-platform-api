@@ -54,6 +54,7 @@ public enum ErrorCode implements Code {
     NOT_EXIST_ASSET_CATEGORY(BAD_REQUEST, "%s 아이디 에셋에 카테고리가 존재하지 않습니다."),
     INVALID_FEATURE_ASSIGN_ASSET(BAD_REQUEST, "%s Feature에 할당된 에셋이 존재하지 않습니다."),
     DEVICE_MISMATCH(BAD_REQUEST, "요청한 디바이스가 현재 피처에 할당된 디바이스와 일치하지 않습니다."),
+    DEVICE_NOT_ASSIGNED(BAD_REQUEST, "%s 디바이스에 할당된 피처가 존재하지 않습니다."),
 
     DUPLICATE_USERNAME(BAD_REQUEST, "%s는 이미 존재 하는 아이디 입니다."),
     DUPLICATE_ROLE_NAME(BAD_REQUEST, "%s는 이미 존재하는 Role 이름 입니다."),

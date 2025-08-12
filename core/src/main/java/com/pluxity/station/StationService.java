@@ -182,7 +182,7 @@ public class StationService implements FacilityProvider {
                         fileService.getFileResponse(station.getThumbnailFileId()));
 
         List<String> label3DFeatureIds =
-                label3DRepository.findAllByFacilityId(id.toString()).stream()
+                label3DRepository.findAllByFacilityId(id).stream()
                         .map(label3D -> label3D.getFeature().getId())
                         .toList();
 
@@ -193,7 +193,7 @@ public class StationService implements FacilityProvider {
                         .collect(Collectors.toList());
 
         List<Label3DResponse> label3Ds =
-                label3DRepository.findAllByFacilityId(id.toString()).stream()
+                label3DRepository.findAllByFacilityId(id).stream()
                         .map(Label3DResponse::from)
                         .collect(Collectors.toList());
 

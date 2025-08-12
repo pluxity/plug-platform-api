@@ -1,30 +1,29 @@
 package com.pluxity.user.service;
 
 
-import com.pluxity.permission.*;
-import com.pluxity.permission.dto.PermissionRequest;
-import com.pluxity.permission.ResourceType;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.permission.*;
+import com.pluxity.permission.ResourceType;
 import com.pluxity.permission.dto.PermissionGroupCreateRequest;
 import com.pluxity.permission.dto.PermissionGroupResponse;
 import com.pluxity.permission.dto.PermissionGroupUpdateRequest;
+import com.pluxity.permission.dto.PermissionRequest;
 import com.pluxity.user.repository.RolePermissionRepository;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
@@ -138,7 +137,14 @@ class PermissionGroupServiceTest {
             // then
             assertThat(response).isNotNull();
             assertThat(response.id()).isEqualTo(groupId);
+            assertThat(response.description()).isEqualTo("시설에 대한 기본 권한");
             assertThat(response.name()).isEqualTo("기본 시설 관리 그룹");
+            assertThat(response.permissions()).hasSize(2);
+            assertThat(response.permissions().getFirst().resourceType()).isNotNull().isNotEmpty();
+            assertThat(response.permissions().getFirst().resourceType().getClass()).isEqualTo(String.class);
+            assertThat(response.permissions().getFirst().resourceIds()).isNotNull().isNotEmpty();
+
+
         }
 
         @Test
@@ -271,5 +277,108 @@ class PermissionGroupServiceTest {
             // 그룹에 속해있던 3개의 권한이 삭제되었는지 확인
             assertThat(permissionRepository.count()).isEqualTo(initialPermissionCount - 3);
         }
+    }
+
+    @Test
+    @DisplayName("성공: 빈 권한 목록으로 권한 그룹을 생성할 수 있다")
+    void create_withEmptyPermissions_shouldSucceed() {
+        // GIVEN
+        PermissionGroupCreateRequest request = new PermissionGroupCreateRequest(
+                "권한 없는 그룹", "설명", List.of() // 빈 리스트
+        );
+
+        // WHEN
+        Long groupId = permissionGroupService.create(request);
+
+        // THEN
+        PermissionGroup foundGroup = permissionGroupRepository.findById(groupId).orElseThrow();
+        assertThat(foundGroup.getName()).isEqualTo("권한 없는 그룹");
+        assertThat(foundGroup.getPermissions()).isNotNull().isEmpty();
+    }
+
+    @Test
+    @DisplayName("성공: 모든 권한 그룹 조회 시 전체 목록이 반환된다")
+    void findAll_shouldReturnAllPermissionGroups() {
+        // GIVEN
+        permissionGroupService.create(createRequest);
+        permissionGroupService.create(new PermissionGroupCreateRequest("추가 그룹", null, List.of()));
+
+        // WHEN
+        List<PermissionGroupResponse> responses = permissionGroupService.findAll();
+
+        // THEN
+        assertThat(responses).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("성공: 권한 그룹이 없을 때 전체 조회 시 빈 리스트가 반환된다")
+    void findAll_whenNoGroupsExist_shouldReturnEmptyList() {
+        // GIVEN: 데이터가 없는 상태
+
+        // WHEN
+        List<PermissionGroupResponse> responses = permissionGroupService.findAll();
+
+        // THEN
+        assertThat(responses).isNotNull().isEmpty();
+    }
+
+    @Test
+    @DisplayName("성공: 권한을 빈 리스트로 업데이트하여 모든 권한을 제거할 수 있다")
+    void update_withEmptyPermissionList_shouldRemoveAllPermissions() {
+        // GIVEN
+        Long groupId = permissionGroupService.create(createRequest);
+        assertThat(permissionGroupRepository.findById(groupId).orElseThrow().getPermissions()).isNotEmpty();
+
+        PermissionGroupUpdateRequest updateRequest = new PermissionGroupUpdateRequest(
+                "권한 제거된 그룹", null, List.of() // 빈 리스트로 업데이트
+        );
+
+        // WHEN
+        permissionGroupService.update(groupId, updateRequest);
+
+        // THEN
+        PermissionGroup updatedGroup = permissionGroupRepository.findById(groupId).orElseThrow();
+        assertThat(updatedGroup.getName()).isEqualTo("권한 제거된 그룹");
+        assertThat(updatedGroup.getPermissions()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("성공: 권한 목록 변경 없이 이름과 설명만 수정할 수 있다")
+    void update_onlyNameAndDescription_shouldSucceed() {
+        // GIVEN
+        Long groupId = permissionGroupService.create(createRequest);
+        PermissionGroup permissionGroup = permissionGroupService.findPermissionGroupById(groupId);
+
+        // permissions 필드를 null로 전달
+
+        List<PermissionRequest> permissionRequests = new ArrayList<>();
+        permissionGroup.getPermissions().forEach(e -> permissionRequests.add(new PermissionRequest(e.getResourceName(), List.of(e.getResourceId()))));
+        PermissionGroupUpdateRequest updateRequest = new PermissionGroupUpdateRequest("이름만 변경", "설명만 변경", permissionRequests);
+
+        // WHEN
+        permissionGroupService.update(groupId, updateRequest);
+
+        // THEN
+        PermissionGroup updatedGroup = permissionGroupRepository.findById(groupId).orElseThrow();
+        assertThat(updatedGroup.getName()).isEqualTo("이름만 변경");
+        assertThat(updatedGroup.getDescription()).isEqualTo("설명만 변경");
+        assertThat(updatedGroup.getPermissions()).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("실패: 존재하지 않는 ID로 업데이트 시도 시 예외가 발생한다")
+    void update_withNonExistingId_shouldThrowException() {
+        // GIVEN
+        PermissionGroupUpdateRequest request = new PermissionGroupUpdateRequest("이름", "설명", List.of());
+
+        // WHEN & THEN
+        assertThrows(CustomException.class, () -> permissionGroupService.update(9999L, request));
+    }
+
+    @Test
+    @DisplayName("실패: 존재하지 않는 ID로 삭제 시도 시 예외가 발생한다")
+    void delete_withNonExistingId_shouldThrowException() {
+        // WHEN & THEN
+        assertThrows(CustomException.class, () -> permissionGroupService.delete(9999L));
     }
 }

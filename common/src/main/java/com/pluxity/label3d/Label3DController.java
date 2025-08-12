@@ -66,7 +66,7 @@ public class Label3DController {
     @Operation(summary = "Facility별 Label3D 조회", description = "특정 Facility에 속한 모든 Label3D를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     public ResponseEntity<DataResponseBody<List<Label3DResponse>>> getByFacilityId(
-            @Parameter(description = "Facility ID") @PathVariable String facilityId) {
+            @Parameter(description = "Facility ID") @PathVariable Long facilityId) {
         List<Label3DResponse> responses = label3DService.getLabel3DsByFacilityId(facilityId);
         return ResponseEntity.ok(DataResponseBody.of(responses));
     }

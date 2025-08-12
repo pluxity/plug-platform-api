@@ -52,7 +52,7 @@ public class Label3DService {
     }
 
     @Transactional(readOnly = true)
-    public List<Label3DResponse> getLabel3DsByFacilityId(String facilityId) {
+    public List<Label3DResponse> getLabel3DsByFacilityId(Long facilityId) {
         return label3DRepository.findAllByFacilityId(facilityId).stream()
                 .map(Label3DResponse::from)
                 .toList();

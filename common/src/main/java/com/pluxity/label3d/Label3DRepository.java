@@ -12,7 +12,7 @@ public interface Label3DRepository extends JpaRepository<Label3D, String> {
 
     @EntityGraph(attributePaths = {"feature.facility"})
     @Query("SELECT l FROM Label3D l WHERE l.feature.facility.id = :facilityId")
-    List<Label3D> findAllByFacilityId(String facilityId);
+    List<Label3D> findAllByFacilityId(Long facilityId);
 
     @EntityGraph(attributePaths = {"feature.asset"})
     @NonNull

@@ -10,6 +10,7 @@ import com.pluxity.station.dto.LineResponse;
 import com.pluxity.station.dto.LineUpdateRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -61,6 +62,17 @@ public class LineService {
     @Transactional
     public void update(Long id, LineUpdateRequest request) {
         Line line = findLineById(id);
+
+        if (request.name() != null) {
+            lineRepository
+                    .findByName(request.name())
+                    .filter(foundLine -> !Objects.equals(foundLine.getId(), id))
+                    .ifPresent(
+                            foundLine -> {
+                                throw new CustomException(DUPLICATE_LINE_NAME, request.name());
+                            });
+        }
+
         line.update(Line.builder().name(request.name()).color(request.color()).build());
     }
 
