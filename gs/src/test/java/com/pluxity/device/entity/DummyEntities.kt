@@ -6,7 +6,7 @@ fun dummyGsDevice(
     id: String = "device-id",
     name: String = "Test Device",
     category: DeviceCategory? = null,
-)  = GsDevice(
+) = GsDevice(
     id,
     category,
     name

@@ -7,7 +7,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
     implementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
-    implementation ("org.zalando:logbook-spring-boot-starter:3.12.2")
+    implementation("org.zalando:logbook-spring-boot-starter:3.12.2")
 
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("com.h2database:h2")

@@ -3,19 +3,19 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     id("org.springframework.boot") version "3.5.4"
-	id("io.spring.dependency-management") version "1.1.7"
+    id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version kotlinVersion
     id("com.diffplug.spotless") version "6.21.0"
 
-	// kotlin 에서 lombok 사용이 가능해지게 만들어주는 플러그인
+    // kotlin 에서 lombok 사용이 가능해지게 만들어주는 플러그인
     kotlin("plugin.lombok") version kotlinVersion
-	id("io.freefair.lombok") version "8.14"
+    id("io.freefair.lombok") version "8.14"
 }
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
@@ -23,13 +23,13 @@ repositories {
 }
 
 kotlin {
-	compilerOptions {
-		freeCompilerArgs.addAll("-Xjsr305=strict")
-	}
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 subprojects {
@@ -50,15 +50,15 @@ subprojects {
             languageVersion = JavaLanguageVersion.of(21)
         }
     }
-    
+
     dependencies {
         implementation("org.springframework.boot:spring-boot-starter-data-jpa")
         implementation("org.springframework.boot:spring-boot-starter-web")
         implementation("org.springframework.boot:spring-boot-starter-validation")
         implementation("org.springframework.boot:spring-boot-starter")
 
-        implementation ("org.springframework.boot:spring-boot-starter-actuator")
-        implementation ("io.micrometer:micrometer-registry-prometheus")
+        implementation("org.springframework.boot:spring-boot-starter-actuator")
+        implementation("io.micrometer:micrometer-registry-prometheus")
 
         runtimeOnly("com.h2database:h2")
         runtimeOnly("org.postgresql:postgresql")
@@ -66,12 +66,12 @@ subprojects {
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
 
-        implementation ("org.flywaydb:flyway-core")
+        implementation("org.flywaydb:flyway-core")
 
         implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.11.0")
 
-        implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
-        implementation ("org.springdoc:springdoc-openapi-starter-common:2.3.0")
+        implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+        implementation("org.springdoc:springdoc-openapi-starter-common:2.3.0")
 
         testImplementation("org.projectlombok:lombok")
         testImplementation("org.mockito:mockito-core")
@@ -81,7 +81,7 @@ subprojects {
         testImplementation("io.mockk:mockk:1.14.5")
         testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
 
-        testAnnotationProcessor ("org.projectlombok:lombok")
+        testAnnotationProcessor("org.projectlombok:lombok")
     }
 
     configurations {
