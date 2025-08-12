@@ -78,6 +78,8 @@ subprojects {
         testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation("org.junit.jupiter:junit-jupiter-api")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+        testImplementation("io.mockk:mockk:1.14.5")
+        testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
 
         testAnnotationProcessor ("org.projectlombok:lombok")
     }
