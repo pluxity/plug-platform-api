@@ -1,11 +1,10 @@
-package com.pluxity.device.dto;
+package com.pluxity.device.dto
 
-import com.pluxity.feature.dto.FeatureResponse;
-import lombok.Builder;
+import com.pluxity.feature.dto.FeatureResponse
 
-@Builder
-public record GsDeviceResponse(
-        String id,
-        String name,
-        FeatureResponse feature,
-        DeviceCategoryResponseWithoutChildren deviceCategory) {}
+data class GsDeviceResponse(
+    val id: String,
+    val name: String,
+    val feature: FeatureResponse?,
+    val deviceCategory: DeviceCategoryResponseWithoutChildren?
+)

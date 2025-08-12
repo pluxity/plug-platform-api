@@ -1,12 +1,8 @@
-package com.pluxity.device.dto;
+package com.pluxity.device.dto
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.List;
+import io.swagger.v3.oas.annotations.media.Schema
 
-public record GsDeviceCctvUpdateRequest(@Schema(description = "CCTV ID 목록") List<String> cctvIds) {
-    public GsDeviceCctvUpdateRequest {
-        if (cctvIds == null) {
-            cctvIds = List.of();
-        }
-    }
-}
+data class GsDeviceCctvUpdateRequest(
+    @field:Schema(description = "CCTV ID 목록")
+    val cctvIds: MutableList<String> = mutableListOf()
+)

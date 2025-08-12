@@ -70,8 +70,11 @@ subprojects {
 
         implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.11.0")
 
-        implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
-        implementation("org.springdoc:springdoc-openapi-starter-common:2.3.0")
+        implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+        implementation("org.springdoc:springdoc-openapi-starter-common:2.8.9")
+        implementation("io.github.oshai:kotlin-logging:7.0.12")
+        implementation("org.jetbrains.kotlin:kotlin-reflect")
+        implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
         testImplementation("org.projectlombok:lombok")
         testImplementation("org.mockito:mockito-core")

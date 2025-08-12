@@ -1,3 +1,3 @@
-package com.pluxity.device.dto;
+package com.pluxity.device.dto
 
-public record GsDeviceCreateRequest(String id, String name, Long categoryId) {}
+data class GsDeviceCreateRequest(val id: String, val name: String, val categoryId: Long?)

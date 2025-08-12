@@ -73,8 +73,8 @@ class GsDeviceServiceTest {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.id()).isEqualTo(savedId);
-        assertThat(response.name()).isEqualTo("Test Device");
+        assertThat(response.getId()).isEqualTo(savedId);
+        assertThat(response.getName()).isEqualTo("Test Device");
     }
 
     @Test
@@ -98,7 +98,7 @@ class GsDeviceServiceTest {
 
         // then
         assertThat(responses).hasSize(1);
-        assertThat(responses.getFirst().name()).isEqualTo("Test Device");
+        assertThat(responses.getFirst().getName()).isEqualTo("Test Device");
     }
 
     @Test

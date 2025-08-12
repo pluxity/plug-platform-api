@@ -1,42 +1,33 @@
-package com.pluxity.device;
+package com.pluxity.device
 
-import com.pluxity.device.entity.Device;
-import com.pluxity.device.entity.DeviceCategory;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.pluxity.device.entity.Device
+import com.pluxity.device.entity.DeviceCategory
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 
 @Entity
 @Table(name = "gs_device")
 @DiscriminatorValue("gs_device")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GsDevice extends Device {
+class GsDevice (
+    id: String,
+    category: DeviceCategory?,
+    @Column(name = "name")                     // DB 컬럼은 name 유지
+    var deviceName: String = ""
+) : Device(id, category) {
 
-    private String name;
-
-    @Override
-    public String getName() {
-        return this.name;
+    override fun getName(): String {
+        return this.deviceName
     }
 
-    @Builder
-    public GsDevice(String id, DeviceCategory category, String name) {
-        super(id, category);
-        this.name = name;
-    }
-
-    public void update(String name) {
+    fun update(name: String?) {
         if (name != null) {
-            this.name = name;
+            this.deviceName = name
         }
     }
 
-    public void putUpdate(String name) {
-        this.name = name;
+    fun putUpdate(name: String) {
+        this.deviceName = name
     }
 }
