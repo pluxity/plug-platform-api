@@ -127,7 +127,15 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     @Transactional
     public void update(Long id, DeviceCategoryUpdateRequest request) {
         DeviceCategory deviceCategory = findById(id);
-        super.update(id, request.name(), request.parentId());
+
+        if (request.parentId() == null) {
+            if (request.name() != null) {
+                deviceCategory.updateName(request.name());
+            }
+            deviceCategory.assignToRootPreservingEntity();
+        } else {
+            super.update(id, request.name(), request.parentId());
+        }
 
         if (request.thumbnailFileId() != null) {
             deviceCategory.updateIconFileId(request.thumbnailFileId());

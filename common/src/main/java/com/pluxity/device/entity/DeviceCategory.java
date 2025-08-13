@@ -44,4 +44,9 @@ public class DeviceCategory extends Category<DeviceCategory> {
             this.devices.remove(device);
         }
     }
+
+    public void assignToRootPreservingEntity() {
+        this.parent = null;
+        this.validateDepth();
+    }
 }

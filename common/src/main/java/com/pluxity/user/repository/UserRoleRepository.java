@@ -3,7 +3,7 @@ package com.pluxity.user.repository;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.entity.UserRole;
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 import jakarta.annotation.Nonnull;
 import java.util.List;
 import org.springframework.data.jpa.repository.EntityGraph;

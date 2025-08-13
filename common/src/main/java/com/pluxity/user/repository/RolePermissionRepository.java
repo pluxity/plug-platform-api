@@ -3,7 +3,7 @@ package com.pluxity.user.repository;
 import com.pluxity.permission.PermissionGroup;
 import com.pluxity.user.entity.Role;
 import com.pluxity.user.entity.RolePermission;
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
