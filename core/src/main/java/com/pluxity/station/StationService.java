@@ -20,6 +20,7 @@ import com.pluxity.station.dto.StationCreateRequest;
 import com.pluxity.station.dto.StationResponse;
 import com.pluxity.station.dto.StationResponseWithFeature;
 import com.pluxity.station.dto.StationUpdateRequest;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ public class StationService implements FacilityProvider {
     private final Label3DRepository label3DRepository;
     private final StationCodeService stationCodeService;
     private final StationLineService stationLineService;
+    private final EntityManager em;
 
     @Transactional
     public Long save(StationCreateRequest request) {
@@ -147,6 +149,8 @@ public class StationService implements FacilityProvider {
         floorService.delete(station);
         stationLineService.deleteByStation(station);
         stationCodeService.deleteByStation(station);
+        em.flush();
+        em.clear();
         facilityService.deleteFacility(id);
     }
 

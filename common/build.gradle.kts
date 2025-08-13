@@ -1,3 +1,7 @@
+plugins {
+    id("java-test-fixtures")
+}
+
 dependencies {
     implementation("software.amazon.awssdk:s3:2.30.24")
 
@@ -12,6 +16,7 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("com.h2database:h2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testFixturesImplementation(kotlin("stdlib"))
 
 }
 

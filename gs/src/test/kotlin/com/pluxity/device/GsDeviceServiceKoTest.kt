@@ -1,16 +1,18 @@
 package com.pluxity.device
 
+import cctv.dummyCctv
 import com.pluxity.cctv.CctvService
 import com.pluxity.cctv.entity.DeviceCctv
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.device.dto.GsDeviceCctvUpdateRequest
-import com.pluxity.device.dto.GsDeviceCreateRequest
 import com.pluxity.device.dto.GsDeviceUpdateRequest
 import com.pluxity.device.dto.dummyCreateGsDeviceRequest
 import com.pluxity.device.entity.*
 import com.pluxity.device.service.DeviceCategoryService
 import com.pluxity.file.service.FileService
 import com.pluxity.global.exception.CustomException
+import device.dummyDeviceCategory
+import file.dummyFileResponse
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -76,7 +78,7 @@ class GsDeviceServiceKoTest : BehaviorSpec({
                 repository.findByIdOrNull(any())
             } returns null
             Then("NOT_FOUND_DEVICE 예외 발생") {
-                val searchId = UUID.randomUUID().toString();
+                val searchId = UUID.randomUUID().toString()
                 shouldThrow<CustomException> {
                     gsDeviceService.findById(searchId)
                 }.message shouldBe "ID가 ${searchId}인 디바이스를 찾을 수 없습니다."
