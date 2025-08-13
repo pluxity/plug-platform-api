@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
-class UserRolePermissionIntegrationTest {
+class UserRolePermissionGroupTest {
 
     @Autowired private UserService userService;
     @Autowired private RoleService roleService;

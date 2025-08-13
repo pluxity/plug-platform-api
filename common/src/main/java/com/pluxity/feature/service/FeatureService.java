@@ -92,13 +92,17 @@ public class FeatureService {
     }
 
     @Transactional
-    public void assignDeviceToFeature(String featureId, FeatureAssignDto assignDto) {
+    public void assignDeviceToFeature(String featureId, FeatureAssignDto assignDto, boolean force) {
         log.debug("피처에 디바이스 할당: featureId={}, assignDto={}", featureId, assignDto);
 
         Feature feature = findFeatureById(featureId);
 
         // 디바이스 조회 - id로 조회
         Device device = findDeviceById(assignDto.id());
+        if (!force && device.getFeature() != null) {
+            throw new CustomException(DUPLICATE_DEVICE_OTHER_FEATURE, assignDto.id());
+        }
+
         deviceRepository.updateFeatureByFeature(feature);
         device.changeFeature(feature);
 
@@ -116,17 +120,16 @@ public class FeatureService {
         Feature feature = findFeatureById(featureId);
         Device device = findDeviceById(assignDto.id());
 
-        // 특정 디바이스 ID로 검증
-        String deviceId = device.getId();
-        boolean isMatchingDevice = assignDto.id().equals(deviceId);
+        if (device.getFeature() == null) {
+            throw new CustomException(DEVICE_NOT_ASSIGNED, device.getId());
+        }
 
-        // 일치하는 디바이스가 아닌 경우 예외 발생
-        if (!isMatchingDevice) {
-            throw new CustomException(DEVICE_MISMATCH);
+        if (!device.getFeature().getId().equals(feature.getId())) {
+            throw new CustomException(DEVICE_MISMATCH, "해당 피처에 할당된 디바이스가 아닙니다.");
         }
 
         device.changeFeature(null);
-        log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, deviceId);
+        log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, device.getId());
     }
 
     private FeatureResponse getFeatureResponse(Feature feature) {

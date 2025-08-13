@@ -16,6 +16,7 @@ import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -56,10 +57,27 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     @Transactional(readOnly = true)
     public DeviceCategoryResponse getDeviceCategory(Long id) {
         DeviceCategoryAllResponse allCategories = getDeviceCategories();
-        return allCategories.list().stream()
-                .filter(v -> v.id().equals(id))
-                .findFirst()
+
+        return findCategoryInTree(allCategories.list(), id)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_DEVICE_CATEGORY, id));
+    }
+
+    private Optional<DeviceCategoryResponse> findCategoryInTree(
+            List<DeviceCategoryResponse> categories, Long id) {
+        for (DeviceCategoryResponse category : categories) {
+            if (category.id().equals(id)) {
+                return Optional.of(category);
+            }
+
+            if (category.children() != null && !category.children().isEmpty()) {
+                Optional<DeviceCategoryResponse> foundInChildren =
+                        findCategoryInTree(category.children(), id);
+                if (foundInChildren.isPresent()) {
+                    return foundInChildren;
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     @Transactional(readOnly = true)
