@@ -1,9 +1,11 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 plugins {
     val kotlinVersion = "1.9.25"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "3.5.4"
-    id("io.spring.dependency-management") version "1.1.7"
+    id("org.springframework.boot") version "3.5.4" apply false
+    id("io.spring.dependency-management") version "1.1.7" apply false
     kotlin("plugin.jpa") version kotlinVersion
     id("com.diffplug.spotless") version "6.21.0"
 
@@ -101,7 +103,7 @@ subprojects {
         useJUnitPlatform()
     }
 
-    tasks.bootJar {
+    tasks.withType<BootJar> {
         enabled = false
     }
 

@@ -40,7 +40,7 @@ fun dummyCctv(
     url: String = "url",
     category: DeviceCategory? = null,
     feature: Feature? = null
-): Cctv = Cctv(id, name, url, category, feature)
+): Cctv = Cctv(id, name, url, category)
 
 fun dummyFileResponse(
     id: Long = 1L,
