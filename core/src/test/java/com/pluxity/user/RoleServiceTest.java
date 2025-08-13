@@ -5,14 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.pluxity.building.Building;
 import com.pluxity.building.BuildingRepository;
-import com.pluxity.permission.PermissionGroupRepository;
-import com.pluxity.permission.PermissionGroupService;
-import com.pluxity.permission.PermissionRepository;
-import com.pluxity.permission.ResourceType;
+import com.pluxity.permission.*;
 import com.pluxity.permission.dto.PermissionGroupCreateRequest;
 import com.pluxity.permission.dto.PermissionRequest;
 import com.pluxity.permission.dto.PermissionResponse;
 import com.pluxity.user.dto.*;
+import com.pluxity.user.entity.Role;
+import com.pluxity.user.entity.RolePermission;
+import com.pluxity.user.repository.RolePermissionRepository;
+import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.service.RoleService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -38,6 +39,8 @@ class RoleServiceTest {
     @Autowired private PermissionGroupRepository permissionGroupRepository; // 추가
     @Autowired private BuildingRepository buildingRepository;
     @Autowired private EntityManager em;
+    @Autowired private RoleRepository roleRepository;
+    @Autowired private RolePermissionRepository rolePermissionRepository;
 
     private final List<Building> buildings = new ArrayList<>();
     // permissionIds -> permissionGroupIds
@@ -173,7 +176,18 @@ class RoleServiceTest {
     @DisplayName("Role 삭제 후, 서비스를 통해 조회 시 예외가 발생하는지 검증한다")
     void delete_andVerifyDeletionWithService() {
         // GIVEN
-        Long roleId = roleService.save(new RoleCreateRequest("Deletable Role", "Desc", List.of(permissionGroupIds.get(0))));
+        Role role = roleRepository.save(Role.builder().name("Deletable Role").description("Desc").build());
+        em.flush();
+        em.clear();
+        PermissionGroup permissionGroup = permissionGroupService.findPermissionGroupById(permissionGroupIds.getFirst());
+        List<RolePermission> newRolePermissions = List.of(RolePermission.builder()
+                .permissionGroup(permissionGroup)
+                .role(role)
+                .build());
+        rolePermissionRepository.saveAll(newRolePermissions);
+        newRolePermissions.forEach(role::addRolePermission);
+        Long roleId = role.getId();
+
         assertThat(roleService.findById(roleId)).isNotNull();
 
         long initialGroupCount = permissionGroupRepository.count();
