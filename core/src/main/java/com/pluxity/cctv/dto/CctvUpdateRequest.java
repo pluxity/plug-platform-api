@@ -5,10 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record CctvUpdateRequest(
-        @Schema(description = "CCTV ID", example = "id")
-                @NotBlank(message = "ID는 필수 입니다.")
-                @Size(max = 50, message = "ID는 최대 50자까지 입력 가능합니다.")
-                String id,
         @Schema(description = "CCTV 이름", example = "cctv1")
                 @NotBlank(message = "CCTV 이름은 필수 입니다.")
                 @Size(max = 50, message = "CCTV 이름은 최대 50자까지 입력 가능합니다.")
