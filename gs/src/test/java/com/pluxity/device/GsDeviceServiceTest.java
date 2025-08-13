@@ -114,7 +114,7 @@ class GsDeviceServiceTest {
         GsDeviceUpdateRequest updateRequest = new GsDeviceUpdateRequest("Updated Name", updatedCategory.getId());
 
         // when
-        featureService.assignDeviceToFeature(updatedFeature.getId(), new FeatureAssignDto(savedId));
+        featureService.assignDeviceToFeature(updatedFeature.getId(), new FeatureAssignDto(savedId), false);
         assertDoesNotThrow(() -> gsDeviceService.update(savedId, updateRequest));
         em.flush();
         em.clear();

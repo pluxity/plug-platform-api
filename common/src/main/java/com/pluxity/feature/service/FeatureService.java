@@ -92,13 +92,17 @@ public class FeatureService {
     }
 
     @Transactional
-    public void assignDeviceToFeature(String featureId, FeatureAssignDto assignDto) {
+    public void assignDeviceToFeature(String featureId, FeatureAssignDto assignDto, boolean force) {
         log.debug("피처에 디바이스 할당: featureId={}, assignDto={}", featureId, assignDto);
 
         Feature feature = findFeatureById(featureId);
 
         // 디바이스 조회 - id로 조회
         Device device = findDeviceById(assignDto.id());
+        if (!force && device.getFeature() != null) {
+            throw new CustomException(DUPLICATE_DEVICE_OTHER_FEATURE, assignDto.id());
+        }
+
         deviceRepository.updateFeatureByFeature(feature);
         device.changeFeature(feature);
 

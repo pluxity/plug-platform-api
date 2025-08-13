@@ -161,8 +161,11 @@ public class FeatureController {
     public ResponseEntity<Void> assignDeviceToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
             @Parameter(description = "할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
-                    FeatureAssignDto assignDto) {
-        featureService.assignDeviceToFeature(featureId, assignDto);
+                    FeatureAssignDto assignDto,
+            @Parameter(description = "이미 할당된 디바이스가 있을 경우 강제로 재할당할지 여부")
+                    @RequestParam(required = false, defaultValue = "false")
+                    boolean force) {
+        featureService.assignDeviceToFeature(featureId, assignDto, force);
         return ResponseEntity.noContent().build();
     }
 

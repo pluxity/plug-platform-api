@@ -271,7 +271,7 @@ class FeatureServiceTest {
         assertThat(device.getFeature()).isNull();
 
         // WHEN
-        featureService.assignDeviceToFeature(feature.getId(), new FeatureAssignDto(device.getId()));
+        featureService.assignDeviceToFeature(feature.getId(), new FeatureAssignDto(device.getId()), false);
 
         // THEN: DB 직접 검증
         Device updatedDevice = deviceRepository.findById(device.getId()).orElseThrow();
@@ -285,7 +285,7 @@ class FeatureServiceTest {
         // GIVEN: 디바이스가 할당된 피처
         Feature feature = createAndSaveFeature("F_REMOVE_DEV", testFacility);
         Device device = createAndSaveDevice();
-        featureService.assignDeviceToFeature(feature.getId(), new FeatureAssignDto(device.getId()));
+        featureService.assignDeviceToFeature(feature.getId(), new FeatureAssignDto(device.getId()), false);
         assertThat(deviceRepository.findById(device.getId()).orElseThrow().getFeature()).isNotNull();
 
         // WHEN
@@ -303,7 +303,7 @@ class FeatureServiceTest {
         Feature feature = createAndSaveFeature("F_MISMATCH", testFacility);
         Device assignedDevice = createAndSaveDevice();
         Device otherDevice = createAndSaveDevice();
-        featureService.assignDeviceToFeature(feature.getId(), new FeatureAssignDto(assignedDevice.getId()));
+        featureService.assignDeviceToFeature(feature.getId(), new FeatureAssignDto(assignedDevice.getId()), false);
 
         // WHEN & THEN: 다른 디바이스 ID로 해제 시도
         assertThrows(CustomException.class, () -> featureService.removeDeviceFromFeature(feature.getId(), new FeatureAssignDto(otherDevice.getId())));
