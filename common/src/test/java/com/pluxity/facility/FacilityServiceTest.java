@@ -19,7 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -30,9 +30,9 @@ class FacilityServiceTest {
     @Autowired private FacilityRepository facilityRepository;
     @Autowired private TestFileUploader testFileUploader;
 
-    @MockBean private FacilityHistoryService facilityHistoryService;
-    @MockBean private FacilityPathService facilityPathService;
-    @MockBean private FloorService floorService;
+    @MockitoBean private FacilityHistoryService facilityHistoryService;
+    @MockitoBean private FacilityPathService facilityPathService;
+    @MockitoBean private FloorService floorService;
 
     // Facility 추상 클래스를 상속받는 테스트용 구체 클래스
     @Entity

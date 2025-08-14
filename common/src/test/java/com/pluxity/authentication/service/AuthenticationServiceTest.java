@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class AuthenticationServiceTest {
 
-    // @MockBean 대신 실제 Bean들을 모두 @Autowired로 주입받습니다.
+    // @MockitoBean 대신 실제 Bean들을 모두 @Autowired로 주입받습니다.
     @Autowired private AuthenticationService authenticationService;
     @Autowired private UserRepository userRepository;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
