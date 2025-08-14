@@ -8,6 +8,7 @@ import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.device.service.DeviceCategoryService
 import com.pluxity.file.service.FileService
+import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import file.dummyFileResponse
 import io.kotest.assertions.throwables.shouldThrow
@@ -88,7 +89,7 @@ class CctvServiceKoTest : BehaviorSpec({
                 val searchId = UUID.randomUUID().toString()
                 shouldThrow<CustomException> {
                     cctvService.findById(searchId)
-                }.message shouldBe "ID가 ${searchId}인 CCTV를 찾을 수 없습니다."
+                }.message shouldBe ErrorCode.NOT_FOUND_CCTV.message.format(searchId)
             }
         }
     }
