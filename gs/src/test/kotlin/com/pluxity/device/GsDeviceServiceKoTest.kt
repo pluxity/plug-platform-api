@@ -10,6 +10,7 @@ import com.pluxity.device.dto.dummyCreateGsDeviceRequest
 import com.pluxity.device.entity.*
 import com.pluxity.device.service.DeviceCategoryService
 import com.pluxity.file.service.FileService
+import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import device.dummyDeviceCategory
 import file.dummyFileResponse
@@ -81,7 +82,7 @@ class GsDeviceServiceKoTest : BehaviorSpec({
                 val searchId = UUID.randomUUID().toString()
                 shouldThrow<CustomException> {
                     gsDeviceService.findById(searchId)
-                }.message shouldBe "ID가 ${searchId}인 디바이스를 찾을 수 없습니다."
+                }.message shouldBe ErrorCode.NOT_FOUND_DEVICE.message.format(searchId)
             }
         }
     }
@@ -158,7 +159,7 @@ class GsDeviceServiceKoTest : BehaviorSpec({
             Then("정상 제거") {
                 shouldThrow<CustomException> {
                     gsDeviceService.removeCategory(device.id)
-                }.message shouldBe "ID가 ${device.id}인 디바이스에 할당된 카테고리를 찾을 수 없습니다."
+                }.message shouldBe ErrorCode.NOT_FOUND_ASSIGN_DEVICE_CATEGORY.message.format(device.id)
             }
         }
     }
