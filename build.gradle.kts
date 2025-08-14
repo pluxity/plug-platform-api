@@ -7,7 +7,7 @@ plugins {
     id("org.springframework.boot") version "3.5.4" apply false
     id("io.spring.dependency-management") version "1.1.7" apply false
     kotlin("plugin.jpa") version kotlinVersion
-    id("com.diffplug.spotless") version "6.21.0"
+    id("com.diffplug.spotless") version "6.25.0"
 
     // kotlin 에서 lombok 사용이 가능해지게 만들어주는 플러그인
     kotlin("plugin.lombok") version kotlinVersion
@@ -109,11 +109,17 @@ subprojects {
 
     spotless {
         java {
-            target("src/main/java/**/*.java")
+            target("src/main/**/*.java")
             removeUnusedImports()
             googleJavaFormat()
             indentWithTabs(2)
             indentWithSpaces(4)
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+        kotlin {
+            target("src/main/**/*.kt")
+            ktlint()
             trimTrailingWhitespace()
             endWithNewline()
         }

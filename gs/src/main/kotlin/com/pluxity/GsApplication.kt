@@ -1,7 +1,7 @@
 package com.pluxity
 
-import org.springframework.boot.runApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
 
 @SpringBootApplication
 class GsApplication

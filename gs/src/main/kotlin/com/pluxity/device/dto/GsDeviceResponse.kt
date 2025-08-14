@@ -6,5 +6,5 @@ data class GsDeviceResponse(
     val id: String,
     val name: String,
     val feature: FeatureResponse?,
-    val deviceCategory: DeviceCategoryResponseWithoutChildren?
+    val deviceCategory: DeviceCategoryResponseWithoutChildren?,
 )

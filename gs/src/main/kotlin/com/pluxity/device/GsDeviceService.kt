@@ -5,7 +5,11 @@ import com.pluxity.cctv.dto.CctvResponse
 import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.entity.DeviceCctv
 import com.pluxity.cctv.repository.DeviceCctvRepository
-import com.pluxity.device.dto.*
+import com.pluxity.device.dto.DeviceCategoryResponseWithoutChildren
+import com.pluxity.device.dto.GsDeviceCctvUpdateRequest
+import com.pluxity.device.dto.GsDeviceCreateRequest
+import com.pluxity.device.dto.GsDeviceResponse
+import com.pluxity.device.dto.GsDeviceUpdateRequest
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
 import com.pluxity.device.service.DeviceCategoryService
@@ -41,38 +45,43 @@ class GsDeviceService(
 
     @Transactional(readOnly = true)
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
-    fun findById(id: String): GsDeviceResponse =
-        createResponse(getDevice(id), getThumbnailFile(getDevice(id)))
+    fun findById(id: String): GsDeviceResponse = createResponse(getDevice(id), getThumbnailFile(getDevice(id)))
 
-    private fun getThumbnailFile(gsDevice: Device): FileResponse? = gsDevice.category?.let {
-        fileService.getFileResponse(it.iconFileId)
-    }
+    private fun getThumbnailFile(gsDevice: Device): FileResponse? =
+        gsDevice.category?.let {
+            fileService.getFileResponse(it.iconFileId)
+        }
 
-    private fun getDevice(id: String): GsDevice = repository
-        .findByIdOrNull(id)
-        ?: throw CustomException(ErrorCode.NOT_FOUND_DEVICE, id)
+    private fun getDevice(id: String): GsDevice =
+        repository.findByIdOrNull(id)
+            ?: throw CustomException(ErrorCode.NOT_FOUND_DEVICE, id)
 
     @Transactional(readOnly = true)
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
     fun findAll(): List<GsDeviceResponse> {
         val gsDevices = repository.findAll()
-        val categoryList = gsDevices
-            .mapNotNull { it.category }
+        val categoryList =
+            gsDevices
+                .mapNotNull { it.category }
         val fileMap =
             MappingUtils.getFileMapByIds(
                 categoryList,
                 { v: DeviceCategory -> Stream.of(v.iconFileId) },
-                fileService
+                fileService,
             )
         return gsDevices.map { gsDevice: GsDevice ->
             createResponse(
-                gsDevice, fileMap[gsDevice.category?.iconFileId]
+                gsDevice,
+                fileMap[gsDevice.category?.iconFileId],
             )
         }
     }
 
     @Transactional
-    fun update(id: String, request: GsDeviceUpdateRequest) {
+    fun update(
+        id: String,
+        request: GsDeviceUpdateRequest,
+    ) {
         val device = getDevice(id)
         device.update(request.name)
         request.categoryId?.let { categoryId ->
@@ -81,7 +90,10 @@ class GsDeviceService(
     }
 
     @Transactional
-    fun putUpdate(id: String, request: GsDeviceUpdateRequest) {
+    fun putUpdate(
+        id: String,
+        request: GsDeviceUpdateRequest,
+    ) {
         val device = getDevice(id)
         device.putUpdate(request.name)
         val category = request.categoryId?.let(deviceCategoryService::findById)
@@ -97,7 +109,10 @@ class GsDeviceService(
     }
 
     @Transactional
-    fun assignCategory(deviceId: String, categoryId: Long) {
+    fun assignCategory(
+        deviceId: String,
+        categoryId: Long,
+    ) {
         val device = getDevice(deviceId)
         device.changeCategory(deviceCategoryService.findById(categoryId))
         log.info { "디바이스 [$deviceId]에 카테고리 [$categoryId]가 할당되었습니다." }
@@ -125,15 +140,19 @@ class GsDeviceService(
                     cctv.feature?.let { FeatureResponse.from(it) },
                     cctv.category?.let {
                         DeviceCategoryResponseWithoutChildren.from(
-                            it, getThumbnailFile(cctv)
+                            it,
+                            getThumbnailFile(cctv),
                         )
-                    }
+                    },
                 )
             }
     }
 
     @Transactional
-    fun assignCctvToDevice(deviceId: String, request: GsDeviceCctvUpdateRequest) {
+    fun assignCctvToDevice(
+        deviceId: String,
+        request: GsDeviceCctvUpdateRequest,
+    ) {
         val device = getDevice(deviceId)
         val existIds = deviceCctvRepository.findByDevice(device).map { it.cctv.id!! }
 
@@ -157,7 +176,10 @@ class GsDeviceService(
         removeList.takeIf { it.isNotEmpty() }?.let(deviceCctvRepository::deleteByCctvIdIn)
     }
 
-    private fun createResponse(gsDevice: GsDevice, thumbnailFile: FileResponse?): GsDeviceResponse {
+    private fun createResponse(
+        gsDevice: GsDevice,
+        thumbnailFile: FileResponse?,
+    ): GsDeviceResponse {
         return GsDeviceResponse(
             gsDevice.id,
             gsDevice.name,
@@ -165,5 +187,4 @@ class GsDeviceService(
             gsDevice.category?.let { DeviceCategoryResponseWithoutChildren.from(it, thumbnailFile) },
         )
     }
-
 }

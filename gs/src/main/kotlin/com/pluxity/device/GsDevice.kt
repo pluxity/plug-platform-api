@@ -10,13 +10,13 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "gs_device")
 @DiscriminatorValue("gs_device")
-class GsDevice (
+class GsDevice(
     id: String,
     category: DeviceCategory?,
-    @Column(name = "name")                     // DB 컬럼은 name 유지
-    var deviceName: String = ""
+    // DB 컬럼은 name 유지
+    @Column(name = "name")
+    var deviceName: String = "",
 ) : Device(id, category) {
-
     override fun getName(): String {
         return this.deviceName
     }
