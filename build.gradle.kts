@@ -110,6 +110,14 @@ subprojects {
     spotless {
         java {
             target("src/main/java/**/*.java")
+            importOrder(
+                "java",
+                "jakarta",
+                "javax",
+                "com",
+                "org",
+                ""
+            )
             removeUnusedImports()
             googleJavaFormat()
             indentWithTabs(2)
