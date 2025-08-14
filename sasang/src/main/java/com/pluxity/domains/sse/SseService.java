@@ -1,12 +1,14 @@
 package com.pluxity.domains.sse;
 
 import jakarta.annotation.PreDestroy;
+import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -87,6 +89,21 @@ public class SseService {
             log.warn("Failed to send event to client {}: {}", clientId, e.getMessage());
             // emitter.completeWithError(e); // onError 콜백을 직접 트리거하고 싶다면 호출 가능.
         }
+    }
+
+    @Scheduled(fixedRate = 30000)
+    public void sendHeartbeat() {
+        emitters.forEach(
+                (id, emitter) -> {
+                    try {
+                        emitter.send(
+                                SseEmitter.event().name("heartbeat").data("heartbeat").comment("heartbeat"));
+                        log.info("Sent heartbeat to {}", id);
+                    } catch (IOException e) {
+                        log.warn("Failed to send heartbeat to client {}, removing emitter.", id);
+                        emitters.remove(id);
+                    }
+                });
     }
 
     @PreDestroy
