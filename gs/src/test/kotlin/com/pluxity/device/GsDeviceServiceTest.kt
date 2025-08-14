@@ -19,21 +19,26 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
+import java.util.UUID
 
 @SpringBootTest(classes = [GsApplication::class])
 @Transactional
 internal class GsDeviceServiceTest {
     @Autowired
     lateinit var gsDeviceService: GsDeviceService
+
     @Autowired
     lateinit var gsDeviceRepository: GsDeviceRepository
+
     @Autowired
     lateinit var featureRepository: FeatureRepository
+
     @Autowired
     lateinit var deviceCategoryRepository: DeviceCategoryRepository
+
     @Autowired
     lateinit var em: EntityManager
+
     @Autowired
     lateinit var featureService: FeatureService
 
@@ -108,7 +113,7 @@ internal class GsDeviceServiceTest {
         featureService.assignDeviceToFeature(updatedFeature.id, FeatureAssignDto(savedId), false)
         gsDeviceService.update(
             savedId,
-            updateRequest
+            updateRequest,
         )
         em.flush()
         em.clear()

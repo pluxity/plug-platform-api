@@ -35,12 +35,11 @@ class AssetServiceTest {
         // GIVEN: 에셋 생성에 필요한 모든 데이터 준비
         Long assetFileId = testFileUploader.initiateTestFileUpload("asset_file.glb");
         Long thumbnailFileId = testFileUploader.initiateTestFileUpload("thumbnail_image.png");
-        Long categoryId = assetCategoryService.createAssetCategory(
-                new AssetCategoryCreateRequest("테스트 카테고리", "TCC", null, null)
-        );
-        AssetCreateRequest request = new AssetCreateRequest(
-                "테스트 에셋", "TES", assetFileId, thumbnailFileId, categoryId
-        );
+        Long categoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("테스트 카테고리", "TCC", null, null));
+        AssetCreateRequest request =
+                new AssetCreateRequest("테스트 에셋", "TES", assetFileId, thumbnailFileId, categoryId);
 
         // WHEN: 에셋 생성
         Long createdAssetId = assetService.createAsset(request);
@@ -74,13 +73,15 @@ class AssetServiceTest {
     @DisplayName("성공: 전체 에셋 조회 시 상세 정보가 포함된 목록을 반환한다")
     void getAssets_ReturnsListOfDetailedAssetResponses() {
         // GIVEN: 2개의 서로 다른 에셋 생성
-        Long categoryId = assetCategoryService.createAssetCategory(
-                new AssetCategoryCreateRequest("카테고리", "CAT", null, null)
-        );
-        assetService.createAsset(new AssetCreateRequest("에셋1", "AS1",
-                testFileUploader.initiateTestFileUpload("f1.png"), null, categoryId));
-        assetService.createAsset(new AssetCreateRequest("에셋2", "AS2",
-                testFileUploader.initiateTestFileUpload("f2.png"), null, categoryId));
+        Long categoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("카테고리", "CAT", null, null));
+        assetService.createAsset(
+                new AssetCreateRequest(
+                        "에셋1", "AS1", testFileUploader.initiateTestFileUpload("f1.png"), null, categoryId));
+        assetService.createAsset(
+                new AssetCreateRequest(
+                        "에셋2", "AS2", testFileUploader.initiateTestFileUpload("f2.png"), null, categoryId));
 
         // WHEN: 전체 에셋 조회
         List<AssetResponse> responses = assetService.getAssets();
@@ -88,7 +89,8 @@ class AssetServiceTest {
         // THEN: 목록 및 포함된 내용 검증
         assertThat(responses).hasSize(2);
 
-        AssetResponse firstAsset = responses.stream().filter(a -> a.code().equals("AS1")).findFirst().orElseThrow();
+        AssetResponse firstAsset =
+                responses.stream().filter(a -> a.code().equals("AS1")).findFirst().orElseThrow();
         assertThat(firstAsset.name()).isEqualTo("에셋1");
         assertThat(firstAsset.categoryId()).isEqualTo(categoryId);
         assertThat(firstAsset.file()).isNotNull();
@@ -98,18 +100,26 @@ class AssetServiceTest {
     @DisplayName("성공: 유효한 요청으로 에셋 정보를 수정하고, 모든 필드의 변경사항을 검증한다")
     void updateAsset_WithValidRequest_UpdatesAssetAndVerifiesChanges() {
         // GIVEN: 원본 에셋 생성
-        Long originalCategoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("원본 카테고리", "ORI", null, null));
-        Long originalAssetId = assetService.createAsset(new AssetCreateRequest("원본 에셋", "ORI_A",
-                testFileUploader.initiateTestFileUpload("ori_f.png"),
-                testFileUploader.initiateTestFileUpload("ori_t.png"), originalCategoryId));
+        Long originalCategoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("원본 카테고리", "ORI", null, null));
+        Long originalAssetId =
+                assetService.createAsset(
+                        new AssetCreateRequest(
+                                "원본 에셋",
+                                "ORI_A",
+                                testFileUploader.initiateTestFileUpload("ori_f.png"),
+                                testFileUploader.initiateTestFileUpload("ori_t.png"),
+                                originalCategoryId));
 
         // GIVEN: 수정을 위한 새로운 데이터 준비
-        Long newCategoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("새 카테고리", "NEW_C", null, null));
+        Long newCategoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("새 카테고리", "NEW_C", null, null));
         Long newFileId = testFileUploader.initiateTestFileUpload("new_f.png");
         Long newThumbnailId = testFileUploader.initiateTestFileUpload("new_t.png");
-        AssetUpdateRequest updateRequest = new AssetUpdateRequest(
-                "수정된 에셋", "UPD_A", newFileId, newThumbnailId, newCategoryId
-        );
+        AssetUpdateRequest updateRequest =
+                new AssetUpdateRequest("수정된 에셋", "UPD_A", newFileId, newThumbnailId, newCategoryId);
 
         // WHEN: 에셋 정보 수정
         assetService.updateAsset(originalAssetId, updateRequest);
@@ -128,8 +138,10 @@ class AssetServiceTest {
     @DisplayName("성공: 에셋을 삭제하면 DB에서 조회되지 않는다")
     void deleteAsset_RemovesAsset() {
         // GIVEN: 삭제할 에셋 생성
-        Long assetId = assetService.createAsset(new AssetCreateRequest("삭제될 에셋", "DEL",
-                testFileUploader.initiateTestFileUpload("del.png"), null, null));
+        Long assetId =
+                assetService.createAsset(
+                        new AssetCreateRequest(
+                                "삭제될 에셋", "DEL", testFileUploader.initiateTestFileUpload("del.png"), null, null));
         assertThat(assetRepository.findById(assetId)).isPresent();
 
         // WHEN: 에셋 삭제
@@ -144,12 +156,20 @@ class AssetServiceTest {
     @DisplayName("성공: 에셋에 카테고리를 할당하면 정보가 업데이트된다")
     void assignCategory_UpdatesAssetCategory() {
         // GIVEN: 카테고리가 없는 에셋 생성
-        Long assetId = assetService.createAsset(new AssetCreateRequest("카테고리 없는 에셋", "NO_CAT",
-                testFileUploader.initiateTestFileUpload("file.png"), null, null));
+        Long assetId =
+                assetService.createAsset(
+                        new AssetCreateRequest(
+                                "카테고리 없는 에셋",
+                                "NO_CAT",
+                                testFileUploader.initiateTestFileUpload("file.png"),
+                                null,
+                                null));
         assertThat(assetService.getAsset(assetId).categoryId()).isNull();
 
         // GIVEN: 할당할 카테고리 생성
-        Long categoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("할당될 카테고리", "ASSIGN", null, null));
+        Long categoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("할당될 카테고리", "ASSIGN", null, null));
 
         // WHEN: 카테고리 할당
         assetService.assignCategory(assetId, categoryId);
@@ -165,9 +185,17 @@ class AssetServiceTest {
     @DisplayName("성공: 에셋의 카테고리를 제거하면 null로 변경된다")
     void removeCategory_SetsAssetCategoryToNull() {
         // GIVEN: 카테고리가 있는 에셋 생성
-        Long categoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("제거될 카테고리", "REM", null, null));
-        Long assetId = assetService.createAsset(new AssetCreateRequest("카테고리 있는 에셋", "HAS_CAT",
-                testFileUploader.initiateTestFileUpload("file.png"), null, categoryId));
+        Long categoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("제거될 카테고리", "REM", null, null));
+        Long assetId =
+                assetService.createAsset(
+                        new AssetCreateRequest(
+                                "카테고리 있는 에셋",
+                                "HAS_CAT",
+                                testFileUploader.initiateTestFileUpload("file.png"),
+                                null,
+                                categoryId));
         assertThat(assetService.getAsset(assetId).categoryId()).isNotNull();
 
         // WHEN: 카테고리 제거
@@ -186,12 +214,14 @@ class AssetServiceTest {
     @DisplayName("실패: 중복된 코드로 에셋 생성 시 예외가 발생한다")
     void createAsset_WithDuplicateCode_ThrowsCustomException() {
         // GIVEN: 기준 에셋 생성
-        assetService.createAsset(new AssetCreateRequest("첫 에셋", "DUP_CODE",
-                testFileUploader.initiateTestFileUpload("f1.png"), null, null));
+        assetService.createAsset(
+                new AssetCreateRequest(
+                        "첫 에셋", "DUP_CODE", testFileUploader.initiateTestFileUpload("f1.png"), null, null));
 
         // WHEN & THEN: 동일한 코드로 두 번째 에셋 생성 시도
-        AssetCreateRequest duplicateRequest = new AssetCreateRequest("두 번째 에셋", "DUP_CODE",
-                testFileUploader.initiateTestFileUpload("f2.png"), null, null);
+        AssetCreateRequest duplicateRequest =
+                new AssetCreateRequest(
+                        "두 번째 에셋", "DUP_CODE", testFileUploader.initiateTestFileUpload("f2.png"), null, null);
         assertThrows(CustomException.class, () -> assetService.createAsset(duplicateRequest));
     }
 
@@ -211,8 +241,13 @@ class AssetServiceTest {
     void createAsset_WithInvalidCategoryId_ThrowsCustomException() {
         // GIVEN
         Long invalidCategoryId = 9999L;
-        AssetCreateRequest request = new AssetCreateRequest("에셋", "CODE",
-                testFileUploader.initiateTestFileUpload("file.png"), null, invalidCategoryId);
+        AssetCreateRequest request =
+                new AssetCreateRequest(
+                        "에셋",
+                        "CODE",
+                        testFileUploader.initiateTestFileUpload("file.png"),
+                        null,
+                        invalidCategoryId);
 
         // WHEN & THEN
         assertThrows(CustomException.class, () -> assetService.createAsset(request));
@@ -243,24 +278,31 @@ class AssetServiceTest {
     @DisplayName("실패: 에셋에 이미 카테고리가 없을 때 제거 시도 시 예외가 발생한다")
     void removeCategory_FromAssetWithNoCategory_ThrowsCustomException() {
         // GIVEN: 카테고리가 없는 에셋 생성
-        Long assetId = assetService.createAsset(new AssetCreateRequest("카테고리 없는 에셋", "NO_CAT",
-                testFileUploader.initiateTestFileUpload("file.png"), null, null));
+        Long assetId =
+                assetService.createAsset(
+                        new AssetCreateRequest(
+                                "카테고리 없는 에셋",
+                                "NO_CAT",
+                                testFileUploader.initiateTestFileUpload("file.png"),
+                                null,
+                                null));
 
         // WHEN & THEN
         assertThrows(CustomException.class, () -> assetService.removeCategory(assetId));
     }
 
-
     @Test
     @DisplayName("실패: 중복된 이름으로 에셋 생성 시 예외가 발생한다")
     void createAsset_WithDuplicateName_ThrowsCustomException() {
         // GIVEN: 기준 에셋 생성
-        assetService.createAsset(new AssetCreateRequest("중복된 이름", "CODE1",
-                testFileUploader.initiateTestFileUpload("f1.png"), null, null));
+        assetService.createAsset(
+                new AssetCreateRequest(
+                        "중복된 이름", "CODE1", testFileUploader.initiateTestFileUpload("f1.png"), null, null));
 
         // WHEN & THEN: 동일한 이름으로 두 번째 에셋 생성 시도
-        AssetCreateRequest duplicateRequest = new AssetCreateRequest("중복된 이름", "CODE2",
-                testFileUploader.initiateTestFileUpload("f2.png"), null, null);
+        AssetCreateRequest duplicateRequest =
+                new AssetCreateRequest(
+                        "중복된 이름", "CODE2", testFileUploader.initiateTestFileUpload("f2.png"), null, null);
         assertThrows(CustomException.class, () -> assetService.createAsset(duplicateRequest));
     }
 
@@ -268,8 +310,13 @@ class AssetServiceTest {
     @DisplayName("성공: 카테고리 없이 에셋을 생성할 수 있다")
     void createAsset_withNullCategoryId_succeeds() {
         // GIVEN
-        AssetCreateRequest request = new AssetCreateRequest("카테고리 없는 에셋", "NO_CAT",
-                testFileUploader.initiateTestFileUpload("file.png"), null, null);
+        AssetCreateRequest request =
+                new AssetCreateRequest(
+                        "카테고리 없는 에셋",
+                        "NO_CAT",
+                        testFileUploader.initiateTestFileUpload("file.png"),
+                        null,
+                        null);
 
         // WHEN
         Long createdAssetId = assetService.createAsset(request);
@@ -285,8 +332,10 @@ class AssetServiceTest {
     @DisplayName("성공: 에셋 정보 수정 시 이름만 변경해도 정상적으로 반영된다")
     void updateAsset_onlyWithName_updatesSuccessfully() {
         // GIVEN
-        Long assetId = assetService.createAsset(new AssetCreateRequest("원본 이름", "CODE",
-                testFileUploader.initiateTestFileUpload("file.png"), null, null));
+        Long assetId =
+                assetService.createAsset(
+                        new AssetCreateRequest(
+                                "원본 이름", "CODE", testFileUploader.initiateTestFileUpload("file.png"), null, null));
 
         // WHEN: 이름만 포함된 요청으로 업데이트
         AssetUpdateRequest request = new AssetUpdateRequest("새로운 이름", "CODE", null, null, null);
@@ -302,9 +351,17 @@ class AssetServiceTest {
     @DisplayName("성공: 에셋 정보 수정 시 카테고리를 null 로 받더라도 카테고리는 변경되지 않는다.")
     void updateAsset_toNullCategory_updatesSuccessfully() {
         // GIVEN
-        Long categoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("카테고리", "CAT", null, null));
-        Long assetId = assetService.createAsset(new AssetCreateRequest("에셋", "CODE",
-                testFileUploader.initiateTestFileUpload("file.png"), null, categoryId));
+        Long categoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("카테고리", "CAT", null, null));
+        Long assetId =
+                assetService.createAsset(
+                        new AssetCreateRequest(
+                                "에셋",
+                                "CODE",
+                                testFileUploader.initiateTestFileUpload("file.png"),
+                                null,
+                                categoryId));
         assertThat(assetService.getAsset(assetId).categoryId()).isNotNull();
 
         // WHEN: categoryId를 null로 하여 업데이트
@@ -320,8 +377,13 @@ class AssetServiceTest {
     @DisplayName("실패: 에셋 업데이트 시 다른 에셋과 이름이 중복되면 예외가 발생한다")
     void updateAsset_withDuplicateName_throwsCustomException() {
         // GIVEN: 두 개의 에셋 생성
-        assetService.createAsset(new AssetCreateRequest("에셋1", "CODE1", testFileUploader.initiateTestFileUpload("f1.png"), null, null));
-        Long assetId2 = assetService.createAsset(new AssetCreateRequest("에셋2", "CODE2", testFileUploader.initiateTestFileUpload("f2.png"), null, null));
+        assetService.createAsset(
+                new AssetCreateRequest(
+                        "에셋1", "CODE1", testFileUploader.initiateTestFileUpload("f1.png"), null, null));
+        Long assetId2 =
+                assetService.createAsset(
+                        new AssetCreateRequest(
+                                "에셋2", "CODE2", testFileUploader.initiateTestFileUpload("f2.png"), null, null));
 
         // WHEN & THEN: 두 번째 에셋의 이름을 첫 번째 에셋의 이름으로 변경 시도
         AssetUpdateRequest request = new AssetUpdateRequest("에셋1", "CODE2", null, null, null);
@@ -345,7 +407,9 @@ class AssetServiceTest {
     @DisplayName("성공: 특정 카테고리에 에셋이 없는 경우 조회 시 빈 리스트를 반환한다")
     void getAssetsByCategory_whenNoAssetsInCategory_returnsEmptyList() {
         // GIVEN: 에셋이 없는 카테고리 생성
-        Long categoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("빈 카테고리", "EMPTY", null, null));
+        Long categoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("빈 카테고리", "EMPTY", null, null));
 
         // WHEN
         List<AssetResponse> responses = assetService.getAssetsByCategory(categoryId);
@@ -358,11 +422,21 @@ class AssetServiceTest {
     @DisplayName("성공: 이미 카테고리가 있는 에셋에 다른 카테고리를 할당하면 교체된다")
     void assignCategory_toAssetWithExistingCategory_replacesCategory() {
         // GIVEN
-        Long originalCategoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("원본 카테고리", "ORI_C", null, null));
-        Long assetId = assetService.createAsset(new AssetCreateRequest("에셋", "CODE",
-                testFileUploader.initiateTestFileUpload("file.png"), null, originalCategoryId));
+        Long originalCategoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("원본 카테고리", "ORI_C", null, null));
+        Long assetId =
+                assetService.createAsset(
+                        new AssetCreateRequest(
+                                "에셋",
+                                "CODE",
+                                testFileUploader.initiateTestFileUpload("file.png"),
+                                null,
+                                originalCategoryId));
 
-        Long newCategoryId = assetCategoryService.createAssetCategory(new AssetCategoryCreateRequest("새 카테고리", "NEW_C", null, null));
+        Long newCategoryId =
+                assetCategoryService.createAssetCategory(
+                        new AssetCategoryCreateRequest("새 카테고리", "NEW_C", null, null));
 
         // WHEN
         assetService.assignCategory(assetId, newCategoryId);
@@ -372,6 +446,4 @@ class AssetServiceTest {
         assertThat(updatedAsset.categoryId()).isEqualTo(newCategoryId);
         assertThat(updatedAsset.categoryName()).isEqualTo("새 카테고리");
     }
-
-
 }

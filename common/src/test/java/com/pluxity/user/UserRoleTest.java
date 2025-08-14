@@ -59,13 +59,7 @@ public class UserRoleTest {
         List<Long> assignedRoleIds = List.of(roleIds.get(0), roleIds.get(1));
         UserCreateRequest createRequest =
                 new UserCreateRequest(
-                        "newUser",
-                        "password123",
-                        "New User",
-                        "U001",
-                        "010-1234-5678",
-                        "Dev",
-                        assignedRoleIds);
+                        "newUser", "password123", "New User", "U001", "010-1234-5678", "Dev", assignedRoleIds);
 
         // WHEN
         UserResponse savedUserResponse = userService.save(createRequest);
@@ -88,8 +82,7 @@ public class UserRoleTest {
     void save_withDuplicateUsername_throwsException() {
         // GIVEN
         userService.save(
-                new UserCreateRequest(
-                        "duplicateUser", "pw1", "User One", null, null, null, List.of()));
+                new UserCreateRequest("duplicateUser", "pw1", "User One", null, null, null, List.of()));
         em.flush();
         em.clear();
 
@@ -97,20 +90,28 @@ public class UserRoleTest {
         UserCreateRequest duplicateRequest =
                 new UserCreateRequest("duplicateUser", "pw2", "User Two", null, null, null, List.of());
         // unique 제약조건 위반은 flush 시점에 발생
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            userService.save(duplicateRequest);
-            em.flush();
-        });
+        assertThrows(
+                DataIntegrityViolationException.class,
+                () -> {
+                    userService.save(duplicateRequest);
+                    em.flush();
+                });
     }
 
     @Test
     @DisplayName("User 정보 업데이트 시, 역할(Role)까지 올바르게 동기화되는지 검증한다")
     void update_userAndRoles_andVerify() {
         // GIVEN: 1, 2번 역할을 가진 User 생성
-        UserResponse originalUser = userService.save(
-                new UserCreateRequest(
-                        "updateUser", "pw", "Original Name", "C01", "010-1111-1111", "Dept1",
-                        List.of(roleIds.get(0), roleIds.get(1))));
+        UserResponse originalUser =
+                userService.save(
+                        new UserCreateRequest(
+                                "updateUser",
+                                "pw",
+                                "Original Name",
+                                "C01",
+                                "010-1111-1111",
+                                "Dept1",
+                                List.of(roleIds.get(0), roleIds.get(1))));
         Long userId = originalUser.id();
         em.flush();
         em.clear();
@@ -139,8 +140,9 @@ public class UserRoleTest {
     void delete_user_andVerifyCascade() {
         // GIVEN
         long initialRoleCount = roleRepository.count();
-        UserResponse userResponse = userService.save(
-                new UserCreateRequest("deleteUser", "pw", "Del Name", null, null, null, roleIds));
+        UserResponse userResponse =
+                userService.save(
+                        new UserCreateRequest("deleteUser", "pw", "Del Name", null, null, null, roleIds));
         Long userId = userResponse.id();
         em.flush();
         em.clear();
@@ -168,8 +170,10 @@ public class UserRoleTest {
     void updateUserPassword_withCorrectCurrentPassword_succeeds() {
         // GIVEN
         String initialPassword = "password123";
-        UserResponse userResponse = userService.save(
-                new UserCreateRequest("pwUser", initialPassword, "PW User", null, null, null, List.of()));
+        UserResponse userResponse =
+                userService.save(
+                        new UserCreateRequest(
+                                "pwUser", initialPassword, "PW User", null, null, null, List.of()));
         Long userId = userResponse.id();
         em.flush();
         em.clear();
@@ -191,14 +195,17 @@ public class UserRoleTest {
     void updateUserPassword_withIncorrectCurrentPassword_throwsException() {
         // GIVEN
         String initialPassword = "password123";
-        UserResponse userResponse = userService.save(
-                new UserCreateRequest("pwUser2", initialPassword, "PW User2", null, null, null, List.of()));
+        UserResponse userResponse =
+                userService.save(
+                        new UserCreateRequest(
+                                "pwUser2", initialPassword, "PW User2", null, null, null, List.of()));
         Long userId = userResponse.id();
         em.flush();
         em.clear();
 
         // WHEN & THEN
-        UserPasswordUpdateRequest request = new UserPasswordUpdateRequest("wrongPassword", "newPassword");
+        UserPasswordUpdateRequest request =
+                new UserPasswordUpdateRequest("wrongPassword", "newPassword");
         assertThrows(CustomException.class, () -> userService.updateUserPassword(userId, request));
     }
 
@@ -206,8 +213,10 @@ public class UserRoleTest {
     @DisplayName("비밀번호 초기화 시, 새 비밀번호로 변경되고 마지막 변경일이 과거로 설정된다")
     void initPassword_resetsPasswordAndLastChangeDate() {
         // GIVEN
-        UserResponse userResponse = userService.save(
-                new UserCreateRequest("initPwUser", "anyPassword", "Init PW", null, null, null, List.of()));
+        UserResponse userResponse =
+                userService.save(
+                        new UserCreateRequest(
+                                "initPwUser", "anyPassword", "Init PW", null, null, null, List.of()));
         Long userId = userResponse.id();
         em.flush();
         em.clear();

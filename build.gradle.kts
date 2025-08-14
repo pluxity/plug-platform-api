@@ -109,7 +109,7 @@ subprojects {
 
     spotless {
         java {
-            target("src/main/**/*.java")
+            target("src/**/*.java")
             importOrder(
                 "java",
                 "jakarta",
@@ -126,7 +126,7 @@ subprojects {
             endWithNewline()
         }
         kotlin {
-            target("src/main/**/*.kt")
+            target("src/**/*.kt")
             ktlint()
             trimTrailingWhitespace()
             endWithNewline()

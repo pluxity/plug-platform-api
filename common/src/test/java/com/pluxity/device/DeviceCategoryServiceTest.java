@@ -38,9 +38,11 @@ class DeviceCategoryServiceTest {
         public static DeviceInstance createTestInstance() {
             return new DeviceInstance();
         }
-        public DeviceInstance (String id, DeviceCategory deviceCategory) {
+
+        public DeviceInstance(String id, DeviceCategory deviceCategory) {
             super(id, deviceCategory);
         }
+
         @Override
         public String getName() {
             return "Test Device";
@@ -94,12 +96,17 @@ class DeviceCategoryServiceTest {
     @DisplayName("성공: 유효한 요청으로 카테고리 정보를 수정하고 모든 필드의 변경사항을 검증한다")
     void update_withValidRequest_updatesCategory() {
         // GIVEN
-        Long originalParentId = deviceCategoryService.create(new DeviceCategoryRequest("원본 부모", null, null));
-        Long categoryId = deviceCategoryService.create(new DeviceCategoryRequest("원본 이름", originalParentId, testFileUploader.initiateTestFileUpload("old.png")));
+        Long originalParentId =
+                deviceCategoryService.create(new DeviceCategoryRequest("원본 부모", null, null));
+        Long categoryId =
+                deviceCategoryService.create(
+                        new DeviceCategoryRequest(
+                                "원본 이름", originalParentId, testFileUploader.initiateTestFileUpload("old.png")));
 
         Long newParentId = deviceCategoryService.create(new DeviceCategoryRequest("새 부모", null, null));
         Long newIconId = testFileUploader.initiateTestFileUpload("new.png");
-        DeviceCategoryUpdateRequest updateRequest = new DeviceCategoryUpdateRequest("수정된 이름", newParentId, newIconId);
+        DeviceCategoryUpdateRequest updateRequest =
+                new DeviceCategoryUpdateRequest("수정된 이름", newParentId, newIconId);
 
         // WHEN
         deviceCategoryService.update(categoryId, updateRequest);
@@ -118,14 +125,18 @@ class DeviceCategoryServiceTest {
         // GIVEN
         Long root1Id = deviceCategoryService.create(new DeviceCategoryRequest("루트1", null, null));
         Long child1Id = deviceCategoryService.create(new DeviceCategoryRequest("자식1", root1Id, null));
-        Long root2Id = deviceCategoryService.create(new DeviceCategoryRequest("루트2", null, testFileUploader.initiateTestFileUpload("r2.png")));
+        Long root2Id =
+                deviceCategoryService.create(
+                        new DeviceCategoryRequest(
+                                "루트2", null, testFileUploader.initiateTestFileUpload("r2.png")));
 
         // WHEN
         DeviceCategoryAllResponse response = deviceCategoryService.getDeviceCategories();
 
         // THEN
         assertThat(response.list()).hasSize(2);
-        DeviceCategoryResponse root1 = response.list().stream().filter(c -> c.id().equals(root1Id)).findFirst().orElseThrow();
+        DeviceCategoryResponse root1 =
+                response.list().stream().filter(c -> c.id().equals(root1Id)).findFirst().orElseThrow();
         assertThat(root1.children()).hasSize(1);
         assertThat(root1.children().getFirst().id()).isEqualTo(child1Id);
     }
@@ -139,11 +150,13 @@ class DeviceCategoryServiceTest {
         Long child2Id = deviceCategoryService.create(new DeviceCategoryRequest("자식2", parentId, null));
 
         // WHEN
-        List<DeviceCategoryResponse> children = deviceCategoryService.getChildDeviceCategories(parentId);
+        List<DeviceCategoryResponse> children =
+                deviceCategoryService.getChildDeviceCategories(parentId);
 
         // THEN
         assertThat(children).hasSize(2);
-        assertThat(children.stream().map(DeviceCategoryResponse::id)).containsExactlyInAnyOrder(child1Id, child2Id);
+        assertThat(children.stream().map(DeviceCategoryResponse::id))
+                .containsExactlyInAnyOrder(child1Id, child2Id);
         assertThat(children.getFirst().children()).isEmpty();
     }
 
@@ -151,7 +164,8 @@ class DeviceCategoryServiceTest {
     @DisplayName("성공: 연관관계가 없는 카테고리는 정상적으로 삭제된다")
     void delete_withEmptyCategory_deletesSuccessfully() {
         // GIVEN
-        Long categoryId = deviceCategoryService.create(new DeviceCategoryRequest("삭제될 카테고리", null, null));
+        Long categoryId =
+                deviceCategoryService.create(new DeviceCategoryRequest("삭제될 카테고리", null, null));
 
         // WHEN
         deviceCategoryService.delete(categoryId);
@@ -175,10 +189,11 @@ class DeviceCategoryServiceTest {
     @DisplayName("실패: 연결된 디바이스가 있는 카테고리 삭제 시 예외가 발생한다")
     void delete_withAssociatedDevices_throwsCustomException() {
         // GIVEN
-        Long categoryId = deviceCategoryService.create(new DeviceCategoryRequest("디바이스 있는 카테고리", null, null));
+        Long categoryId =
+                deviceCategoryService.create(new DeviceCategoryRequest("디바이스 있는 카테고리", null, null));
         DeviceCategory category = deviceCategoryService.findById(categoryId);
         DeviceInstance device = new DeviceInstance(UUID.randomUUID().toString(), category);
-        
+
         device.changeCategory(category);
         deviceRepository.save(device);
 
@@ -228,7 +243,6 @@ class DeviceCategoryServiceTest {
         assertThrows(CustomException.class, () -> deviceCategoryService.update(parentId, request));
     }
 
-
     @Test
     @DisplayName("성공: 아이콘 파일 없이 카테고리를 생성할 수 있다")
     void create_withoutIconFile_succeeds() {
@@ -251,11 +265,14 @@ class DeviceCategoryServiceTest {
     void update_toNullIconFile_updatesSuccessfully() {
         // GIVEN
         Long iconFileId = testFileUploader.initiateTestFileUpload("icon.png");
-        Long categoryId = deviceCategoryService.create(new DeviceCategoryRequest("아이콘 있는 카테고리", null, iconFileId));
-        assertThat(deviceCategoryService.getDeviceCategory(categoryId).thumbnailFile().id()).isNotNull();
+        Long categoryId =
+                deviceCategoryService.create(new DeviceCategoryRequest("아이콘 있는 카테고리", null, iconFileId));
+        assertThat(deviceCategoryService.getDeviceCategory(categoryId).thumbnailFile().id())
+                .isNotNull();
 
         // WHEN: thumbnailFileId를 null로 하여 업데이트
-        DeviceCategoryUpdateRequest request = new DeviceCategoryUpdateRequest("아이콘 제거된 카테고리", null, null);
+        DeviceCategoryUpdateRequest request =
+                new DeviceCategoryUpdateRequest("아이콘 제거된 카테고리", null, null);
         deviceCategoryService.update(categoryId, request);
 
         // THEN
@@ -316,7 +333,8 @@ class DeviceCategoryServiceTest {
         Long parentId = deviceCategoryService.create(new DeviceCategoryRequest("자식 없는 부모", null, null));
 
         // WHEN
-        List<DeviceCategoryResponse> children = deviceCategoryService.getChildDeviceCategories(parentId);
+        List<DeviceCategoryResponse> children =
+                deviceCategoryService.getChildDeviceCategories(parentId);
 
         // THEN
         assertThat(children).isNotNull().isEmpty();
@@ -329,7 +347,8 @@ class DeviceCategoryServiceTest {
         Long nonExistingParentId = 9999L;
 
         // WHEN & THEN
-        List<DeviceCategoryResponse> childDeviceCategories = deviceCategoryService.getChildDeviceCategories(nonExistingParentId);
+        List<DeviceCategoryResponse> childDeviceCategories =
+                deviceCategoryService.getChildDeviceCategories(nonExistingParentId);
 
         assertThat(childDeviceCategories).isNotNull().isEmpty();
     }

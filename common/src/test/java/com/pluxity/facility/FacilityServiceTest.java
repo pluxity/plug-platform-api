@@ -39,7 +39,8 @@ class FacilityServiceTest {
     @DiscriminatorValue("TEST")
     @NoArgsConstructor
     public static class FacilityInstance extends Facility {
-        public FacilityInstance(String name, String code, String description, Long drawingFileId, Long thumbnailFileId) {
+        public FacilityInstance(
+                String name, String code, String description, Long drawingFileId, Long thumbnailFileId) {
             super(name, code, description, drawingFileId, thumbnailFileId);
         }
     }
@@ -51,11 +52,23 @@ class FacilityServiceTest {
         // GIVEN
         Long drawingFileId = testFileUploader.initiateTestFileUpload("drawing.dwg");
         Long thumbnailFileId = testFileUploader.initiateTestFileUpload("thumb.png");
-        FacilityCreateRequest request = new FacilityCreateRequest(
-                "서울역", "SEOUL_ST", "대한민국 수도의 관문",
-                drawingFileId, thumbnailFileId, 126.97, 37.55, "{'floor': 5}"
-        );
-        FacilityInstance facility = new FacilityInstance(request.name(), request.code(), request.description(), request.drawingFileId(), request.thumbnailFileId());
+        FacilityCreateRequest request =
+                new FacilityCreateRequest(
+                        "서울역",
+                        "SEOUL_ST",
+                        "대한민국 수도의 관문",
+                        drawingFileId,
+                        thumbnailFileId,
+                        126.97,
+                        37.55,
+                        "{'floor': 5}");
+        FacilityInstance facility =
+                new FacilityInstance(
+                        request.name(),
+                        request.code(),
+                        request.description(),
+                        request.drawingFileId(),
+                        request.thumbnailFileId());
 
         // WHEN
         Facility savedFacility = facilityService.save(facility, request);
@@ -79,10 +92,12 @@ class FacilityServiceTest {
     @DisplayName("실패: 중복된 코드로 시설 생성 시 예외가 발생한다")
     void save_withDuplicateCode_throwsCustomException() {
         // GIVEN
-        facilityService.save(new FacilityInstance("시설1", "DUP_CODE", null, null, null),
+        facilityService.save(
+                new FacilityInstance("시설1", "DUP_CODE", null, null, null),
                 new FacilityCreateRequest("시설1", "DUP_CODE", null, null, null, null, null, null));
 
-        FacilityCreateRequest duplicateRequest = new FacilityCreateRequest("시설2", "DUP_CODE", null, null, null, null, null, null);
+        FacilityCreateRequest duplicateRequest =
+                new FacilityCreateRequest("시설2", "DUP_CODE", null, null, null, null, null, null);
         FacilityInstance facility2 = new FacilityInstance("시설2", "DUP_CODE", null, null, null);
 
         // WHEN & THEN
@@ -101,10 +116,13 @@ class FacilityServiceTest {
     @DisplayName("성공: update 요청 시 일부 필드만 정상적으로 수정된다")
     void update_withPartialRequest_updatesOnlyProvidedFields() {
         // GIVEN
-        Facility saved = facilityService.save(new FacilityInstance("원본 이름", "ORI_CODE", "원본 설명", null, null),
-                new FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null));
+        Facility saved =
+                facilityService.save(
+                        new FacilityInstance("원본 이름", "ORI_CODE", "원본 설명", null, null),
+                        new FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null));
 
-        FacilityUpdateRequest request = new FacilityUpdateRequest("수정된 이름", null, null, null, 2.0, null, null);
+        FacilityUpdateRequest request =
+                new FacilityUpdateRequest("수정된 이름", null, null, null, 2.0, null, null);
 
         // WHEN
         facilityService.update(saved.getId(), request);
@@ -122,11 +140,14 @@ class FacilityServiceTest {
     @DisplayName("성공: putUpdate 요청 시 모든 필드가 요청대로 덮어쓰기된다 (null 포함)")
     void putUpdate_withFullRequest_overwritesAllFields() {
         // GIVEN
-        Facility saved = facilityService.save(new FacilityInstance("원본 이름", "ORI_CODE", "원본 설명", null, null),
-                new FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null));
+        Facility saved =
+                facilityService.save(
+                        new FacilityInstance("원본 이름", "ORI_CODE", "원본 설명", null, null),
+                        new FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null));
 
         // description을 null로 하여 덮어쓰기 테스트
-        FacilityUpdateRequest request = new FacilityUpdateRequest("수정된 이름", "UPD_CODE", null, null, 2.0, 2.0, "{}");
+        FacilityUpdateRequest request =
+                new FacilityUpdateRequest("수정된 이름", "UPD_CODE", null, null, 2.0, 2.0, "{}");
 
         // WHEN
         facilityService.putUpdate(saved.getId(), request);
@@ -144,8 +165,10 @@ class FacilityServiceTest {
     @DisplayName("성공: 시설 삭제 시 DB에서 소프트 삭제된다")
     void deleteFacility_withExistingId_softDeletesFacility() {
         // GIVEN
-        Facility saved = facilityService.save(new FacilityInstance("삭제될 시설", "DEL_CODE", null, null, null),
-                new FacilityCreateRequest("삭제될 시설", "DEL_CODE", null, null, null, null, null, null));
+        Facility saved =
+                facilityService.save(
+                        new FacilityInstance("삭제될 시설", "DEL_CODE", null, null, null),
+                        new FacilityCreateRequest("삭제될 시설", "DEL_CODE", null, null, null, null, null, null));
 
         // WHEN
         facilityService.deleteFacility(saved.getId());
@@ -161,10 +184,13 @@ class FacilityServiceTest {
     @DisplayName("성공: 도면 파일 업데이트 시 히스토리가 기록된다")
     void updateDrawingFile_updatesFileAndSavesHistory() {
         // GIVEN
-        Facility saved = facilityService.save(new FacilityInstance("시설", "CODE", null, null, null),
-                new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
+        Facility saved =
+                facilityService.save(
+                        new FacilityInstance("시설", "CODE", null, null, null),
+                        new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
         Long newDrawingFileId = testFileUploader.initiateTestFileUpload("new_drawing.dwg");
-        FacilityDrawingUpdateRequest request = new FacilityDrawingUpdateRequest(newDrawingFileId, "도면 교체");
+        FacilityDrawingUpdateRequest request =
+                new FacilityDrawingUpdateRequest(newDrawingFileId, "도면 교체");
 
         // WHEN
         facilityService.updateDrawingFile(saved.getId(), request);
@@ -180,23 +206,28 @@ class FacilityServiceTest {
     @DisplayName("성공: 경로 저장 시 FacilityPathService가 호출된다")
     void savePath_delegatesToPathService() {
         // GIVEN
-        Facility saved = facilityService.save(new FacilityInstance("시설", "CODE", null, null, null),
-                new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
+        Facility saved =
+                facilityService.save(
+                        new FacilityInstance("시설", "CODE", null, null, null),
+                        new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
         FacilityPathSaveRequest request = new FacilityPathSaveRequest("주 경로", "MAIN", "{}");
 
         // WHEN
         facilityService.savePath(saved.getId(), request);
 
         // THEN
-        verify(facilityPathService, times(1)).save(any(Facility.class), eq("주 경로"), eq("MAIN"), eq("{}"));
+        verify(facilityPathService, times(1))
+                .save(any(Facility.class), eq("주 경로"), eq("MAIN"), eq("{}"));
     }
 
     @Test
     @DisplayName("성공: 층 정보 업데이트 시 FloorService가 호출된다")
     void updateFloor_delegatesToFloorService() {
         // GIVEN
-        Facility saved = facilityService.save(new FacilityInstance("시설", "CODE", null, null, null),
-                new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
+        Facility saved =
+                facilityService.save(
+                        new FacilityInstance("시설", "CODE", null, null, null),
+                        new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
         FacilityFloorUpdateRequest request = new FacilityFloorUpdateRequest(Collections.emptyList());
 
         // WHEN
@@ -216,13 +247,14 @@ class FacilityServiceTest {
         assertThrows(CustomException.class, () -> facilityService.savePath(9999L, request));
     }
 
-
     @Test
     @DisplayName("성공: 일부 선택적 필드가 null일 때도 시설 생성이 성공한다")
     void save_withNullOptionalFields_succeeds() {
         // GIVEN: code, description, files, location 정보가 모두 null인 요청
-        FacilityCreateRequest request = new FacilityCreateRequest("필수 필드만 있는 시설", "MANDATORY", null, null, null, null, null, null);
-        FacilityInstance facility = new FacilityInstance(request.name(), request.code(), null, null, null);
+        FacilityCreateRequest request =
+                new FacilityCreateRequest("필수 필드만 있는 시설", "MANDATORY", null, null, null, null, null, null);
+        FacilityInstance facility =
+                new FacilityInstance(request.name(), request.code(), null, null, null);
 
         // WHEN
         Facility savedFacility = facilityService.save(facility, request);
@@ -240,13 +272,17 @@ class FacilityServiceTest {
     @DisplayName("실패: update 시 다른 시설이 사용 중인 코드로 변경하면 예외가 발생한다")
     void update_withExistingCodeOfAnotherFacility_throwsCustomException() {
         // GIVEN: 두 개의 시설 생성
-        facilityService.save(new FacilityInstance("시설1", "CODE1", null, null, null),
+        facilityService.save(
+                new FacilityInstance("시설1", "CODE1", null, null, null),
                 new FacilityCreateRequest("시설1", "CODE1", null, null, null, null, null, null));
-        Facility saved2 = facilityService.save(new FacilityInstance("시설2", "CODE2", null, null, null),
-                new FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null));
+        Facility saved2 =
+                facilityService.save(
+                        new FacilityInstance("시설2", "CODE2", null, null, null),
+                        new FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null));
 
         // WHEN & THEN: 시설2의 코드를 시설1의 코드로 변경 시도
-        FacilityUpdateRequest request = new FacilityUpdateRequest(null, "CODE1", null, null, null, null, null);
+        FacilityUpdateRequest request =
+                new FacilityUpdateRequest(null, "CODE1", null, null, null, null, null);
         assertThrows(CustomException.class, () -> facilityService.update(saved2.getId(), request));
     }
 
@@ -254,8 +290,12 @@ class FacilityServiceTest {
     @DisplayName("성공: findAll 호출 시 모든 시설 목록을 반환한다")
     void findAll_whenFacilitiesExist_returnsListOfFacilities() {
         // GIVEN
-        facilityService.save(new FacilityInstance("시설1", "CODE1", null, null, null), new FacilityCreateRequest("시설1", "CODE1", null, null, null, null, null, null));
-        facilityService.save(new FacilityInstance("시설2", "CODE2", null, null, null), new FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null));
+        facilityService.save(
+                new FacilityInstance("시설1", "CODE1", null, null, null),
+                new FacilityCreateRequest("시설1", "CODE1", null, null, null, null, null, null));
+        facilityService.save(
+                new FacilityInstance("시설2", "CODE2", null, null, null),
+                new FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null));
 
         // WHEN
         var facilities = facilityService.findAll();
@@ -282,7 +322,9 @@ class FacilityServiceTest {
     void findByCode_withValidCode_returnsFacility() {
         // GIVEN
         String code = "VALID_CODE";
-        facilityService.save(new FacilityInstance("시설", code, null, null, null), new FacilityCreateRequest("시설", code, null, null, null, null, null, null));
+        facilityService.save(
+                new FacilityInstance("시설", code, null, null, null),
+                new FacilityCreateRequest("시설", code, null, null, null, null, null, null));
 
         // WHEN
         Facility found = facilityService.findByCode(code);
@@ -302,7 +344,10 @@ class FacilityServiceTest {
     @DisplayName("성공: 경로 수정 시 FacilityPathService가 호출된다")
     void updatePath_delegatesToPathService() {
         // GIVEN
-        Facility saved = facilityService.save(new FacilityInstance("시설", "CODE", null, null, null), new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
+        Facility saved =
+                facilityService.save(
+                        new FacilityInstance("시설", "CODE", null, null, null),
+                        new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
         FacilityPathUpdateRequest request = new FacilityPathUpdateRequest("수정된 경로", "SUB", "{}");
 
         // WHEN
@@ -316,7 +361,10 @@ class FacilityServiceTest {
     @DisplayName("성공: 경로 삭제 시 FacilityPathService가 호출된다")
     void deletePath_delegatesToPathService() {
         // GIVEN
-        Facility saved = facilityService.save(new FacilityInstance("시설", "CODE", null, null, null), new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
+        Facility saved =
+                facilityService.save(
+                        new FacilityInstance("시설", "CODE", null, null, null),
+                        new FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null));
 
         // WHEN
         facilityService.deletePath(saved.getId(), 1L);
@@ -329,9 +377,12 @@ class FacilityServiceTest {
     @DisplayName("성공: 위치 정보 업데이트 시 좌표와 메타 정보가 변경된다")
     void updateLocation_updatesPositionCorrectly() {
         // GIVEN
-        Facility saved = facilityService.save(new FacilityInstance("시설", "CODE", null, null, null),
-                new FacilityCreateRequest("시설", "CODE", null, null, null, 1.0, 1.0, null));
-        FacilityLocationUpdateRequest request = new FacilityLocationUpdateRequest(127.5, 37.5, "{'new_meta': true}");
+        Facility saved =
+                facilityService.save(
+                        new FacilityInstance("시설", "CODE", null, null, null),
+                        new FacilityCreateRequest("시설", "CODE", null, null, null, 1.0, 1.0, null));
+        FacilityLocationUpdateRequest request =
+                new FacilityLocationUpdateRequest(127.5, 37.5, "{'new_meta': true}");
 
         // WHEN
         facilityService.updateLocation(saved.getId(), request);

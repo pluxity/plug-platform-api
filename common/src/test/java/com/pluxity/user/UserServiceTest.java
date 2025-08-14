@@ -1,5 +1,8 @@
 package com.pluxity.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.global.exception.CustomException;
@@ -10,6 +13,7 @@ import com.pluxity.user.repository.RoleRepository;
 import com.pluxity.user.repository.UserRepository;
 import com.pluxity.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,11 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -49,18 +48,17 @@ class UserServiceTest {
         roleAdmin = roleRepository.save(new Role("ROLE_ADMIN", "description of role_admin"));
     }
 
-    /**
-     * 테스트용 사용자를 생성하고 DB에 저장하는 헬퍼 메서드
-     */
+    /** 테스트용 사용자를 생성하고 DB에 저장하는 헬퍼 메서드 */
     private User createUser(String username, String name, String code, List<Role> roles) {
-        User user = User.builder()
-                .username(username)
-                .password(passwordEncoder.encode("password123"))
-                .name(name)
-                .code(code)
-                .department("테스트부서")
-                .phoneNumber("010-0000-0000")
-                .build();
+        User user =
+                User.builder()
+                        .username(username)
+                        .password(passwordEncoder.encode("password123"))
+                        .name(name)
+                        .code(code)
+                        .department("테스트부서")
+                        .phoneNumber("010-0000-0000")
+                        .build();
         user.updateRoles(roles);
         return userRepository.save(user);
     }
@@ -100,12 +98,13 @@ class UserServiceTest {
     @DisplayName("성공: 사용자 생성 시 비밀번호는 암호화되고 DB에 저장된다")
     void save_Success() {
         // given
-        UserCreateRequest request = UserCreateRequest.builder()
-                .username("newuser")
-                .password("password123")
-                .name("신규유저")
-                .code("NEW001")
-                .build();
+        UserCreateRequest request =
+                UserCreateRequest.builder()
+                        .username("newuser")
+                        .password("password123")
+                        .name("신규유저")
+                        .code("NEW001")
+                        .build();
 
         // when
         UserResponse response = userService.save(request);
@@ -123,10 +122,7 @@ class UserServiceTest {
     void update_Success() {
         // given
         User savedUser = createUser("testuser", "원본이름", "ORI001", List.of());
-        UserUpdateRequest request = UserUpdateRequest.builder()
-                .name("수정이름")
-                .department("수정부서")
-                .build();
+        UserUpdateRequest request = UserUpdateRequest.builder().name("수정이름").department("수정부서").build();
 
         // when
         userService.update(savedUser.getId(), request);
@@ -173,7 +169,8 @@ class UserServiceTest {
     void updateUserPassword_withWrongCurrentPassword_throwsException() {
         // given
         User savedUser = createUser("testuser", "테스트유저", "T001", List.of());
-        UserPasswordUpdateRequest request = new UserPasswordUpdateRequest("wrongPassword", "newPassword");
+        UserPasswordUpdateRequest request =
+                new UserPasswordUpdateRequest("wrongPassword", "newPassword");
 
         // when & then
         assertThatThrownBy(() -> userService.updateUserPassword(savedUser.getId(), request))
@@ -185,7 +182,8 @@ class UserServiceTest {
     void assignRolesToUser_Success() {
         // given
         User savedUser = createUser("testuser", "테스트유저", "T001", List.of());
-        UserRoleAssignRequest request = new UserRoleAssignRequest(List.of(roleUser.getId(), roleAdmin.getId()));
+        UserRoleAssignRequest request =
+                new UserRoleAssignRequest(List.of(roleUser.getId(), roleAdmin.getId()));
 
         // when
         userService.assignRolesToUser(savedUser.getId(), request);
@@ -193,7 +191,9 @@ class UserServiceTest {
         // then
         User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
         assertThat(updatedUser.getRoles()).hasSize(2);
-        assertThat(updatedUser.getRoles()).extracting(Role::getName).containsExactlyInAnyOrder("ROLE_USER", "ROLE_ADMIN");
+        assertThat(updatedUser.getRoles())
+                .extracting(Role::getName)
+                .containsExactlyInAnyOrder("ROLE_USER", "ROLE_ADMIN");
     }
 
     @Test
@@ -220,7 +220,8 @@ class UserServiceTest {
         User loggedOutUser = createUser("loggedOut", "로그아웃유저", "O001", List.of(roleAdmin));
 
         // 로그인한 사용자의 리프레시 토큰 저장
-        refreshTokenRepository.save(RefreshToken.of(loggedInUser.getUsername(), "some-token-value", 60));
+        refreshTokenRepository.save(
+                RefreshToken.of(loggedInUser.getUsername(), "some-token-value", 60));
 
         // when
         List<UserLoggedInResponse> responses = userService.isLoggedIn();
@@ -228,11 +229,13 @@ class UserServiceTest {
         // then
         assertThat(responses).hasSize(2);
 
-        UserLoggedInResponse loggedInResponse = responses.stream().filter(r -> r.username().equals("loggedIn")).findFirst().orElseThrow();
+        UserLoggedInResponse loggedInResponse =
+                responses.stream().filter(r -> r.username().equals("loggedIn")).findFirst().orElseThrow();
         assertThat(loggedInResponse.isLoggedIn()).isTrue();
         assertThat(loggedInResponse.roles().getFirst().name()).isEqualTo("ROLE_USER");
 
-        UserLoggedInResponse loggedOutResponse = responses.stream().filter(r -> r.username().equals("loggedOut")).findFirst().orElseThrow();
+        UserLoggedInResponse loggedOutResponse =
+                responses.stream().filter(r -> r.username().equals("loggedOut")).findFirst().orElseThrow();
         assertThat(loggedOutResponse.isLoggedIn()).isFalse();
         assertThat(loggedOutResponse.roles().getFirst().name()).isEqualTo("ROLE_ADMIN");
     }

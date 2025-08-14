@@ -12,13 +12,13 @@ fun dummyGsDevice(
 ) = GsDevice(
     id,
     category,
-    name
+    name,
 )
 
 fun dummyDeviceCctv(
     cctv: Cctv = dummyCctv(),
-    device: GsDevice = dummyGsDevice()
+    device: GsDevice = dummyGsDevice(),
 ) = DeviceCctv(
     device,
-    cctv
+    cctv,
 )

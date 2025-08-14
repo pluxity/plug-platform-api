@@ -57,6 +57,7 @@ class FeatureServiceTest {
         public DeviceInstance(String id, DeviceCategory category) {
             super(id, category);
         }
+
         @Override
         public String getName() {
             return "Test Device Instance";
@@ -71,21 +72,20 @@ class FeatureServiceTest {
         testDeviceCategory = deviceCategoryRepository.save(new DeviceCategory("테스트 카테고리", imageId));
     }
 
-
     @Test
     @DisplayName("성공: 모든 필드를 포함한 유효한 요청으로 피처를 생성하고, 모든 응답 필드와 DB 상태를 상세히 검증한다")
     void createFeature_WithValidRequest_SavesFeatureAndReturnsDetailedResponse() {
         // GIVEN
         String featureId = UUID.randomUUID().toString();
-        FeatureCreateRequest request = new FeatureCreateRequest(
-                featureId,
-                new Spatial(10.0, 20.0, 30.0),
-                new Spatial(0.0, 45.0, 0.0),
-                new Spatial(1.5, 1.5, 1.5),
-                testAsset.getId(),
-                testFacility.getId(),
-                "B1"
-        );
+        FeatureCreateRequest request =
+                new FeatureCreateRequest(
+                        featureId,
+                        new Spatial(10.0, 20.0, 30.0),
+                        new Spatial(0.0, 45.0, 0.0),
+                        new Spatial(1.5, 1.5, 1.5),
+                        testAsset.getId(),
+                        testFacility.getId(),
+                        "B1");
 
         // WHEN
         FeatureResponse response = featureService.createFeature(request);
@@ -94,8 +94,12 @@ class FeatureServiceTest {
         assertThat(response.id()).isEqualTo(featureId);
         assertThat(response.assetId()).isEqualTo(testAsset.getId());
         assertThat(response.floorId()).isEqualTo("B1");
-        assertThat(response.position()).usingRecursiveComparison().isEqualTo(new Spatial(10.0, 20.0, 30.0));
-        assertThat(response.rotation()).usingRecursiveComparison().isEqualTo(new Spatial(0.0, 45.0, 0.0));
+        assertThat(response.position())
+                .usingRecursiveComparison()
+                .isEqualTo(new Spatial(10.0, 20.0, 30.0));
+        assertThat(response.rotation())
+                .usingRecursiveComparison()
+                .isEqualTo(new Spatial(0.0, 45.0, 0.0));
         assertThat(response.scale()).usingRecursiveComparison().isEqualTo(new Spatial(1.5, 1.5, 1.5));
 
         // THEN: 데이터베이스 최종 상태 직접 검증
@@ -112,15 +116,20 @@ class FeatureServiceTest {
     void createFeature_WithNullSpatials_CreatesWithDefaultValues() {
         // GIVEN
         String featureId = UUID.randomUUID().toString();
-        FeatureCreateRequest request = new FeatureCreateRequest(
-                featureId, null, null, null, testAsset.getId(), testFacility.getId(), "Lobby");
+        FeatureCreateRequest request =
+                new FeatureCreateRequest(
+                        featureId, null, null, null, testAsset.getId(), testFacility.getId(), "Lobby");
 
         // WHEN
         FeatureResponse response = featureService.createFeature(request);
 
         // THEN: 응답 DTO 및 DB 상태에서 기본값 검증
-        assertThat(response.position()).usingRecursiveComparison().isEqualTo(new Spatial(0.0, 0.0, 0.0));
-        assertThat(response.rotation()).usingRecursiveComparison().isEqualTo(new Spatial(0.0, 0.0, 0.0));
+        assertThat(response.position())
+                .usingRecursiveComparison()
+                .isEqualTo(new Spatial(0.0, 0.0, 0.0));
+        assertThat(response.rotation())
+                .usingRecursiveComparison()
+                .isEqualTo(new Spatial(0.0, 0.0, 0.0));
         assertThat(response.scale()).usingRecursiveComparison().isEqualTo(new Spatial(1.0, 1.0, 1.0));
 
         Feature savedFeature = featureRepository.findById(featureId).orElseThrow();
@@ -133,12 +142,14 @@ class FeatureServiceTest {
     void createFeature_WithDuplicateId_ThrowsCustomException() {
         // GIVEN: 기준 피처 생성
         String duplicateId = UUID.randomUUID().toString();
-        featureService.createFeature(new FeatureCreateRequest(
-                duplicateId, null, null, null, testAsset.getId(), testFacility.getId(), "F1"));
+        featureService.createFeature(
+                new FeatureCreateRequest(
+                        duplicateId, null, null, null, testAsset.getId(), testFacility.getId(), "F1"));
 
         // GIVEN: 중복된 ID를 가진 두 번째 요청
-        FeatureCreateRequest duplicateRequest = new FeatureCreateRequest(
-                duplicateId, null, null, null, testAsset.getId(), testFacility.getId(), "F2");
+        FeatureCreateRequest duplicateRequest =
+                new FeatureCreateRequest(
+                        duplicateId, null, null, null, testAsset.getId(), testFacility.getId(), "F2");
 
         // WHEN & THEN
         assertThrows(CustomException.class, () -> featureService.createFeature(duplicateRequest));
@@ -149,8 +160,15 @@ class FeatureServiceTest {
     void createFeature_WithInvalidFacilityId_ThrowsCustomException() {
         // GIVEN
         Long invalidFacilityId = 9999L;
-        FeatureCreateRequest request = new FeatureCreateRequest(
-                UUID.randomUUID().toString(), null, null, null, testAsset.getId(), invalidFacilityId, "F1");
+        FeatureCreateRequest request =
+                new FeatureCreateRequest(
+                        UUID.randomUUID().toString(),
+                        null,
+                        null,
+                        null,
+                        testAsset.getId(),
+                        invalidFacilityId,
+                        "F1");
 
         // WHEN & THEN
         assertThrows(CustomException.class, () -> featureService.createFeature(request));
@@ -161,14 +179,19 @@ class FeatureServiceTest {
     void createFeature_WithInvalidAssetId_ThrowsCustomException() {
         // GIVEN
         Long invalidAssetId = 9999L;
-        FeatureCreateRequest request = new FeatureCreateRequest(
-                UUID.randomUUID().toString(), null, null, null, invalidAssetId, testFacility.getId(), "F1");
+        FeatureCreateRequest request =
+                new FeatureCreateRequest(
+                        UUID.randomUUID().toString(),
+                        null,
+                        null,
+                        null,
+                        invalidAssetId,
+                        testFacility.getId(),
+                        "F1");
 
         // WHEN & THEN
         assertThrows(CustomException.class, () -> featureService.createFeature(request));
     }
-
-
 
     @Test
     @DisplayName("성공: facilityId로 피처 목록 조회 시 해당 시설의 피처 목록만 반환된다")
@@ -185,7 +208,8 @@ class FeatureServiceTest {
         List<FeatureResponse> responses = featureService.getFeatures(testFacility.getId());
 
         // THEN
-        assertThat(responses).hasSize(2)
+        assertThat(responses)
+                .hasSize(2)
                 .extracting(FeatureResponse::id)
                 .containsExactlyInAnyOrder("F1", "F2");
     }
@@ -199,7 +223,6 @@ class FeatureServiceTest {
         // THEN
         assertThat(responses).isNotNull().isEmpty();
     }
-
 
     @Test
     @DisplayName("성공(PATCH): 유효한 요청으로 피처 정보를 부분 수정하고, 변경된 필드와 유지된 필드를 모두 검증한다")
@@ -234,8 +257,6 @@ class FeatureServiceTest {
         assertThrows(CustomException.class, () -> featureService.updateFeature(nonExistingId, request));
     }
 
-
-
     @Test
     @DisplayName("성공: 존재하는 ID로 피처 삭제 시 DB에서 삭제된다")
     void deleteFeature_WithExistingId_DeletesFeature() {
@@ -259,7 +280,6 @@ class FeatureServiceTest {
         assertThrows(CustomException.class, () -> featureService.deleteFeature(nonExistingId));
     }
 
-
     // --- Device Relation Test ---
 
     @Test
@@ -271,7 +291,8 @@ class FeatureServiceTest {
         assertThat(device.getFeature()).isNull();
 
         // WHEN
-        featureService.assignDeviceToFeature(feature.getId(), new FeatureAssignDto(device.getId()), false);
+        featureService.assignDeviceToFeature(
+                feature.getId(), new FeatureAssignDto(device.getId()), false);
 
         // THEN: DB 직접 검증
         Device updatedDevice = deviceRepository.findById(device.getId()).orElseThrow();
@@ -285,7 +306,8 @@ class FeatureServiceTest {
         // GIVEN: 디바이스가 할당된 피처
         Feature feature = createAndSaveFeature("F_REMOVE_DEV", testFacility);
         Device device = createAndSaveDevice();
-        featureService.assignDeviceToFeature(feature.getId(), new FeatureAssignDto(device.getId()), false);
+        featureService.assignDeviceToFeature(
+                feature.getId(), new FeatureAssignDto(device.getId()), false);
         assertThat(deviceRepository.findById(device.getId()).orElseThrow().getFeature()).isNotNull();
 
         // WHEN
@@ -303,12 +325,16 @@ class FeatureServiceTest {
         Feature feature = createAndSaveFeature("F_MISMATCH", testFacility);
         Device assignedDevice = createAndSaveDevice();
         Device otherDevice = createAndSaveDevice();
-        featureService.assignDeviceToFeature(feature.getId(), new FeatureAssignDto(assignedDevice.getId()), false);
+        featureService.assignDeviceToFeature(
+                feature.getId(), new FeatureAssignDto(assignedDevice.getId()), false);
 
         // WHEN & THEN: 다른 디바이스 ID로 해제 시도
-        assertThrows(CustomException.class, () -> featureService.removeDeviceFromFeature(feature.getId(), new FeatureAssignDto(otherDevice.getId())));
+        assertThrows(
+                CustomException.class,
+                () ->
+                        featureService.removeDeviceFromFeature(
+                                feature.getId(), new FeatureAssignDto(otherDevice.getId())));
     }
-
 
     private Asset createAndSaveAsset(String name, String code) {
         return assetRepository.save(Asset.builder().name(name).code(code).build());
@@ -319,15 +345,16 @@ class FeatureServiceTest {
     }
 
     private Feature createAndSaveFeature(String id, Facility facility) {
-        Feature feature = Feature.builder()
-                .id(id)
-                .position(new Spatial(1.0, 2.0, 3.0))
-                .rotation(new Spatial(0.0, 0.0, 0.0))
-                .scale(new Spatial(1.0, 1.0, 1.0))
-                .assetId(testAsset.getId())
-                .facility(facility)
-                .floorId("TEST_FLOOR")
-                .build();
+        Feature feature =
+                Feature.builder()
+                        .id(id)
+                        .position(new Spatial(1.0, 2.0, 3.0))
+                        .rotation(new Spatial(0.0, 0.0, 0.0))
+                        .scale(new Spatial(1.0, 1.0, 1.0))
+                        .assetId(testAsset.getId())
+                        .facility(facility)
+                        .floorId("TEST_FLOOR")
+                        .build();
         return featureRepository.save(feature);
     }
 

@@ -33,15 +33,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class FileServiceTest {
 
-    @Autowired
-    private FileService fileService;
+    @Autowired private FileService fileService;
 
-    @Autowired
-    private FileRepository fileRepository;
+    @Autowired private FileRepository fileRepository;
 
     // 실제 파일 시스템/S3 대신 가짜 객체로 대체하여 테스트
-    @MockitoBean
-    private StorageStrategy storageStrategy;
+    @MockitoBean private StorageStrategy storageStrategy;
 
     private MockMultipartFile testFile;
     private String tempFilePath;
@@ -49,12 +46,8 @@ class FileServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         // GIVEN: 모든 테스트에서 사용할 기본 MockMultipartFile 생성
-        testFile = new MockMultipartFile(
-                "file",
-                "test.png",
-                "image/png",
-                "test-file-content".getBytes()
-        );
+        testFile =
+                new MockMultipartFile("file", "test.png", "image/png", "test-file-content".getBytes());
 
         // GIVEN: storageStrategy.save가 반환할 가상 경로 설정
         tempFilePath = "temp/" + UUID.randomUUID() + ".png";
@@ -63,11 +56,12 @@ class FileServiceTest {
 
     // 테스트에서 임시 상태의 파일을 쉽게 만들기 위한 헬퍼 메서드
     private FileEntity createAndSaveTempFileEntity() {
-        FileEntity tempFile = FileEntity.builder()
-                .filePath("temp/some-temp-file.png")
-                .originalFileName("temp.png")
-                .contentType("image/png")
-                .build(); // 초기 상태는 TEMP
+        FileEntity tempFile =
+                FileEntity.builder()
+                        .filePath("temp/some-temp-file.png")
+                        .originalFileName("temp.png")
+                        .contentType("image/png")
+                        .build(); // 초기 상태는 TEMP
         return fileRepository.save(tempFile);
     }
 
@@ -100,10 +94,13 @@ class FileServiceTest {
         // GIVEN: 파일 전송 시 IOException을 발생시키는 Mock 객체 생성
         MockMultipartFile failingFile = mock(MockMultipartFile.class);
         when(failingFile.getOriginalFilename()).thenReturn("failing.txt");
-        doThrow(new IOException("Disk is full")).when(failingFile).transferTo(any(java.nio.file.Path.class));
+        doThrow(new IOException("Disk is full"))
+                .when(failingFile)
+                .transferTo(any(java.nio.file.Path.class));
 
         // WHEN & THEN
-        CustomException exception = assertThrows(CustomException.class, () -> fileService.initiateUpload(failingFile));
+        CustomException exception =
+                assertThrows(CustomException.class, () -> fileService.initiateUpload(failingFile));
 
         assertThat(exception.getMessage()).contains(ErrorCode.FAILED_TO_UPLOAD_FILE.getMessage());
     }
@@ -143,7 +140,9 @@ class FileServiceTest {
         Long nonExistentId = 9999L;
 
         // WHEN & THEN
-        CustomException exception = assertThrows(CustomException.class, () -> fileService.finalizeUpload(nonExistentId, "some/path"));
+        CustomException exception =
+                assertThrows(
+                        CustomException.class, () -> fileService.finalizeUpload(nonExistentId, "some/path"));
 
         assertThat(exception.getErrorCode().getMessage()).isEqualTo(INVALID_FILE_STATUS.getMessage());
     }
@@ -157,9 +156,12 @@ class FileServiceTest {
         fileRepository.save(completeFile);
 
         // WHEN & THEN
-        CustomException exception = assertThrows(CustomException.class, () -> fileService.finalizeUpload(completeFile.getId(), "new/path"));
+        CustomException exception =
+                assertThrows(
+                        CustomException.class,
+                        () -> fileService.finalizeUpload(completeFile.getId(), "new/path"));
 
-    assertThat(exception.getMessage()).contains(ErrorCode.INVALID_FILE_STATUS.getMessage());
+        assertThat(exception.getMessage()).contains(ErrorCode.INVALID_FILE_STATUS.getMessage());
     }
 
     @Test
@@ -181,11 +183,12 @@ class FileServiceTest {
     void getFiles_withListOfIds_returnsListOfFileResponses() {
         // GIVEN
         FileEntity file1 = createAndSaveTempFileEntity();
-        FileEntity tempFile = FileEntity.builder()
-                .filePath("temp/some-temp-file2.png")
-                .originalFileName("temp.png")
-                .contentType("image/png")
-                .build(); // 초기 상태는 TEMP
+        FileEntity tempFile =
+                FileEntity.builder()
+                        .filePath("temp/some-temp-file2.png")
+                        .originalFileName("temp.png")
+                        .contentType("image/png")
+                        .build(); // 초기 상태는 TEMP
         FileEntity file2 = fileRepository.save(tempFile);
 
         List<Long> ids = List.of(file1.getId(), file2.getId());
@@ -195,7 +198,8 @@ class FileServiceTest {
 
         // THEN
         assertThat(responses).hasSize(2);
-        assertThat(responses.stream().map(FileResponse::id)).containsExactlyInAnyOrder(file1.getId(), file2.getId());
+        assertThat(responses.stream().map(FileResponse::id))
+                .containsExactlyInAnyOrder(file1.getId(), file2.getId());
     }
 
     @Test
@@ -212,7 +216,8 @@ class FileServiceTest {
     @DisplayName("로컬 저장 전략일 때 올바른 URL 형식의 FileResponse를 반환한다")
     void getFileResponse_withLocalStrategy_returnsCorrectUrl() {
         // GIVEN: 로컬 전략을 사용하도록 서비스 필드 값을 강제로 변경하여 테스트
-        org.springframework.test.util.ReflectionTestUtils.setField(fileService, "storageStrategyType", "local");
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                fileService, "storageStrategyType", "local");
         FileEntity file = createAndSaveTempFileEntity();
 
         // WHEN
@@ -228,8 +233,10 @@ class FileServiceTest {
     @DisplayName("S3 저장 전략일 때 올바른 URL 형식의 FileResponse를 반환한다")
     void getFileResponse_withS3Strategy_returnsCorrectUrl() {
         // GIVEN: S3 전략을 사용하도록 서비스 필드 값을 강제로 변경하여 테스트
-        org.springframework.test.util.ReflectionTestUtils.setField(fileService, "storageStrategyType", "s3");
-        org.springframework.test.util.ReflectionTestUtils.setField(fileService, "publicUrl", "https://my-cdn.com");
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                fileService, "storageStrategyType", "s3");
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                fileService, "publicUrl", "https://my-cdn.com");
         org.springframework.test.util.ReflectionTestUtils.setField(fileService, "bucket", "my-bucket");
         FileEntity file = createAndSaveTempFileEntity();
 

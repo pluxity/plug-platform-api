@@ -1,5 +1,8 @@
 package com.pluxity.authentication.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+
 import com.pluxity.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -7,14 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-
 @ExtendWith(MockitoExtension.class)
 class CustomUserDetailsTest {
 
-    @Mock
-    private User user;
+    @Mock private User user;
 
     @Test
     @DisplayName("사용자의 비밀번호를 가져올 수 있다")
@@ -47,4 +46,4 @@ class CustomUserDetailsTest {
         // then
         assertThat(result).isEqualTo(username);
     }
-} 
+}

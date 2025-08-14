@@ -46,7 +46,8 @@ class Label3DServiceTest {
     }
 
     private Long createTestFacility() {
-        FacilityCreateRequest request = new FacilityCreateRequest("테스트 시설", "FAC01", null, null, null, null, null, null);
+        FacilityCreateRequest request =
+                new FacilityCreateRequest("테스트 시설", "FAC01", null, null, null, null, null, null);
         Facility facility = new FacilityInstance(request.name(), request.code());
         return facilityService.save(facility, request).getId();
     }
@@ -58,12 +59,15 @@ class Label3DServiceTest {
         Long facilityId = createTestFacility();
         String featureId = UUID.randomUUID().toString();
 
-        Label3DCreateRequest request = new Label3DCreateRequest(
-                featureId, "실제 라벨", facilityId, "GF",
-                new Spatial(1.0, 2.0, 3.0),
-                new Spatial(4.0, 5.0, 6.0),
-                new Spatial(1.0, 1.0, 1.0)
-        );
+        Label3DCreateRequest request =
+                new Label3DCreateRequest(
+                        featureId,
+                        "실제 라벨",
+                        facilityId,
+                        "GF",
+                        new Spatial(1.0, 2.0, 3.0),
+                        new Spatial(4.0, 5.0, 6.0),
+                        new Spatial(1.0, 1.0, 1.0));
 
         // WHEN: 서비스 메서드 호출
         Label3DResponse response = label3DService.createLabel3D(request);
@@ -91,10 +95,15 @@ class Label3DServiceTest {
         // GIVEN: 테스트용 3D 라벨을 DB에 생성
         Long facilityId = createTestFacility();
         String featureId = UUID.randomUUID().toString();
-        Label3DCreateRequest createRequest = new Label3DCreateRequest(
-                featureId, "원본 라벨", facilityId, "1F",
-                new Spatial(0.0,0.0,0.0), new Spatial(0.0,0.0,0.0), new Spatial(1.0,1.0,1.0)
-        );
+        Label3DCreateRequest createRequest =
+                new Label3DCreateRequest(
+                        featureId,
+                        "원본 라벨",
+                        facilityId,
+                        "1F",
+                        new Spatial(0.0, 0.0, 0.0),
+                        new Spatial(0.0, 0.0, 0.0),
+                        new Spatial(1.0, 1.0, 1.0));
         label3DService.createLabel3D(createRequest);
 
         // WHEN: 위치와 크기를 변경하는 업데이트 요청
@@ -121,7 +130,8 @@ class Label3DServiceTest {
         // GIVEN: 삭제할 3D 라벨 생성
         Long facilityId = createTestFacility();
         String featureId = UUID.randomUUID().toString();
-        Label3DCreateRequest createRequest = new Label3DCreateRequest(featureId, "삭제될 라벨", facilityId, "B1", null, null, null);
+        Label3DCreateRequest createRequest =
+                new Label3DCreateRequest(featureId, "삭제될 라벨", facilityId, "B1", null, null, null);
         label3DService.createLabel3D(createRequest);
 
         // GIVEN: 삭제 전 데이터가 DB에 있는지 확인
@@ -140,9 +150,8 @@ class Label3DServiceTest {
     @DisplayName("실패: 존재하지 않는 시설 ID로 라벨 생성 요청 시 예외가 발생한다")
     void createLabel3D_withNonExistingFacilityId_throwsException() {
         // GIVEN
-        Label3DCreateRequest request = new Label3DCreateRequest(
-                UUID.randomUUID().toString(), "라벨", 9999L, "1F", null, null, null
-        );
+        Label3DCreateRequest request =
+                new Label3DCreateRequest(UUID.randomUUID().toString(), "라벨", 9999L, "1F", null, null, null);
 
         // WHEN & THEN: 실제 FacilityService가 예외를 던짐
         assertThrows(CustomException.class, () -> label3DService.createLabel3D(request));
@@ -152,10 +161,12 @@ class Label3DServiceTest {
     @DisplayName("실패: 존재하지 않는 ID로 라벨 수정 요청 시 예외가 발생한다")
     void updateLabel3D_withNonExistingId_throwsException() {
         // GIVEN
-        Label3DUpdateRequest request = new Label3DUpdateRequest(new Spatial(1.0,1.0,1.0), null, null);
+        Label3DUpdateRequest request = new Label3DUpdateRequest(new Spatial(1.0, 1.0, 1.0), null, null);
 
         // WHEN & THEN
-        assertThrows(EntityNotFoundException.class, () -> label3DService.updateLabel3D("NON_EXISTING_ID", request));
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> label3DService.updateLabel3D("NON_EXISTING_ID", request));
     }
 
     @Test
@@ -175,15 +186,18 @@ class Label3DServiceTest {
     void getLabel3DsByFacilityId_returnsOnlyLabelsOfThatFacility() {
         // GIVEN: 두 개의 다른 시설과 각각의 라벨 생성
         Long facilityId1 = createTestFacility();
-        FacilityCreateRequest request = new FacilityCreateRequest("테스트 시설", "FAC02", null, null, null, null, null, null);
+        FacilityCreateRequest request =
+                new FacilityCreateRequest("테스트 시설", "FAC02", null, null, null, null, null, null);
         Facility facility = new FacilityInstance(request.name(), request.code());
         Long facilityId2 = facilityService.save(facility, request).getId();
 
         String featureId1 = UUID.randomUUID().toString();
-        label3DService.createLabel3D(new Label3DCreateRequest(featureId1, "시설1의 라벨", facilityId1, "1F", null, null, null));
+        label3DService.createLabel3D(
+                new Label3DCreateRequest(featureId1, "시설1의 라벨", facilityId1, "1F", null, null, null));
 
         String featureId2 = UUID.randomUUID().toString();
-        label3DService.createLabel3D(new Label3DCreateRequest(featureId2, "시설2의 라벨", facilityId2, "1F", null, null, null));
+        label3DService.createLabel3D(
+                new Label3DCreateRequest(featureId2, "시설2의 라벨", facilityId2, "1F", null, null, null));
 
         // WHEN: 첫 번째 시설 ID로 조회
         List<Label3DResponse> responses = label3DService.getLabel3DsByFacilityId(facilityId1);
@@ -201,7 +215,8 @@ class Label3DServiceTest {
         Long facilityIdWithNoLabels = createTestFacility();
 
         // WHEN
-        List<Label3DResponse> responses = label3DService.getLabel3DsByFacilityId(facilityIdWithNoLabels);
+        List<Label3DResponse> responses =
+                label3DService.getLabel3DsByFacilityId(facilityIdWithNoLabels);
 
         // THEN
         assertThat(responses).isNotNull().isEmpty();
@@ -213,10 +228,15 @@ class Label3DServiceTest {
         // GIVEN
         Long facilityId = createTestFacility();
         String featureId = UUID.randomUUID().toString();
-        Label3DCreateRequest createRequest = new Label3DCreateRequest(
-                featureId, "원본 라벨", facilityId, "1F",
-                new Spatial(1.0, 1.0, 1.0), new Spatial(2.0, 2.0, 2.0), new Spatial(3.0, 3.0, 3.0)
-        );
+        Label3DCreateRequest createRequest =
+                new Label3DCreateRequest(
+                        featureId,
+                        "원본 라벨",
+                        facilityId,
+                        "1F",
+                        new Spatial(1.0, 1.0, 1.0),
+                        new Spatial(2.0, 2.0, 2.0),
+                        new Spatial(3.0, 3.0, 3.0));
         label3DService.createLabel3D(createRequest);
 
         // WHEN: rotation 정보만 업데이트
@@ -237,6 +257,7 @@ class Label3DServiceTest {
     @DisplayName("실패: 존재하지 않는 ID로 라벨 삭제 요청 시 예외가 발생한다")
     void deleteLabel3D_withNonExistingId_throwsException() {
         // WHEN & THEN
-        assertThrows(EntityNotFoundException.class, () -> label3DService.deleteLabel3D("NON_EXISTING_ID"));
+        assertThrows(
+                EntityNotFoundException.class, () -> label3DService.deleteLabel3D("NON_EXISTING_ID"));
     }
 }

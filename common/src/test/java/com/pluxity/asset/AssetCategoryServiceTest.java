@@ -37,7 +37,8 @@ class AssetCategoryServiceTest {
     void createAssetCategory_withValidRequest_savesRootCategory() {
         // GIVEN
         Long thumbnailFileId = testFileUploader.initiateTestFileUpload("icon.png");
-        AssetCategoryCreateRequest request = new AssetCategoryCreateRequest("가전", "ELEC", null, thumbnailFileId);
+        AssetCategoryCreateRequest request =
+                new AssetCategoryCreateRequest("가전", "ELEC", null, thumbnailFileId);
 
         // WHEN
         Long categoryId = assetCategoryService.createAssetCategory(request);
@@ -58,10 +59,12 @@ class AssetCategoryServiceTest {
     void createAssetCategory_withParentId_throwsException() {
         // GIVEN: 부모 카테고리 생성
         Long parentId = createAndSaveCategory("가전", "ELEC", null);
-        AssetCategoryCreateRequest childRequest = new AssetCategoryCreateRequest("TV", "TV", parentId, null);
+        AssetCategoryCreateRequest childRequest =
+                new AssetCategoryCreateRequest("TV", "TV", parentId, null);
 
         // WHEN & THEN
-        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(childRequest));
+        assertThrows(
+                CustomException.class, () -> assetCategoryService.createAssetCategory(childRequest));
     }
 
     @Test
@@ -69,10 +72,12 @@ class AssetCategoryServiceTest {
     void createAssetCategory_withDuplicateCode_throwsException() {
         // GIVEN
         createAndSaveCategory("가전", "ELEC", null);
-        AssetCategoryCreateRequest duplicateRequest = new AssetCategoryCreateRequest("전자제품", "ELEC", null, null);
+        AssetCategoryCreateRequest duplicateRequest =
+                new AssetCategoryCreateRequest("전자제품", "ELEC", null, null);
 
         // WHEN & THEN
-        assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(duplicateRequest));
+        assertThrows(
+                CustomException.class, () -> assetCategoryService.createAssetCategory(duplicateRequest));
     }
 
     @Test
@@ -83,7 +88,6 @@ class AssetCategoryServiceTest {
         // WHEN & THEN
         assertThrows(CustomException.class, () -> assetCategoryService.createAssetCategory(request));
     }
-
 
     // --- Read Test ---
 
@@ -102,11 +106,13 @@ class AssetCategoryServiceTest {
         // THEN: 생성된 모든 카테고리가 최상위 레벨에 존재
         assertThat(rootCategories).hasSize(2);
         // 모든 카테고리의 depth는 1이고, parentId는 null이며, children은 비어있어야 함
-        assertThat(rootCategories).allSatisfy(category -> {
-            assertThat(category.depth()).isEqualTo(1);
-            assertThat(category.parentId()).isNull();
-            assertThat(category.children()).isEmpty();
-        });
+        assertThat(rootCategories)
+                .allSatisfy(
+                        category -> {
+                            assertThat(category.depth()).isEqualTo(1);
+                            assertThat(category.parentId()).isNull();
+                            assertThat(category.children()).isEmpty();
+                        });
     }
 
     // --- Update Test ---
@@ -117,7 +123,8 @@ class AssetCategoryServiceTest {
         // GIVEN
         Long categoryId = createAndSaveCategory("원본", "ORI", null, null);
         Long newIconId = testFileUploader.initiateTestFileUpload("new.png");
-        AssetCategoryUpdateRequest request = new AssetCategoryUpdateRequest("수정된 이름", "UPD", null, newIconId);
+        AssetCategoryUpdateRequest request =
+                new AssetCategoryUpdateRequest("수정된 이름", "UPD", null, newIconId);
 
         // WHEN
         assetCategoryService.updateAssetCategory(categoryId, request);
@@ -131,19 +138,19 @@ class AssetCategoryServiceTest {
         assertThat(updatedCategory.getDepth()).isEqualTo(1); // 깊이는 변경되지 않음
     }
 
-
     @Test
     @DisplayName("실패: 카테고리 수정 시 부모를 지정하려고 하면 예외가 발생한다")
     void updateAssetCategory_withParentId_throwsException() {
         // GIVEN
         Long categoryId = createAndSaveCategory("카테고리", "CAT", null);
         Long newParentId = createAndSaveCategory("새 부모", "NEW_P", null);
-        AssetCategoryUpdateRequest request = new AssetCategoryUpdateRequest("이름변경", "CAT_UPDATED", newParentId, null);
+        AssetCategoryUpdateRequest request =
+                new AssetCategoryUpdateRequest("이름변경", "CAT_UPDATED", newParentId, null);
 
         // WHEN & THEN
-        assertThrows(CustomException.class, () -> assetCategoryService.updateAssetCategory(categoryId, request));
+        assertThrows(
+                CustomException.class, () -> assetCategoryService.updateAssetCategory(categoryId, request));
     }
-
 
     // --- Delete Test ---
 
@@ -178,7 +185,8 @@ class AssetCategoryServiceTest {
     }
 
     private Long createAndSaveCategory(String name, String code, Long parentId, Long thumbnailId) {
-        AssetCategoryCreateRequest request = new AssetCategoryCreateRequest(name, code, parentId, thumbnailId);
+        AssetCategoryCreateRequest request =
+                new AssetCategoryCreateRequest(name, code, parentId, thumbnailId);
         return assetCategoryService.createAssetCategory(request);
     }
 }

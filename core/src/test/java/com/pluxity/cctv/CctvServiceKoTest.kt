@@ -29,12 +29,13 @@ class CctvServiceKoTest : BehaviorSpec({
     val fileService: FileService = mockk()
     val deviceCctvRepository: DeviceCctvRepository = mockk()
 
-    val cctvService = CctvService(
-        cctvRepository,
-        deviceCategoryService,
-        fileService,
-        deviceCctvRepository
-    )
+    val cctvService =
+        CctvService(
+            cctvRepository,
+            deviceCategoryService,
+            fileService,
+            deviceCctvRepository,
+        )
     Given("CCTV 생성을 진행할 때") {
         When("유효한 요청으로 CCTV 생성 요청") {
             val id = UUID.randomUUID().toString()
@@ -126,5 +127,4 @@ class CctvServiceKoTest : BehaviorSpec({
             }
         }
     }
-
 })

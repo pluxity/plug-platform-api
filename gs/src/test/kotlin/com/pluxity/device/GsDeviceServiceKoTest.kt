@@ -7,7 +7,8 @@ import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.device.dto.GsDeviceCctvUpdateRequest
 import com.pluxity.device.dto.GsDeviceUpdateRequest
 import com.pluxity.device.dto.dummyCreateGsDeviceRequest
-import com.pluxity.device.entity.*
+import com.pluxity.device.entity.dummyDeviceCctv
+import com.pluxity.device.entity.dummyGsDevice
 import com.pluxity.device.service.DeviceCategoryService
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
@@ -17,9 +18,14 @@ import file.dummyFileResponse
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.*
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.slot
+import io.mockk.verify
 import org.springframework.data.repository.findByIdOrNull
-import java.util.*
+import java.util.UUID
 
 class GsDeviceServiceKoTest : BehaviorSpec({
     val repository: GsDeviceRepository = mockk()
@@ -187,13 +193,16 @@ class GsDeviceServiceKoTest : BehaviorSpec({
 
     Given("디바이스에 CCTV를 설정할 때") {
         val device = dummyGsDevice(id = "dev1")
-        val exist = listOf(
-            dummyDeviceCctv(dummyCctv(id = "A"), device),
-            dummyDeviceCctv(dummyCctv(id = "B"), device)
-        )
-        val req = GsDeviceCctvUpdateRequest(
-            cctvIds = mutableListOf("B", "C") // B는 유지, C는 추가, A는 제거 대상
-        )
+        val exist =
+            listOf(
+                dummyDeviceCctv(dummyCctv(id = "A"), device),
+                dummyDeviceCctv(dummyCctv(id = "B"), device),
+            )
+        // B는 유지, C는 추가, A는 제거 대상
+        val req =
+            GsDeviceCctvUpdateRequest(
+                cctvIds = mutableListOf("B", "C"),
+            )
         every { repository.findByIdOrNull(any()) } returns device
         every { deviceCctvRepository.findByDevice(device) } returns exist
         every { cctvService.findById("C") } returns dummyCctv(id = "C")

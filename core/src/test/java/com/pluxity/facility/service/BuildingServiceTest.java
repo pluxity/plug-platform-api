@@ -29,22 +29,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class BuildingServiceTest {
 
-    @Autowired
-    BuildingService buildingService;
+    @Autowired BuildingService buildingService;
 
-    @Autowired
-    BuildingRepository buildingRepository;
+    @Autowired BuildingRepository buildingRepository;
 
-    @Autowired
-    FacilityService facilityService;
+    @Autowired FacilityService facilityService;
 
-    @Autowired
-    TestFileUploader testFileUploader;
+    @Autowired TestFileUploader testFileUploader;
 
     private Long drawingFileId;
     private Long thumbnailFileId;
     private BuildingCreateRequest createRequest;
-
 
     @BeforeEach
     void setUp() { // throws IOException 제거
@@ -52,27 +47,14 @@ class BuildingServiceTest {
         thumbnailFileId = testFileUploader.initiateTestFileUpload("thumbnail.png");
 
         // 테스트 데이터 준비
-        FacilityCreateRequest facilityRequest = new FacilityCreateRequest(
-                "테스트 건물",
-                "AAA",
-                "테스트 건물 설명",
-                drawingFileId,
-                thumbnailFileId
-                , null
-                , null
-                , null
-        );
+        FacilityCreateRequest facilityRequest =
+                new FacilityCreateRequest(
+                        "테스트 건물", "AAA", "테스트 건물 설명", drawingFileId, thumbnailFileId, null, null, null);
 
         List<FloorRequest> floorRequests = new ArrayList<>();
-        floorRequests.add(new FloorRequest(
-                "1층",
-                "1"
-        ));
+        floorRequests.add(new FloorRequest("1층", "1"));
 
-        createRequest = new BuildingCreateRequest(
-                facilityRequest,
-                floorRequests
-        );
+        createRequest = new BuildingCreateRequest(facilityRequest, floorRequests);
     }
 
     @Test
@@ -96,13 +78,15 @@ class BuildingServiceTest {
         assertThat(savedBuilding.facility().drawing().url()).isNotNull();
         assertThat(savedBuilding.facility().drawing().originalFileName()).isNotNull();
         assertThat(savedBuilding.facility().drawing().contentType()).isNotNull();
-        assertThat(savedBuilding.facility().drawing().fileStatus()).isEqualTo(FileStatus.COMPLETE.name());
+        assertThat(savedBuilding.facility().drawing().fileStatus())
+                .isEqualTo(FileStatus.COMPLETE.name());
 
         assertThat(savedBuilding.facility().thumbnail().id()).isNotNull();
         assertThat(savedBuilding.facility().thumbnail().url()).isNotNull();
         assertThat(savedBuilding.facility().thumbnail().originalFileName()).isNotNull();
         assertThat(savedBuilding.facility().thumbnail().contentType()).isNotNull();
-        assertThat(savedBuilding.facility().thumbnail().fileStatus()).isEqualTo(FileStatus.COMPLETE.name());
+        assertThat(savedBuilding.facility().thumbnail().fileStatus())
+                .isEqualTo(FileStatus.COMPLETE.name());
 
         assertThat(savedBuilding.facility().paths()).isEmpty();
         assertThat(savedBuilding.facility().lon()).isNull();
@@ -160,17 +144,10 @@ class BuildingServiceTest {
     void update_WithValidRequest_UpdatesBuilding() {
         // given
         Long id = buildingService.save(createRequest);
-        BuildingUpdateRequest updateRequest = new BuildingUpdateRequest(
-                new FacilityUpdateRequest(
-                        "수정된 건물 이름",
-                        "수정된 코드",
-                        "수정된 건물 설명",
-                        null
-                        , null
-                        , null
-                        , null
-                ), null
-        );
+        BuildingUpdateRequest updateRequest =
+                new BuildingUpdateRequest(
+                        new FacilityUpdateRequest("수정된 건물 이름", "수정된 코드", "수정된 건물 설명", null, null, null, null),
+                        null);
 
         // when
         buildingService.update(id, updateRequest);
@@ -202,21 +179,22 @@ class BuildingServiceTest {
     @DisplayName("선택 필드가 null이어도 건물 생성이 성공한다")
     void save_WithNullOptionalFields_Succeeds() {
         // given
-        var facilityRequest = new FacilityCreateRequest(
-                "옵션없음", // name (required)
-                "BBB",      // code (required)
-                null,        // description optional
-                null,        // drawingFileId optional
-                null,        // thumbnailFileId optional
-                null,        // lon optional
-                null,        // lat optional
-                null         // locationMeta optional
-        );
+        var facilityRequest =
+                new FacilityCreateRequest(
+                        "옵션없음", // name (required)
+                        "BBB", // code (required)
+                        null, // description optional
+                        null, // drawingFileId optional
+                        null, // thumbnailFileId optional
+                        null, // lon optional
+                        null, // lat optional
+                        null // locationMeta optional
+                        );
 
-        var create = new BuildingCreateRequest(
-                facilityRequest,
-                List.of() // floors empty
-        );
+        var create =
+                new BuildingCreateRequest(
+                        facilityRequest, List.of() // floors empty
+                        );
 
         // when
         Long id = buildingService.save(create);
@@ -247,18 +225,19 @@ class BuildingServiceTest {
         Long id = buildingService.save(createRequest);
         String originalDescription = buildingService.findById(id).facility().description();
 
-        var request = new BuildingUpdateRequest(
-                new FacilityUpdateRequest(
-                        "부분업데이트이름", // name 변경
-                        null,               // code 유지
-                        null,               // description 유지
-                        null,               // thumbnail 유지
-                        null,               // lon 유지
-                        null,               // lat 유지
-                        null                // locationMeta 유지
-                ),
-                null // floors 변경 없음
-        );
+        var request =
+                new BuildingUpdateRequest(
+                        new FacilityUpdateRequest(
+                                "부분업데이트이름", // name 변경
+                                null, // code 유지
+                                null, // description 유지
+                                null, // thumbnail 유지
+                                null, // lon 유지
+                                null, // lat 유지
+                                null // locationMeta 유지
+                                ),
+                        null // floors 변경 없음
+                        );
 
         // when
         buildingService.update(id, request);
@@ -275,18 +254,14 @@ class BuildingServiceTest {
         // given
         Long id = buildingService.save(createRequest);
 
-        var request = new BuildingUpdateRequest(
-                new FacilityUpdateRequest(
-                        null,   // name 유지
-                        null,   // code 유지
-                        null,   // description 을 null 로 (이미 null 일 수 있으므로 이후 no-op 과 구분 위해 먼저 값 설정)
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                null
-        );
+        var request =
+                new BuildingUpdateRequest(
+                        new FacilityUpdateRequest(
+                                null, // name 유지
+                                null, // code 유지
+                                null, // description 을 null 로 (이미 null 일 수 있으므로 이후 no-op 과 구분 위해 먼저 값 설정)
+                                null, null, null, null),
+                        null);
 
         // when
         buildingService.update(id, request);
@@ -303,18 +278,17 @@ class BuildingServiceTest {
         Long id = buildingService.save(createRequest);
         var before = facilityService.findById(id);
 
-        var request = new BuildingUpdateRequest(
-                new FacilityUpdateRequest(
-                        before.getName(),
-                        before.getCode(),
-                        before.getDescription(),
-                        before.getThumbnailFileId(),
-                        before.getPosition() != null ? before.getPosition().getLon() : null,
-                        before.getPosition() != null ? before.getPosition().getLat() : null,
-                        before.getPosition() != null ? before.getPosition().getLocationMeta() : null
-                ),
-                null
-        );
+        var request =
+                new BuildingUpdateRequest(
+                        new FacilityUpdateRequest(
+                                before.getName(),
+                                before.getCode(),
+                                before.getDescription(),
+                                before.getThumbnailFileId(),
+                                before.getPosition() != null ? before.getPosition().getLon() : null,
+                                before.getPosition() != null ? before.getPosition().getLat() : null,
+                                before.getPosition() != null ? before.getPosition().getLocationMeta() : null),
+                        null);
 
         // when
         buildingService.update(id, request);
@@ -332,18 +306,18 @@ class BuildingServiceTest {
         // given
         Long id = buildingService.save(createRequest);
 
-        var putRequest = new BuildingUpdateRequest(
-                new FacilityUpdateRequest(
-                        "풀업데이트이름",
-                        "CODE2",
-                        "풀업데이트설명",
-                        null, // 썸네일 제거
-                        120.0,
-                        30.0,
-                        "{\"height\":10}"
-                ),
-                List.of() // floors 를 비워서 반영
-        );
+        var putRequest =
+                new BuildingUpdateRequest(
+                        new FacilityUpdateRequest(
+                                "풀업데이트이름",
+                                "CODE2",
+                                "풀업데이트설명",
+                                null, // 썸네일 제거
+                                120.0,
+                                30.0,
+                                "{\"height\":10}"),
+                        List.of() // floors 를 비워서 반영
+                        );
 
         // when
         buildingService.putUpdate(id, putRequest);
@@ -372,16 +346,10 @@ class BuildingServiceTest {
         // given
         buildingService.save(createRequest);
 
-        var dupFacilityRequest = new FacilityCreateRequest(
-                "다른이름",
-                "AAA", // same code as in setUp
-                "설명",
-                null,
-                null,
-                null,
-                null,
-                null
-        );
+        var dupFacilityRequest =
+                new FacilityCreateRequest(
+                        "다른이름", "AAA", // same code as in setUp
+                        "설명", null, null, null, null, null);
         var dupCreate = new BuildingCreateRequest(dupFacilityRequest, List.of());
 
         // when & then
@@ -394,26 +362,16 @@ class BuildingServiceTest {
         // given
         buildingService.save(createRequest); // code AAA
 
-        var facilityRequest2 = new FacilityCreateRequest(
-                "두번째",
-                "BBB",
-                "desc",
-                null, null, null, null, null
-        );
+        var facilityRequest2 =
+                new FacilityCreateRequest("두번째", "BBB", "desc", null, null, null, null, null);
         Long secondId = buildingService.save(new BuildingCreateRequest(facilityRequest2, List.of()));
 
-        var updateToDup = new BuildingUpdateRequest(
-                new FacilityUpdateRequest(
-                        null,
-                        "AAA", // duplicate code
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                null
-        );
+        var updateToDup =
+                new BuildingUpdateRequest(
+                        new FacilityUpdateRequest(
+                                null, "AAA", // duplicate code
+                                null, null, null, null, null),
+                        null);
 
         // when & then
         assertThrows(CustomException.class, () -> buildingService.update(secondId, updateToDup));
@@ -424,10 +382,9 @@ class BuildingServiceTest {
     void update_FloorsToEmpty_RemovesAllFloors() {
         // given
         Long id = buildingService.save(createRequest); // has one floor
-        var clearFloors = new BuildingUpdateRequest(
-                new FacilityUpdateRequest(null, null, null, null, null, null, null),
-                List.of()
-        );
+        var clearFloors =
+                new BuildingUpdateRequest(
+                        new FacilityUpdateRequest(null, null, null, null, null, null, null), List.of());
 
         // when
         buildingService.update(id, clearFloors);

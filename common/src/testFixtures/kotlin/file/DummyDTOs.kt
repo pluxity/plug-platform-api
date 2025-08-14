@@ -8,9 +8,14 @@ fun dummyFileResponse(
     url: String = "url",
     originFileName: String = "originFileName",
     contentType: String = "image",
-    fileStatus: String = "COMPLETE"
+    fileStatus: String = "COMPLETE",
 ) = FileResponse(
-    id, url, originFileName, contentType, fileStatus, dummyBaseResponse()
+    id,
+    url,
+    originFileName,
+    contentType,
+    fileStatus,
+    dummyBaseResponse(),
 )
 
 fun dummyBaseResponse() = BaseResponse("", "", "", "")

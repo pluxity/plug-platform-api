@@ -27,8 +27,10 @@ class ParkServiceTest {
     @Autowired private ParkRepository parkRepository;
     @Autowired private TestFileUploader testFileUploader;
 
-    private static final String BOUNDARY_JSON_1 = "{\"type\":\"Polygon\",\"coordinates\":[[[127.0,37.5],[127.1,37.5],[127.1,37.6],[127.0,37.6],[127.0,37.5]]]}";
-    private static final String BOUNDARY_JSON_2 = "{\"type\":\"Polygon\",\"coordinates\":[[[0,0],[1,0],[1,1],[0,1],[0,0]]]}";
+    private static final String BOUNDARY_JSON_1 =
+            "{\"type\":\"Polygon\",\"coordinates\":[[[127.0,37.5],[127.1,37.5],[127.1,37.6],[127.0,37.6],[127.0,37.5]]]}";
+    private static final String BOUNDARY_JSON_2 =
+            "{\"type\":\"Polygon\",\"coordinates\":[[[0,0],[1,0],[1,1],[0,1],[0,0]]]}";
 
     // --- Create Test ---
 
@@ -38,13 +40,18 @@ class ParkServiceTest {
         // GIVEN: 공원 생성에 필요한 모든 데이터 준비
         Long drawingFileId = testFileUploader.initiateTestFileUpload("park_drawing.dwg");
         Long thumbnailFileId = testFileUploader.initiateTestFileUpload("park_thumbnail.png");
-        ParkCreateRequest request = new ParkCreateRequest(
-                new FacilityCreateRequest(
-                        "플럭시티 공원", "PARK_001", "도심 속의 쉼터", drawingFileId, thumbnailFileId,
-                        126.9780, 37.5665, "{\"area\":\"15,000sqm\"}"
-                ),
-                BOUNDARY_JSON_1
-        );
+        ParkCreateRequest request =
+                new ParkCreateRequest(
+                        new FacilityCreateRequest(
+                                "플럭시티 공원",
+                                "PARK_001",
+                                "도심 속의 쉼터",
+                                drawingFileId,
+                                thumbnailFileId,
+                                126.9780,
+                                37.5665,
+                                "{\"area\":\"15,000sqm\"}"),
+                        BOUNDARY_JSON_1);
 
         // WHEN: 공원 생성
         Long createdParkId = parkService.save(request);
@@ -78,10 +85,11 @@ class ParkServiceTest {
     @DisplayName("성공: 선택적 필드(설명, 파일, 경계 등)가 null일 때 공원 생성이 성공한다")
     void save_WithNullOptionalFields_Succeeds() {
         // GIVEN: 필수 필드만 채운 요청
-        ParkCreateRequest request = new ParkCreateRequest(
-                new FacilityCreateRequest("필수 공원", "PARK_REQ", null, null, null, null, null, null),
-                null // boundary 정보 없음
-        );
+        ParkCreateRequest request =
+                new ParkCreateRequest(
+                        new FacilityCreateRequest("필수 공원", "PARK_REQ", null, null, null, null, null, null),
+                        null // boundary 정보 없음
+                        );
 
         // WHEN
         Long createdParkId = parkService.save(request);
@@ -101,13 +109,14 @@ class ParkServiceTest {
     void save_WithDuplicateCode_ThrowsCustomException() {
         // GIVEN: 기준 공원 생성
         createAndSavePark("기준 공원", "DUPE_CODE");
-        ParkCreateRequest duplicateRequest = new ParkCreateRequest(
-                new FacilityCreateRequest("다른 이름 공원", "DUPE_CODE", null, null, null, null, null, null), null);
+        ParkCreateRequest duplicateRequest =
+                new ParkCreateRequest(
+                        new FacilityCreateRequest("다른 이름 공원", "DUPE_CODE", null, null, null, null, null, null),
+                        null);
 
         // WHEN & THEN
         assertThrows(CustomException.class, () -> parkService.save(duplicateRequest));
     }
-
 
     // --- Read Test ---
 
@@ -123,7 +132,11 @@ class ParkServiceTest {
 
         // THEN
         assertThat(responses).hasSize(2);
-        ParkResponse parkA = responses.stream().filter(p -> p.facility().code().equals("PARK_A")).findFirst().orElseThrow();
+        ParkResponse parkA =
+                responses.stream()
+                        .filter(p -> p.facility().code().equals("PARK_A"))
+                        .findFirst()
+                        .orElseThrow();
         assertThat(parkA.facility().name()).isEqualTo("공원 A");
     }
 
@@ -146,7 +159,6 @@ class ParkServiceTest {
         assertThrows(CustomException.class, () -> parkService.findById(nonExistingId));
     }
 
-
     // --- Update Test ---
 
     @Test
@@ -157,10 +169,10 @@ class ParkServiceTest {
         Long newThumbnailId = testFileUploader.initiateTestFileUpload("new_thumbnail.dwg");
 
         // GIVEN: thumbnail만 변경하는 PUT 요청
-        ParkUpdateRequest updateRequest = new ParkUpdateRequest(
-                new FacilityUpdateRequest("수정된 공원", "PARK_UPD", null, newThumbnailId, null, null, null),
-                BOUNDARY_JSON_2
-        );
+        ParkUpdateRequest updateRequest =
+                new ParkUpdateRequest(
+                        new FacilityUpdateRequest("수정된 공원", "PARK_UPD", null, newThumbnailId, null, null, null),
+                        BOUNDARY_JSON_2);
 
         // WHEN
         parkService.update(parkId, updateRequest);
@@ -185,10 +197,17 @@ class ParkServiceTest {
         Park originalPark = parkRepository.findById(parkId).orElseThrow();
 
         // GIVEN: Facility 정보는 그대로 두고, boundary 정보만 변경하는 요청
-        ParkUpdateRequest updateRequest = new ParkUpdateRequest(
-                new FacilityUpdateRequest(originalPark.getName(), originalPark.getCode(), originalPark.getDescription(), null, null, null, null),
-                BOUNDARY_JSON_2
-        );
+        ParkUpdateRequest updateRequest =
+                new ParkUpdateRequest(
+                        new FacilityUpdateRequest(
+                                originalPark.getName(),
+                                originalPark.getCode(),
+                                originalPark.getDescription(),
+                                null,
+                                null,
+                                null,
+                                null),
+                        BOUNDARY_JSON_2);
 
         // WHEN
         parkService.update(parkId, updateRequest);
@@ -198,7 +217,6 @@ class ParkServiceTest {
         assertThat(response.facility().name()).isEqualTo("경계 테스트 공원"); // 유지됨
         assertThat(response.boundary()).isEqualTo(BOUNDARY_JSON_2); // 변경됨
     }
-
 
     // --- Delete Test ---
 
@@ -226,14 +244,13 @@ class ParkServiceTest {
         assertThrows(CustomException.class, () -> parkService.delete(nonExistingId));
     }
 
-
     // --- Helper Methods ---
 
     private Long createAndSavePark(String name, String code) {
-        ParkCreateRequest request = new ParkCreateRequest(
-                new FacilityCreateRequest(name, code, "설명", null, null, null, null, null),
-                BOUNDARY_JSON_1
-        );
+        ParkCreateRequest request =
+                new ParkCreateRequest(
+                        new FacilityCreateRequest(name, code, "설명", null, null, null, null, null),
+                        BOUNDARY_JSON_1);
         return parkService.save(request);
     }
 }

@@ -1,6 +1,5 @@
 package com.pluxity.user.service;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -71,15 +70,17 @@ class PermissionGroupServiceTest {
             assertThat(permissions).hasSize(3);
 
             // FACILITY 권한 검증
-            assertThat(permissions.stream()
-                    .filter(p -> p.getResourceName().equals("FACILITY"))
-                    .map(Permission::getResourceId))
+            assertThat(
+                            permissions.stream()
+                                    .filter(p -> p.getResourceName().equals("FACILITY"))
+                                    .map(Permission::getResourceId))
                     .containsExactlyInAnyOrder("READ", "LIST");
 
             // DEVICE_CATEGORY 권한 검증
-            assertThat(permissions.stream()
-                    .filter(p -> p.getResourceName().equals("DEVICE_CATEGORY"))
-                    .map(Permission::getResourceId))
+            assertThat(
+                            permissions.stream()
+                                    .filter(p -> p.getResourceName().equals("DEVICE_CATEGORY"))
+                                    .map(Permission::getResourceId))
                     .containsExactly("READ");
         }
 
@@ -88,15 +89,16 @@ class PermissionGroupServiceTest {
         void withDuplicateGroupName_shouldThrowException() {
             // given
             permissionGroupService.create(createRequest); // 먼저 하나 생성
-            PermissionGroupCreateRequest duplicateRequest = new PermissionGroupCreateRequest(
-                    "기본 시설 관리 그룹", // 중복된 이름
-                    "다른 설명",
-                    List.of(new PermissionRequest("PARK", List.of("VIEW")))
-            );
+            PermissionGroupCreateRequest duplicateRequest =
+                    new PermissionGroupCreateRequest(
+                            "기본 시설 관리 그룹", // 중복된 이름
+                            "다른 설명",
+                            List.of(new PermissionRequest("PARK", List.of("VIEW"))));
 
             // when & then
-            CustomException exception = assertThrows(CustomException.class,
-                    () -> permissionGroupService.create(duplicateRequest));
+            CustomException exception =
+                    assertThrows(
+                            CustomException.class, () -> permissionGroupService.create(duplicateRequest));
             assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_PERMISSION_GROUP_NAME);
         }
 
@@ -104,15 +106,17 @@ class PermissionGroupServiceTest {
         @DisplayName("실패: 요청 DTO의 한 권한 목록 내에 중복된 리소스 ID가 포함된 경우 DUPLICATE_RESOURCE_ID 예외가 발생한다")
         void withDuplicateResourceIdsInRequest_shouldThrowException() {
             // given
-            PermissionGroupCreateRequest duplicateRequest = new PermissionGroupCreateRequest(
-                    "잘못된 그룹",
-                    "설명",
-                    List.of(new PermissionRequest("FACILITY", List.of("READ", "LIST", "READ"))) // 중복
-            );
+            PermissionGroupCreateRequest duplicateRequest =
+                    new PermissionGroupCreateRequest(
+                            "잘못된 그룹",
+                            "설명",
+                            List.of(new PermissionRequest("FACILITY", List.of("READ", "LIST", "READ"))) // 중복
+                            );
 
             // when & then
-            CustomException exception = assertThrows(CustomException.class,
-                    () -> permissionGroupService.create(duplicateRequest));
+            CustomException exception =
+                    assertThrows(
+                            CustomException.class, () -> permissionGroupService.create(duplicateRequest));
             assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_RESOURCE_ID);
         }
     }
@@ -141,10 +145,9 @@ class PermissionGroupServiceTest {
             assertThat(response.name()).isEqualTo("기본 시설 관리 그룹");
             assertThat(response.permissions()).hasSize(2);
             assertThat(response.permissions().getFirst().resourceType()).isNotNull().isNotEmpty();
-            assertThat(response.permissions().getFirst().resourceType().getClass()).isEqualTo(String.class);
+            assertThat(response.permissions().getFirst().resourceType().getClass())
+                    .isEqualTo(String.class);
             assertThat(response.permissions().getFirst().resourceIds()).isNotNull().isNotEmpty();
-
-
         }
 
         @Test
@@ -154,12 +157,11 @@ class PermissionGroupServiceTest {
             Long nonExistingId = 9999L;
 
             // when & then
-            CustomException exception = assertThrows(CustomException.class,
-                    () -> permissionGroupService.findById(nonExistingId));
+            CustomException exception =
+                    assertThrows(CustomException.class, () -> permissionGroupService.findById(nonExistingId));
             assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_PERMISSION_GROUP);
         }
     }
-
 
     @Nested
     @DisplayName("권한 그룹 수정 (Update - PATCH 방식)")
@@ -169,16 +171,15 @@ class PermissionGroupServiceTest {
         @BeforeEach
         void setUp() {
             // 수정된 ResourceType과 일치하는 테스트 데이터 생성
-            PermissionGroupCreateRequest createRequest = new PermissionGroupCreateRequest(
-                    "기본 시설 관리 그룹",
-                    "시설 및 장비 분류에 대한 기본 권한",
-                    List.of(
-                            // name()을 사용하여 "시설" 문자열을 전달
-                            new PermissionRequest(ResourceType.FACILITY.name(), List.of("READ", "LIST")),
-                            // name()을 사용하여 "장비 분류" 문자열을 전달
-                            new PermissionRequest(ResourceType.DEVICE_CATEGORY.name(), List.of("READ"))
-                    )
-            );
+            PermissionGroupCreateRequest createRequest =
+                    new PermissionGroupCreateRequest(
+                            "기본 시설 관리 그룹",
+                            "시설 및 장비 분류에 대한 기본 권한",
+                            List.of(
+                                    // name()을 사용하여 "시설" 문자열을 전달
+                                    new PermissionRequest(ResourceType.FACILITY.name(), List.of("READ", "LIST")),
+                                    // name()을 사용하여 "장비 분류" 문자열을 전달
+                                    new PermissionRequest(ResourceType.DEVICE_CATEGORY.name(), List.of("READ"))));
             groupId = permissionGroupService.create(createRequest);
         }
 
@@ -188,17 +189,17 @@ class PermissionGroupServiceTest {
             // given
             // 기존 상태: FACILITY(READ, LIST), DEVICE_CATEGORY(READ)
             // 목표 상태: FACILITY(EDIT, LIST), DEVICE_CATEGORY(CREATE)
-            // 변경 내역: FACILITY(READ) 삭제, DEVICE_CATEGORY(READ) 삭제, FACILITY(EDIT) 추가, DEVICE_CATEGORY(CREATE) 추가
-            PermissionGroupUpdateRequest updateRequest = new PermissionGroupUpdateRequest(
-                    "수정된 고급 그룹",
-                    "수정된 설명입니다.",
-                    List.of(
-                            // "시설" 문자열로 요청
-                            new PermissionRequest(ResourceType.FACILITY.name(), List.of("EDIT", "LIST")),
-                            // "장비 분류" 문자열로 요청
-                            new PermissionRequest(ResourceType.DEVICE_CATEGORY.name(), List.of("CREATE"))
-                    )
-            );
+            // 변경 내역: FACILITY(READ) 삭제, DEVICE_CATEGORY(READ) 삭제, FACILITY(EDIT) 추가,
+            // DEVICE_CATEGORY(CREATE) 추가
+            PermissionGroupUpdateRequest updateRequest =
+                    new PermissionGroupUpdateRequest(
+                            "수정된 고급 그룹",
+                            "수정된 설명입니다.",
+                            List.of(
+                                    // "시설" 문자열로 요청
+                                    new PermissionRequest(ResourceType.FACILITY.name(), List.of("EDIT", "LIST")),
+                                    // "장비 분류" 문자열로 요청
+                                    new PermissionRequest(ResourceType.DEVICE_CATEGORY.name(), List.of("CREATE"))));
 
             // when
             permissionGroupService.update(groupId, updateRequest);
@@ -209,24 +210,28 @@ class PermissionGroupServiceTest {
             assertThat(updatedGroup.getDescription()).isEqualTo("수정된 설명입니다.");
 
             Set<Permission> permissions = updatedGroup.getPermissions();
-            assertThat(permissions).hasSize(3); // 최종 3개 (FACILITY:EDIT, FACILITY:LIST, DEVICE_CATEGORY:CREATE)
+            assertThat(permissions)
+                    .hasSize(3); // 최종 3개 (FACILITY:EDIT, FACILITY:LIST, DEVICE_CATEGORY:CREATE)
 
-            Set<String> permissionKeys = permissions.stream()
-                    .map(p -> p.getResourceName() + ":" + p.getResourceId())
-                    .collect(Collectors.toSet());
+            Set<String> permissionKeys =
+                    permissions.stream()
+                            .map(p -> p.getResourceName() + ":" + p.getResourceId())
+                            .collect(Collectors.toSet());
 
             // 최종 상태 검증
-            assertThat(permissionKeys).containsExactlyInAnyOrder(
-                    "FACILITY:EDIT",         // 추가됨
-                    "FACILITY:LIST",         // 유지됨
-                    "DEVICE_CATEGORY:CREATE" // 추가됨
-            );
+            assertThat(permissionKeys)
+                    .containsExactlyInAnyOrder(
+                            "FACILITY:EDIT", // 추가됨
+                            "FACILITY:LIST", // 유지됨
+                            "DEVICE_CATEGORY:CREATE" // 추가됨
+                            );
 
             // 삭제된 권한 검증
-            assertThat(permissionKeys).doesNotContain(
-                    "FACILITY:READ",        // 삭제됨
-                    "DEVICE_CATEGORY:READ"  // 삭제됨
-            );
+            assertThat(permissionKeys)
+                    .doesNotContain(
+                            "FACILITY:READ", // 삭제됨
+                            "DEVICE_CATEGORY:READ" // 삭제됨
+                            );
         }
 
         @Test
@@ -234,21 +239,22 @@ class PermissionGroupServiceTest {
         void withDuplicateGroupName_shouldThrowException() {
             // given
             // 비교 대상 그룹 생성
-            PermissionGroupCreateRequest anotherRequest = new PermissionGroupCreateRequest(
-                    "다른 그룹", "다른 설명",
-                    List.of(new PermissionRequest(ResourceType.FACILITY.name(), List.of("P1")))
-            );
+            PermissionGroupCreateRequest anotherRequest =
+                    new PermissionGroupCreateRequest(
+                            "다른 그룹",
+                            "다른 설명",
+                            List.of(new PermissionRequest(ResourceType.FACILITY.name(), List.of("P1"))));
             permissionGroupService.create(anotherRequest);
 
             // 기존 그룹을 '다른 그룹'과 동일한 이름으로 업데이트 시도
-            PermissionGroupUpdateRequest updateRequest = new PermissionGroupUpdateRequest(
-                    "다른 그룹", // 중복되는 이름
-                    "설명",
-                    List.of()
-            );
+            PermissionGroupUpdateRequest updateRequest =
+                    new PermissionGroupUpdateRequest(
+                            "다른 그룹", // 중복되는 이름
+                            "설명", List.of());
 
             // when & then
-            assertThrows(CustomException.class, () -> permissionGroupService.update(groupId, updateRequest));
+            assertThrows(
+                    CustomException.class, () -> permissionGroupService.update(groupId, updateRequest));
         }
     }
 
@@ -283,9 +289,10 @@ class PermissionGroupServiceTest {
     @DisplayName("성공: 빈 권한 목록으로 권한 그룹을 생성할 수 있다")
     void create_withEmptyPermissions_shouldSucceed() {
         // GIVEN
-        PermissionGroupCreateRequest request = new PermissionGroupCreateRequest(
-                "권한 없는 그룹", "설명", List.of() // 빈 리스트
-        );
+        PermissionGroupCreateRequest request =
+                new PermissionGroupCreateRequest(
+                        "권한 없는 그룹", "설명", List.of() // 빈 리스트
+                        );
 
         // WHEN
         Long groupId = permissionGroupService.create(request);
@@ -327,11 +334,13 @@ class PermissionGroupServiceTest {
     void update_withEmptyPermissionList_shouldRemoveAllPermissions() {
         // GIVEN
         Long groupId = permissionGroupService.create(createRequest);
-        assertThat(permissionGroupRepository.findById(groupId).orElseThrow().getPermissions()).isNotEmpty();
+        assertThat(permissionGroupRepository.findById(groupId).orElseThrow().getPermissions())
+                .isNotEmpty();
 
-        PermissionGroupUpdateRequest updateRequest = new PermissionGroupUpdateRequest(
-                "권한 제거된 그룹", null, List.of() // 빈 리스트로 업데이트
-        );
+        PermissionGroupUpdateRequest updateRequest =
+                new PermissionGroupUpdateRequest(
+                        "권한 제거된 그룹", null, List.of() // 빈 리스트로 업데이트
+                        );
 
         // WHEN
         permissionGroupService.update(groupId, updateRequest);
@@ -352,8 +361,14 @@ class PermissionGroupServiceTest {
         // permissions 필드를 null로 전달
 
         List<PermissionRequest> permissionRequests = new ArrayList<>();
-        permissionGroup.getPermissions().forEach(e -> permissionRequests.add(new PermissionRequest(e.getResourceName(), List.of(e.getResourceId()))));
-        PermissionGroupUpdateRequest updateRequest = new PermissionGroupUpdateRequest("이름만 변경", "설명만 변경", permissionRequests);
+        permissionGroup
+                .getPermissions()
+                .forEach(
+                        e ->
+                                permissionRequests.add(
+                                        new PermissionRequest(e.getResourceName(), List.of(e.getResourceId()))));
+        PermissionGroupUpdateRequest updateRequest =
+                new PermissionGroupUpdateRequest("이름만 변경", "설명만 변경", permissionRequests);
 
         // WHEN
         permissionGroupService.update(groupId, updateRequest);
