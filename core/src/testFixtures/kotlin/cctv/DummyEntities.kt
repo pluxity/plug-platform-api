@@ -8,4 +8,4 @@ fun dummyCctv(
     name: String = "cctvName",
     url: String = "url",
     category: DeviceCategory? = null,
-): Cctv = Cctv(id, name, url, category)
+): Cctv = Cctv(id, category, name, url)

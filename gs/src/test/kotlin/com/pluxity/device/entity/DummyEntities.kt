@@ -19,6 +19,7 @@ fun dummyDeviceCctv(
     cctv: Cctv = dummyCctv(),
     device: GsDevice = dummyGsDevice(),
 ) = DeviceCctv(
+    1L,
     device,
     cctv,
 )

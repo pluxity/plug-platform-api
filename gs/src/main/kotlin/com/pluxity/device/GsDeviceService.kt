@@ -2,18 +2,17 @@ package com.pluxity.device
 
 import com.pluxity.cctv.CctvService
 import com.pluxity.cctv.dto.CctvResponse
-import com.pluxity.cctv.entity.Cctv
+import com.pluxity.cctv.dto.toCctvResponse
 import com.pluxity.cctv.entity.DeviceCctv
 import com.pluxity.cctv.repository.DeviceCctvRepository
-import com.pluxity.device.dto.DeviceCategoryResponseWithoutChildren
 import com.pluxity.device.dto.GsDeviceCctvUpdateRequest
 import com.pluxity.device.dto.GsDeviceCreateRequest
 import com.pluxity.device.dto.GsDeviceResponse
 import com.pluxity.device.dto.GsDeviceUpdateRequest
+import com.pluxity.device.dto.toGsDeviceResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
 import com.pluxity.device.service.DeviceCategoryService
-import com.pluxity.feature.dto.FeatureResponse
 import com.pluxity.file.dto.FileResponse
 import com.pluxity.file.service.FileService
 import com.pluxity.global.annotation.CheckPermissionCategory
@@ -45,7 +44,7 @@ class GsDeviceService(
 
     @Transactional(readOnly = true)
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
-    fun findById(id: String): GsDeviceResponse = createResponse(getDevice(id), getThumbnailFile(getDevice(id)))
+    fun findById(id: String): GsDeviceResponse = getDevice(id).toGsDeviceResponse(getThumbnailFile(getDevice(id)))
 
     private fun getThumbnailFile(gsDevice: Device): FileResponse? =
         gsDevice.category?.let {
@@ -69,11 +68,8 @@ class GsDeviceService(
                 { v: DeviceCategory -> Stream.of(v.iconFileId) },
                 fileService,
             )
-        return gsDevices.map { gsDevice: GsDevice ->
-            createResponse(
-                gsDevice,
-                fileMap[gsDevice.category?.iconFileId],
-            )
+        return gsDevices.map {
+            it.toGsDeviceResponse(fileMap[it.category?.iconFileId])
         }
     }
 
@@ -84,9 +80,7 @@ class GsDeviceService(
     ) {
         val device = getDevice(id)
         device.update(request.name)
-        request.categoryId?.let { categoryId ->
-            device.changeCategory(deviceCategoryService.findById(categoryId))
-        }
+        request.categoryId?.let { device.changeCategory(deviceCategoryService.findById(it)) }
     }
 
     @Transactional
@@ -105,7 +99,7 @@ class GsDeviceService(
         val device = getDevice(id)
         device.clearAllRelations()
         deviceCctvRepository.deleteByDevice(device)
-        repository.delete(device)
+        repository.deleteById(device.id)
     }
 
     @Transactional
@@ -132,20 +126,7 @@ class GsDeviceService(
         val deviceCctvs = deviceCctvRepository.findByDevice(device)
         return deviceCctvs
             .map { it.cctv }
-            .map { cctv: Cctv ->
-                CctvResponse(
-                    cctv.id,
-                    cctv.name,
-                    cctv.url,
-                    cctv.feature?.let { FeatureResponse.from(it) },
-                    cctv.category?.let {
-                        DeviceCategoryResponseWithoutChildren.from(
-                            it,
-                            getThumbnailFile(cctv),
-                        )
-                    },
-                )
-            }
+            .map { it.toCctvResponse(getThumbnailFile(it)) }
     }
 
     @Transactional
@@ -159,32 +140,22 @@ class GsDeviceService(
         // 추가할 cctv id
         val saveList =
             request.cctvIds
-                .filter { id: String -> !existIds.contains(id) }
-                .map { cctvId: String ->
-                    DeviceCctv.builder().cctv(cctvService.findById(cctvId)).device(device).build()
-                }
+                .filter { !existIds.contains(it) }
+                .map { DeviceCctv(cctv = cctvService.findById(it), device = device) }
 
         // 삭제할 cctv id
-        val removeList = existIds.filter { id: String -> !request.cctvIds.contains(id) }
+        val removeList: List<String> = existIds.filter { !request.cctvIds.contains(it) }
 
         // 추가
         if (saveList.isNotEmpty()) {
+            log.info { "${deviceId}에 추가할 cctvId $saveList" }
             deviceCctvRepository.saveAll(saveList)
         }
 
         // 삭제
-        removeList.takeIf { it.isNotEmpty() }?.let(deviceCctvRepository::deleteByCctvIdIn)
-    }
-
-    private fun createResponse(
-        gsDevice: GsDevice,
-        thumbnailFile: FileResponse?,
-    ): GsDeviceResponse {
-        return GsDeviceResponse(
-            gsDevice.id,
-            gsDevice.name,
-            gsDevice.feature?.let { FeatureResponse.from(it) },
-            gsDevice.category?.let { DeviceCategoryResponseWithoutChildren.from(it, thumbnailFile) },
-        )
+        if (removeList.isNotEmpty()) {
+            log.info { "${deviceId}에서 제거할 cctvId $removeList" }
+            deviceCctvRepository.deleteByCctvIdIn(removeList)
+        }
     }
 }

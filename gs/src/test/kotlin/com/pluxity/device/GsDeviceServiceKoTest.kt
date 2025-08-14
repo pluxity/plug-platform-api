@@ -33,8 +33,7 @@ class GsDeviceServiceKoTest : BehaviorSpec({
     val deviceCctvRepository: DeviceCctvRepository = mockk()
     val cctvService: CctvService = mockk()
     val fileService: FileService = mockk()
-    val gsDeviceService =
-        GsDeviceService(repository, deviceCategoryService, deviceCctvRepository, cctvService, fileService)
+    val gsDeviceService = GsDeviceService(repository, deviceCategoryService, deviceCctvRepository, cctvService, fileService)
 
     Given("디바이스 생성을 진행할 때") {
         When("유효한 요청으로 GS 디바이스 생성 요청") {
@@ -110,7 +109,7 @@ class GsDeviceServiceKoTest : BehaviorSpec({
     Given("디바이스 삭제를 진행할 때") {
         When("정상 삭제 요청") {
             val device = dummyGsDevice()
-            val slot = slot<GsDevice>()
+            val slot = slot<String>()
             every {
                 repository.findByIdOrNull(any())
             } returns device
@@ -118,12 +117,12 @@ class GsDeviceServiceKoTest : BehaviorSpec({
                 deviceCctvRepository.deleteByDevice(any())
             } just runs
             every {
-                repository.delete(capture(slot))
+                repository.deleteById(capture(slot))
             } just runs
             gsDeviceService.delete(device.id)
             Then("정상 삭제") {
-                verify(exactly = 1) { repository.delete(device) }
-                slot.captured.id shouldBe device.id
+                verify(exactly = 1) { repository.deleteById(any()) }
+                slot.captured shouldBe device.id
             }
         }
     }
