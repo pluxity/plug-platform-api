@@ -9,7 +9,7 @@ fun dummyCreateParkRequest(boundary: String? = null): ParkCreateRequest =
         boundary,
     )
 
-fun dummyUpdateParkRequest(boundary: String? = null): ParkUpdateRequest =
+fun dummyUpdateParkRequest(boundary: String = "dummyBoundary"): ParkUpdateRequest =
     ParkUpdateRequest(
         dummyUpdateFacilityRequest(),
         boundary,

@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/buildings")
 @Tag(name = "Building Controller", description = "건물 관리 API")
 class BuildingController(
-    val service: BuildingService,
+    private val service: BuildingService,
 ) {
     @Operation(summary = "건물 생성", description = "새로운 건물을 생성합니다")
     @ApiResponses(

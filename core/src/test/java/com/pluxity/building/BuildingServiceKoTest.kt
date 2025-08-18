@@ -21,7 +21,7 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
 import org.springframework.data.domain.Sort
-import java.util.Optional
+import org.springframework.data.repository.findByIdOrNull
 
 class BuildingServiceKoTest : BehaviorSpec({
     val fileService: FileService = mockk()
@@ -106,8 +106,8 @@ class BuildingServiceKoTest : BehaviorSpec({
             val updateRequest = dummyUpdateBuildingRequest()
             val building = dummyBuilding(name = updateRequest.facility.name)
             every {
-                repository.findById(any())
-            } returns Optional.of(building)
+                repository.findByIdOrNull(any())
+            } returns building
 
             every {
                 facilityService.putUpdate(any(), any())

@@ -19,7 +19,7 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
 import org.springframework.data.domain.Sort
-import java.util.Optional
+import org.springframework.data.repository.findByIdOrNull
 
 class ParkServiceKoTest : BehaviorSpec({
     val fileService: FileService = mockk()
@@ -93,8 +93,8 @@ class ParkServiceKoTest : BehaviorSpec({
             val updateRequest = dummyUpdateParkRequest("updatedBoundary")
             val park = dummyPark(name = updateRequest.facility.name, boundary = updateRequest.boundary)
             every {
-                parkRepository.findById(any())
-            } returns Optional.of(park)
+                parkRepository.findByIdOrNull(any())
+            } returns park
 
             every {
                 facilityService.putUpdate(any(), any())
@@ -112,8 +112,8 @@ class ParkServiceKoTest : BehaviorSpec({
         When("정상 삭제 요청") {
             val park = dummyPark()
             every {
-                parkRepository.findById(any())
-            } returns Optional.of(park)
+                parkRepository.findByIdOrNull(any())
+            } returns park
             val slot = slot<Long>()
             every {
                 facilityService.deleteFacility(capture(slot))

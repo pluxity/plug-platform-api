@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.response.BaseResponse;
 import lombok.Builder;
+import org.jetbrains.annotations.Nullable;
 
 @Builder
 public record FileResponse(
-        Long id,
+        @Nullable Long id,
         String url,
         String originalFileName,
         String contentType,

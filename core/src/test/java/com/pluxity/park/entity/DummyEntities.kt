@@ -14,10 +14,7 @@ fun dummyPark(
     val park =
         Park(
             name,
-            "",
             description,
-            null,
-            null,
             boundary,
         ).withAudit(LocalDateTime.now())
     ReflectionTestUtils.setField(park, "id", id)

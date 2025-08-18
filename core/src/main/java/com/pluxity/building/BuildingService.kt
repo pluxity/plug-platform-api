@@ -18,10 +18,10 @@ import java.util.stream.Stream
 
 @Service
 class BuildingService(
-    val fileService: FileService,
-    val facilityService: FacilityService,
-    val floorService: FloorService,
-    val repository: BuildingRepository,
+    private val fileService: FileService,
+    private val facilityService: FacilityService,
+    private val floorService: FloorService,
+    private val repository: BuildingRepository,
 ) {
     @Transactional
     fun save(request: BuildingCreateRequest): Long {
