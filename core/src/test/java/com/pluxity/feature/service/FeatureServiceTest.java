@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.pluxity.asset.entity.Asset;
 import com.pluxity.asset.repository.AssetRepository;
+import com.pluxity.device.dto.DeviceInfoResponse;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
@@ -61,6 +62,11 @@ class FeatureServiceTest {
         @Override
         public String getName() {
             return "Test Device Instance";
+        }
+
+        @Override
+        public DeviceInfoResponse toDeviceInfo() {
+            return null;
         }
     }
 

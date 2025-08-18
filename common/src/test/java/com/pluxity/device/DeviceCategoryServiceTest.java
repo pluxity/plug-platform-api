@@ -47,6 +47,11 @@ class DeviceCategoryServiceTest {
         public String getName() {
             return "Test Device";
         }
+
+        @Override
+        public DeviceInfoResponse toDeviceInfo() {
+            return null;
+        }
     }
 
     @Test

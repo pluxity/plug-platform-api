@@ -69,6 +69,7 @@ subprojects {
         annotationProcessor("org.projectlombok:lombok")
 
         implementation("org.flywaydb:flyway-core")
+        runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
         implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.11.0")
 

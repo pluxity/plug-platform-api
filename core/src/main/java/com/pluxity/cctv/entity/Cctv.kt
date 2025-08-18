@@ -1,6 +1,8 @@
 package com.pluxity.cctv.entity
 
+import com.pluxity.cctv.dto.CctvInfoResponse
 import com.pluxity.cctv.dto.CctvUpdateRequest
+import com.pluxity.device.dto.DeviceInfoResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
 import jakarta.persistence.Column
@@ -26,4 +28,6 @@ class Cctv(
     override fun getName(): String {
         return this.cctvName
     }
+
+    override fun toDeviceInfo(): DeviceInfoResponse = CctvInfoResponse(id, cctvName, url, deviceType.type)
 }

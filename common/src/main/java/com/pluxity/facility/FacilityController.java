@@ -84,7 +84,7 @@ public class FacilityController {
             })
     @PatchMapping("/{facilityId}/drawing")
     public ResponseEntity<Void> patch(
-            @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
+            @Parameter(description = "시설 ID", required = true) @PathVariable Long facilityId,
             @Parameter(description = "도면 수정 정보", required = true) @Valid @RequestBody
                     FacilityDrawingUpdateRequest request) {
         facilityService.updateDrawingFile(facilityId, request);
@@ -119,7 +119,7 @@ public class FacilityController {
             })
     @PutMapping("/{facilityId}/location")
     public ResponseEntity<Void> patchLocation(
-            @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
+            @Parameter(description = "시설 ID", required = true) @PathVariable Long facilityId,
             @Parameter(description = "위치 수정 정보", required = true) @Valid @RequestBody
                     FacilityLocationUpdateRequest request) {
         facilityService.updateLocation(facilityId, request);
@@ -154,7 +154,7 @@ public class FacilityController {
             })
     @PostMapping("/{facilityId}/path")
     public ResponseEntity<Void> addPath(
-            @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
+            @Parameter(description = "시설 ID", required = true) @PathVariable Long facilityId,
             @Parameter(description = "경로 정보", required = true) @Valid @RequestBody
                     FacilityPathSaveRequest request) {
         facilityService.savePath(facilityId, request);
@@ -189,7 +189,7 @@ public class FacilityController {
             })
     @PatchMapping("/{facilityId}/path/{pathId}")
     public ResponseEntity<Void> updatePath(
-            @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
+            @Parameter(description = "시설 ID", required = true) @PathVariable Long facilityId,
             @Parameter(description = "경로 ID", required = true) @PathVariable Long pathId,
             @Parameter(description = "경로 정보", required = true) @Valid @RequestBody
                     FacilityPathUpdateRequest request) {
@@ -225,19 +225,19 @@ public class FacilityController {
             })
     @DeleteMapping("/{facilityId}/path/{pathId}")
     public ResponseEntity<Void> deletePath(
-            @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
+            @Parameter(description = "시설 ID", required = true) @PathVariable Long facilityId,
             @Parameter(description = "경로 ID", required = true) @PathVariable Long pathId) {
         facilityService.deletePath(facilityId, pathId);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "시설물 이력 조회", description = "특정 ID를 가진 시설물의 이력 목록을 조회합니다.")
+    @Operation(summary = "시설 이력 조회", description = "특정 ID를 가진 시설의 이력 목록을 조회합니다.")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "이력 조회 성공"),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "해당 ID의 시설물을 찾을 수 없음",
+                        description = "해당 ID의 시설을 찾을 수 없음",
                         content =
                                 @Content(
                                         mediaType = "application/json",
@@ -284,7 +284,7 @@ public class FacilityController {
             })
     @PatchMapping("/{facilityId}/floors")
     public ResponseEntity<Void> patchFloors(
-            @Parameter(description = "시설물 ID", required = true) @PathVariable Long facilityId,
+            @Parameter(description = "시설 ID", required = true) @PathVariable Long facilityId,
             @Parameter(description = "층 수정 정보", required = true) @Valid @RequestBody
                     FacilityFloorUpdateRequest request) {
         facilityService.updateFloor(facilityId, request);

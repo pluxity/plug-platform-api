@@ -1,5 +1,7 @@
 package com.pluxity.device
 
+import com.pluxity.device.dto.DeviceInfoResponse
+import com.pluxity.device.dto.GsDeviceInfoResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
 import jakarta.persistence.Column
@@ -20,6 +22,8 @@ class GsDevice(
     override fun getName(): String {
         return this.deviceName
     }
+
+    override fun toDeviceInfo(): DeviceInfoResponse = GsDeviceInfoResponse(id, deviceName, deviceType.type)
 
     fun update(name: String?) {
         if (name != null) {
