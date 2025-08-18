@@ -55,11 +55,7 @@ class RoleServiceTest {
         // 테스트에 사용할 건물(리소스) 생성
         buildings.clear();
         IntStream.rangeClosed(1, 3)
-                .forEach(
-                        i ->
-                                buildings.add(
-                                        buildingRepository.save(
-                                                Building.builder().name("Building " + i).code("B" + i).build())));
+                .forEach(i -> buildings.add(buildingRepository.save(new Building("Building " + i, null))));
 
         // [수정] 테스트에 사용할 권한 그룹(PermissionGroup)을 미리 생성
         permissionGroupIds.clear();

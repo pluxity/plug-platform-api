@@ -84,7 +84,7 @@ class BuildingServiceKoTest : BehaviorSpec({
             Then("정상 조회") {
                 val res = buildingService.findById(building.id)
                 res.facility.name shouldBe building.name
-                res.floors.size shouldBe 1
+                res.floors?.size shouldBe 1
             }
         }
 

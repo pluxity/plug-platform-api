@@ -75,9 +75,7 @@ class UserRolePermissionIntegrationTest {
         IntStream.rangeClosed(1, 5)
                 .forEach(
                         i -> {
-                            buildings.add(
-                                    buildingRepository.save(
-                                            Building.builder().name("Facility " + i).code("F" + i).build()));
+                            buildings.add(buildingRepository.save(new Building("Building " + i, null)));
                         });
 
         em.flush();

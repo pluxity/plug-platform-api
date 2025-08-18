@@ -6,6 +6,7 @@ import com.pluxity.file.dto.FileResponse;
 import com.pluxity.global.response.BaseResponse;
 import java.util.List;
 import lombok.Builder;
+import org.jetbrains.annotations.Nullable;
 
 @Builder
 public record FacilityResponse(
@@ -16,9 +17,9 @@ public record FacilityResponse(
         FileResponse drawing,
         FileResponse thumbnail,
         List<FacilityPathResponse> paths,
-        Double lon,
-        Double lat,
-        String locationMeta,
+        @Nullable Double lon,
+        @Nullable Double lat,
+        @Nullable String locationMeta,
         @JsonUnwrapped BaseResponse baseResponse) {
     public static FacilityResponse from(
             Facility facility, FileResponse drawing, FileResponse thumbnail) {
