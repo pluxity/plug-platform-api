@@ -15,7 +15,7 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import device.dummyDeviceCategory
 import file.dummyFileResponse
-import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -85,7 +85,7 @@ class GsDeviceServiceKoTest : BehaviorSpec({
             } returns null
             Then("NOT_FOUND_DEVICE 예외 발생") {
                 val searchId = UUID.randomUUID().toString()
-                shouldThrow<CustomException> {
+                shouldThrowExactly<CustomException> {
                     gsDeviceService.findById(searchId)
                 }.message shouldBe ErrorCode.NOT_FOUND_DEVICE.message.format(searchId)
             }
@@ -162,7 +162,7 @@ class GsDeviceServiceKoTest : BehaviorSpec({
                 repository.findByIdOrNull(any())
             } returns device
             Then("정상 제거") {
-                shouldThrow<CustomException> {
+                shouldThrowExactly<CustomException> {
                     gsDeviceService.removeCategory(device.id)
                 }.message shouldBe ErrorCode.NOT_FOUND_ASSIGN_DEVICE_CATEGORY.message.format(device.id)
             }

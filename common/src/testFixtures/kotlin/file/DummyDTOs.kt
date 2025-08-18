@@ -1,7 +1,7 @@
 package file
 
+import base.dummyBaseResponse
 import com.pluxity.file.dto.FileResponse
-import com.pluxity.global.response.BaseResponse
 
 fun dummyFileResponse(
     id: Long = 1L,
@@ -17,5 +17,3 @@ fun dummyFileResponse(
     fileStatus,
     dummyBaseResponse(),
 )
-
-fun dummyBaseResponse() = BaseResponse("", "", "", "")

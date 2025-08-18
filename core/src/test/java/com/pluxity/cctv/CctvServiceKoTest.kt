@@ -10,7 +10,7 @@ import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import file.dummyFileResponse
-import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -19,6 +19,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import java.util.UUID
 
@@ -54,7 +55,7 @@ class CctvServiceKoTest : BehaviorSpec({
     Given("CCTV 목록 조회를 진행할 때") {
         When("정상 요청이 오면") {
             every {
-                cctvRepository.findAll()
+                cctvRepository.findAll(any<Sort>())
             } returns mutableListOf(dummyCctv())
 
             every {
@@ -73,8 +74,8 @@ class CctvServiceKoTest : BehaviorSpec({
             every {
                 cctvRepository.findByIdOrNull(any())
             } returns cctv
-            val res = cctvService.findById(cctv.id)
             Then("정상 조회") {
+                val res = cctvService.findById(cctv.id)
                 res.id shouldBe cctv.id
                 res.name shouldBe cctv.name
             }
@@ -86,7 +87,7 @@ class CctvServiceKoTest : BehaviorSpec({
             } returns null
             Then("NOT_FOUND_CCTV 예외 발생") {
                 val searchId = UUID.randomUUID().toString()
-                shouldThrow<CustomException> {
+                shouldThrowExactly<CustomException> {
                     cctvService.findById(searchId)
                 }.message shouldBe ErrorCode.NOT_FOUND_CCTV.message.format(searchId)
             }
@@ -99,9 +100,9 @@ class CctvServiceKoTest : BehaviorSpec({
             every {
                 cctvRepository.findByIdOrNull(any())
             } returns cctv
-            val updateName = "updated Cctv"
-            cctvService.update(cctv.id, CctvUpdateRequest(updateName, "", null))
             Then("정상 수정") {
+                val updateName = "updated Cctv"
+                cctvService.update(cctv.id, CctvUpdateRequest(updateName, "", null))
                 cctv.name shouldBe updateName
             }
         }
@@ -120,8 +121,8 @@ class CctvServiceKoTest : BehaviorSpec({
             every {
                 cctvRepository.deleteById(capture(slot))
             } just runs
-            cctvService.delete(cctv.id)
             Then("정상 삭제") {
+                cctvService.delete(cctv.id)
                 verify(exactly = 1) { cctvRepository.deleteById(any()) }
                 slot.captured shouldBe cctv.id
             }

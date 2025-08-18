@@ -14,6 +14,7 @@ import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -41,7 +42,7 @@ class CctvService(
 
     @Transactional(readOnly = true)
     fun findAll(): List<CctvResponse> {
-        val list = cctvRepository.findAll()
+        val list = cctvRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
         val categoryList = list.mapNotNull { it.category }
         val fileMap =
             MappingUtils.getFileMapByIds(
