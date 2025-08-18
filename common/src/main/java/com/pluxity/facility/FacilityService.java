@@ -11,7 +11,11 @@ import com.pluxity.global.annotation.CheckPermission;
 import com.pluxity.global.annotation.CheckPermissionAfter;
 import com.pluxity.global.annotation.CheckPermissionAll;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.global.utils.MappingUtils;
+import com.pluxity.global.utils.SortUtils;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -208,5 +212,18 @@ public class FacilityService {
     public void updateFloor(Long facilityId, FacilityFloorUpdateRequest request) {
         Facility facility = findById(facilityId);
         floorService.update(facility, request.floors());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, List<FacilityResponse>> findAllFacilities() {
+        Map<String, List<FacilityResponse>> ret = new HashMap<>();
+        List<Facility> list = facilityRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
+        for (FacilityType value : FacilityType.values()) {
+            ret.put(
+                    value.getKey(),
+                    MappingUtils.mapWithFiles(
+                            list.stream().filter(v -> v.getFacilityType().equals(value)).toList(), fileService));
+        }
+        return ret;
     }
 }

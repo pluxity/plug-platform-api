@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 public class FacilityController {
 
     private final FacilityService facilityService;
-    private final FacilityProviderService facilityProviderService;
 
     @Operation(summary = "시설 목록 조회", description = "모든 시설 목록을 조회합니다")
     @ApiResponses(
@@ -53,7 +52,7 @@ public class FacilityController {
             })
     @GetMapping
     public ResponseEntity<DataResponseBody<Map<String, List<FacilityResponse>>>> getFacilities() {
-        return ResponseEntity.ok(DataResponseBody.of(facilityProviderService.findAllFacilities()));
+        return ResponseEntity.ok(DataResponseBody.of(facilityService.findAllFacilities()));
     }
 
     @Operation(summary = "시설 도면 정보 수정", description = "시설 도면 정보를 수정합니다")

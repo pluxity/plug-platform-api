@@ -1,9 +1,7 @@
 package com.pluxity.station;
 
 import com.pluxity.facility.Facility;
-import com.pluxity.facility.FacilityProvider;
 import com.pluxity.facility.FacilityService;
-import com.pluxity.facility.dto.FacilityApiType;
 import com.pluxity.facility.dto.FacilityResponse;
 import com.pluxity.facility.floor.dto.FloorResponse;
 import com.pluxity.facility.strategy.FloorService;
@@ -31,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class StationService implements FacilityProvider {
+public class StationService {
 
     private final FileService fileService;
     private final FacilityService facilityService;
@@ -211,17 +209,5 @@ public class StationService implements FacilityProvider {
                 .label3Ds(label3Ds)
                 .stationCodes(stationCodes)
                 .build();
-    }
-
-    @Override
-    public FacilityApiType getFacilityApiType() {
-        return FacilityApiType.STATION;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<FacilityResponse> getAllFacilities() {
-        List<Station> stations = stationRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
-        return MappingUtils.mapWithFiles(stations, fileService);
     }
 }

@@ -52,6 +52,10 @@ public abstract class Facility extends BaseEntity {
 
     @Embedded private FacilityPosition position;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "facility_type", insertable = false, updatable = false)
+    private FacilityType facilityType;
+
     @OneToMany(mappedBy = "facility")
     private final List<Feature> features = new ArrayList<>();
 

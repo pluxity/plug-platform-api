@@ -3,9 +3,7 @@ package com.pluxity.building
 import com.pluxity.building.dto.BuildingCreateRequest
 import com.pluxity.building.dto.BuildingResponse
 import com.pluxity.building.dto.BuildingUpdateRequest
-import com.pluxity.facility.FacilityProvider
 import com.pluxity.facility.FacilityService
-import com.pluxity.facility.dto.FacilityApiType
 import com.pluxity.facility.dto.FacilityResponse
 import com.pluxity.facility.strategy.FloorService
 import com.pluxity.file.service.FileService
@@ -24,7 +22,7 @@ class BuildingService(
     val facilityService: FacilityService,
     val floorService: FloorService,
     val repository: BuildingRepository,
-) : FacilityProvider {
+) {
     @Transactional
     fun save(request: BuildingCreateRequest): Long {
         val building: Building = Building(request.facility.name, request.facility.description)
@@ -105,15 +103,5 @@ class BuildingService(
         val building = facilityService.findById(id)
         floorService.delete(building)
         facilityService.deleteFacility(id)
-    }
-
-    override fun getFacilityApiType(): FacilityApiType {
-        return FacilityApiType.BUILDING
-    }
-
-    @Transactional(readOnly = true)
-    override fun getAllFacilities(): List<FacilityResponse> {
-        val buildings = repository.findAll(SortUtils.getOrderByCreatedAtDesc())
-        return MappingUtils.mapWithFiles(buildings, fileService)
     }
 }
