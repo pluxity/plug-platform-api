@@ -4,11 +4,9 @@ import com.pluxity.facility.dto.FacilityCreateRequest
 import com.pluxity.facility.dto.FacilityUpdateRequest
 import com.pluxity.facility.floor.FloorRepository
 import com.pluxity.facility.floor.dto.FloorRequest
-import com.pluxity.facility.floor.dto.FloorResponse
 import com.pluxity.global.exception.CustomException
 import com.pluxity.station.Line
 import com.pluxity.station.LineRepository
-import com.pluxity.station.Station
 import com.pluxity.station.StationCode
 import com.pluxity.station.StationCodeRepository
 import com.pluxity.station.StationLineRepository
@@ -92,11 +90,11 @@ internal class StationServiceTest {
         Assertions.assertThat(response.facility.thumbnail.originalFileName).isEqualTo("thumbnail.png")
         Assertions.assertThat(response.facility.lon).isEqualTo(127.0276)
         Assertions.assertThat(response.facility.locationMeta).isEqualTo("{\"congestion\":\"high\"}")
-        Assertions.assertThat<FloorResponse>(response.floors).hasSize(2).extracting("name")
+        Assertions.assertThat(response.floors).hasSize(2).extracting("name")
             .containsExactly("B1층", "B2층")
-        Assertions.assertThat<Long>(response.stationInfo.lineIds)
+        Assertions.assertThat(response.stationInfo.lineIds)
             .containsExactlyInAnyOrder(line2Id, lineSinbundangId)
-        Assertions.assertThat<String>(response.stationInfo.stationCodes).containsExactlyInAnyOrder("222", "D07")
+        Assertions.assertThat(response.stationInfo.stationCodes).containsExactlyInAnyOrder("222", "D07")
 
         // THEN: 데이터베이스 최종 상태 직접 검증
         val savedStation = stationRepository.findById(createdStationId).orElseThrow()
@@ -136,9 +134,9 @@ internal class StationServiceTest {
         // THEN: 생성된 역 정보 검증
         val response = stationService.findById(createdStationId)
         Assertions.assertThat(response.facility.name).isEqualTo("단일역")
-        Assertions.assertThat<FloorResponse>(response.floors).isNotNull().isEmpty()
-        Assertions.assertThat<Long>(response.stationInfo.lineIds).isNotNull().isEmpty()
-        Assertions.assertThat<String>(response.stationInfo.stationCodes).isNotNull().isEmpty()
+        Assertions.assertThat(response.floors).isNotNull().isEmpty()
+        Assertions.assertThat(response.stationInfo.lineIds).isNotNull().isEmpty()
+        Assertions.assertThat(response.stationInfo.stationCodes).isNotNull().isEmpty()
     }
 
     @Test
@@ -238,7 +236,7 @@ internal class StationServiceTest {
                 FacilityUpdateRequest("교체된역", "PUT_ST", null, null, null, null, null),
                 // 층 정보 삭제
                 emptyList(),
-                StationUpdateInfo(listOf(lineBId, lineCId), mutableListOf<String>("B01", "C01")),
+                StationUpdateInfo(listOf(lineBId, lineCId), mutableListOf("B01", "C01")),
             )
 
         // WHEN: PUT 업데이트 실행
@@ -249,9 +247,9 @@ internal class StationServiceTest {
         Assertions.assertThat(response.facility.name).isEqualTo("교체된역")
         Assertions.assertThat(response.facility.code).isEqualTo("PUT_ST")
         Assertions.assertThat(response.facility.description).isNull() // null로 교체됨
-        Assertions.assertThat<FloorResponse>(response.floors).isEmpty() // 빈 리스트로 교체됨
-        Assertions.assertThat<Long>(response.stationInfo.lineIds).containsExactlyInAnyOrder(lineBId, lineCId)
-        Assertions.assertThat<String>(response.stationInfo.stationCodes).containsExactlyInAnyOrder("B01", "C01")
+        Assertions.assertThat(response.floors).isEmpty() // 빈 리스트로 교체됨
+        Assertions.assertThat(response.stationInfo.lineIds).containsExactlyInAnyOrder(lineBId, lineCId)
+        Assertions.assertThat(response.stationInfo.stationCodes).containsExactlyInAnyOrder("B01", "C01")
 
         // THEN: DB 직접 검증 (findAll + filter 방식으로 수정)
         Assertions.assertThat(
@@ -287,7 +285,7 @@ internal class StationServiceTest {
             )
 
         // GIVEN: DB에 관계 데이터가 있는지 확인 (findAll + filter 방식으로 수정)
-        Assertions.assertThat<Station>(stationRepository.findById(stationId)).isPresent()
+        Assertions.assertThat(stationRepository.findById(stationId)).isPresent()
         Assertions.assertThat(
             floorRepository.findAll()
                 .any { it.facility.id == stationId },
