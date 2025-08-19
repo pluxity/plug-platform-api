@@ -351,7 +351,7 @@ class StationServiceTest {
     // --- Helper Methods ---
 
     private Line createAndSaveLine(String name, String color) {
-        return lineRepository.save(Line.builder().name(name).color(color).build());
+        return lineRepository.save(new Line(null, name, color));
     }
 
     private Long createAndSaveSimpleStation(String name, String code) {

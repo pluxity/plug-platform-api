@@ -45,7 +45,7 @@ class StationLineServiceKoTest : BehaviorSpec({
             Then("성공") {
                 val res = stationLineService.findLinesByStation(station)
                 res.size shouldBe 1
-                res.first() shouldBe stationLine.line.id
+                res.first() shouldBe stationLine.line?.id
             }
         }
     }
@@ -74,14 +74,14 @@ class StationLineServiceKoTest : BehaviorSpec({
 
         When("유효한 요청으로 연결된 노선 조회 요청") {
             val station = dummyStation()
-            val stationLine = dummyStationLine(station)
+            val stationLine = dummyStationLine(station = station)
 
             every { stationLineRepository.findByStationInOrderByCreatedAtDesc(any()) } returns listOf(stationLine)
 
             Then("성공") {
                 val res = stationLineService.findLineMapByStationIds(listOf(station))
                 res[station]?.size shouldBe 1
-                res[station]?.first() shouldBe stationLine.line.id
+                res[station]?.first() shouldBe stationLine.line?.id
             }
         }
     }

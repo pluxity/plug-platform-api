@@ -32,12 +32,11 @@ fun dummyLine(
     id: Long? = 1L,
     name: String = "name",
     color: String = "color",
-): Line {
-    val retLine = Line(name, color).withAudit(LocalDateTime.now())
-    ReflectionTestUtils.setField(retLine, "id", id)
-    return retLine
-}
+): Line = Line(id, name, color).withAudit(LocalDateTime.now())
 
-fun dummyStationLine(station: Station? = dummyStation()): StationLine = StationLine(station, dummyLine())
+fun dummyStationLine(
+    id: Long? = 1L,
+    station: Station? = dummyStation(),
+): StationLine = StationLine(id, station, dummyLine())
 
 fun dummyStationCode(station: Station? = dummyStation()): StationCode = StationCode(station, "code")

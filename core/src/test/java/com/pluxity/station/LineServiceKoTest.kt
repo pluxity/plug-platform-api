@@ -16,7 +16,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import org.springframework.data.domain.Sort
-import java.util.Optional
+import org.springframework.data.repository.findByIdOrNull
 
 class LineServiceKoTest : BehaviorSpec({
     val lineRepository: LineRepository = mockk()
@@ -26,12 +26,12 @@ class LineServiceKoTest : BehaviorSpec({
     Given("Line 생성을 진행할 때") {
         When("동일한 이름으로 Line 생성 요청") {
             val createRequest = dummyLineCreateRequest()
-            every { lineRepository.findByName(any()) } throws CustomException(ErrorCode.DUPLICATE_LINE_NAME, createRequest.name())
+            every { lineRepository.findByName(any()) } returns dummyLine()
 
             Then("예외 발생") {
                 shouldThrowExactly<CustomException> {
                     lineService.save(createRequest)
-                }.message shouldBe ErrorCode.DUPLICATE_LINE_NAME.message.format(createRequest.name())
+                }.message shouldBe ErrorCode.DUPLICATE_LINE_NAME.message.format(createRequest.name)
             }
         }
 
@@ -39,7 +39,7 @@ class LineServiceKoTest : BehaviorSpec({
             val createRequest = dummyLineCreateRequest()
             val line = dummyLine()
 
-            every { lineRepository.findByName(any()) } returns Optional.empty()
+            every { lineRepository.findByName(any()) } returns null
             every { lineRepository.save(any()) } returns line
 
             Then("성공") {
@@ -64,7 +64,7 @@ class LineServiceKoTest : BehaviorSpec({
 
     Given("Line 상세 조회할 때") {
         When("잘못된 아이디로 조회 요청") {
-            every { lineRepository.findById(any()) } returns Optional.empty()
+            every { lineRepository.findByIdOrNull(any()) } returns null
 
             Then("예외발생") {
                 val id = 1L
@@ -76,10 +76,10 @@ class LineServiceKoTest : BehaviorSpec({
 
         When("유효한 요청으로 조회 요청") {
             val line = dummyLine()
-            every { lineRepository.findById(any()) } returns Optional.of(line)
+            every { lineRepository.findByIdOrNull(any()) } returns line
 
             Then("성공") {
-                val res = lineService.findLineById(line.id)
+                val res = lineService.findLineById(line.id!!)
                 res.name shouldBe line.name
                 res.id shouldBe line.id
             }
@@ -88,7 +88,7 @@ class LineServiceKoTest : BehaviorSpec({
 
     Given("Line에 속한 역목록 조회할 때") {
         When("잘못된 아이디로 조회 요청") {
-            every { lineRepository.findById(any()) } returns Optional.empty()
+            every { lineRepository.findByIdOrNull(any()) } returns null
 
             Then("예외발생") {
                 val id = 1L
@@ -101,11 +101,11 @@ class LineServiceKoTest : BehaviorSpec({
         When("유효한 요청으로 조회 요청") {
             val station = dummyStation()
             val line = dummyLine()
-            line.addStationLine(dummyStationLine(station))
-            every { lineRepository.findById(any()) } returns Optional.of(line)
+            line.addStationLine(dummyStationLine(station = station))
+            every { lineRepository.findByIdOrNull(any()) } returns line
 
             Then("성공") {
-                val res = lineService.findStationsByLineId(line.id)
+                val res = lineService.findStationsByLineId(line.id!!)
                 res.size shouldBe 1
                 res.first() shouldBe station.id
             }
@@ -115,24 +115,23 @@ class LineServiceKoTest : BehaviorSpec({
     Given("Line 수정을 진행할 때") {
         val updateRequest = dummyLineUpdateRequest()
         val line = dummyLine()
-        every { lineRepository.findById(any()) } returns Optional.of(line)
+        every { lineRepository.findByIdOrNull(any()) } returns line
 
         When("동일한 이름으로 Line 수정 요청") {
-            every { lineRepository.findByName(any()) } throws CustomException(ErrorCode.DUPLICATE_LINE_NAME, updateRequest.name())
+            every { lineRepository.findByNameAndIdNot(any(), any()) } returns line
 
             Then("예외 발생") {
                 shouldThrowExactly<CustomException> {
-                    lineService.update(line.id, updateRequest)
-                }.message shouldBe ErrorCode.DUPLICATE_LINE_NAME.message.format(updateRequest.name())
+                    lineService.update(line.id!!, updateRequest)
+                }.message shouldBe ErrorCode.DUPLICATE_LINE_NAME.message.format(updateRequest.name)
             }
         }
 
-        When("유효한 요청으로 Line 생성 요청") {
-            every { lineRepository.findByName(any()) } returns Optional.empty()
-            every { lineRepository.save(any()) } returns line
+        When("유효한 요청으로 Line 수정 요청") {
+            every { lineRepository.findByNameAndIdNot(any(), any()) } returns null
 
             Then("성공") {
-                lineService.update(line.id, updateRequest)
+                lineService.update(line.id!!, updateRequest)
             }
         }
     }
@@ -141,14 +140,14 @@ class LineServiceKoTest : BehaviorSpec({
 
         When("유효한 요청으로 Line 삭제 요청") {
             val line = dummyLine()
-            line.addStationLine(dummyStationLine(dummyStation()))
+            line.addStationLine(dummyStationLine(station = dummyStation()))
 
-            every { lineRepository.findById(any()) } returns Optional.of(line)
+            every { lineRepository.findByIdOrNull(any()) } returns line
             every { stationLineService.deleteStationLine(any(), any()) } just runs
             every { lineRepository.delete(any()) } just runs
 
             Then("성공") {
-                lineService.delete(line.id)
+                lineService.delete(line.id!!)
                 verify(exactly = 1) { lineRepository.delete(any()) }
             }
         }

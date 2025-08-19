@@ -19,8 +19,7 @@ public class StationLineService {
 
     @Transactional
     public void save(Station station, Line line) {
-        StationLine stationLine =
-                stationLineRepository.save(StationLine.builder().station(station).line(line).build());
+        StationLine stationLine = stationLineRepository.save(new StationLine(null, station, line));
         line.addStationLine(stationLine);
     }
 
