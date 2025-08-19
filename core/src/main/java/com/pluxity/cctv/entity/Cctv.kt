@@ -29,5 +29,5 @@ class Cctv(
         return this.cctvName
     }
 
-    override fun toDeviceInfo(): DeviceInfoResponse = CctvInfoResponse(id, cctvName, url, deviceType.type)
+    override fun toDeviceInfo(): DeviceInfoResponse = CctvInfoResponse(id, cctvName, url, deviceType.type, feature?.id)
 }

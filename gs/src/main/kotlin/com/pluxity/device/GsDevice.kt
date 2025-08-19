@@ -23,7 +23,7 @@ class GsDevice(
         return this.deviceName
     }
 
-    override fun toDeviceInfo(): DeviceInfoResponse = GsDeviceInfoResponse(id, deviceName, deviceType.type)
+    override fun toDeviceInfo(): DeviceInfoResponse = GsDeviceInfoResponse(id, deviceName, deviceType.type, feature?.id)
 
     fun update(name: String?) {
         if (name != null) {

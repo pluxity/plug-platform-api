@@ -7,4 +7,5 @@ data class CctvInfoResponse(
     val name: String,
     val url: String?,
     val type: String,
+    val featureId: String?,
 ) : DeviceInfoResponse
