@@ -18,6 +18,6 @@ fun Cctv.toCctvResponse(thumbnailFile: FileResponse?) =
         id = this.id,
         name = this.name,
         url = this.url,
-        feature = this.feature?.let(FeatureResponse::from),
+        feature = this.feature?.let { FeatureResponse.from(it) },
         deviceCategory = this.category?.let { DeviceCategoryResponseWithoutChildren.from(it, thumbnailFile) },
     )

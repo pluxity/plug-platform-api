@@ -90,7 +90,7 @@ class GsDeviceService(
     ) {
         val device = getDevice(id)
         device.putUpdate(request.name)
-        val category = request.categoryId?.let(deviceCategoryService::findById)
+        val category = request.categoryId?.let { deviceCategoryService.findById(it) }
         device.changeCategory(category)
     }
 

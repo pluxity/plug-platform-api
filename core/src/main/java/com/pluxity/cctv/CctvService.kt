@@ -86,5 +86,5 @@ class CctvService(
         cctvRepository.findByIdOrNull(id)
             ?: throw CustomException(ErrorCode.NOT_FOUND_CCTV, id)
 
-    private fun getThumbnailFile(cctv: Cctv): FileResponse? = cctv.category?.iconFileId?.let(fileService::getFileResponse)
+    private fun getThumbnailFile(cctv: Cctv): FileResponse? = cctv.category?.iconFileId?.let { fileService.getFileResponse(it) }
 }
