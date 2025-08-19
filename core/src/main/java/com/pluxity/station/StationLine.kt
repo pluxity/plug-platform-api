@@ -9,13 +9,11 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import lombok.Getter
 import org.hibernate.annotations.NotFound
 import org.hibernate.annotations.NotFoundAction
 
 @Entity
 @Table(name = "station_line")
-@Getter
 class StationLine(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

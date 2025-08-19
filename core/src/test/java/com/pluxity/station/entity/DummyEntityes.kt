@@ -39,4 +39,4 @@ fun dummyStationLine(
     station: Station = dummyStation(),
 ): StationLine = StationLine(id, station, dummyLine())
 
-fun dummyStationCode(station: Station? = dummyStation()): StationCode = StationCode(station, "code")
+fun dummyStationCode(station: Station = dummyStation()): StationCode = StationCode(station = station, code = "code")

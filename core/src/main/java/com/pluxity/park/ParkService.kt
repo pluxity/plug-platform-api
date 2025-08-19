@@ -10,14 +10,12 @@ import com.pluxity.global.utils.SortUtils
 import com.pluxity.park.dto.ParkCreateRequest
 import com.pluxity.park.dto.ParkResponse
 import com.pluxity.park.dto.ParkUpdateRequest
-import lombok.RequiredArgsConstructor
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.stream.Stream
 
 @Service
-@RequiredArgsConstructor
 class ParkService(
     private val fileService: FileService,
     private val facilityService: FacilityService,

@@ -7,13 +7,11 @@ import com.pluxity.station.dto.LineCreateRequest
 import com.pluxity.station.dto.LineResponse
 import com.pluxity.station.dto.LineUpdateRequest
 import com.pluxity.station.dto.toLineResponse
-import lombok.RequiredArgsConstructor
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-@RequiredArgsConstructor
 class LineService(
     private val lineRepository: LineRepository,
     private val stationLineService: StationLineService,
