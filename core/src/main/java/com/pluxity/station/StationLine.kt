@@ -23,8 +23,8 @@ class StationLine(
     @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "station_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    var station: Station?,
+    var station: Station,
     @JoinColumn(name = "line_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    var line: Line?,
+    var line: Line,
 ) : BaseEntity()

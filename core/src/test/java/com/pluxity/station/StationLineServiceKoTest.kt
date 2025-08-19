@@ -13,7 +13,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
-import java.util.Optional
 
 class StationLineServiceKoTest : BehaviorSpec({
 
@@ -45,7 +44,7 @@ class StationLineServiceKoTest : BehaviorSpec({
             Then("성공") {
                 val res = stationLineService.findLinesByStation(station)
                 res.size shouldBe 1
-                res.first() shouldBe stationLine.line?.id
+                res.first() shouldBe stationLine.line.id
             }
         }
     }
@@ -53,7 +52,6 @@ class StationLineServiceKoTest : BehaviorSpec({
     Given("Station에 연결된 노선 전체 삭제를 진행할 때") {
         When("유효한 요청으로 연결된 노선 삭제 요청") {
             val station = dummyStation()
-            val stationLine = dummyStationLine()
 
             every { stationLineRepository.deleteByStation(any()) } just runs
 
@@ -81,7 +79,7 @@ class StationLineServiceKoTest : BehaviorSpec({
             Then("성공") {
                 val res = stationLineService.findLineMapByStationIds(listOf(station))
                 res[station]?.size shouldBe 1
-                res[station]?.first() shouldBe stationLine.line?.id
+                res[station]?.first() shouldBe stationLine.line.id
             }
         }
     }
@@ -118,7 +116,7 @@ class StationLineServiceKoTest : BehaviorSpec({
             val line = dummyLine()
             val stationLine = dummyStationLine()
 
-            every { stationLineRepository.findByStationAndLine(any(), any()) } returns Optional.of(stationLine)
+            every { stationLineRepository.findByStationAndLine(any(), any()) } returns stationLine
             every { stationLineRepository.delete(any()) } just runs
 
             Then("성공") {
@@ -130,7 +128,6 @@ class StationLineServiceKoTest : BehaviorSpec({
         When("잘못된 요청으로 연결된 노선 삭제 요청") {
             val station = dummyStation()
             val line = dummyLine()
-            val stationLine = dummyStationLine()
 
             every {
                 stationLineRepository.findByStationAndLine(any(), any())

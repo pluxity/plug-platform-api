@@ -36,7 +36,7 @@ fun dummyLine(
 
 fun dummyStationLine(
     id: Long? = 1L,
-    station: Station? = dummyStation(),
+    station: Station = dummyStation(),
 ): StationLine = StationLine(id, station, dummyLine())
 
 fun dummyStationCode(station: Station? = dummyStation()): StationCode = StationCode(station, "code")
