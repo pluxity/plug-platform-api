@@ -3,6 +3,8 @@ package com.pluxity.station.entity
 import base.entity.withAudit
 import com.pluxity.station.Line
 import com.pluxity.station.Station
+import com.pluxity.station.StationCode
+import com.pluxity.station.StationLine
 import org.springframework.test.util.ReflectionTestUtils
 import java.time.LocalDateTime
 
@@ -31,7 +33,11 @@ fun dummyLine(
     name: String = "name",
     color: String = "color",
 ): Line {
-    val retLine = Line(name, color)
+    val retLine = Line(name, color).withAudit(LocalDateTime.now())
     ReflectionTestUtils.setField(retLine, "id", id)
     return retLine
 }
+
+fun dummyStationLine(station: Station? = dummyStation()): StationLine = StationLine(station, dummyLine())
+
+fun dummyStationCode(station: Station? = dummyStation()): StationCode = StationCode(station, "code")

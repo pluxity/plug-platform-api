@@ -18,3 +18,7 @@ fun dummyUpdateStationRequest(): StationUpdateRequest =
         listOf(dummyFloorRequest()),
         StationUpdateInfo(listOf(1L), listOf("code")),
     )
+
+fun dummyLineCreateRequest(): LineCreateRequest = LineCreateRequest("name", "color")
+
+fun dummyLineUpdateRequest(): LineUpdateRequest = LineUpdateRequest("updateName", "updateColor")
