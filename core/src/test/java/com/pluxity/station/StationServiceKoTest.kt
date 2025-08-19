@@ -25,7 +25,7 @@ import io.mockk.slot
 import io.mockk.verify
 import jakarta.persistence.EntityManager
 import org.springframework.data.domain.Sort
-import java.util.Optional
+import org.springframework.data.repository.findByIdOrNull
 
 class StationServiceKoTest : BehaviorSpec({
     val fileService: FileService = mockk()
@@ -125,7 +125,7 @@ class StationServiceKoTest : BehaviorSpec({
             Then("정상 조회") {
                 val res = stationService.findById(station.id)
                 res.facility.name shouldBe station.name
-                res.floors?.size shouldBe 1
+                res.floors.size shouldBe 1
             }
         }
 
@@ -148,8 +148,8 @@ class StationServiceKoTest : BehaviorSpec({
             val station = dummyStation(name = updateRequest.facility.name)
             val line = dummyLine()
             every {
-                stationRepository.findById(any())
-            } returns Optional.of(station)
+                stationRepository.findByIdOrNull(any())
+            } returns station
 
             every {
                 facilityService.putUpdate(any(), any())
@@ -178,8 +178,8 @@ class StationServiceKoTest : BehaviorSpec({
         When("정상 삭제 요청") {
             val station = dummyStation()
             every {
-                stationRepository.findById(any())
-            } returns Optional.of(station)
+                stationRepository.findByIdOrNull(any())
+            } returns station
             val slot = slot<Long>()
             every {
                 floorService.delete(any())
@@ -211,8 +211,8 @@ class StationServiceKoTest : BehaviorSpec({
     Given("Station에 노선을 추가할 때") {
         val station = dummyStation()
         every {
-            stationRepository.findById(any())
-        } returns Optional.of(station)
+            stationRepository.findByIdOrNull(any())
+        } returns station
 
         val line = dummyLine()
         every { lineService.findLineById(any()) } returns line
@@ -232,7 +232,7 @@ class StationServiceKoTest : BehaviorSpec({
                 every {
                     stationLineService.save(station, line)
                 } just runs
-                stationService.addLineToStation(station.id, line.id)
+                stationService.addLineToStation(station.id, line.id!!)
                 verify(exactly = 1) { stationLineService.save(station, line) }
             }
         }
@@ -243,7 +243,7 @@ class StationServiceKoTest : BehaviorSpec({
                     stationLineService.checkAlreadyConnect(any(), any())
                 } returns true
 
-                stationService.addLineToStation(station.id, line.id)
+                stationService.addLineToStation(station.id, line.id!!)
                 verify(exactly = 0) { stationLineService.save(any(), any()) }
             }
         }
@@ -253,8 +253,8 @@ class StationServiceKoTest : BehaviorSpec({
         When("정상 삭제 요청") {
             val station = dummyStation()
             every {
-                stationRepository.findById(any())
-            } returns Optional.of(station)
+                stationRepository.findByIdOrNull(any())
+            } returns station
 
             val line = dummyLine()
             every { lineService.findLineById(any()) } returns line
@@ -267,7 +267,7 @@ class StationServiceKoTest : BehaviorSpec({
             } just runs
 
             Then("정상 삭제") {
-                stationService.removeLineFromStation(station.id, line.id)
+                stationService.removeLineFromStation(station.id, line.id!!)
                 verify(exactly = 1) { stationLineService.deleteStationLine(any(), any()) }
                 stationSlot.captured.id shouldBe station.id
                 lineSlot.captured.id shouldBe line.id

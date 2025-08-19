@@ -11,7 +11,8 @@ import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.repository.DeviceRepository;
 import com.pluxity.facility.Facility;
-import com.pluxity.facility.FacilityRepository;
+import com.pluxity.facility.FacilityService;
+import com.pluxity.facility.dto.FacilityCreateRequest;
 import com.pluxity.feature.dto.FeatureAssignDto;
 import com.pluxity.feature.dto.FeatureCreateRequest;
 import com.pluxity.feature.dto.FeatureResponse;
@@ -41,7 +42,7 @@ class FeatureServiceTest {
     @Autowired private FeatureService featureService;
     @Autowired private FeatureRepository featureRepository;
     @Autowired private AssetRepository assetRepository;
-    @Autowired private FacilityRepository facilityRepository;
+    @Autowired private FacilityService facilityService;
     @Autowired private DeviceRepository deviceRepository;
     @Autowired private DeviceCategoryRepository deviceCategoryRepository;
     @Autowired private TestFileUploader testFileUploader;
@@ -347,7 +348,9 @@ class FeatureServiceTest {
     }
 
     private Facility createAndSaveFacility(String name, String code) {
-        return facilityRepository.save(Station.builder().name(name).code(code).build());
+        return facilityService.save(
+                new Station(name, null),
+                new FacilityCreateRequest(name, code, null, null, null, null, null, null));
     }
 
     private Feature createAndSaveFeature(String id, Facility facility) {

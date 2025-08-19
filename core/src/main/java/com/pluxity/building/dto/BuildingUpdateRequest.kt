@@ -8,5 +8,5 @@ data class BuildingUpdateRequest(
     @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     val facility: FacilityUpdateRequest,
     @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    val floors: List<FloorRequest>,
+    val floors: List<FloorRequest>? = emptyList(),
 )

@@ -65,7 +65,7 @@ class StationLineServiceKoTest : BehaviorSpec({
     Given("Station에 연결된 노선 정보 조회를 station별로 진행할 때") {
         When("Station 값이 없을때") {
             Then("Empty Map 반환") {
-                val res = stationLineService.findLineMapByStationIds(listOf())
+                val res = stationLineService.findLineMapByStationIds(emptyList())
                 res shouldBe emptyMap()
             }
         }

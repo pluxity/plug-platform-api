@@ -11,18 +11,12 @@ import java.time.LocalDateTime
 fun dummyStation(
     id: Long? = 1L,
     name: String = "name",
-    code: String? = "code",
     description: String = "description",
-    drawingFileId: Long? = null,
-    thumbnailFileId: Long? = null,
 ): Station {
     val retStation =
         Station(
             name,
-            code,
             description,
-            drawingFileId,
-            thumbnailFileId,
         ).withAudit(LocalDateTime.now())
     ReflectionTestUtils.setField(retStation, "id", id)
     return retStation

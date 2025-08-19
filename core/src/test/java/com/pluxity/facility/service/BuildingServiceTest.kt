@@ -151,7 +151,7 @@ internal class BuildingServiceTest {
         val updateRequest =
             BuildingUpdateRequest(
                 FacilityUpdateRequest("수정된 건물 이름", "수정된 코드", "수정된 건물 설명", null, null, null, null),
-                listOf(),
+                emptyList(),
             )
 
         // when
@@ -261,7 +261,7 @@ internal class BuildingServiceTest {
                     null,
                 ),
                 // floors 변경 없음
-                listOf(),
+                emptyList(),
             )
 
         // when
@@ -293,7 +293,7 @@ internal class BuildingServiceTest {
                     null,
                     null,
                 ),
-                listOf(),
+                emptyList(),
             )
 
         // when
@@ -322,7 +322,7 @@ internal class BuildingServiceTest {
                     before.position?.lat,
                     before.position?.locationMeta,
                 ),
-                listOf(),
+                emptyList(),
             )
 
         // when
@@ -429,7 +429,7 @@ internal class BuildingServiceTest {
                     null,
                     null,
                 ),
-                listOf(),
+                emptyList(),
             )
 
         // when & then

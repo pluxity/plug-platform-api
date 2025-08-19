@@ -5,5 +5,5 @@ import com.pluxity.facility.floor.dto.FloorRequest
 
 data class BuildingCreateRequest(
     val facility: FacilityCreateRequest,
-    val floors: List<FloorRequest>,
+    val floors: List<FloorRequest>? = emptyList(),
 )

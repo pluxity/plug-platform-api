@@ -60,7 +60,7 @@ class StationCodeServiceKoTest : BehaviorSpec({
     Given("Station에 등록된 코드 정보 조회를 station별로 진행할 때") {
         When("Station 값이 없을때") {
             Then("Empty Map 반환") {
-                val res = stationCodeService.findCodeMapByStationIds(listOf())
+                val res = stationCodeService.findCodeMapByStationIds(emptyList())
                 res shouldBe emptyMap()
             }
         }

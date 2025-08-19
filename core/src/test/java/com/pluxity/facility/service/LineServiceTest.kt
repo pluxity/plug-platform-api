@@ -114,8 +114,8 @@ internal class LineServiceTest {
     fun findById_WithAssociatedStations_ReturnsLineWithStationIds() {
         // given
         val lineId = lineService.save(lineCreateRequest)
-        val station1 = stationRepository.save(Station.builder().name("서울역").build())
-        val station2 = stationRepository.save(Station.builder().name("시청역").build())
+        val station1 = stationRepository.save(Station(name = "서울역"))
+        val station2 = stationRepository.save(Station(name = "시청역"))
 
         stationService.addLineToStation(station1.id, lineId)
         stationService.addLineToStation(station2.id, lineId)
@@ -281,7 +281,7 @@ internal class LineServiceTest {
     fun deleteLine_DeletesAllRelatedStationLines() {
         // given
         val lineId = lineService.save(lineCreateRequest)
-        val station = stationRepository.save(Station.builder().name("테스트역").build())
+        val station = stationRepository.save(Station(name = "테스트역"))
         stationService.addLineToStation(station.id, lineId)
 
         // 관계 설정 확인
