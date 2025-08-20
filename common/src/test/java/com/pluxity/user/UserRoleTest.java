@@ -186,7 +186,7 @@ public class UserRoleTest {
         em.clear();
 
         // THEN
-        User updatedUser = userRepository.findById(userId).get();
+        User updatedUser = userRepository.findWithGraphById(userId).get();
         assertThat(passwordEncoder.matches(newPassword, updatedUser.getPassword())).isTrue();
     }
 
@@ -227,7 +227,7 @@ public class UserRoleTest {
         em.clear();
 
         // THEN
-        User user = userRepository.findById(userId).get();
+        User user = userRepository.findWithGraphById(userId).get();
         // 실제 초기화 비밀번호 값은 @Value에서 주입되므로, 암호화된 값이 null이 아닌지만 체크
         assertThat(user.getPassword()).isNotNull();
         // isPasswordChangeRequired 로직으로 검증

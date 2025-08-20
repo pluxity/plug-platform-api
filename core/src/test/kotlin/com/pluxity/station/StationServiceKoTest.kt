@@ -14,9 +14,9 @@ import com.pluxity.station.entity.dummyStation
 import facility.floor.dummyFloorResponse
 import file.dummyFileResponse
 import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -29,6 +29,7 @@ import org.springframework.data.repository.findByIdOrNull
 
 class StationServiceKoTest :
     BehaviorSpec({
+        isolationMode = IsolationMode.InstancePerLeaf // 추가
         val fileService: FileService = mockk()
         val facilityService: FacilityService = mockk()
         val floorService: FloorService = mockk()
@@ -217,12 +218,6 @@ class StationServiceKoTest :
 
             val line = dummyLine()
             every { lineService.findLineById(any()) } returns line
-
-            // 각 Then(leaf) 시작 전: mock/stub/호출기록 모두 초기화
-            // (Then 안에서 필요한 stubbing을 다시 설정합니다)
-            beforeEach {
-                clearMocks(stationLineService, answers = true, recordedCalls = true)
-            }
 
             When("정상 추가 요청") {
                 Then("정상 추가") {

@@ -43,7 +43,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserResponse> findAll() {
-        return userRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).stream()
+        return userRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc()).stream()
                 .map(UserResponse::from)
                 .toList();
     }
@@ -53,23 +53,17 @@ public class UserService {
         return UserResponse.from(findUserByUsername(username));
     }
 
-    @Transactional(readOnly = true)
-    public List<RoleResponse> getUserRoles(Long userId) {
-        User user = findUserById(userId);
-        return user.getRoles().stream().map(RoleResponse::from).toList();
-    }
-
     @Transactional
     public UserResponse save(UserCreateRequest request) {
         User user =
-                User.builder()
-                        .username(request.username())
-                        .password(passwordEncoder.encode(request.password()))
-                        .name(request.name())
-                        .code(request.code())
-                        .phoneNumber(request.phoneNumber())
-                        .department(request.department())
-                        .build();
+                new User(
+                        null,
+                        request.username(),
+                        passwordEncoder.encode(request.password()),
+                        request.name(),
+                        request.code(),
+                        request.phoneNumber(),
+                        request.department());
 
         if (request.roleIds() != null && !request.roleIds().isEmpty()) {
             List<Role> roles = request.roleIds().stream().map(this::findRoleById).toList();
@@ -91,21 +85,22 @@ public class UserService {
     }
 
     private void changeRole(List<Long> roleIds, User user) {
-        if (roleIds != null) {
-            List<Role> newRoles = roleRepository.findAllById(roleIds);
-            Set<Long> newRoleIds = newRoles.stream().map(Role::getId).collect(Collectors.toSet());
-
-            List<UserRole> rolesToRemove =
-                    user.getUserRoles().stream()
-                            .filter(userRole -> !newRoleIds.contains(userRole.getRole().getId()))
-                            .toList();
-
-            if (!rolesToRemove.isEmpty()) {
-                userRoleRepository.deleteAll(rolesToRemove);
-            }
-
-            user.updateRoles(newRoles);
+        if (roleIds == null) {
+            return;
         }
+        List<Role> newRoles = roleRepository.findAllById(roleIds);
+        Set<Long> newRoleIds = newRoles.stream().map(Role::getId).collect(Collectors.toSet());
+
+        List<UserRole> rolesToRemove =
+                user.getUserRoles().stream()
+                        .filter(userRole -> !newRoleIds.contains(userRole.getRole().getId()))
+                        .toList();
+
+        if (!rolesToRemove.isEmpty()) {
+            userRoleRepository.deleteAll(rolesToRemove);
+        }
+
+        user.updateRoles(newRoles);
     }
 
     @Transactional
@@ -113,15 +108,6 @@ public class UserService {
         User user = findUserById(id);
         userRoleRepository.deleteAllByUser(user);
         userRepository.delete(user);
-    }
-
-    @Transactional
-    public UserResponse assignRolesToUser(Long userId, UserRoleAssignRequest request) {
-        User user = findUserById(userId);
-        List<Role> roles = roleRepository.findAllById(request.roleIds());
-        changeRole(request.roleIds(), user);
-
-        return UserResponse.from(user);
     }
 
     @Transactional
@@ -133,7 +119,7 @@ public class UserService {
 
     private User findUserById(Long id) {
         return userRepository
-                .findById(id)
+                .findWithGraphById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
     }
 
@@ -160,15 +146,12 @@ public class UserService {
         }
 
         user.changePassword(passwordEncoder.encode(request.newPassword()));
-        userRepository.save(user);
     }
 
     @Transactional
-    public UserResponse updateUserRoles(Long id, UserRoleUpdateRequest request) {
+    public void updateUserRoles(Long id, UserRoleUpdateRequest request) {
         User user = findUserById(id);
-        List<Role> roles = roleRepository.findAllById(request.roleIds());
         changeRole(request.roleIds(), user);
-        return UserResponse.from(user);
     }
 
     private void updateUserFields(User user, UserUpdateRequest request) {
@@ -188,7 +171,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserLoggedInResponse> isLoggedIn() {
-        List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc());
         return users.stream()
                 .map(
                         user -> {

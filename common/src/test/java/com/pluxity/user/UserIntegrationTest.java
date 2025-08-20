@@ -133,14 +133,12 @@ class UserIntegrationTest {
         Role roleToDelete = roleRepository.save(new Role("DELETABLE_ROLE", "곧 삭제될 역할"));
         Role roleToKeep = roleRepository.save(new Role("KEEPER_ROLE", "유지될 역할"));
 
-        User userWithTwoRoles =
-                User.builder().username("multiRoleUser").password("pw").name("다중역할사용자").build();
+        User userWithTwoRoles = new User(null, "multiRoleUser", "pw", "다중역할사용자", "", null, null);
         userWithTwoRoles.addRole(roleToDelete);
         userWithTwoRoles.addRole(roleToKeep);
         userRepository.save(userWithTwoRoles);
 
-        User userWithOneRole =
-                User.builder().username("singleRoleUser").password("pw").name("단일역할사용자").build();
+        User userWithOneRole = new User(null, "singleRoleUser", "pw", "단일역할사용자", "", null, null);
         userWithOneRole.addRole(roleToDelete);
         userRepository.save(userWithOneRole);
 
@@ -218,7 +216,7 @@ class UserIntegrationTest {
     void updateUserRole_fromOneToAnother() {
         // 이 테스트는 Permission 모델 변경과 관련 없으므로 그대로 유효
         // GIVEN
-        User user = userRepository.findById(operatorUserId).get();
+        User user = userRepository.findWithGraphById(operatorUserId).get();
         assertThat(user.getRoles().get(0).getId()).isEqualTo(operatorRoleId);
 
         // WHEN
@@ -229,7 +227,7 @@ class UserIntegrationTest {
         em.clear();
 
         // THEN
-        User updatedUser = userRepository.findById(operatorUserId).get();
+        User updatedUser = userRepository.findWithGraphById(operatorUserId).get();
         assertThat(updatedUser.getRoles()).hasSize(1);
         assertThat(updatedUser.getRoles().get(0).getId()).isEqualTo(viewerRoleId);
     }
@@ -238,7 +236,7 @@ class UserIntegrationTest {
     @DisplayName("[복합 업데이트 2] Role의 PermissionGroup 목록을 변경하면 User의 접근 권한이 즉시 변경되어야 한다")
     void updateRolePermissions_shouldReflectOnAllUsersWithThatRole() {
         // GIVEN
-        User operator = userRepository.findById(operatorUserId).get();
+        User operator = userRepository.findWithGraphById(operatorUserId).get();
         // canAccess 메서드를 사용하여 권한 확인
         assertTrue(operator.canAccess("FACILITY", "EDIT"));
 
@@ -251,7 +249,7 @@ class UserIntegrationTest {
         em.clear();
 
         // THEN
-        User updatedOperator = userRepository.findById(operatorUserId).get();
+        User updatedOperator = userRepository.findWithGraphById(operatorUserId).get();
         assertFalse(updatedOperator.canAccess("FACILITY", "EDIT")); // 수정 권한 없어짐
         assertTrue(updatedOperator.canAccess("FACILITY", "READ")); // 조회 권한 유지
         // userManageGroupId는 FACILITY ResourceType에 대해 '*' 권한을 가지므로, 아래와 같이 검증
@@ -270,7 +268,7 @@ class UserIntegrationTest {
         // THEN 1
         Role operatorRole1 = roleRepository.findById(operatorRoleId).get();
         assertThat(operatorRole1.getRolePermissions()).hasSize(1);
-        User operator1 = userRepository.findById(operatorUserId).get();
+        User operator1 = userRepository.findWithGraphById(operatorUserId).get();
         // canAccess 메서드를 사용하여 권한 확인
         assertFalse(operator1.canAccess("FACILITY", "EDIT"));
 
@@ -281,7 +279,7 @@ class UserIntegrationTest {
         em.clear();
 
         // THEN 2
-        User operator2 = userRepository.findById(operatorUserId).get();
+        User operator2 = userRepository.findWithGraphById(operatorUserId).get();
         assertThat(operator2.getRoles().get(0).getName()).isEqualTo("VIEWER");
         // canAccess 메서드를 사용하여 권한 확인
         assertFalse(operator2.canAccess("FACILITY", "EDIT"));
@@ -307,7 +305,7 @@ class UserIntegrationTest {
         assertThat(userRoleRepository.count()).isEqualTo(1);
 
         // FINAL: admin 유저와 관련 데이터는 모두 온전해야 함
-        assertThat(userRepository.findById(adminUserId)).isPresent();
+        assertThat(userRepository.findWithGraphById(adminUserId)).isPresent();
         assertThat(roleRepository.findById(adminRoleId)).isPresent();
         assertThat(permissionGroupRepository.findById(userManageGroupId)).isPresent();
     }

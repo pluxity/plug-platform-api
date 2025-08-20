@@ -9,7 +9,7 @@ import com.pluxity.permission.ResourceType
 import com.pluxity.permission.dto.PermissionGroupCreateRequest
 import com.pluxity.permission.dto.PermissionRequest
 import com.pluxity.user.dto.RoleCreateRequest
-import com.pluxity.user.dto.UserRoleAssignRequest
+import com.pluxity.user.dto.UserRoleUpdateRequest
 import com.pluxity.user.entity.Role
 import com.pluxity.user.entity.User
 import com.pluxity.user.repository.RoleRepository
@@ -76,23 +76,23 @@ internal class UserRolePermissionIntegrationTest {
         // 2. 기본 사용자 생성
         adminUser =
             userRepository.save(
-                User
-                    .builder()
-                    .username("admin")
-                    .password("pw")
-                    .name("관리자")
-                    .build(),
+                User(
+                    username = "admin",
+                    password = "pw",
+                    code = "",
+                    name = "관리자",
+                ),
             )
         adminUser.addRole(adminRole)
 
         editorUser =
             userRepository.save(
-                User
-                    .builder()
-                    .username("editor")
-                    .password("pw")
-                    .name("편집자")
-                    .build(),
+                User(
+                    username = "editor",
+                    password = "pw",
+                    code = "",
+                    name = "편집자",
+                ),
             )
 
         // 3. 테스트용 리소스(Facility) 5개 생성
@@ -157,9 +157,9 @@ internal class UserRolePermissionIntegrationTest {
         val newRoleId = roleService.save(createRoleRequest)
 
         // 4. 생성된 "시설 관리자" 역할을 '편집자' 사용자에게 할당합니다.
-        userService.assignRolesToUser(
+        userService.updateUserRoles(
             editorUser.id,
-            UserRoleAssignRequest(listOf(newRoleId)),
+            UserRoleUpdateRequest(listOf(newRoleId)),
         )
 
         em.flush()

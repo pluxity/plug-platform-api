@@ -19,7 +19,3 @@ dependencies {
     testFixturesImplementation(kotlin("stdlib"))
 
 }
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}

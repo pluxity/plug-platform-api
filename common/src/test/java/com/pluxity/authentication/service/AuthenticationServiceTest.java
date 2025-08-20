@@ -51,12 +51,14 @@ class AuthenticationServiceTest {
     void setUp() {
         // GIVEN: 모든 테스트에서 사용할 기본 사용자 생성
         testUser =
-                User.builder()
-                        .username("testuser")
-                        .password(passwordEncoder.encode("password")) // 실제 PasswordEncoder로 암호화
-                        .name("Test User")
-                        .code("U001")
-                        .build();
+                new User(
+                        null,
+                        "testuser",
+                        passwordEncoder.encode("password"), // 실제 PasswordEncoder로 암호
+                        "Test User",
+                        "U001",
+                        null,
+                        null);
         userRepository.save(testUser);
         em.flush();
         em.clear();
@@ -74,7 +76,7 @@ class AuthenticationServiceTest {
         em.clear();
 
         // THEN
-        User foundUser = userRepository.findById(userId).orElseThrow();
+        User foundUser = userRepository.findWithGraphById(userId).orElseThrow();
         assertThat(foundUser.getUsername()).isEqualTo("newUser");
         assertThat(passwordEncoder.matches("password123", foundUser.getPassword())).isTrue();
     }

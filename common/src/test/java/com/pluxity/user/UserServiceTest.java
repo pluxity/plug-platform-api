@@ -51,14 +51,14 @@ class UserServiceTest {
     /** 테스트용 사용자를 생성하고 DB에 저장하는 헬퍼 메서드 */
     private User createUser(String username, String name, String code, List<Role> roles) {
         User user =
-                User.builder()
-                        .username(username)
-                        .password(passwordEncoder.encode("password123"))
-                        .name(name)
-                        .code(code)
-                        .department("테스트부서")
-                        .phoneNumber("010-0000-0000")
-                        .build();
+                new User(
+                        null,
+                        username,
+                        passwordEncoder.encode("password123"),
+                        name,
+                        code,
+                        "010-0000-0000",
+                        "테스트부서");
         user.updateRoles(roles);
         return userRepository.save(user);
     }
@@ -111,7 +111,7 @@ class UserServiceTest {
 
         // then
         assertThat(response.id()).isNotNull();
-        User foundUser = userRepository.findById(response.id()).orElseThrow();
+        User foundUser = userRepository.findWithGraphById(response.id()).orElseThrow();
 
         assertThat(foundUser.getUsername()).isEqualTo("newuser");
         assertThat(passwordEncoder.matches("password123", foundUser.getPassword())).isTrue();
@@ -128,7 +128,7 @@ class UserServiceTest {
         userService.update(savedUser.getId(), request);
 
         // then
-        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        User updatedUser = userRepository.findWithGraphById(savedUser.getId()).orElseThrow();
         assertThat(updatedUser.getName()).isEqualTo("수정이름");
         assertThat(updatedUser.getDepartment()).isEqualTo("수정부서");
         assertThat(updatedUser.getCode()).isEqualTo("ORI001"); // 변경되지 않은 필드는 유지
@@ -160,7 +160,7 @@ class UserServiceTest {
         userService.updateUserPassword(savedUser.getId(), request);
 
         // then
-        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        User updatedUser = userRepository.findWithGraphById(savedUser.getId()).orElseThrow();
         assertThat(passwordEncoder.matches("newPassword", updatedUser.getPassword())).isTrue();
     }
 
@@ -182,14 +182,14 @@ class UserServiceTest {
     void assignRolesToUser_Success() {
         // given
         User savedUser = createUser("testuser", "테스트유저", "T001", List.of());
-        UserRoleAssignRequest request =
-                new UserRoleAssignRequest(List.of(roleUser.getId(), roleAdmin.getId()));
+        UserRoleUpdateRequest request =
+                new UserRoleUpdateRequest(List.of(roleUser.getId(), roleAdmin.getId()));
 
         // when
-        userService.assignRolesToUser(savedUser.getId(), request);
+        userService.updateUserRoles(savedUser.getId(), request);
 
         // then
-        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        User updatedUser = userRepository.findWithGraphById(savedUser.getId()).orElseThrow();
         assertThat(updatedUser.getRoles()).hasSize(2);
         assertThat(updatedUser.getRoles())
                 .extracting(Role::getName)
@@ -207,7 +207,7 @@ class UserServiceTest {
         userService.updateUserRoles(savedUser.getId(), request);
 
         // then
-        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        User updatedUser = userRepository.findWithGraphById(savedUser.getId()).orElseThrow();
         assertThat(updatedUser.getRoles()).hasSize(1);
         assertThat(updatedUser.getRoles().getFirst().getName()).isEqualTo("ROLE_ADMIN");
     }

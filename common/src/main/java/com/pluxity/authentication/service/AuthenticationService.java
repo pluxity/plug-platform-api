@@ -74,12 +74,14 @@ public class AuthenticationService {
                         });
 
         User user =
-                User.builder()
-                        .username(signUpRequest.username())
-                        .password(passwordEncoder.encode(signUpRequest.password()))
-                        .name(signUpRequest.name())
-                        .code(signUpRequest.code())
-                        .build();
+                new User(
+                        null,
+                        signUpRequest.username(),
+                        passwordEncoder.encode(signUpRequest.password()),
+                        signUpRequest.name(),
+                        signUpRequest.code(),
+                        null,
+                        null);
 
         User savedUser = userRepository.save(user);
 

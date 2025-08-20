@@ -11,7 +11,6 @@ plugins {
 
     // kotlin 에서 lombok 사용이 가능해지게 만들어주는 플러그인
     kotlin("plugin.lombok") version kotlinVersion
-    id("io.freefair.lombok") version "8.14"
 }
 
 java {
@@ -46,6 +45,7 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
     apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
+    apply(plugin = "org.jetbrains.kotlin.plugin.lombok")
 
     java {
         toolchain {

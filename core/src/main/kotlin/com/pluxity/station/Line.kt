@@ -26,7 +26,7 @@ class Line(
     @OneToMany(mappedBy = "line")
     val stationLines: MutableList<StationLine> = ArrayList()
 
-    fun getStations(): List<Station> = stationLines.map { it.station as Station }
+    fun getStations(): List<Station> = stationLines.map { it.station }
 
     fun update(
         name: String?,
