@@ -1,13 +1,13 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-    val kotlinVersion = "1.9.25"
+    val kotlinVersion = "2.2.10"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     id("org.springframework.boot") version "3.5.4" apply false
     id("io.spring.dependency-management") version "1.1.7" apply false
     kotlin("plugin.jpa") version kotlinVersion
-    id("com.diffplug.spotless") version "6.25.0"
+    id("com.diffplug.spotless") version "7.2.1"
 
     // kotlin 에서 lombok 사용이 가능해지게 만들어주는 플러그인
     kotlin("plugin.lombok") version kotlinVersion
@@ -121,8 +121,8 @@ subprojects {
             )
             removeUnusedImports()
             googleJavaFormat()
-            indentWithTabs(2)
-            indentWithSpaces(4)
+            leadingSpacesToTabs(2)
+            leadingTabsToSpaces(4)
             trimTrailingWhitespace()
             endWithNewline()
         }

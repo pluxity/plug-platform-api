@@ -19,9 +19,7 @@ class GsDevice(
     @Column(name = "name")
     var deviceName: String = "",
 ) : Device(id, category) {
-    override fun getName(): String {
-        return this.deviceName
-    }
+    override fun getName(): String = this.deviceName
 
     override fun toDeviceInfo(): DeviceInfoResponse = GsDeviceInfoResponse(id, deviceName, deviceType.type, feature?.id)
 

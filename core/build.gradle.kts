@@ -8,5 +8,6 @@ tasks.jar { enabled = true }
 dependencies {
     implementation(project(":common"))
     testFixturesImplementation(kotlin("stdlib"))
+    testFixturesImplementation(project(":common"))
     testImplementation(testFixtures(project(":common")))
 }

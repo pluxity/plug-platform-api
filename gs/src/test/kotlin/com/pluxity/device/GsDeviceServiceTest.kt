@@ -13,9 +13,9 @@ import com.pluxity.feature.service.FeatureService
 import com.pluxity.global.exception.CustomException
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
@@ -77,8 +77,7 @@ internal class GsDeviceServiceTest {
         val nonExistingId = "non-existent-id"
 
         // when & then
-        assertThatThrownBy { gsDeviceService.findById(nonExistingId) }
-            .isInstanceOf(CustomException::class.java)
+        assertThrows<CustomException> { gsDeviceService.findById(nonExistingId) }
     }
 
     @Test
