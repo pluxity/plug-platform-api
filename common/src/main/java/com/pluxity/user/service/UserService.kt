@@ -1,205 +1,203 @@
-package com.pluxity.user.service;
+package com.pluxity.user.service
 
-import com.pluxity.authentication.entity.RefreshToken;
-import com.pluxity.authentication.repository.RefreshTokenRepository;
-import com.pluxity.global.constant.ErrorCode;
-import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.utils.SortUtils;
-import com.pluxity.user.dto.*;
-import com.pluxity.user.entity.Role;
-import com.pluxity.user.entity.User;
-import com.pluxity.user.entity.UserRole;
-import com.pluxity.user.repository.RoleRepository;
-import com.pluxity.user.repository.UserRepository;
-import com.pluxity.user.repository.UserRoleRepository;
-import jakarta.persistence.EntityNotFoundException;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.pluxity.authentication.repository.RefreshTokenRepository
+import com.pluxity.global.constant.ErrorCode
+import com.pluxity.global.exception.CustomException
+import com.pluxity.global.utils.SortUtils
+import com.pluxity.user.dto.UserCreateRequest
+import com.pluxity.user.dto.UserLoggedInResponse
+import com.pluxity.user.dto.UserPasswordUpdateRequest
+import com.pluxity.user.dto.UserResponse
+import com.pluxity.user.dto.UserRoleUpdateRequest
+import com.pluxity.user.dto.UserUpdateRequest
+import com.pluxity.user.dto.toUserLoggedInResponse
+import com.pluxity.user.dto.toUserResponse
+import com.pluxity.user.entity.Role
+import com.pluxity.user.entity.User
+import com.pluxity.user.repository.RoleRepository
+import com.pluxity.user.repository.UserRepository
+import com.pluxity.user.repository.UserRoleRepository
+import jakarta.persistence.EntityNotFoundException
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
-@RequiredArgsConstructor
-public class UserService {
-
-    @Value("${user.init-password}")
-    private String initPassword;
-
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRoleRepository userRoleRepository;
+class UserService(
+    private val userRepository: UserRepository,
+    private val roleRepository: RoleRepository,
+    private val passwordEncoder: PasswordEncoder,
+    private val refreshTokenRepository: RefreshTokenRepository,
+    private val userRoleRepository: UserRoleRepository,
+) {
+    @Value("\${user.init-password}")
+    private var initPassword: String? = null
 
     @Transactional(readOnly = true)
-    public UserResponse findById(Long id) {
-        return UserResponse.from(findUserById(id));
-    }
+    fun findById(id: Long): UserResponse = findUserById(id).toUserResponse()
 
     @Transactional(readOnly = true)
-    public List<UserResponse> findAll() {
-        return userRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc()).stream()
-                .map(UserResponse::from)
-                .toList();
-    }
+    fun findAll(): List<UserResponse> = userRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc()).map { it.toUserResponse() }
 
     @Transactional(readOnly = true)
-    public UserResponse findByUsername(String username) {
-        return UserResponse.from(findUserByUsername(username));
-    }
+    fun findByUsername(username: String): UserResponse = findUserByUsername(username).toUserResponse()
 
     @Transactional
-    public UserResponse save(UserCreateRequest request) {
-        User user =
-                new User(
-                        null,
-                        request.username(),
-                        passwordEncoder.encode(request.password()),
-                        request.name(),
-                        request.code(),
-                        request.phoneNumber(),
-                        request.department());
+    fun save(request: UserCreateRequest): UserResponse {
+        val user =
+            User(
+                username = request.username,
+                password = passwordEncoder.encode(request.password),
+                name = request.name,
+                code = request.code,
+                phoneNumber = request.phoneNumber,
+                department = request.department,
+            )
 
-        if (request.roleIds() != null && !request.roleIds().isEmpty()) {
-            List<Role> roles = request.roleIds().stream().map(this::findRoleById).toList();
-            user.addRoles(roles);
+        if (request.roleIds.isNotEmpty()) {
+            val roles = request.roleIds.map { findRoleById(it) }
+            user.addRoles(roles)
         }
 
-        User savedUser = userRepository.save(user);
-        return UserResponse.from(savedUser);
+        return userRepository.save(user).toUserResponse()
     }
 
     @Transactional
-    public UserResponse update(Long id, UserUpdateRequest request) {
-        User user = findUserById(id);
-        updateUserFields(user, request);
-
-        changeRole(request.roleIds(), user);
-
-        return UserResponse.from(user);
+    fun update(
+        id: Long,
+        request: UserUpdateRequest,
+    ): UserResponse {
+        val user = findUserById(id)
+        updateUserFields(user, request)
+        changeRole(request.roleIds, user)
+        return user.toUserResponse()
     }
 
-    private void changeRole(List<Long> roleIds, User user) {
+    private fun changeRole(
+        roleIds: List<Long>?,
+        user: User,
+    ) {
         if (roleIds == null) {
-            return;
+            return
         }
-        List<Role> newRoles = roleRepository.findAllById(roleIds);
-        Set<Long> newRoleIds = newRoles.stream().map(Role::getId).collect(Collectors.toSet());
+        val newRoles = roleRepository.findAllById(roleIds)
+        val newRoleIds =
+            newRoles
+                .map {
+                    it.id
+                }.toSet()
 
-        List<UserRole> rolesToRemove =
-                user.getUserRoles().stream()
-                        .filter(userRole -> !newRoleIds.contains(userRole.getRole().getId()))
-                        .toList();
+        val rolesToRemove =
+            user.userRoles
+                .filter {
+                    !newRoleIds.contains(it.role.id)
+                }
 
-        if (!rolesToRemove.isEmpty()) {
-            userRoleRepository.deleteAll(rolesToRemove);
+        if (rolesToRemove.isNotEmpty()) {
+            userRoleRepository.deleteAll(rolesToRemove)
         }
-
-        user.updateRoles(newRoles);
+        user.updateRoles(newRoles)
     }
 
     @Transactional
-    public void delete(Long id) {
-        User user = findUserById(id);
-        userRoleRepository.deleteAllByUser(user);
-        userRepository.delete(user);
+    fun delete(id: Long) {
+        val user = findUserById(id)
+        userRoleRepository.deleteAllByUser(user)
+        userRepository.delete(user)
     }
 
     @Transactional
-    public void removeRoleFromUser(Long userId, Long roleId) {
-        User user = findUserById(userId);
-        Role role = findRoleById(roleId);
-        user.removeRole(role);
+    fun removeRoleFromUser(
+        userId: Long,
+        roleId: Long,
+    ) {
+        val user = findUserById(userId)
+        val role = findRoleById(roleId)
+        user.removeRole(role)
     }
 
-    private User findUserById(Long id) {
-        return userRepository
-                .findWithGraphById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
-    }
+    private fun findUserById(id: Long): User =
+        userRepository.findWithGraphById(id)
+            ?: throw EntityNotFoundException("User not found with id: $id")
 
-    private Role findRoleById(Long id) {
-        return roleRepository
-                .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id));
-    }
+    private fun findRoleById(id: Long): Role =
+        roleRepository
+            .findById(id)
+            .orElseThrow {
+                EntityNotFoundException("Role not found with id: $id")
+            }
 
-    public User findUserByUsername(String username) {
-        return userRepository
-                .findByUsername(username)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("User not found with username: " + username));
+    fun findUserByUsername(username: String): User =
+        userRepository
+            .findByUsername(username)
+            .orElseThrow {
+                EntityNotFoundException("User not found with username: $username")
+            }
+
+    @Transactional
+    fun updateUserPassword(
+        id: Long,
+        request: UserPasswordUpdateRequest,
+    ) {
+        val user = findUserById(id)
+
+        if (!passwordEncoder.matches(request.currentPassword, user.password)) {
+            throw CustomException(ErrorCode.INVALID_ID_OR_PASSWORD, "현재 비밀번호가 일치하지 않습니다.")
+        }
+
+        user.changePassword(passwordEncoder.encode(request.newPassword))
     }
 
     @Transactional
-    public void updateUserPassword(Long id, UserPasswordUpdateRequest request) {
-
-        User user = findUserById(id);
-
-        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-            throw new CustomException(ErrorCode.INVALID_ID_OR_PASSWORD, "현재 비밀번호가 일치하지 않습니다.");
-        }
-
-        user.changePassword(passwordEncoder.encode(request.newPassword()));
+    fun updateUserRoles(
+        id: Long,
+        request: UserRoleUpdateRequest,
+    ) {
+        val user = findUserById(id)
+        changeRole(request.roleIds, user)
     }
 
-    @Transactional
-    public void updateUserRoles(Long id, UserRoleUpdateRequest request) {
-        User user = findUserById(id);
-        changeRole(request.roleIds(), user);
-    }
-
-    private void updateUserFields(User user, UserUpdateRequest request) {
-        if (request.name() != null && !request.name().isBlank()) {
-            user.changeName(request.name());
+    private fun updateUserFields(
+        user: User,
+        request: UserUpdateRequest,
+    ) {
+        if (!request.name.isNullOrBlank()) {
+            user.changeName(request.name)
         }
-        if (request.code() != null && !request.code().isBlank()) {
-            user.changeCode(request.code());
+        if (!request.code.isNullOrBlank()) {
+            user.changeCode(request.code)
         }
-        if (request.phoneNumber() != null) {
-            user.changePhoneNumber(request.phoneNumber());
+        if (request.phoneNumber != null) {
+            user.changePhoneNumber(request.phoneNumber)
         }
-        if (request.department() != null) {
-            user.changeDepartment(request.department());
+        if (request.department != null) {
+            user.changeDepartment(request.department)
         }
     }
 
     @Transactional(readOnly = true)
-    public List<UserLoggedInResponse> isLoggedIn() {
-        List<User> users = userRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc());
-        return users.stream()
-                .map(
-                        user -> {
-                            Optional<RefreshToken> refreshToken =
-                                    refreshTokenRepository.findById(user.getUsername());
-                            boolean isLoggedIn = refreshToken.isPresent();
-                            return UserLoggedInResponse.from(
-                                    user.getId(),
-                                    user.getUsername(),
-                                    user.getName(),
-                                    user.getCode(),
-                                    user.getPhoneNumber(),
-                                    user.getDepartment(),
-                                    isLoggedIn,
-                                    user.getRoles().stream().map(RoleResponse::from).toList());
-                        })
-                .toList();
+    fun isLoggedIn(): List<UserLoggedInResponse> {
+        val users = userRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc())
+        return users.map { user ->
+            val refreshToken = refreshTokenRepository.findById(user.username)
+            val isLoggedIn = refreshToken.isPresent
+            user.toUserLoggedInResponse(isLoggedIn)
+        }
     }
 
     @Transactional
-    public void initPassword(Long id) {
-        User user = findUserById(id);
-        user.initPassword(passwordEncoder.encode(initPassword));
+    fun initPassword(id: Long) {
+        val user = findUserById(id)
+        user.initPassword(passwordEncoder.encode(initPassword))
     }
 
     @Transactional
-    public void updateUserPassword(String name, UserPasswordUpdateRequest dto) {
-        Long id = findByUsername(name).id();
-        updateUserPassword(id, dto);
+    fun updateUserPassword(
+        name: String,
+        dto: UserPasswordUpdateRequest,
+    ) {
+        val id = findByUsername(name).id
+        updateUserPassword(id, dto)
     }
 }

@@ -172,7 +172,7 @@ public class AdminUserController {
     public ResponseEntity<Long> saveUser(
             @Parameter(description = "사용자 생성 정보", required = true) @Valid @RequestBody
                     UserCreateRequest request) {
-        return ResponseEntity.ok(service.save(request).id());
+        return ResponseEntity.ok(service.save(request).getId());
     }
 
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다")

@@ -31,14 +31,14 @@ class User(
     var lastPasswordChangeDate: LocalDateTime = LocalDateTime.now()
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.PERSIST, CascadeType.MERGE])
-    val userRoles: MutableSet<UserRole> = LinkedHashSet()
+    var userRoles: MutableSet<UserRole> = LinkedHashSet()
 
     fun changePassword(password: String) {
         this.password = password
         this.lastPasswordChangeDate = LocalDateTime.now()
     }
 
-    fun addRoles(roles: MutableList<Role>) {
+    fun addRoles(roles: List<Role>) {
         val duplicateRoles = roles.filter { this.hasRole(it) }
 
         if (!duplicateRoles.isEmpty()) {
@@ -67,7 +67,7 @@ class User(
         this.userRoles.remove(userRoleToRemove)
     }
 
-    fun updateRoles(newRoles: MutableList<Role>) {
+    fun updateRoles(newRoles: List<Role>) {
         val newRoleIds = newRoles.map { it.id }.toSet()
 
         this.userRoles.removeIf { it.role.id !in newRoleIds }

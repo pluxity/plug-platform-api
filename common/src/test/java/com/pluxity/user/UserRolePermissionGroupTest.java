@@ -87,13 +87,13 @@ class UserRolePermissionGroupTest {
                         .save(
                                 new UserCreateRequest(
                                         "admin", "pw", "관리자 유저", null, null, null, List.of(adminRoleId)))
-                        .id();
+                        .getId();
         operatorUserId =
                 userService
                         .save(
                                 new UserCreateRequest(
                                         "operator", "pw", "운영자 유저", null, null, null, List.of(operatorRoleId)))
-                        .id();
+                        .getId();
 
         em.flush();
         em.clear();
@@ -107,7 +107,7 @@ class UserRolePermissionGroupTest {
         @DisplayName("PermissionGroup 수정 → Role 수정 → User 수정까지 데이터 정합성 유지")
         void fullLifecycle_shouldMaintainConsistency() {
             // === STEP 1: PermissionGroup의 권한 내용 변경 ===
-            User operator = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User operator = userRepository.findWithGraphById(operatorUserId);
             assertTrue(operator.canAccess("FACILITY", "1"), "초기 상태: 1번 시설 접근 가능");
             assertFalse(operator.canAccess("FACILITY", "3"), "초기 상태: 3번 시설 접근 불가");
 
@@ -122,7 +122,7 @@ class UserRolePermissionGroupTest {
             em.clear();
 
             // THEN: operatorUser의 권한이 즉시 변경되어야 함
-            User operatorAfterStep1 = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User operatorAfterStep1 = userRepository.findWithGraphById(operatorUserId);
             assertFalse(operatorAfterStep1.canAccess("FACILITY", "1"), "1번 시설 권한은 사라져야 함");
             assertTrue(operatorAfterStep1.canAccess("FACILITY", "2"), "2번 시설 권한은 유지되어야 함");
             assertTrue(operatorAfterStep1.canAccess("FACILITY", "3"), "3번 시설 권한이 생겨야 함");
@@ -136,7 +136,7 @@ class UserRolePermissionGroupTest {
             em.clear();
 
             // THEN: operatorUser의 권한이 다시 변경되어야 함
-            User operatorAfterStep2 = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User operatorAfterStep2 = userRepository.findWithGraphById(operatorUserId);
             assertTrue(operatorAfterStep2.canAccess("FACILITY", "3"), "시설 관리 권한은 유지되어야 함");
             assertTrue(operatorAfterStep2.canAccess("DEVICE_CATEGORY", "1"), "장비 분류 조회 권한이 생겨야 함");
 
@@ -148,7 +148,7 @@ class UserRolePermissionGroupTest {
             em.clear();
 
             // THEN: operatorUser는 이제 VIEWER의 권한만 가져야 함
-            User operatorAfterStep3 = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User operatorAfterStep3 = userRepository.findWithGraphById(operatorUserId);
             assertFalse(operatorAfterStep3.canAccess("FACILITY", "3"), "시설 관리 권한은 없어져야 함");
             assertTrue(operatorAfterStep3.canAccess("DEVICE_CATEGORY", "1"), "장비 분류 조회 권한만 남아야 함");
         }
@@ -162,17 +162,17 @@ class UserRolePermissionGroupTest {
         @DisplayName("각 사용자는 자신의 역할에 할당된 권한에만 정확히 접근할 수 있어야 한다")
         void users_shouldOnlyAccessTheirPermittedResources() {
             // GIVEN
-            User admin = userRepository.findWithGraphById(adminUserId).orElseThrow();
-            User operator = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User admin = userRepository.findWithGraphById(adminUserId);
+            User operator = userRepository.findWithGraphById(operatorUserId);
             Long viewerUserId =
                     userService
                             .save(
                                     new UserCreateRequest(
                                             "viewer", "pw", "조회자 유저", null, null, null, List.of(viewerRoleId)))
-                            .id();
+                            .getId();
             em.flush();
             em.clear();
-            User viewer = userRepository.findWithGraphById(viewerUserId).orElseThrow();
+            User viewer = userRepository.findWithGraphById(viewerUserId);
 
             // THEN
             // 1. 관리자(ADMIN)는 모든 권한을 가짐 (canAccess의 특별 로직 검증)
@@ -202,7 +202,7 @@ class UserRolePermissionGroupTest {
         @DisplayName("PermissionGroup 삭제 시, 해당 그룹을 포함하는 Role과 User의 권한이 자동으로 철회되어야 한다")
         void whenPermissionGroupIsDeleted_accessShouldBeRevoked() {
             // GIVEN: operator 사용자는 mainFacilityGroupId를 통해 "FACILITY:1" 접근 권한이 있음
-            User operatorBeforeDelete = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User operatorBeforeDelete = userRepository.findWithGraphById(operatorUserId);
             assertTrue(operatorBeforeDelete.canAccess("FACILITY", "1"), "삭제 전, 시설 접근이 가능해야 합니다.");
 
             // WHEN: '주요 시설 관리 그룹'(mainFacilityGroupId)을 삭제
@@ -222,13 +222,13 @@ class UserRolePermissionGroupTest {
             assertEquals(0, count, "삭제된 PermissionGroup과 연결된 RolePermission 레코드는 없어야 합니다.");
 
             // 2. operator 사용자의 "FACILITY:1" 접근 권한이 사라졌는지 확인
-            User operatorAfterDelete = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User operatorAfterDelete = userRepository.findWithGraphById(operatorUserId);
             assertFalse(
                     operatorAfterDelete.canAccess("FACILITY", "1"),
                     "PermissionGroup 삭제 후, 시설 접근은 불가능해야 합니다.");
 
             // 3. ADMIN 사용자는 여전히 모든 권한을 가져야 함 (특별 케이스)
-            User admin = userRepository.findWithGraphById(adminUserId).orElseThrow();
+            User admin = userRepository.findWithGraphById(adminUserId);
             assertTrue(admin.canAccess("FACILITY", "1"), "ADMIN은 PermissionGroup 삭제와 무관하게 접근 가능해야 합니다.");
         }
 
@@ -236,7 +236,7 @@ class UserRolePermissionGroupTest {
         @DisplayName("Role 삭제 시, 해당 Role을 가진 User의 권한이 철회되고 User와 Role의 연결이 끊어져야 한다")
         void whenRoleIsDeleted_userLosesPermissions() {
             // GIVEN: operator 사용자는 operatorRoleId를 통해 "FACILITY:1" 접근 권한이 있음
-            User operatorBeforeDelete = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User operatorBeforeDelete = userRepository.findWithGraphById(operatorUserId);
             assertEquals(1, operatorBeforeDelete.getRoles().size(), "삭제 전, 사용자는 1개의 역할을 가져야 합니다.");
             assertTrue(operatorBeforeDelete.canAccess("FACILITY", "1"), "삭제 전, 시설 접근이 가능해야 합니다.");
 
@@ -248,15 +248,11 @@ class UserRolePermissionGroupTest {
             // THEN:
             // 1. User와 Role의 매핑(UserRole)이 사라졌는지 확인
             long count =
-                    userRepository
-                            .findWithGraphById(operatorBeforeDelete.getId())
-                            .get()
-                            .getUserRoles()
-                            .size();
+                    userRepository.findWithGraphById(operatorBeforeDelete.getId()).getUserRoles().size();
             assertEquals(0, count, "삭제된 Role과 연결된 UserRole 레코드는 없어야 합니다.");
 
             // 2. operator 사용자의 권한이 모두 사라졌는지 확인
-            User operatorAfterDelete = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User operatorAfterDelete = userRepository.findWithGraphById(operatorUserId);
             assertEquals(0, operatorAfterDelete.getRoles().size(), "Role 삭제 후, 사용자는 역할을 가지지 않아야 합니다.");
             assertFalse(operatorAfterDelete.canAccess("FACILITY", "1"), "Role 삭제 후, 시설 접근은 불가능해야 합니다.");
         }
@@ -297,11 +293,7 @@ class UserRolePermissionGroupTest {
         @DisplayName("User에게서 모든 Role을 제거했을 때, 권한이 모두 사라져야 한다")
         void whenAllRolesRemovedFromUser_shouldHaveNoPermissions() {
             // GIVEN: operator 사용자는 권한을 가지고 있음
-            assertTrue(
-                    userRepository
-                            .findWithGraphById(operatorUserId)
-                            .orElseThrow()
-                            .canAccess("FACILITY", "1"));
+            assertTrue(userRepository.findWithGraphById(operatorUserId).canAccess("FACILITY", "1"));
 
             // WHEN: 사용자 업데이트 시 빈 Role ID 리스트를 전달
             userService.update(operatorUserId, new UserUpdateRequest(null, null, null, null, List.of()));
@@ -309,7 +301,7 @@ class UserRolePermissionGroupTest {
             em.clear();
 
             // THEN: 사용자는 더 이상 어떠한 권한도 가지지 않음
-            User user = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User user = userRepository.findWithGraphById(operatorUserId);
             assertFalse(user.canAccess("FACILITY", "1"));
             assertFalse(user.canAccess("FACILITY", "2"));
             assertEquals(0, user.getRoles().size());
@@ -319,11 +311,7 @@ class UserRolePermissionGroupTest {
         @DisplayName("Role에 할당된 모든 PermissionGroup을 제거했을 때, 해당 Role을 가진 User의 권한이 사라져야 한다")
         void whenAllPermissionGroupsRemovedFromRole_userShouldLoseAccess() {
             // GIVEN: operator 사용자는 operatorRoleId를 통해 권한을 가지고 있음
-            assertTrue(
-                    userRepository
-                            .findWithGraphById(operatorUserId)
-                            .orElseThrow()
-                            .canAccess("FACILITY", "1"));
+            assertTrue(userRepository.findWithGraphById(operatorUserId).canAccess("FACILITY", "1"));
 
             // WHEN: Role 업데이트 시 빈 PermissionGroup ID 리스트를 전달
             roleService.update(operatorRoleId, new RoleUpdateRequest("OPERATOR", null, List.of()));
@@ -331,7 +319,7 @@ class UserRolePermissionGroupTest {
             em.clear();
 
             // THEN: operator 사용자의 권한이 사라져야 함
-            User user = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User user = userRepository.findWithGraphById(operatorUserId);
             assertFalse(user.canAccess("FACILITY", "1"));
         }
 
@@ -341,12 +329,12 @@ class UserRolePermissionGroupTest {
             // WHEN: Role 없이 사용자 생성
             UserCreateRequest createRequest =
                     new UserCreateRequest("newUser", "pw", "신규 유저", null, null, null, null);
-            Long newUserId = userService.save(createRequest).id();
+            Long newUserId = userService.save(createRequest).getId();
             em.flush();
             em.clear();
 
             // THEN: 처음에는 아무 권한이 없음
-            User newUser = userRepository.findWithGraphById(newUserId).orElseThrow();
+            User newUser = userRepository.findWithGraphById(newUserId);
             assertFalse(newUser.canAccess("FACILITY", "1"));
 
             // WHEN: 나중에 VIEWER Role 할당
@@ -356,7 +344,7 @@ class UserRolePermissionGroupTest {
             em.clear();
 
             // THEN: VIEWER의 권한을 획득해야 함
-            User updatedUser = userRepository.findWithGraphById(newUserId).orElseThrow();
+            User updatedUser = userRepository.findWithGraphById(newUserId);
             assertTrue(updatedUser.canAccess("DEVICE_CATEGORY", "1"));
             assertFalse(updatedUser.canAccess("FACILITY", "1"));
         }
@@ -381,12 +369,12 @@ class UserRolePermissionGroupTest {
                                             null,
                                             null,
                                             List.of(operatorRoleId, viewerRoleId)))
-                            .id();
+                            .getId();
             em.flush();
             em.clear();
 
             // WHEN: 사용자의 권한을 검증
-            User multiRoleUser = userRepository.findWithGraphById(multiRoleUserId).orElseThrow();
+            User multiRoleUser = userRepository.findWithGraphById(multiRoleUserId);
 
             // THEN: 두 역할의 권한을 모두 가져야 함
             assertTrue(multiRoleUser.canAccess("FACILITY", "1"), "OPERATOR 역할의 주요 시설 권한이 있어야 합니다.");
@@ -417,7 +405,7 @@ class UserRolePermissionGroupTest {
             em.clear();
 
             // WHEN: operator 사용자의 권한을 검증
-            User operator = userRepository.findWithGraphById(operatorUserId).orElseThrow();
+            User operator = userRepository.findWithGraphById(operatorUserId);
 
             // THEN: 중복 여부와 관계없이 권한을 올바르게 판단해야 함
             assertTrue(operator.canAccess("FACILITY", "1"), "기존 그룹의 권한");

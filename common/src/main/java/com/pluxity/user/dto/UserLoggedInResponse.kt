@@ -1,26 +1,26 @@
-package com.pluxity.user.dto;
+package com.pluxity.user.dto
 
-import java.util.List;
+import com.pluxity.user.entity.User
 
-public record UserLoggedInResponse(
-        Long id,
-        String username,
-        String name,
-        String code,
-        String phoneNumber,
-        String department,
-        Boolean isLoggedIn,
-        List<RoleResponse> roles) {
-    public static UserLoggedInResponse from(
-            Long id,
-            String username,
-            String name,
-            String code,
-            String phoneNumber,
-            String department,
-            Boolean isLoggedIn,
-            List<RoleResponse> roles) {
-        return new UserLoggedInResponse(
-                id, username, name, code, phoneNumber, department, isLoggedIn, roles);
-    }
-}
+data class UserLoggedInResponse(
+    val id: Long,
+    val username: String,
+    val name: String,
+    val code: String?,
+    val phoneNumber: String?,
+    val department: String?,
+    val isLoggedIn: Boolean,
+    val roles: List<RoleResponse>?,
+)
+
+fun User.toUserLoggedInResponse(isLoggedIn: Boolean): UserLoggedInResponse =
+    UserLoggedInResponse(
+        id = this.id!!,
+        username = this.username,
+        name = this.name,
+        code = this.code,
+        phoneNumber = this.phoneNumber,
+        department = this.department,
+        isLoggedIn = isLoggedIn,
+        roles = this.getRoles().map { RoleResponse.from(it) },
+    )

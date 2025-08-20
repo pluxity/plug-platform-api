@@ -7,7 +7,7 @@ fun dummyUserCreateRequest(
     code: String = "code",
     phoneNumber: String? = null,
     department: String? = null,
-    roleIds: List<Long>? = listOf(),
+    roleIds: List<Long> = listOf(),
 ): UserCreateRequest =
     UserCreateRequest(
         username,

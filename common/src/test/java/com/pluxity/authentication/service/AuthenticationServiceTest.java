@@ -76,7 +76,7 @@ class AuthenticationServiceTest {
         em.clear();
 
         // THEN
-        User foundUser = userRepository.findWithGraphById(userId).orElseThrow();
+        User foundUser = userRepository.findWithGraphById(userId);
         assertThat(foundUser.getUsername()).isEqualTo("newUser");
         assertThat(passwordEncoder.matches("password123", foundUser.getPassword())).isTrue();
     }

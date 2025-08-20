@@ -1,8 +1,9 @@
-package com.pluxity.user.dto;
+package com.pluxity.user.dto
 
-import java.util.List;
-import lombok.Builder;
-
-@Builder
-public record UserUpdateRequest(
-        String name, String code, String phoneNumber, String department, List<Long> roleIds) {}
+data class UserUpdateRequest(
+    val name: String? = null,
+    val code: String? = null,
+    val phoneNumber: String? = null,
+    val department: String? = null,
+    val roleIds: List<Long>? = null,
+)

@@ -19,7 +19,7 @@ interface UserRepository : JpaRepository<User, Long> {
             "userRoles.user", "userRoles.role.rolePermissions.permissionGroup.permissions",
         ],
     )
-    fun findWithGraphById(id: Long): Optional<User>
+    fun findWithGraphById(id: Long): User?
 
     @EntityGraph(
         attributePaths = [
