@@ -3,7 +3,6 @@ package com.pluxity.asset;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.pluxity.asset.dto.AssetCategoryAllResponse;
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
 import com.pluxity.asset.dto.AssetCategoryResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
@@ -100,8 +99,7 @@ class AssetCategoryServiceTest {
         createAndSaveCategory("가구", "FURN", null);
 
         // WHEN
-        AssetCategoryAllResponse response = assetCategoryService.getAllCategories();
-        List<AssetCategoryResponse> rootCategories = response.list();
+        List<AssetCategoryResponse> rootCategories = assetCategoryService.getAllCategories();
 
         // THEN: 생성된 모든 카테고리가 최상위 레벨에 존재
         assertThat(rootCategories).hasSize(2);
