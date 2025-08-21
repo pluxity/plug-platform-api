@@ -5,5 +5,4 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":core"))
     testImplementation(testFixtures(project(":common")))
-    testImplementation(testFixtures(project(":core")))
 }

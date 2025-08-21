@@ -24,7 +24,7 @@ class CctvServiceKoTest :
     BehaviorSpec({
 
         val cctvRepository: CctvRepository = mockk()
-        val deviceCctvRepository: DeviceCctvRepository = mockk()
+        val deviceCctvRepository: DeviceCctvRepository = mockk(relaxed = true)
 
         val cctvService =
             CctvService(
@@ -105,9 +105,6 @@ class CctvServiceKoTest :
                 every {
                     cctvRepository.findByIdOrNull(any())
                 } returns cctv
-                every {
-                    deviceCctvRepository.deleteByCctvIdIn(any())
-                } just runs
                 every {
                     cctvRepository.deleteById(capture(slot))
                 } just runs
