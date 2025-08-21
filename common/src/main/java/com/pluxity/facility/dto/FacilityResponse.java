@@ -2,6 +2,7 @@ package com.pluxity.facility.dto;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.Facility;
+import com.pluxity.facility.FacilityType;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.global.response.BaseResponse;
 import java.util.List;
@@ -14,6 +15,7 @@ public record FacilityResponse(
         String code,
         String name,
         String description,
+        FacilityType type,
         FileResponse drawing,
         FileResponse thumbnail,
         List<FacilityPathResponse> paths,
@@ -28,6 +30,7 @@ public record FacilityResponse(
                 facility.getCode(),
                 facility.getName(),
                 facility.getDescription(),
+                facility.getFacilityType(),
                 drawing != null ? drawing : FileResponse.empty(),
                 thumbnail != null ? thumbnail : FileResponse.empty(),
                 facility.getPaths().stream().map(FacilityPathResponse::from).toList(),

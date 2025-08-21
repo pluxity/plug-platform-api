@@ -6,14 +6,12 @@ import com.pluxity.global.response.ErrorResponseBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -31,17 +29,7 @@ public class FacilityController {
     @Operation(summary = "시설 목록 조회", description = "모든 시설 목록을 조회합니다")
     @ApiResponses(
             value = {
-                @ApiResponse(
-                        responseCode = "200",
-                        description = "목록 조회 성공",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = FacilityResponse.class),
-                                        examples =
-                                                @ExampleObject(
-                                                        value =
-                                                                "{\"timestamp\": \"string\", \"status\": 0, \"message\": \"string\", \"data\":{\"buildings\": [{\"id\": 0, \"code\": \"string\", \"name\": \"string\", \"description\": \"string\", \"drawing\": {\"id\": 0, \"url\": \"string\", \"originalFileName\": \"string\", \"contentType\": \"string\", \"fileStatus\": \"string\", \"createdAt\": \"string\", \"createdBy\": \"string\", \"updatedAt\": \"string\", \"updatedBy\": \"string\"},\"thumbnail\": {\"id\": 0, \"url\": \"string\", \"originalFileName\": \"string\", \"contentType\": \"string\", \"fileStatus\": \"string\", \"createdAt\": \"string\", \"createdBy\": \"string\", \"updatedAt\": \"string\", \"updatedBy\": \"string\"},\"paths\": [{\"id\": 0, \"name\": \"string\", \"type\": \"string\", \"path\": \"string\"}],\"lon\": 0, \"lat\": 0, \"locationMeta\": \"string\", \"createdAt\": \"string\", \"createdBy\": \"string\", \"updatedAt\": \"string\", \"updatedBy\": \"string\"}],\"stations\": [],\"parks\": []}}"))),
+                @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
                 @ApiResponse(
                         responseCode = "500",
                         description = "서버 오류",
@@ -51,7 +39,7 @@ public class FacilityController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<Map<String, List<FacilityResponse>>>> getFacilities() {
+    public ResponseEntity<DataResponseBody<List<FacilityResponse>>> getFacilities() {
         return ResponseEntity.ok(DataResponseBody.of(facilityService.findAllFacilities()));
     }
 
