@@ -1,8 +1,8 @@
 package com.pluxity.device.entity
 
-import cctv.dummyCctv
 import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.entity.DeviceCctv
+import com.pluxity.cctv.entity.dummyCctv
 import com.pluxity.device.GsDevice
 
 fun dummyGsDevice(

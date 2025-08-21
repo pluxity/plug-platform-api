@@ -9,6 +9,7 @@ import com.pluxity.device.repository.DeviceCategoryRepository
 import com.pluxity.feature.dto.FeatureAssignDto
 import com.pluxity.feature.entity.Feature
 import com.pluxity.feature.repository.FeatureRepository
+import com.pluxity.feature.service.FeatureAssignType
 import com.pluxity.feature.service.FeatureService
 import com.pluxity.global.exception.CustomException
 import jakarta.persistence.EntityManager
@@ -109,7 +110,7 @@ internal class GsDeviceServiceTest {
         val updateRequest = GsDeviceUpdateRequest("Updated Name", updatedCategory.id)
 
         // when
-        featureService.assignDeviceToFeature(updatedFeature.id, FeatureAssignDto(savedId), false)
+        featureService.assignSomethingToFeature(updatedFeature.id, FeatureAssignDto(savedId, FeatureAssignType.TEMPERATURE), false)
         gsDeviceService.update(
             savedId,
             updateRequest,

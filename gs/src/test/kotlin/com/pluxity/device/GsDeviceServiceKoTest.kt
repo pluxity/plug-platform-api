@@ -1,14 +1,15 @@
 package com.pluxity.device
 
-import cctv.dummyCctv
 import com.pluxity.cctv.CctvService
 import com.pluxity.cctv.entity.DeviceCctv
+import com.pluxity.cctv.entity.dummyCctv
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.device.dto.GsDeviceCctvUpdateRequest
 import com.pluxity.device.dto.GsDeviceUpdateRequest
 import com.pluxity.device.dto.dummyCreateGsDeviceRequest
 import com.pluxity.device.entity.dummyDeviceCctv
 import com.pluxity.device.entity.dummyGsDevice
+import com.pluxity.device.repository.DeviceRepository
 import com.pluxity.device.service.DeviceCategoryService
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
@@ -34,7 +35,9 @@ class GsDeviceServiceKoTest :
         val deviceCctvRepository: DeviceCctvRepository = mockk()
         val cctvService: CctvService = mockk()
         val fileService: FileService = mockk()
-        val gsDeviceService = GsDeviceService(repository, deviceCategoryService, deviceCctvRepository, cctvService, fileService)
+        val deviceRepository: DeviceRepository = mockk()
+        val gsDeviceService =
+            GsDeviceService(repository, deviceCategoryService, deviceCctvRepository, cctvService, fileService, deviceRepository)
 
         Given("디바이스 생성을 진행할 때") {
             When("유효한 요청으로 GS 디바이스 생성 요청") {

@@ -3,10 +3,6 @@ package com.pluxity.feature.service;
 import static com.pluxity.global.constant.ErrorCode.*;
 
 import com.pluxity.asset.service.AssetValidator;
-import com.pluxity.cctv.entity.Cctv;
-import com.pluxity.cctv.repository.CctvRepository;
-import com.pluxity.device.entity.Device;
-import com.pluxity.device.repository.DeviceRepository;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.feature.dto.FeatureAssignDto;
@@ -32,8 +28,7 @@ public class FeatureService {
     private final FeatureRepository featureRepository;
     private final FacilityService facilityService;
     private final AssetValidator assetValidator;
-    private final DeviceRepository deviceRepository;
-    private final CctvRepository cctvRepository;
+    private final List<FeatureAssignment> assignments;
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
@@ -59,12 +54,6 @@ public class FeatureService {
         log.debug("피처 저장 완료: id={}", savedFeature.getId());
 
         return getFeatureResponse(savedFeature);
-    }
-
-    @Transactional(readOnly = true)
-    public FeatureResponse getFeature(String id) {
-        Feature feature = findFeatureById(id);
-        return getFeatureResponse(feature);
     }
 
     @Transactional(readOnly = true)
@@ -94,52 +83,6 @@ public class FeatureService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_FEATURE, id));
     }
 
-    @Transactional
-    public void assignDeviceToFeature(String featureId, FeatureAssignDto assignDto, boolean force) {
-        log.debug("피처에 디바이스 할당: featureId={}, assignDto={}", featureId, assignDto);
-
-        Feature feature = findFeatureById(featureId);
-
-        // 디바이스 조회 - id로 조회
-        Device device = findDeviceById(assignDto.id());
-        if (!force && device.getFeature() != null) {
-            throw new CustomException(DUPLICATE_DEVICE_OTHER_FEATURE, assignDto.id());
-        }
-        boolean isAssignCctv = cctvRepository.existsByFeature(feature);
-        if (!force && isAssignCctv) {
-            throw new CustomException(DUPLICATE_FEATURE_OTHER_CCTV, featureId);
-        }
-
-        deviceRepository.updateFeatureByFeature(feature);
-        cctvRepository.updateFeatureByFeature(feature);
-        device.changeFeature(feature);
-
-        log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
-    }
-
-    private Device findDeviceById(String deviceId) {
-        return deviceRepository
-                .findById(deviceId)
-                .orElseThrow(() -> new CustomException(NOT_FOUND_DEVICE, deviceId));
-    }
-
-    @Transactional
-    public void removeDeviceFromFeature(String featureId, FeatureAssignDto assignDto) {
-        Feature feature = findFeatureById(featureId);
-        Device device = findDeviceById(assignDto.id());
-
-        if (device.getFeature() == null) {
-            throw new CustomException(DEVICE_NOT_ASSIGNED, device.getId());
-        }
-
-        if (!device.getFeature().getId().equals(feature.getId())) {
-            throw new CustomException(DEVICE_MISMATCH, "해당 피처에 할당된 디바이스가 아닙니다.");
-        }
-
-        device.changeFeature(null);
-        log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, device.getId());
-    }
-
     private FeatureResponse getFeatureResponse(Feature feature) {
         return FeatureResponse.from(feature);
     }
@@ -155,48 +98,46 @@ public class FeatureService {
     }
 
     @Transactional
-    public void assignCctvToFeature(String featureId, FeatureAssignDto assignDto, boolean force) {
-        log.debug("피처에 Cctv 할당: featureId={}, assignDto={}", featureId, assignDto);
-
+    public void assignSomethingToFeature(
+            String featureId, FeatureAssignDto assignDto, boolean force) {
         Feature feature = findFeatureById(featureId);
-
-        // Cctv 조회 - id로 조회
-        Cctv cctv =
-                cctvRepository
-                        .findById(assignDto.id())
-                        .orElseThrow(() -> new CustomException(NOT_FOUND_CCTV, assignDto.id()));
-        if (!force && cctv.getFeature() != null) {
-            throw new CustomException(DUPLICATE_CCTV_OTHER_FEATURE, assignDto.id());
+        FeatureAssignment assignmentTarget = getAssignmentTarget(assignDto.type());
+        if (!force && assignmentTarget.isAlreadyAssignedFeature(assignDto.id())) {
+            throw new CustomException(
+                    ALREADY_ASSIGNED_TARGET, assignDto.id(), assignDto.type().getDescription());
         }
-        boolean isAssignDevice = deviceRepository.existsByFeature(feature);
-        if (!force && isAssignDevice) {
-            throw new CustomException(DUPLICATE_FEATURE_OTHER_DEVICE, featureId);
+        if (!force && checkFeatureAlreadyOther(feature)) {
+            throw new CustomException(ALREADY_FEATURE_ASSIGNED, featureId);
         }
-
-        deviceRepository.updateFeatureByFeature(feature);
-        cctvRepository.updateFeatureByFeature(feature);
-        cctv.changeFeature(feature);
-
-        log.debug("Cctv와 피처 관계 설정 완료: cctvId={}, featureId={}", cctv.getId(), featureId);
+        revokeOthers(assignmentTarget, assignDto.id());
+        assignmentTarget.assignFeature(assignDto.id(), feature);
     }
 
     @Transactional
-    public void removeCctvFromFeature(String featureId, FeatureAssignDto assignDto) {
-        Feature feature = findFeatureById(featureId);
-        Cctv cctv =
-                cctvRepository
-                        .findById(assignDto.id())
-                        .orElseThrow(() -> new CustomException(NOT_FOUND_CCTV, assignDto.id()));
+    public void removeSomethingFromFeature(String featureId, FeatureAssignDto assignDto) {
+        findFeatureById(featureId);
+        FeatureAssignment assignmentTarget = getAssignmentTarget(assignDto.type());
+        assignmentTarget.checkRevokeValidate(assignDto.id(), featureId);
+        assignmentTarget.revokeFeature(assignDto.id());
+    }
 
-        if (cctv.getFeature() == null) {
-            throw new CustomException(CCTV_NOT_ASSIGNED, cctv.getId());
+    private boolean checkFeatureAlreadyOther(Feature feature) {
+        for (FeatureAssignment assignment : assignments) {
+            if (assignment.checkExistsByFeature(feature)) {
+                return true;
+            }
         }
+        return false;
+    }
 
-        if (!cctv.getFeature().getId().equals(feature.getId())) {
-            throw new CustomException(CCTV_MISMATCH);
-        }
+    private void revokeOthers(FeatureAssignment assignmentTarget, String id) {
+        assignments.stream().filter(v -> v != assignmentTarget).forEach(v -> v.revokeFeature(id));
+    }
 
-        cctv.changeFeature(null);
-        log.debug("피처에서 Cctv 제거: featureId={}, cctvId={}", featureId, cctv.getId());
+    private FeatureAssignment getAssignmentTarget(FeatureAssignType type) {
+        return assignments.stream()
+                .filter(v -> v.getType().equals(type))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
     }
 }

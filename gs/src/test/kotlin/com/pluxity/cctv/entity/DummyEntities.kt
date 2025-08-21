@@ -1,4 +1,4 @@
-package cctv
+package com.pluxity.cctv.entity
 
 import com.pluxity.cctv.entity.Cctv
 
