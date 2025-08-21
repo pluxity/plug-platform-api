@@ -12,9 +12,11 @@ import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
+import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
+import com.pluxity.permission.ResourceType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,9 +61,9 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
 
     @Transactional(readOnly = true)
     public DeviceCategoryResponse getDeviceCategory(Long id) {
-        DeviceCategoryAllResponse allCategories = getDeviceCategories();
+        List<DeviceCategoryResponse> allCategories = getDeviceCategories();
 
-        return findCategoryInTree(allCategories.list(), id)
+        return findCategoryInTree(allCategories, id)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_DEVICE_CATEGORY, id));
     }
 
@@ -84,7 +86,8 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     }
 
     @Transactional(readOnly = true)
-    public DeviceCategoryAllResponse getDeviceCategories() {
+    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
+    public List<DeviceCategoryResponse> getDeviceCategories() {
         List<DeviceCategory> allCategories =
                 deviceCategoryRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
 
@@ -101,13 +104,11 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
                                         DeviceCategoryResponse.from(category, fileMap.get(category.getIconFileId())))
                         .toList();
 
-        return DeviceCategoryAllResponse.of(
-                DeviceCategory.builder().build().getMaxDepth(),
-                MappingUtils.makeCategoryTree(
-                        list,
-                        DeviceCategoryResponse::id,
-                        DeviceCategoryResponse::parentId,
-                        DeviceCategoryResponse::children));
+        return MappingUtils.makeCategoryTree(
+                list,
+                DeviceCategoryResponse::id,
+                DeviceCategoryResponse::parentId,
+                DeviceCategoryResponse::children);
     }
 
     @Transactional(readOnly = true)
@@ -185,5 +186,9 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         Facility facility = facilityService.findById(facilityId);
         List<Device> list = deviceRepository.findByCategoryAndFacility(category, facility);
         return list.stream().map(Device::toDeviceInfo).toList();
+    }
+
+    public DeviceCategoryDepthResponse getDeviceCategoryDepth() {
+        return new DeviceCategoryDepthResponse(DeviceCategory.builder().build().getMaxDepth());
     }
 }

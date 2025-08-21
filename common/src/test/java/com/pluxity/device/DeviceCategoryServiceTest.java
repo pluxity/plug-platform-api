@@ -136,12 +136,12 @@ class DeviceCategoryServiceTest {
                                 "루트2", null, testFileUploader.initiateTestFileUpload("r2.png")));
 
         // WHEN
-        DeviceCategoryAllResponse response = deviceCategoryService.getDeviceCategories();
+        List<DeviceCategoryResponse> response = deviceCategoryService.getDeviceCategories();
 
         // THEN
-        assertThat(response.list()).hasSize(2);
+        assertThat(response).hasSize(2);
         DeviceCategoryResponse root1 =
-                response.list().stream().filter(c -> c.id().equals(root1Id)).findFirst().orElseThrow();
+                response.stream().filter(c -> c.id().equals(root1Id)).findFirst().orElseThrow();
         assertThat(root1.children()).hasSize(1);
         assertThat(root1.children().getFirst().id()).isEqualTo(child1Id);
     }
@@ -311,11 +311,11 @@ class DeviceCategoryServiceTest {
         deviceCategoryRepository.deleteAll();
 
         // WHEN
-        DeviceCategoryAllResponse response = deviceCategoryService.getDeviceCategories();
+        List<DeviceCategoryResponse> response = deviceCategoryService.getDeviceCategories();
 
         // THEN
         assertThat(response).isNotNull();
-        assertThat(response.list()).isNotNull().isEmpty();
+        assertThat(response).isEmpty();
     }
 
     @Test
