@@ -1,15 +1,9 @@
-package com.pluxity.device
+package com.pluxity.climate
 
-import com.pluxity.cctv.CctvService
-import com.pluxity.cctv.dto.CctvResponse
-import com.pluxity.cctv.dto.toCctvResponse
-import com.pluxity.cctv.entity.DeviceCctv
-import com.pluxity.cctv.repository.DeviceCctvRepository
-import com.pluxity.device.dto.GsDeviceCctvUpdateRequest
-import com.pluxity.device.dto.GsDeviceCreateRequest
-import com.pluxity.device.dto.GsDeviceResponse
-import com.pluxity.device.dto.GsDeviceUpdateRequest
-import com.pluxity.device.dto.toGsDeviceResponse
+import com.pluxity.climate.dto.ClimateDeviceCreateRequest
+import com.pluxity.climate.dto.ClimateDeviceUpdateRequest
+import com.pluxity.climate.dto.ClimateResponse
+import com.pluxity.climate.dto.toClimateResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
 import com.pluxity.device.repository.DeviceRepository
@@ -33,39 +27,37 @@ import java.util.stream.Stream
 private val log = KotlinLogging.logger {}
 
 @Service
-class GsDeviceService(
-    private val repository: GsDeviceRepository,
+class ClimateDeviceService(
+    private val repository: ClimateDeviceRepository,
     private val deviceCategoryService: DeviceCategoryService,
-    private val deviceCctvRepository: DeviceCctvRepository,
-    private val cctvService: CctvService,
     private val fileService: FileService,
     private val deviceRepository: DeviceRepository,
 ) : FeatureAssignment {
     @Transactional
-    fun save(request: GsDeviceCreateRequest): String {
+    fun save(request: ClimateDeviceCreateRequest): String {
         val category = request.categoryId?.let { deviceCategoryService.findById(request.categoryId) }
-        return repository.save(GsDevice(request.id, category, request.name)).id
+        return repository.save(ClimateDevice(request.id, category, request.name)).id
     }
 
     @Transactional(readOnly = true)
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
-    fun findById(id: String): GsDeviceResponse = getDevice(id).toGsDeviceResponse(getThumbnailFile(getDevice(id)))
+    fun findById(id: String): ClimateResponse = getClimateDevice(id).toClimateResponse(getThumbnailFile(getClimateDevice(id)))
 
-    private fun getThumbnailFile(gsDevice: Device): FileResponse? =
-        gsDevice.category?.let {
+    private fun getThumbnailFile(climate: Device): FileResponse? =
+        climate.category?.let {
             fileService.getFileResponse(it.iconFileId)
         }
 
-    private fun getDevice(id: String): GsDevice =
+    private fun getClimateDevice(id: String): ClimateDevice =
         repository.findByIdOrNull(id)
             ?: throw CustomException(ErrorCode.NOT_FOUND_DEVICE, id)
 
     @Transactional(readOnly = true)
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
-    fun findAll(): List<GsDeviceResponse> {
-        val gsDevices = repository.findAll()
+    fun findAll(): List<ClimateResponse> {
+        val climates = repository.findAll()
         val categoryList =
-            gsDevices
+            climates
                 .mapNotNull { it.category }
         val fileMap =
             MappingUtils.getFileMapByIds(
@@ -73,27 +65,17 @@ class GsDeviceService(
                 { v: DeviceCategory -> Stream.of(v.iconFileId) },
                 fileService,
             )
-        return gsDevices.map {
-            it.toGsDeviceResponse(fileMap[it.category?.iconFileId])
+        return climates.map {
+            it.toClimateResponse(fileMap[it.category?.iconFileId])
         }
-    }
-
-    @Transactional
-    fun update(
-        id: String,
-        request: GsDeviceUpdateRequest,
-    ) {
-        val device = getDevice(id)
-        device.update(request.name)
-        request.categoryId?.let { device.changeCategory(deviceCategoryService.findById(it)) }
     }
 
     @Transactional
     fun putUpdate(
         id: String,
-        request: GsDeviceUpdateRequest,
+        request: ClimateDeviceUpdateRequest,
     ) {
-        val device = getDevice(id)
+        val device = getClimateDevice(id)
         device.putUpdate(request.name)
         val category = request.categoryId?.let { deviceCategoryService.findById(it) }
         device.changeCategory(category)
@@ -101,9 +83,8 @@ class GsDeviceService(
 
     @Transactional
     fun delete(id: String) {
-        val device = getDevice(id)
+        val device = getClimateDevice(id)
         device.clearAllRelations()
-        deviceCctvRepository.deleteByDevice(device)
         repository.deleteById(device.id)
     }
 
@@ -112,61 +93,22 @@ class GsDeviceService(
         deviceId: String,
         categoryId: Long,
     ) {
-        val device = getDevice(deviceId)
+        val device = getClimateDevice(deviceId)
         device.changeCategory(deviceCategoryService.findById(categoryId))
         log.info { "디바이스 [$deviceId]에 카테고리 [$categoryId]가 할당되었습니다." }
     }
 
     @Transactional
     fun removeCategory(deviceId: String) {
-        val device = getDevice(deviceId)
+        val device = getClimateDevice(deviceId)
         device.category ?: throw CustomException(ErrorCode.NOT_FOUND_ASSIGN_DEVICE_CATEGORY, deviceId)
         device.changeCategory(null)
         log.info { "디바이스 [$deviceId]에서 카테고리가 제거되었습니다." }
     }
 
-    @Transactional(readOnly = true)
-    fun getCctvByDeviceId(deviceId: String): List<CctvResponse> {
-        val device = getDevice(deviceId)
-        val deviceCctvs = deviceCctvRepository.findByDevice(device)
-        return deviceCctvs
-            .map { it.cctv }
-            .map { it.toCctvResponse() }
-    }
-
-    @Transactional
-    fun assignCctvToDevice(
-        deviceId: String,
-        request: GsDeviceCctvUpdateRequest,
-    ) {
-        val device = getDevice(deviceId)
-        val existIds = deviceCctvRepository.findByDevice(device).map { it.cctv.id!! }
-
-        // 추가할 cctv id
-        val saveList =
-            request.cctvIds
-                .filter { !existIds.contains(it) }
-                .map { DeviceCctv(cctv = cctvService.findById(it), device = device) }
-
-        // 삭제할 cctv id
-        val removeList: List<String> = existIds.filter { !request.cctvIds.contains(it) }
-
-        // 추가
-        if (saveList.isNotEmpty()) {
-            log.info { "${deviceId}에 추가할 cctvId $saveList" }
-            deviceCctvRepository.saveAll(saveList)
-        }
-
-        // 삭제
-        if (removeList.isNotEmpty()) {
-            log.info { "${deviceId}에서 제거할 cctvId $removeList" }
-            deviceCctvRepository.deleteByCctvIdIn(removeList)
-        }
-    }
-
     override fun getType(): FeatureAssignType = FeatureAssignType.TEMPERATURE
 
-    override fun isAssigned(id: String): Boolean = getDevice(id).feature != null
+    override fun isAssigned(id: String): Boolean = getClimateDevice(id).feature != null
 
     override fun existsByFeature(feature: Feature): Boolean = deviceRepository.existsByFeature(feature)
 
@@ -174,18 +116,16 @@ class GsDeviceService(
         deviceRepository.updateFeatureNullByFeature(feature)
     }
 
-    @Transactional
     override fun assignFeature(
         id: String,
         feature: Feature,
-    ) = getDevice(id).changeFeature(feature)
+    ) = getClimateDevice(id).changeFeature(feature)
 
-    @Transactional(readOnly = true)
     override fun validateRevoke(
         id: String,
         featureId: String,
     ) {
-        val device = getDevice(id)
+        val device = getClimateDevice(id)
         val f = device.feature ?: throw CustomException(ErrorCode.DEVICE_NOT_ASSIGNED, id)
         if (f.id != featureId) {
             throw CustomException(ErrorCode.DEVICE_MISMATCH)

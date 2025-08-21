@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface DeviceRepository extends JpaRepository<Device, String> {
     @Modifying
     @Query("UPDATE Device d SET d.feature = NULL WHERE d.feature = :feature")
-    void updateFeatureByFeature(Feature feature);
+    void updateFeatureNullByFeature(Feature feature);
 
     @Query("SELECT d FROM Device d WHERE d.category = :category AND d.feature.facility = :facility")
     List<Device> findByCategoryAndFacility(DeviceCategory category, Facility facility);

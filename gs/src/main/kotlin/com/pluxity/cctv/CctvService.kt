@@ -53,31 +53,22 @@ class CctvService(
         cctvRepository.deleteById(cctv.id)
     }
 
-    @Transactional(readOnly = true)
     fun findById(id: String): Cctv =
         cctvRepository.findByIdOrNull(id)
             ?: throw CustomException(ErrorCode.NOT_FOUND_CCTV, id)
 
     override fun getType(): FeatureAssignType = FeatureAssignType.CCTV
 
-    @Transactional(readOnly = true)
-    override fun isAlreadyAssignedFeature(id: String): Boolean = findById(id).feature != null
+    override fun isAssigned(id: String): Boolean = findById(id).feature != null
 
-    @Transactional(readOnly = true)
-    override fun checkExistsByFeature(feature: Feature): Boolean = cctvRepository.existsByFeature(feature)
+    override fun existsByFeature(feature: Feature): Boolean = cctvRepository.existsByFeature(feature)
 
-    @Transactional
     override fun assignFeature(
         id: String,
         feature: Feature,
-    ) {
-        val cctv = findById(id)
-        cctvRepository.updateFeatureByFeature(feature)
-        cctv.changeFeature(feature)
-    }
+    ) = findById(id).changeFeature(feature)
 
-    @Transactional(readOnly = true)
-    override fun checkRevokeValidate(
+    override fun validateRevoke(
         id: String,
         featureId: String,
     ) {
@@ -88,6 +79,9 @@ class CctvService(
         }
     }
 
-    @Transactional
-    override fun revokeFeature(id: String): Unit = cctvRepository.findByIdOrNull(id).let { it?.changeFeature(null) }
+    override fun clearFeatureFromTarget(id: String): Unit = cctvRepository.findByIdOrNull(id).let { it?.changeFeature(null) }
+
+    override fun revokeByFeature(feature: Feature) {
+        cctvRepository.updateFeatureByFeature(feature)
+    }
 }

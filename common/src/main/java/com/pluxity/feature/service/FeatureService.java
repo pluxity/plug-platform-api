@@ -28,7 +28,7 @@ public class FeatureService {
     private final FeatureRepository featureRepository;
     private final FacilityService facilityService;
     private final AssetValidator assetValidator;
-    private final List<FeatureAssignment> assignments;
+    private final FeatureAssignmentRegistry registry;
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
@@ -102,14 +102,14 @@ public class FeatureService {
             String featureId, FeatureAssignDto assignDto, boolean force) {
         Feature feature = findFeatureById(featureId);
         FeatureAssignment assignmentTarget = getAssignmentTarget(assignDto.type());
-        if (!force && assignmentTarget.isAlreadyAssignedFeature(assignDto.id())) {
+        if (!force && assignmentTarget.isAssigned(assignDto.id())) {
             throw new CustomException(
                     ALREADY_ASSIGNED_TARGET, assignDto.id(), assignDto.type().getDescription());
         }
         if (!force && checkFeatureAlreadyOther(feature)) {
             throw new CustomException(ALREADY_FEATURE_ASSIGNED, featureId);
         }
-        revokeOthers(assignmentTarget, assignDto.id());
+        revokeByFeatureAll(feature);
         assignmentTarget.assignFeature(assignDto.id(), feature);
     }
 
@@ -117,27 +117,19 @@ public class FeatureService {
     public void removeSomethingFromFeature(String featureId, FeatureAssignDto assignDto) {
         findFeatureById(featureId);
         FeatureAssignment assignmentTarget = getAssignmentTarget(assignDto.type());
-        assignmentTarget.checkRevokeValidate(assignDto.id(), featureId);
-        assignmentTarget.revokeFeature(assignDto.id());
+        assignmentTarget.validateRevoke(assignDto.id(), featureId);
+        assignmentTarget.clearFeatureFromTarget(assignDto.id());
     }
 
     private boolean checkFeatureAlreadyOther(Feature feature) {
-        for (FeatureAssignment assignment : assignments) {
-            if (assignment.checkExistsByFeature(feature)) {
-                return true;
-            }
-        }
-        return false;
+        return registry.all().stream().anyMatch(assignment -> assignment.existsByFeature(feature));
     }
 
-    private void revokeOthers(FeatureAssignment assignmentTarget, String id) {
-        assignments.stream().filter(v -> v != assignmentTarget).forEach(v -> v.revokeFeature(id));
+    private void revokeByFeatureAll(Feature feature) {
+        registry.all().forEach(v -> v.revokeByFeature(feature));
     }
 
     private FeatureAssignment getAssignmentTarget(FeatureAssignType type) {
-        return assignments.stream()
-                .filter(v -> v.getType().equals(type))
-                .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
+        return registry.get(type);
     }
 }

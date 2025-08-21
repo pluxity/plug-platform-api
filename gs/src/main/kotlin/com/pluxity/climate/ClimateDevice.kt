@@ -1,7 +1,6 @@
-package com.pluxity.device
+package com.pluxity.climate
 
 import com.pluxity.device.dto.DeviceInfoResponse
-import com.pluxity.device.dto.GsDeviceInfoResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
 import jakarta.persistence.Column
@@ -10,9 +9,9 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Table
 
 @Entity
-@Table(name = "gs_device")
-@DiscriminatorValue("gs_device")
-class GsDevice(
+@Table(name = "climate_Device")
+@DiscriminatorValue("climate_Device")
+class ClimateDevice(
     id: String,
     category: DeviceCategory?,
     // DB 컬럼은 name 유지
@@ -21,10 +20,8 @@ class GsDevice(
 ) : Device(id, category) {
     override fun getName(): String = this.deviceName
 
-    override fun toDeviceInfo(): DeviceInfoResponse = GsDeviceInfoResponse(id, deviceName, deviceType.type, feature?.id)
-
-    fun update(name: String?) {
-        name?.let { this.deviceName = it }
+    override fun toDeviceInfo(): DeviceInfoResponse {
+        TODO("Not yet implemented")
     }
 
     fun putUpdate(name: String) {
