@@ -5,11 +5,8 @@ import com.pluxity.cctv.dto.CctvCreateRequest
 import com.pluxity.cctv.dto.CctvUpdateRequest
 import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
-import com.pluxity.device.service.DeviceCategoryService
-import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import file.dummyFileResponse
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -27,21 +24,17 @@ class CctvServiceKoTest :
     BehaviorSpec({
 
         val cctvRepository: CctvRepository = mockk()
-        val deviceCategoryService: DeviceCategoryService = mockk()
-        val fileService: FileService = mockk()
         val deviceCctvRepository: DeviceCctvRepository = mockk()
 
         val cctvService =
             CctvService(
                 cctvRepository,
-                deviceCategoryService,
-                fileService,
                 deviceCctvRepository,
             )
         Given("CCTV 생성을 진행할 때") {
             When("유효한 요청으로 CCTV 생성 요청") {
                 val id = UUID.randomUUID().toString()
-                val createRequest = CctvCreateRequest(id, "cctv-name", "url", null)
+                val createRequest = CctvCreateRequest(id, "cctv-name", "url")
 
                 every {
                     cctvRepository.save(any())
@@ -58,10 +51,6 @@ class CctvServiceKoTest :
                 every {
                     cctvRepository.findAll(any<Sort>())
                 } returns mutableListOf(dummyCctv())
-
-                every {
-                    fileService.getFiles(any())
-                } returns mutableListOf(dummyFileResponse())
 
                 Then("정상 조회") {
                     cctvService.findAll().size shouldBe 1
@@ -103,7 +92,7 @@ class CctvServiceKoTest :
                 } returns cctv
                 Then("정상 수정") {
                     val updateName = "updated Cctv"
-                    cctvService.update(cctv.id, CctvUpdateRequest(updateName, "", null))
+                    cctvService.update(cctv.id, CctvUpdateRequest(updateName, ""))
                     cctv.name shouldBe updateName
                 }
             }

@@ -1,9 +1,7 @@
 package com.pluxity.feature.dto;
 
-public record FeatureAssignDto(String id) {
-    public FeatureAssignDto {
-        if (id == null || id.trim().isEmpty()) {
-            throw new IllegalArgumentException("id는 필수입니다");
-        }
-    }
-}
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+
+public record FeatureAssignDto(
+        @Schema(description = "ID", example = "id") @NotBlank(message = "ID는 필수 입니다.") String id) {}

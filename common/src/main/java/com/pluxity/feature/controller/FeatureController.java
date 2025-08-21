@@ -154,15 +154,15 @@ public class FeatureController {
                         responseCode = "204",
                         description = "디바이스 할당 성공",
                         content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
-                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스에 할당됨)"),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스나 Cctv에 할당됨)"),
                 @ApiResponse(responseCode = "404", description = "피처 또는 디바이스를 찾을 수 없음")
             })
     @PatchMapping("/{featureId}/assign-device")
     public ResponseEntity<Void> assignDeviceToFeature(
             @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
-            @Parameter(description = "할당 정보 (id 또는 code)", required = true) @Valid @RequestBody
+            @Parameter(description = "할당 정보 id", required = true) @Valid @RequestBody
                     FeatureAssignDto assignDto,
-            @Parameter(description = "이미 할당된 디바이스가 있을 경우 강제로 재할당할지 여부")
+            @Parameter(description = "이미 할당된 디바이스나 Cctv가 있을 경우 강제로 재할당할지 여부")
                     @RequestParam(required = false, defaultValue = "false")
                     boolean force) {
         featureService.assignDeviceToFeature(featureId, assignDto, force);
@@ -185,6 +185,47 @@ public class FeatureController {
             @Parameter(description = "디바이스 정보 (id 또는 code)", required = true) @Valid @RequestBody
                     FeatureAssignDto assignDto) {
         featureService.removeDeviceFromFeature(featureId, assignDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "피처에 CCTV 할당", description = "특정 피처에 CCTV를 할당(연결)합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "204",
+                        description = "CCTV 할당 성공",
+                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처가 이미 다른 디바이스나 CCTV에 할당됨)"),
+                @ApiResponse(responseCode = "404", description = "피처 또는 CCTV를 찾을 수 없음")
+            })
+    @PatchMapping("/{featureId}/assign-cctv")
+    public ResponseEntity<Void> assignCctvToFeature(
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
+            @Parameter(description = "할당 정보 id", required = true) @Valid @RequestBody
+                    FeatureAssignDto assignDto,
+            @Parameter(description = "이미 할당된 디바이스나 Cctv가 있을 경우 강제로 재할당할지 여부")
+                    @RequestParam(required = false, defaultValue = "false")
+                    boolean force) {
+        featureService.assignCctvToFeature(featureId, assignDto, force);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "피처에서 Cctv 연결 해제", description = "특정 피처에 할당된 Cctv와의 연결을 해제합니다.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "204",
+                        description = "Cctv 연결 해제 성공",
+                        content = @Content(schema = @Schema(implementation = FeatureResponse.class))),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (예: 피처에 Cctv가 할당되지 않음)"),
+                @ApiResponse(responseCode = "404", description = "피처를 찾을 수 없음")
+            })
+    @DeleteMapping("/{featureId}/revoke-cctv")
+    public ResponseEntity<Void> removeCctvFromFeature(
+            @Parameter(description = "피처 ID (UUID)", required = true) @PathVariable String featureId,
+            @Parameter(description = "Cctv 정보 id", required = true) @Valid @RequestBody
+                    FeatureAssignDto assignDto) {
+        featureService.removeCctvFromFeature(featureId, assignDto);
         return ResponseEntity.noContent().build();
     }
 }

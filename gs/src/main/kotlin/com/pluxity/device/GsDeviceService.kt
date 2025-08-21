@@ -126,7 +126,7 @@ class GsDeviceService(
         val deviceCctvs = deviceCctvRepository.findByDevice(device)
         return deviceCctvs
             .map { it.cctv }
-            .map { it.toCctvResponse(getThumbnailFile(it)) }
+            .map { it.toCctvResponse() }
     }
 
     @Transactional

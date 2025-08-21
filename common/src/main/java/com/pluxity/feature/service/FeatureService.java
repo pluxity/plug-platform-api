@@ -3,6 +3,8 @@ package com.pluxity.feature.service;
 import static com.pluxity.global.constant.ErrorCode.*;
 
 import com.pluxity.asset.service.AssetValidator;
+import com.pluxity.cctv.entity.Cctv;
+import com.pluxity.cctv.repository.CctvRepository;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.repository.DeviceRepository;
 import com.pluxity.facility.Facility;
@@ -31,6 +33,7 @@ public class FeatureService {
     private final FacilityService facilityService;
     private final AssetValidator assetValidator;
     private final DeviceRepository deviceRepository;
+    private final CctvRepository cctvRepository;
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
@@ -102,8 +105,13 @@ public class FeatureService {
         if (!force && device.getFeature() != null) {
             throw new CustomException(DUPLICATE_DEVICE_OTHER_FEATURE, assignDto.id());
         }
+        boolean isAssignCctv = cctvRepository.existsByFeature(feature);
+        if (!force && isAssignCctv) {
+            throw new CustomException(DUPLICATE_FEATURE_OTHER_CCTV, featureId);
+        }
 
         deviceRepository.updateFeatureByFeature(feature);
+        cctvRepository.updateFeatureByFeature(feature);
         device.changeFeature(feature);
 
         log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
@@ -144,5 +152,51 @@ public class FeatureService {
     @Transactional(readOnly = true)
     public List<String> findFeatureIdsByAssetId(Long assetId) {
         return featureRepository.findByAssetId(assetId).stream().map(Feature::getId).toList();
+    }
+
+    @Transactional
+    public void assignCctvToFeature(String featureId, FeatureAssignDto assignDto, boolean force) {
+        log.debug("피처에 Cctv 할당: featureId={}, assignDto={}", featureId, assignDto);
+
+        Feature feature = findFeatureById(featureId);
+
+        // Cctv 조회 - id로 조회
+        Cctv cctv =
+                cctvRepository
+                        .findById(assignDto.id())
+                        .orElseThrow(() -> new CustomException(NOT_FOUND_CCTV, assignDto.id()));
+        if (!force && cctv.getFeature() != null) {
+            throw new CustomException(DUPLICATE_CCTV_OTHER_FEATURE, assignDto.id());
+        }
+        boolean isAssignDevice = deviceRepository.existsByFeature(feature);
+        if (!force && isAssignDevice) {
+            throw new CustomException(DUPLICATE_FEATURE_OTHER_DEVICE, featureId);
+        }
+
+        deviceRepository.updateFeatureByFeature(feature);
+        cctvRepository.updateFeatureByFeature(feature);
+        cctv.changeFeature(feature);
+
+        log.debug("Cctv와 피처 관계 설정 완료: cctvId={}, featureId={}", cctv.getId(), featureId);
+    }
+
+    @Transactional
+    public void removeCctvFromFeature(String featureId, FeatureAssignDto assignDto) {
+        Feature feature = findFeatureById(featureId);
+        Cctv cctv =
+                cctvRepository
+                        .findById(assignDto.id())
+                        .orElseThrow(() -> new CustomException(NOT_FOUND_CCTV, assignDto.id()));
+
+        if (cctv.getFeature() == null) {
+            throw new CustomException(CCTV_NOT_ASSIGNED, cctv.getId());
+        }
+
+        if (!cctv.getFeature().getId().equals(feature.getId())) {
+            throw new CustomException(CCTV_MISMATCH);
+        }
+
+        cctv.changeFeature(null);
+        log.debug("피처에서 Cctv 제거: featureId={}, cctvId={}", featureId, cctv.getId());
     }
 }

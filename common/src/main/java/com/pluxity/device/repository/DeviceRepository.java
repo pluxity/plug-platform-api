@@ -16,4 +16,6 @@ public interface DeviceRepository extends JpaRepository<Device, String> {
 
     @Query("SELECT d FROM Device d WHERE d.category = :category AND d.feature.facility = :facility")
     List<Device> findByCategoryAndFacility(DeviceCategory category, Facility facility);
+
+    boolean existsByFeature(Feature feature);
 }

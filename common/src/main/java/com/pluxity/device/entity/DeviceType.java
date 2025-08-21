@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum DeviceType {
-    cctv("CCTV"),
     gs_device("DEVICE");
 
     private final String type;
