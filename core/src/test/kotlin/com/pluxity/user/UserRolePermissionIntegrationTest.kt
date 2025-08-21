@@ -158,7 +158,7 @@ internal class UserRolePermissionIntegrationTest {
 
         // 4. 생성된 "시설 관리자" 역할을 '편집자' 사용자에게 할당합니다.
         userService.updateUserRoles(
-            editorUser.id,
+            editorUser.id!!,
             UserRoleUpdateRequest(listOf(newRoleId)),
         )
 

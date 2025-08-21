@@ -328,7 +328,7 @@ class UserRolePermissionGroupTest {
         void whenUserCreatedWithoutRole_thenAssignRole_shouldGrantPermissions() {
             // WHEN: Role 없이 사용자 생성
             UserCreateRequest createRequest =
-                    new UserCreateRequest("newUser", "pw", "신규 유저", null, null, null, null);
+                    new UserCreateRequest("newUser", "pw", "신규 유저", null, null, null, List.of());
             Long newUserId = userService.save(createRequest).getId();
             em.flush();
             em.clear();

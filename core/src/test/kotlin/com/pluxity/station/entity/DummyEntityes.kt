@@ -6,7 +6,6 @@ import com.pluxity.station.Station
 import com.pluxity.station.StationCode
 import com.pluxity.station.StationLine
 import org.springframework.test.util.ReflectionTestUtils
-import java.time.LocalDateTime
 
 fun dummyStation(
     id: Long? = 1L,
@@ -17,7 +16,7 @@ fun dummyStation(
         Station(
             name,
             description,
-        ).withAudit(LocalDateTime.now())
+        ).withAudit()
     ReflectionTestUtils.setField(retStation, "id", id)
     return retStation
 }
@@ -26,7 +25,7 @@ fun dummyLine(
     id: Long? = 1L,
     name: String = "name",
     color: String = "color",
-): Line = Line(id, name, color).withAudit(LocalDateTime.now())
+): Line = Line(id, name, color).withAudit()
 
 fun dummyStationLine(
     id: Long? = 1L,

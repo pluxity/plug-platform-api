@@ -199,7 +199,7 @@ public class DeviceCategoryController {
             })
     @GetMapping("/{id}/devices")
     public ResponseEntity<DataResponseBody<List<DeviceInfoResponse>>> getDevicesByCategoryId(
-            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id,
+            @Parameter(description = "카테고리 ID") @PathVariable Long id,
             @RequestParam("facilityId") Long facilityId) {
         return ResponseEntity.ok(
                 DataResponseBody.of(deviceCategoryService.getDevicesByCategoryId(id, facilityId)));

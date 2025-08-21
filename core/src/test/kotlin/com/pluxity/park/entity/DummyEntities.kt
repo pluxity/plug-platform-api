@@ -3,7 +3,6 @@ package com.pluxity.park.entity
 import base.entity.withAudit
 import com.pluxity.park.Park
 import org.springframework.test.util.ReflectionTestUtils
-import java.time.LocalDateTime
 
 fun dummyPark(
     name: String = "name",
@@ -16,7 +15,7 @@ fun dummyPark(
             name,
             description,
             boundary,
-        ).withAudit(LocalDateTime.now())
+        ).withAudit()
     ReflectionTestUtils.setField(park, "id", id)
     return park
 }

@@ -35,10 +35,8 @@ class UserServiceTest
         private val refreshTokenRepository: RefreshTokenRepository,
     ) {
         // 테스트에서 공통으로 사용할 Role 엔티티
-        private lateinit var roleUser:
-            Role
-        private lateinit var roleAdmin:
-            Role
+        private lateinit var roleUser: Role
+        private lateinit var roleAdmin: Role
 
         @BeforeEach
         fun setUp() {

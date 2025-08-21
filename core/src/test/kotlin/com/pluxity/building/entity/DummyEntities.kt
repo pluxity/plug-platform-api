@@ -3,7 +3,6 @@ package com.pluxity.building.entity
 import base.entity.withAudit
 import com.pluxity.building.Building
 import org.springframework.test.util.ReflectionTestUtils
-import java.time.LocalDateTime
 
 fun dummyBuilding(
     name: String = "name",
@@ -14,7 +13,7 @@ fun dummyBuilding(
         Building(
             name,
             description,
-        ).withAudit(LocalDateTime.now())
+        ).withAudit()
     ReflectionTestUtils.setField(retBuilding, "id", id)
     return retBuilding
 }

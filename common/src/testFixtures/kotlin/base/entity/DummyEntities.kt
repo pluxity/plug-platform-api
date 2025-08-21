@@ -5,10 +5,10 @@ import org.springframework.test.util.ReflectionTestUtils
 import java.time.LocalDateTime
 
 fun <T : BaseEntity> T.withAudit(
-    createdAt: LocalDateTime = LocalDateTime.parse("2025-08-01T12:00:00"),
+    createdAt: LocalDateTime = LocalDateTime.now(),
     updatedAt: LocalDateTime = createdAt,
-    createdBy: String? = "tester",
-    updatedBy: String? = "tester",
+    createdBy: String = "tester",
+    updatedBy: String = "tester",
 ) = apply {
     ReflectionTestUtils.setField(this, "createdAt", createdAt)
     ReflectionTestUtils.setField(this, "updatedAt", updatedAt)
