@@ -1,7 +1,5 @@
 package com.pluxity.authentication.service;
 
-import static com.pluxity.global.constant.ErrorCode.*;
-
 import com.pluxity.authentication.dto.SignInRequest;
 import com.pluxity.authentication.dto.SignUpRequest;
 import com.pluxity.authentication.entity.RefreshToken;
@@ -14,10 +12,6 @@ import com.pluxity.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -32,14 +26,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.WebUtils;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+
+import static com.pluxity.global.constant.ErrorCode.*;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    //    @Value("${server.address}")
-    @Value("${domain.name}")
-    private String domainName;
 
     @Value("${jwt.refresh-token.expiration}")
     private int refreshExpiration;
@@ -151,12 +149,18 @@ public class AuthenticationService {
         String newRefreshToken = jwtProvider.generateRefreshToken(user.getUsername());
 
         createAuthCookie(
-                ACCESS_TOKEN_NAME, newAccessToken, accessExpiration, request.getContextPath(), response);
+                ACCESS_TOKEN_NAME,
+                newAccessToken,
+                accessExpiration,
+                request.getContextPath(),
+                request,
+                response);
         createAuthCookie(
                 REFRESH_TOKEN_NAME,
                 newRefreshToken,
                 refreshExpiration,
                 request.getContextPath() + "/",
+                request,
                 response);
 
         createExpiryCookie(request, response);
@@ -165,23 +169,24 @@ public class AuthenticationService {
                 RefreshToken.of(user.getUsername(), newRefreshToken, refreshExpiration));
     }
 
-    // private helper to get domain without port
-    private String getCookieDomain() {
-        if (domainName != null && domainName.contains(":")) {
-            return domainName.split(":")[0];
-        }
-        return domainName;
-    }
 
     private void createAuthCookie(
-            String name, String value, int expiry, String path, HttpServletResponse response) {
+            String name,
+            String value,
+            int expiry,
+            String path,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+
+        boolean isHttps = request.isSecure()
+                || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
+        String sameSite = isHttps ? "None" : "Lax";
 
         String cookie =
                 ResponseCookie.from(name, value)
-                        .domain(getCookieDomain()) // 수정된 로직 사용
-                        .secure(false)
+                        .secure(isHttps)
                         .httpOnly(true)
-                        .sameSite("Lax")
+                        .sameSite(sameSite)
                         .maxAge(expiry)
                         .path(StringUtils.isBlank(path) ? "/" : path)
                         .build()
@@ -197,7 +202,6 @@ public class AuthenticationService {
         if (cookie != null) {
             cookie.setValue(null);
             cookie.setMaxAge(0);
-            cookie.setDomain(getCookieDomain()); // ★★★ 여기도 수정! ★★★
             cookie.setPath(path);
             response.addCookie(cookie);
         }
@@ -220,7 +224,6 @@ public class AuthenticationService {
         String path = request.getContextPath();
         String cookie =
                 ResponseCookie.from("expiry", String.valueOf(expiryTimeMillis))
-                        .domain(getCookieDomain()) // ★★★ 여기도 수정! ★★★
                         .secure(false)
                         .path(Optional.ofNullable(path).filter(p -> !p.isEmpty()).orElse("/"))
                         .build()
@@ -234,7 +237,6 @@ public class AuthenticationService {
         if (cookie != null) {
             String path = request.getContextPath();
             cookie.setMaxAge(0);
-            cookie.setDomain(getCookieDomain()); // ★★★ 여기도 수정! ★★★
             cookie.setPath(Optional.ofNullable(path).filter(p -> !p.isEmpty()).orElse("/"));
             response.addCookie(cookie);
         }
