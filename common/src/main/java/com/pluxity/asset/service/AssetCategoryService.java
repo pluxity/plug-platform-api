@@ -11,11 +11,9 @@ import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.category.service.CategoryService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
-import com.pluxity.global.annotation.CheckPermissionCategory;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
-import com.pluxity.permission.ResourceType;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -40,7 +38,6 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
     }
 
     @Transactional(readOnly = true)
-    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
     public List<AssetCategoryResponse> getAllCategories() {
         List<AssetCategory> allCategories =
                 assetCategoryRepository.findAll(SortUtils.getOrderByCreatedAtDesc());

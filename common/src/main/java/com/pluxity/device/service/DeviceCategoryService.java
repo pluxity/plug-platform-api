@@ -12,7 +12,6 @@ import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
-import com.pluxity.global.annotation.CheckPermissionAll;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
@@ -85,7 +84,6 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     }
 
     @Transactional(readOnly = true)
-    @CheckPermissionAll(resourceName = "DEVICE_CATEGORY")
     public List<DeviceCategoryResponse> getDeviceCategories() {
         List<DeviceCategory> allCategories =
                 deviceCategoryRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
