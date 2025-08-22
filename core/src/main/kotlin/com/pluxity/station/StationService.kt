@@ -11,7 +11,7 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
 import com.pluxity.label3d.Label3DRepository
-import com.pluxity.label3d.Label3DResponse
+import com.pluxity.label3d.toLabel3DResponse
 import com.pluxity.station.dto.StationCreateRequest
 import com.pluxity.station.dto.StationInfoResponse
 import com.pluxity.station.dto.StationResponse
@@ -197,7 +197,7 @@ class StationService(
         val label3Ds =
             label3DRepository
                 .findAllByFacilityId(id)
-                .map { Label3DResponse.from(it) }
+                .map { it.toLabel3DResponse() }
 
         val stationCodes: List<String> = stationCodeService.findCodesByStation(station)
 
