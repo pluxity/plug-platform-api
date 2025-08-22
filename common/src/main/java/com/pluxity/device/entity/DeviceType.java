@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum DeviceType {
-    gs_device("DEVICE");
+    gs_device("DEVICE"),
+    climate("CLIMATE");
 
     private final String type;
 }

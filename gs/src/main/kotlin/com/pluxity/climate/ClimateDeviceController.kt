@@ -1,8 +1,8 @@
 package com.pluxity.climate
 
 import com.pluxity.climate.dto.ClimateDeviceCreateRequest
+import com.pluxity.climate.dto.ClimateDeviceResponse
 import com.pluxity.climate.dto.ClimateDeviceUpdateRequest
-import com.pluxity.climate.dto.ClimateResponse
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.DataResponseBody
 import com.pluxity.global.response.ErrorResponseBody
@@ -60,7 +60,7 @@ class ClimateDeviceController(
         ],
     )
     @Operation(summary = "온습도계 목록 조회", description = "모든 온습도계 목록을 조회합니다.")
-    fun get(): ResponseEntity<DataResponseBody<List<ClimateResponse>>> =
+    fun get(): ResponseEntity<DataResponseBody<List<ClimateDeviceResponse>>> =
         ResponseEntity.ok(DataResponseBody.of(climateDeviceService.findAll()))
 
     @Operation(summary = "온습도계 상세 조회", description = "ID로 특정 온습도계의 상세 정보를 조회합니다.")
@@ -79,7 +79,7 @@ class ClimateDeviceController(
     @GetMapping("/{id}")
     fun getById(
         @Parameter(description = "온습도계 ID", required = true) @PathVariable id: String,
-    ): ResponseEntity<DataResponseBody<ClimateResponse>> = ResponseEntity.ok(DataResponseBody.of(climateDeviceService.findById(id)))
+    ): ResponseEntity<DataResponseBody<ClimateDeviceResponse>> = ResponseEntity.ok(DataResponseBody.of(climateDeviceService.findById(id)))
 
     @Operation(summary = "온습도계 정보 수정", description = "ID로 특정 온습도계의 정보를 수정합니다.")
     @ApiResponses(

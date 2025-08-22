@@ -1,5 +1,6 @@
 package com.pluxity.climate
 
+import com.pluxity.climate.dto.ClimateDeviceInfoResponse
 import com.pluxity.device.dto.DeviceInfoResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
@@ -20,9 +21,7 @@ class ClimateDevice(
 ) : Device(id, category) {
     override fun getName(): String = this.deviceName
 
-    override fun toDeviceInfo(): DeviceInfoResponse {
-        TODO("Not yet implemented")
-    }
+    override fun toDeviceInfo(): DeviceInfoResponse = ClimateDeviceInfoResponse(id, deviceName, deviceType.type, feature?.id)
 
     fun putUpdate(name: String) {
         this.deviceName = name

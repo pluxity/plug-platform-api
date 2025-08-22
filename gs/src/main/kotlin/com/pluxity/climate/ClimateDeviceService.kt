@@ -1,8 +1,8 @@
 package com.pluxity.climate
 
 import com.pluxity.climate.dto.ClimateDeviceCreateRequest
+import com.pluxity.climate.dto.ClimateDeviceResponse
 import com.pluxity.climate.dto.ClimateDeviceUpdateRequest
-import com.pluxity.climate.dto.ClimateResponse
 import com.pluxity.climate.dto.toClimateResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
@@ -36,7 +36,7 @@ class ClimateDeviceService(
 
     @Transactional(readOnly = true)
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
-    fun findById(id: String): ClimateResponse = getClimateDevice(id).toClimateResponse(getThumbnailFile(getClimateDevice(id)))
+    fun findById(id: String): ClimateDeviceResponse = getClimateDevice(id).toClimateResponse(getThumbnailFile(getClimateDevice(id)))
 
     private fun getThumbnailFile(climate: Device): FileResponse? =
         climate.category?.let {
@@ -49,7 +49,7 @@ class ClimateDeviceService(
 
     @Transactional(readOnly = true)
     @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
-    fun findAll(): List<ClimateResponse> {
+    fun findAll(): List<ClimateDeviceResponse> {
         val climates = repository.findAll()
         val categoryList =
             climates

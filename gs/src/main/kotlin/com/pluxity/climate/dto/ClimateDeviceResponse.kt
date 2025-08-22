@@ -5,15 +5,15 @@ import com.pluxity.device.dto.DeviceCategoryResponseWithoutChildren
 import com.pluxity.feature.dto.FeatureResponse
 import com.pluxity.file.dto.FileResponse
 
-data class ClimateResponse(
+data class ClimateDeviceResponse(
     val id: String,
     val name: String,
     val feature: FeatureResponse?,
     val deviceCategory: DeviceCategoryResponseWithoutChildren?,
 )
 
-fun ClimateDevice.toClimateResponse(thumbnailFile: FileResponse?): ClimateResponse =
-    ClimateResponse(
+fun ClimateDevice.toClimateResponse(thumbnailFile: FileResponse?): ClimateDeviceResponse =
+    ClimateDeviceResponse(
         id = this.id,
         name = this.name,
         feature = this.feature?.let { FeatureResponse.from(it) },
