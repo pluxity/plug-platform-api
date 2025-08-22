@@ -2,6 +2,7 @@ package com.pluxity.collect.climate
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.context.annotation.Profile
 import org.springframework.http.MediaType
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -12,6 +13,7 @@ import java.time.format.DateTimeFormatter
 private val log = KotlinLogging.logger {}
 
 @Component
+@Profile("!local")
 class ClimateDataCollector(
     private val climateDataRequest: ClimateDataRepository,
 ) {
