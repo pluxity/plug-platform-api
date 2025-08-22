@@ -1,8 +1,7 @@
 package com.pluxity.asset.repository;
 
 import com.pluxity.asset.entity.AssetCategory;
-import com.pluxity.global.annotation.CheckPermissionCategory;
-import com.pluxity.permission.ResourceType;
+import com.pluxity.global.annotation.CheckPermissionAll;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Sort;
@@ -23,6 +22,6 @@ public interface AssetCategoryRepository extends JpaRepository<AssetCategory, Lo
     @Query("SELECT ac FROM AssetCategory ac LEFT JOIN FETCH ac.assets WHERE ac.id = :id")
     Optional<AssetCategory> findByIdWithAssets(Long id);
 
-    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
+    @CheckPermissionAll(resourceName = "DEVICE_CATEGORY")
     List<AssetCategory> findAll(Sort sort);
 }
