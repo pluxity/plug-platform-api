@@ -43,4 +43,16 @@ class DeviceController(
     )
     @Operation(summary = "디바이스 목록 조회", description = "모든 디바이스 목록을 조회합니다.")
     fun get(): ResponseEntity<DataResponseBody<List<DeviceInfoResponse>>> = ResponseEntity.ok(DataResponseBody.of(deviceService.findAll()))
+
+    @GetMapping("/types")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "목록 조회 성공",
+            ),
+        ],
+    )
+    @Operation(summary = "디바이스 타입 목록 조회", description = "모든 디바이스 타입 목록을 조회합니다.")
+    fun getAllType(): ResponseEntity<DataResponseBody<List<String>>> = ResponseEntity.ok(DataResponseBody.of(deviceService.findAllType()))
 }
