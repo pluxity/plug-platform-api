@@ -1,5 +1,6 @@
 package com.pluxity.park
 
+import com.pluxity.config.MockBeansConfig
 import com.pluxity.facility.Facility
 import com.pluxity.facility.dto.FacilityCreateRequest
 import com.pluxity.facility.dto.FacilityUpdateRequest
@@ -15,9 +16,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
+@Import(MockBeansConfig::class)
 @Transactional
 internal class ParkServiceTest {
     @Autowired

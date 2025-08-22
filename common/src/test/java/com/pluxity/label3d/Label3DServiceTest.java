@@ -3,6 +3,7 @@ package com.pluxity.label3d;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.pluxity.config.MockBeansConfig;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityRepository;
 import com.pluxity.facility.FacilityService;
@@ -21,9 +22,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Import(MockBeansConfig.class)
 @Transactional
 class Label3DServiceTest {
 

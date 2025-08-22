@@ -3,6 +3,8 @@ package com.pluxity.feature.service;
 import static com.pluxity.global.constant.ErrorCode.*;
 
 import com.pluxity.asset.service.AssetValidator;
+import com.pluxity.device.entity.Device;
+import com.pluxity.device.repository.DeviceRepository;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
 import com.pluxity.feature.dto.FeatureAssignDto;
@@ -28,7 +30,8 @@ public class FeatureService {
     private final FeatureRepository featureRepository;
     private final FacilityService facilityService;
     private final AssetValidator assetValidator;
-    private final FeatureAssignmentRegistry registry;
+    private final DeviceRepository deviceRepository;
+    private final FeatureAssignment cctvAssignment;
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
@@ -76,7 +79,6 @@ public class FeatureService {
         featureRepository.delete(feature);
     }
 
-    @Transactional(readOnly = true)
     public Feature findFeatureById(String id) {
         return featureRepository
                 .findById(id)
@@ -100,36 +102,83 @@ public class FeatureService {
     @Transactional
     public void assignSomethingToFeature(
             String featureId, FeatureAssignDto assignDto, boolean force) {
+        if (assignDto.type().equals(FeatureAssignType.DEVICE)) {
+            assignDeviceToFeature(featureId, assignDto, force);
+            return;
+        }
+
         Feature feature = findFeatureById(featureId);
-        FeatureAssignment assignmentTarget = getAssignmentTarget(assignDto.type());
-        if (!force && assignmentTarget.isAssigned(assignDto.id())) {
+        if (!force && cctvAssignment.isAssigned(assignDto.id())) {
             throw new CustomException(
                     ALREADY_ASSIGNED_TARGET, assignDto.id(), assignDto.type().getDescription());
         }
-        if (!force && checkFeatureAlreadyOther(feature)) {
-            throw new CustomException(ALREADY_FEATURE_ASSIGNED, featureId);
-        }
-        revokeByFeatureAll(feature);
-        assignmentTarget.assignFeature(assignDto.id(), feature);
+        validateAssign(featureId, force, feature);
+        checkFeatureAlreadyOther(feature);
+        cctvAssignment.assignFeature(assignDto.id(), feature);
     }
 
     @Transactional
     public void removeSomethingFromFeature(String featureId, FeatureAssignDto assignDto) {
-        findFeatureById(featureId);
-        FeatureAssignment assignmentTarget = getAssignmentTarget(assignDto.type());
-        assignmentTarget.validateRevoke(assignDto.id(), featureId);
-        assignmentTarget.clearFeatureFromTarget(assignDto.id());
+        if (assignDto.type().equals(FeatureAssignType.DEVICE)) {
+            removeDeviceFromFeature(featureId, assignDto);
+            return;
+        }
+        cctvAssignment.validateRevoke(assignDto.id(), featureId);
+        cctvAssignment.clearFeatureFromTarget(assignDto.id());
     }
 
-    private boolean checkFeatureAlreadyOther(Feature feature) {
-        return registry.all().stream().anyMatch(assignment -> assignment.existsByFeature(feature));
+    private void assignDeviceToFeature(String featureId, FeatureAssignDto assignDto, boolean force) {
+        log.debug("피처에 디바이스 할당: featureId={}, assignDto={}", featureId, assignDto);
+
+        Feature feature = findFeatureById(featureId);
+
+        // 디바이스 조회 - id로 조회
+        Device device = findDeviceById(assignDto.id());
+        if (!force && device.getFeature() != null) {
+            throw new CustomException(DUPLICATE_DEVICE_OTHER_FEATURE, assignDto.id());
+        }
+        validateAssign(featureId, force, feature);
+        checkFeatureAlreadyOther(feature);
+        device.changeFeature(feature);
+
+        log.debug("디바이스와 피처 관계 설정 완료: deviceId={}, featureId={}", device.getId(), featureId);
     }
 
-    private void revokeByFeatureAll(Feature feature) {
-        registry.all().forEach(v -> v.revokeByFeature(feature));
+    private void checkFeatureAlreadyOther(Feature feature) {
+        deviceRepository.revokeByFeature(feature);
+        cctvAssignment.revokeByFeature(feature);
     }
 
-    private FeatureAssignment getAssignmentTarget(FeatureAssignType type) {
-        return registry.get(type);
+    private void validateAssign(String featureId, boolean force, Feature feature) {
+        boolean isAssignCctv = cctvAssignment.existsByFeature(feature);
+        if (!force && isAssignCctv) {
+            throw new CustomException(DUPLICATE_FEATURE_OTHER_CCTV, featureId);
+        }
+        boolean isAssignFeature = deviceRepository.existsByFeature(feature);
+        if (!force && isAssignFeature) {
+            throw new CustomException(ALREADY_FEATURE_ASSIGNED, featureId);
+        }
+    }
+
+    private Device findDeviceById(String deviceId) {
+        return deviceRepository
+                .findById(deviceId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_DEVICE, deviceId));
+    }
+
+    private void removeDeviceFromFeature(String featureId, FeatureAssignDto assignDto) {
+        Feature feature = findFeatureById(featureId);
+        Device device = findDeviceById(assignDto.id());
+
+        if (device.getFeature() == null) {
+            throw new CustomException(DEVICE_NOT_ASSIGNED, device.getId());
+        }
+
+        if (!device.getFeature().getId().equals(feature.getId())) {
+            throw new CustomException(DEVICE_MISMATCH, "해당 피처에 할당된 디바이스가 아닙니다.");
+        }
+
+        device.changeFeature(null);
+        log.debug("피처에서 디바이스 제거: featureId={}, deviceId={}", featureId, device.getId());
     }
 }

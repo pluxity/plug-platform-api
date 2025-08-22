@@ -2,6 +2,7 @@ package com.pluxity.user
 
 import com.pluxity.authentication.entity.RefreshToken
 import com.pluxity.authentication.repository.RefreshTokenRepository
+import com.pluxity.config.MockBeansConfig
 import com.pluxity.global.exception.CustomException
 import com.pluxity.user.dto.UserCreateRequest
 import com.pluxity.user.dto.UserPasswordUpdateRequest
@@ -20,10 +21,12 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
+@Import(MockBeansConfig::class)
 @Transactional
 class UserServiceTest
     @Autowired

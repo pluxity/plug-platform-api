@@ -3,6 +3,7 @@ package com.pluxity.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.pluxity.config.MockBeansConfig;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.permission.PermissionGroupRepository;
 import com.pluxity.permission.PermissionGroupService;
@@ -24,9 +25,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Import(MockBeansConfig.class)
 @Transactional
 class UserIntegrationTest {
 

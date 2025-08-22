@@ -3,6 +3,7 @@ package com.pluxity.device;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.pluxity.config.MockBeansConfig;
 import com.pluxity.device.dto.*;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
@@ -20,9 +21,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Import(MockBeansConfig.class)
 @Transactional
 class DeviceCategoryServiceTest {
 

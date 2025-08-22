@@ -11,6 +11,7 @@ import com.pluxity.asset.entity.AssetCategory;
 import com.pluxity.asset.repository.AssetCategoryRepository;
 import com.pluxity.asset.repository.AssetRepository;
 import com.pluxity.asset.service.AssetCategoryService;
+import com.pluxity.config.MockBeansConfig;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.util.TestFileUploader;
 import java.util.List;
@@ -18,9 +19,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Import(MockBeansConfig.class)
 @Transactional
 class AssetCategoryServiceTest {
 

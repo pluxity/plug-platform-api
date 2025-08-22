@@ -3,7 +3,6 @@ package com.pluxity.climate
 import com.pluxity.climate.dto.ClimateDeviceUpdateRequest
 import com.pluxity.climate.dto.dummyClimateDeviceCreateRequest
 import com.pluxity.climate.entity.dummyClimateDevice
-import com.pluxity.device.repository.DeviceRepository
 import com.pluxity.device.service.DeviceCategoryService
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
@@ -27,9 +26,8 @@ class ClimateDeviceServiceKoTest :
         val repository: ClimateDeviceRepository = mockk()
         val deviceCategoryService: DeviceCategoryService = mockk()
         val fileService: FileService = mockk()
-        val deviceRepository: DeviceRepository = mockk()
 
-        val climateDeviceService = ClimateDeviceService(repository, deviceCategoryService, fileService, deviceRepository)
+        val climateDeviceService = ClimateDeviceService(repository, deviceCategoryService, fileService)
 
         Given("디바이스 생성을 진행할 때") {
             When("유효한 요청으로 GS 디바이스 생성 요청") {

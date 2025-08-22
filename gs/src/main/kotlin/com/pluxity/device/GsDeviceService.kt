@@ -12,11 +12,7 @@ import com.pluxity.device.dto.GsDeviceUpdateRequest
 import com.pluxity.device.dto.toGsDeviceResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
-import com.pluxity.device.repository.DeviceRepository
 import com.pluxity.device.service.DeviceCategoryService
-import com.pluxity.feature.entity.Feature
-import com.pluxity.feature.service.FeatureAssignType
-import com.pluxity.feature.service.FeatureAssignment
 import com.pluxity.file.dto.FileResponse
 import com.pluxity.file.service.FileService
 import com.pluxity.global.annotation.CheckPermissionCategory
@@ -39,8 +35,7 @@ class GsDeviceService(
     private val deviceCctvRepository: DeviceCctvRepository,
     private val cctvService: CctvService,
     private val fileService: FileService,
-    private val deviceRepository: DeviceRepository,
-) : FeatureAssignment {
+) {
     @Transactional
     fun save(request: GsDeviceCreateRequest): String {
         val category = request.categoryId?.let { deviceCategoryService.findById(request.categoryId) }
@@ -163,34 +158,4 @@ class GsDeviceService(
             deviceCctvRepository.deleteByCctvIdIn(removeList)
         }
     }
-
-    override fun getType(): FeatureAssignType = FeatureAssignType.TEMPERATURE
-
-    override fun isAssigned(id: String): Boolean = getDevice(id).feature != null
-
-    override fun existsByFeature(feature: Feature): Boolean = deviceRepository.existsByFeature(feature)
-
-    override fun revokeByFeature(feature: Feature) {
-        deviceRepository.updateFeatureNullByFeature(feature)
-    }
-
-    @Transactional
-    override fun assignFeature(
-        id: String,
-        feature: Feature,
-    ) = getDevice(id).changeFeature(feature)
-
-    @Transactional(readOnly = true)
-    override fun validateRevoke(
-        id: String,
-        featureId: String,
-    ) {
-        val device = getDevice(id)
-        val f = device.feature ?: throw CustomException(ErrorCode.DEVICE_NOT_ASSIGNED, id)
-        if (f.id != featureId) {
-            throw CustomException(ErrorCode.DEVICE_MISMATCH)
-        }
-    }
-
-    override fun clearFeatureFromTarget(id: String): Unit = repository.findByIdOrNull(id).let { it?.changeFeature(null) }
 }

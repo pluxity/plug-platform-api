@@ -3,6 +3,7 @@ package com.pluxity.building
 import com.pluxity.building.dto.BuildingCreateRequest
 import com.pluxity.building.dto.BuildingResponse
 import com.pluxity.building.dto.BuildingUpdateRequest
+import com.pluxity.config.MockBeansConfig
 import com.pluxity.facility.FacilityService
 import com.pluxity.facility.dto.FacilityCreateRequest
 import com.pluxity.facility.dto.FacilityUpdateRequest
@@ -17,9 +18,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
+@Import(MockBeansConfig::class)
 @Transactional
 internal class BuildingServiceTest {
     @Autowired

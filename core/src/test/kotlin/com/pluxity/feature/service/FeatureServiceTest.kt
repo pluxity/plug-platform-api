@@ -10,6 +10,7 @@ import com.pluxity.device.repository.DeviceRepository
 import com.pluxity.facility.Facility
 import com.pluxity.facility.FacilityService
 import com.pluxity.facility.dto.FacilityCreateRequest
+import com.pluxity.feature.dto.FeatureAssignDto
 import com.pluxity.feature.dto.FeatureCreateRequest
 import com.pluxity.feature.dto.FeatureResponse
 import com.pluxity.feature.dto.FeatureUpdateRequest
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
@@ -58,6 +60,9 @@ internal class FeatureServiceTest {
     lateinit var testAsset: Asset
     lateinit var testFacility: Facility
     lateinit var testDeviceCategory: DeviceCategory
+
+    @MockitoBean
+    lateinit var featureAssignment: FeatureAssignment
 
     // Device가 추상 클래스이므로, 테스트용 구체 클래스를 정의
     @Entity
@@ -328,72 +333,71 @@ internal class FeatureServiceTest {
     }
 
     // --- Device Relation Test ---
-    // TODO 테스트 방법 확인해보기
-//    @Test
-//    @DisplayName("성공: 피처에 디바이스를 할당한다")
-//    fun assignDeviceToFeature_AssignsDevice() {
-//        // GIVEN
-//        val feature = createAndSaveFeature("F_DEVICE", testFacility)
-//        val device = createAndSaveDevice()
-//        Assertions.assertThat(device.feature).isNull()
-//
-//        // WHEN
-//        featureService.assignSomethingToFeature(
-//            feature.id,
-//            FeatureAssignDto(device.id, FeatureAssignType.TEMPERATURE),
-//            false,
-//        )
-//
-//        // THEN: DB 직접 검증
-//        val updatedDevice = deviceRepository.findById(device.id).orElseThrow()
-//        Assertions.assertThat(updatedDevice.feature).isNotNull()
-//        Assertions.assertThat(updatedDevice.feature.id).isEqualTo(feature.id)
-//    }
-//
-//    @Test
-//    @DisplayName("성공: 피처에서 디바이스 할당을 해제한다")
-//    fun removeDeviceFromFeature_RemovesAssignment() {
-//        // GIVEN: 디바이스가 할당된 피처
-//        val feature = createAndSaveFeature("F_REMOVE_DEV", testFacility)
-//        val device = createAndSaveDevice()
-//        featureService.assignSomethingToFeature(
-//            feature.id,
-//            FeatureAssignDto(device.id, FeatureAssignType.TEMPERATURE),
-//            false,
-//        )
-//        Assertions
-//            .assertThat(deviceRepository.findById(device.id).orElseThrow().feature)
-//            .isNotNull()
-//
-//        // WHEN
-//        featureService.removeSomethingFromFeature(feature.id, FeatureAssignDto(device.id, FeatureAssignType.TEMPERATURE))
-//
-//        // THEN: DB 직접 검증
-//        val updatedDevice = deviceRepository.findById(device.id).orElseThrow()
-//        Assertions.assertThat(updatedDevice.feature).isNull()
-//    }
-//
-//    @Test
-//    @DisplayName("실패: 할당되지 않은 디바이스 ID로 할당 해제를 시도하면 예외가 발생한다")
-//    fun removeDeviceFromFeature_WithMismatchedId_ThrowsException() {
-//        // GIVEN
-//        val feature = createAndSaveFeature("F_MISMATCH", testFacility)
-//        val assignedDevice = createAndSaveDevice()
-//        val otherDevice = createAndSaveDevice()
-//        featureService.assignSomethingToFeature(
-//            feature.getId(),
-//            FeatureAssignDto(assignedDevice.getId(), FeatureAssignType.TEMPERATURE),
-//            false,
-//        )
-//
-//        // WHEN & THEN: 다른 디바이스 ID로 해제 시도
-//        assertThrows<CustomException> {
-//            featureService.removeSomethingFromFeature(
-//                feature.id,
-//                FeatureAssignDto(otherDevice.id, FeatureAssignType.TEMPERATURE),
-//            )
-//        }
-//    }
+    @Test
+    @DisplayName("성공: 피처에 디바이스를 할당한다")
+    fun assignDeviceToFeature_AssignsDevice() {
+        // GIVEN
+        val feature = createAndSaveFeature("F_DEVICE", testFacility)
+        val device = createAndSaveDevice()
+        Assertions.assertThat(device.feature).isNull()
+
+        // WHEN
+        featureService.assignSomethingToFeature(
+            feature.id,
+            FeatureAssignDto(device.id, FeatureAssignType.DEVICE),
+            false,
+        )
+
+        // THEN: DB 직접 검증
+        val updatedDevice = deviceRepository.findById(device.id).orElseThrow()
+        Assertions.assertThat(updatedDevice.feature).isNotNull()
+        Assertions.assertThat(updatedDevice.feature.id).isEqualTo(feature.id)
+    }
+
+    @Test
+    @DisplayName("성공: 피처에서 디바이스 할당을 해제한다")
+    fun removeDeviceFromFeature_RemovesAssignment() {
+        // GIVEN: 디바이스가 할당된 피처
+        val feature = createAndSaveFeature("F_REMOVE_DEV", testFacility)
+        val device = createAndSaveDevice()
+        featureService.assignSomethingToFeature(
+            feature.id,
+            FeatureAssignDto(device.id, FeatureAssignType.DEVICE),
+            false,
+        )
+        Assertions
+            .assertThat(deviceRepository.findById(device.id).orElseThrow().feature)
+            .isNotNull()
+
+        // WHEN
+        featureService.removeSomethingFromFeature(feature.id, FeatureAssignDto(device.id, FeatureAssignType.DEVICE))
+
+        // THEN: DB 직접 검증
+        val updatedDevice = deviceRepository.findById(device.id).orElseThrow()
+        Assertions.assertThat(updatedDevice.feature).isNull()
+    }
+
+    @Test
+    @DisplayName("실패: 할당되지 않은 디바이스 ID로 할당 해제를 시도하면 예외가 발생한다")
+    fun removeDeviceFromFeature_WithMismatchedId_ThrowsException() {
+        // GIVEN
+        val feature = createAndSaveFeature("F_MISMATCH", testFacility)
+        val assignedDevice = createAndSaveDevice()
+        val otherDevice = createAndSaveDevice()
+        featureService.assignSomethingToFeature(
+            feature.getId(),
+            FeatureAssignDto(assignedDevice.getId(), FeatureAssignType.DEVICE),
+            false,
+        )
+
+        // WHEN & THEN: 다른 디바이스 ID로 해제 시도
+        assertThrows<CustomException> {
+            featureService.removeSomethingFromFeature(
+                feature.id,
+                FeatureAssignDto(otherDevice.id, FeatureAssignType.DEVICE),
+            )
+        }
+    }
 
     private fun createAndSaveAsset(
         name: String,

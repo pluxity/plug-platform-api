@@ -8,7 +8,6 @@ import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.feature.entity.Feature
-import com.pluxity.feature.service.FeatureAssignType
 import com.pluxity.feature.service.FeatureAssignment
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
@@ -57,8 +56,6 @@ class CctvService(
         cctvRepository.findByIdOrNull(id)
             ?: throw CustomException(ErrorCode.NOT_FOUND_CCTV, id)
 
-    override fun getType(): FeatureAssignType = FeatureAssignType.CCTV
-
     override fun isAssigned(id: String): Boolean = findById(id).feature != null
 
     override fun existsByFeature(feature: Feature): Boolean = cctvRepository.existsByFeature(feature)
@@ -79,7 +76,9 @@ class CctvService(
         }
     }
 
-    override fun clearFeatureFromTarget(id: String): Unit = cctvRepository.findByIdOrNull(id).let { it?.changeFeature(null) }
+    override fun clearFeatureFromTarget(id: String) {
+        cctvRepository.findByIdOrNull(id).let { it?.changeFeature(null) }
+    }
 
     override fun revokeByFeature(feature: Feature) {
         cctvRepository.updateFeatureByFeature(feature)

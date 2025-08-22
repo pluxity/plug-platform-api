@@ -110,7 +110,7 @@ internal class GsDeviceServiceTest {
         val updateRequest = GsDeviceUpdateRequest("Updated Name", updatedCategory.id)
 
         // when
-        featureService.assignSomethingToFeature(updatedFeature.id, FeatureAssignDto(savedId, FeatureAssignType.TEMPERATURE), false)
+        featureService.assignSomethingToFeature(updatedFeature.id, FeatureAssignDto(savedId, FeatureAssignType.DEVICE), false)
         gsDeviceService.update(
             savedId,
             updateRequest,

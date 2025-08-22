@@ -2,6 +2,7 @@ package com.pluxity.user
 
 import com.pluxity.building.Building
 import com.pluxity.building.BuildingRepository
+import com.pluxity.config.MockBeansConfig
 import com.pluxity.permission.PermissionGroupRepository
 import com.pluxity.permission.PermissionGroupService
 import com.pluxity.permission.ResourceType
@@ -23,10 +24,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
+@Import(MockBeansConfig::class)
 @Transactional
 @ActiveProfiles("test")
 internal class RoleServiceTest {

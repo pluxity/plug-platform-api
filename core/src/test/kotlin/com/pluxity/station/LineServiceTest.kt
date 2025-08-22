@@ -1,5 +1,6 @@
 package com.pluxity.station
 
+import com.pluxity.config.MockBeansConfig
 import com.pluxity.global.exception.CustomException
 import com.pluxity.station.dto.LineCreateRequest
 import com.pluxity.station.dto.LineResponse
@@ -11,9 +12,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
+@Import(MockBeansConfig::class)
 @Transactional
 @DisplayName("LineService 통합 테스트")
 internal class LineServiceTest {
