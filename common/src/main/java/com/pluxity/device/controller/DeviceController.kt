@@ -4,6 +4,8 @@ import com.pluxity.device.dto.DeviceInfoResponse
 import com.pluxity.device.service.DeviceService
 import com.pluxity.global.response.DataResponseBody
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -24,6 +26,18 @@ class DeviceController(
             ApiResponse(
                 responseCode = "200",
                 description = "목록 조회 성공",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        examples = [
+                            ExampleObject(
+                                value = """
+                            { "status": 200, "message": "성공", "data": [ { "id": "DAWONDNS-T....", "name": "온습도계", "type": "CLIMATE", "featureId": "ce9553fa-..." }
+                        """,
+                            ),
+                        ],
+                    ),
+                ],
             ),
         ],
     )
