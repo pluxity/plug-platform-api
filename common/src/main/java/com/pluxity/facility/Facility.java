@@ -5,6 +5,8 @@ import com.pluxity.facility.path.FacilityPath;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.file.entity.FileEntity;
 import com.pluxity.global.entity.BaseEntity;
+import com.pluxity.user.entity.Permissible;
+import com.pluxity.user.entity.ResourceType;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +24,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 @SoftDelete
-public abstract class Facility extends BaseEntity {
+public abstract class Facility extends BaseEntity implements Permissible {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -165,5 +167,15 @@ public abstract class Facility extends BaseEntity {
             this.position = new FacilityPosition();
         }
         this.position.merge(lon, lat, locationMeta);
+    }
+
+    @Override
+    public String getResourceId() {
+        return String.valueOf(this.id);
+    }
+
+    @Override
+    public ResourceType getResourceType() {
+        return ResourceType.FACILITY;
     }
 }
