@@ -2,10 +2,12 @@ package com.pluxity.facility.dto;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.pluxity.facility.Facility;
+import com.pluxity.facility.FacilityType;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.global.response.BaseResponse;
 import java.util.List;
 import lombok.Builder;
+import org.jetbrains.annotations.Nullable;
 
 @Builder
 public record FacilityResponse(
@@ -13,12 +15,13 @@ public record FacilityResponse(
         String code,
         String name,
         String description,
+        FacilityType type,
         FileResponse drawing,
         FileResponse thumbnail,
         List<FacilityPathResponse> paths,
-        Double lon,
-        Double lat,
-        String locationMeta,
+        @Nullable Double lon,
+        @Nullable Double lat,
+        @Nullable String locationMeta,
         @JsonUnwrapped BaseResponse baseResponse) {
     public static FacilityResponse from(
             Facility facility, FileResponse drawing, FileResponse thumbnail) {
@@ -27,6 +30,7 @@ public record FacilityResponse(
                 facility.getCode(),
                 facility.getName(),
                 facility.getDescription(),
+                facility.getFacilityType(),
                 drawing != null ? drawing : FileResponse.empty(),
                 thumbnail != null ? thumbnail : FileResponse.empty(),
                 facility.getPaths().stream().map(FacilityPathResponse::from).toList(),

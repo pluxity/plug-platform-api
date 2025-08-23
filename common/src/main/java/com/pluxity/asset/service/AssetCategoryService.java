@@ -2,8 +2,8 @@ package com.pluxity.asset.service;
 
 import static com.pluxity.global.constant.ErrorCode.*;
 
-import com.pluxity.asset.dto.AssetCategoryAllResponse;
 import com.pluxity.asset.dto.AssetCategoryCreateRequest;
+import com.pluxity.asset.dto.AssetCategoryDepthResponse;
 import com.pluxity.asset.dto.AssetCategoryResponse;
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest;
 import com.pluxity.asset.entity.AssetCategory;
@@ -38,7 +38,7 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
     }
 
     @Transactional(readOnly = true)
-    public AssetCategoryAllResponse getAllCategories() {
+    public List<AssetCategoryResponse> getAllCategories() {
         List<AssetCategory> allCategories =
                 assetCategoryRepository.findAll(SortUtils.getOrderByCreatedAtDesc());
         Map<Long, FileResponse> fileMap =
@@ -48,13 +48,11 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
                         .map(v -> AssetCategoryResponse.from(v, fileMap.get(v.getIconFileId())))
                         .toList();
 
-        return AssetCategoryAllResponse.of(
-                AssetCategory.builder().build().getMaxDepth(),
-                MappingUtils.makeCategoryTree(
-                        list,
-                        AssetCategoryResponse::id,
-                        AssetCategoryResponse::parentId,
-                        AssetCategoryResponse::children));
+        return MappingUtils.makeCategoryTree(
+                list,
+                AssetCategoryResponse::id,
+                AssetCategoryResponse::parentId,
+                AssetCategoryResponse::children);
     }
 
     @Transactional(readOnly = true)
@@ -126,5 +124,9 @@ public class AssetCategoryService extends CategoryService<AssetCategory> {
         if (assetCategoryRepository.existsByCode(code)) {
             throw new CustomException(DUPLICATE_ASSET_CATEGORY_CODE, code);
         }
+    }
+
+    public AssetCategoryDepthResponse getCategoryDepth() {
+        return new AssetCategoryDepthResponse(AssetCategory.builder().build().getMaxDepth());
     }
 }

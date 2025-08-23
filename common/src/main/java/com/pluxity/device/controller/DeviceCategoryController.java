@@ -1,9 +1,6 @@
 package com.pluxity.device.controller;
 
-import com.pluxity.device.dto.DeviceCategoryAllResponse;
-import com.pluxity.device.dto.DeviceCategoryRequest;
-import com.pluxity.device.dto.DeviceCategoryResponse;
-import com.pluxity.device.dto.DeviceCategoryUpdateRequest;
+import com.pluxity.device.dto.*;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
@@ -11,6 +8,7 @@ import com.pluxity.global.response.ErrorResponseBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -67,8 +65,15 @@ public class DeviceCategoryController {
                         content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<DeviceCategoryAllResponse>> getAllCategories() {
+    public ResponseEntity<DataResponseBody<List<DeviceCategoryResponse>>> getAllCategories() {
         return ResponseEntity.ok(DataResponseBody.of(deviceCategoryService.getDeviceCategories()));
+    }
+
+    @Operation(summary = "디바이스 카테고리 max depth 조회", description = "디바이스 카테고리 max depth를 조회합니다.")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "조회 성공")})
+    @GetMapping("/max-depth")
+    public ResponseEntity<DataResponseBody<DeviceCategoryDepthResponse>> getCategoryDepth() {
+        return ResponseEntity.ok(DataResponseBody.of(deviceCategoryService.getDeviceCategoryDepth()));
     }
 
     @Operation(summary = "하위 디바이스 카테고리 목록 조회", description = "특정 카테고리의 직계 하위 카테고리 목록을 조회합니다.")
@@ -157,5 +162,53 @@ public class DeviceCategoryController {
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
         deviceCategoryService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "카테고리에 속한 디바이스 조회",
+            description = "카테고리ID로 카테고리에 속한 디바이스를 조회합니다",
+            parameters = {
+                @Parameter(name = "facilityId", description = "시설 아이디", required = true, example = "1")
+            })
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "200",
+                        description = "조회 성공",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        examples =
+                                                @ExampleObject(
+                                                        value =
+                                                                "{ \"status\": 200, \"message\": \"성공\", \"data\": [ { \"id\": \"dev1\", \"name\": \"device1\", \"type\": \"DEVICE\" }, { \"id\": \"id33\", \"name\": \"cctv3\", \"url\": \"rtsp://example.com/stream\", \"type\": \"CCTV\" } ], \"timestamp\": \"2025-08-18 15:31:55\" }"))),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "카테고리를 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "시설을 찾을 수 없음",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                @ApiResponse(
+                        responseCode = "500",
+                        description = "서버 오류",
+                        content =
+                                @Content(
+                                        mediaType = "application/json",
+                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+            })
+    @GetMapping("/{id}/devices")
+    public ResponseEntity<DataResponseBody<List<DeviceInfoResponse>>> getDevicesByCategoryId(
+            @Parameter(description = "카테고리 ID") @PathVariable Long id,
+            @RequestParam("facilityId") Long facilityId) {
+        return ResponseEntity.ok(
+                DataResponseBody.of(deviceCategoryService.getDevicesByCategoryId(id, facilityId)));
     }
 }

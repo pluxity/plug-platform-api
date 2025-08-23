@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.pluxity.config.MockBeansConfig;
 import com.pluxity.facility.dto.*;
 import com.pluxity.facility.history.FacilityHistoryService;
 import com.pluxity.facility.path.FacilityPathService;
@@ -19,10 +20,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Import(MockBeansConfig.class)
 @Transactional
 class FacilityServiceTest {
 

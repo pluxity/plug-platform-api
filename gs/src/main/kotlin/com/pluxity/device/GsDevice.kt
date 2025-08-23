@@ -1,5 +1,7 @@
 package com.pluxity.device
 
+import com.pluxity.device.dto.DeviceInfoResponse
+import com.pluxity.device.dto.GsDeviceInfoResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
 import jakarta.persistence.Column
@@ -17,14 +19,12 @@ class GsDevice(
     @Column(name = "name")
     var deviceName: String = "",
 ) : Device(id, category) {
-    override fun getName(): String {
-        return this.deviceName
-    }
+    override fun getName(): String = this.deviceName
+
+    override fun toDeviceInfo(): DeviceInfoResponse = GsDeviceInfoResponse(id, deviceName, deviceType.type, feature?.id)
 
     fun update(name: String?) {
-        if (name != null) {
-            this.deviceName = name
-        }
+        name?.let { this.deviceName = it }
     }
 
     fun putUpdate(name: String) {

@@ -46,8 +46,6 @@ public enum ErrorCode implements Code {
     CATEGORY_HAS_CHILDREN(BAD_REQUEST, "카테고리에 하위 카테고리가 있어 삭제할 수 없습니다."),
     ASSET_CATEGORY_HAS_ASSET(BAD_REQUEST, "에셋 카테고리에 에셋이 있어 삭제할 수 없습니다."),
     FACILITY_CATEGORY_HAS_FACILITY(BAD_REQUEST, "시설 카테고리에 시설이 있어 삭제할 수 없습니다."),
-    CCTV_CATEGORY_HAS_CCTV(BAD_REQUEST, "CCTV 카테고리에 CCTV가 있어 삭제할 수 없습니다."),
-    CCTV_ALREADY_HAS_FEATURE(BAD_REQUEST, "CCTV는 이미 %s Feature를 가지고 있습니다."),
     CCTV_MISMATCH(BAD_REQUEST, "요청한 디바이스가 현재 피처에 할당된 디바이스와 일치하지 않습니다."),
 
     FEATURE_HAS_NOT_DEVICE(BAD_REQUEST, "%s Feature에 할당된 디바이스가 존재하지 않습니다."),
@@ -55,6 +53,9 @@ public enum ErrorCode implements Code {
     INVALID_FEATURE_ASSIGN_ASSET(BAD_REQUEST, "%s Feature에 할당된 에셋이 존재하지 않습니다."),
     DEVICE_MISMATCH(BAD_REQUEST, "요청한 디바이스가 현재 피처에 할당된 디바이스와 일치하지 않습니다."),
     DEVICE_NOT_ASSIGNED(BAD_REQUEST, "%s 디바이스에 할당된 피처가 존재하지 않습니다."),
+    CCTV_NOT_ASSIGNED(BAD_REQUEST, "%s Cctv에 할당된 피처가 존재하지 않습니다."),
+    ALREADY_ASSIGNED_TARGET(BAD_REQUEST, "%s %s에 이미 할당된 피처가 존재합니다."),
+    ALREADY_FEATURE_ASSIGNED(BAD_REQUEST, "%s는 이미 다른 대상에 연결되어 있습니다."),
 
     DUPLICATE_USERNAME(BAD_REQUEST, "%s는 이미 존재 하는 아이디 입니다."),
     DUPLICATE_ROLE_NAME(BAD_REQUEST, "%s는 이미 존재하는 Role 이름 입니다."),
@@ -68,6 +69,9 @@ public enum ErrorCode implements Code {
     DUPLICATE_FACILITY_CATEGORY_CODE(BAD_REQUEST, "이름이 %s인 시설 카테고리가 이미 존재합니다."),
     DUPLICATE_PERMISSION_GROUP_NAME(BAD_REQUEST, "이름이 %s인 권한 그룹이 이미 존재합니다."),
     DUPLICATE_DEVICE_OTHER_FEATURE(BAD_REQUEST, "디바이스 ID [%s]는 이미 다른 피처에 할당되어 있습니다."),
+    DUPLICATE_CCTV_OTHER_FEATURE(BAD_REQUEST, "CCTV ID [%s]는 이미 다른 피처에 할당되어 있습니다."),
+    DUPLICATE_FEATURE_OTHER_CCTV(BAD_REQUEST, "피쳐 ID [%s]는 이미 다른 CCTV에 할당되어 있습니다."),
+    DUPLICATE_FEATURE_OTHER_DEVICE(BAD_REQUEST, "피쳐 ID [%s]는 이미 다른 디바이스에 할당되어 있습니다."),
 
     NOT_FOUND_STATION(NOT_FOUND, "ID가 %s인 역을 찾을 수 없습니다."),
     NOT_FOUND_BUILDING(NOT_FOUND, "ID가 %s인 건물을 찾을 수 없습니다."),

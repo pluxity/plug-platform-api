@@ -9,13 +9,14 @@ import com.pluxity.device.repository.DeviceCategoryRepository
 import com.pluxity.feature.dto.FeatureAssignDto
 import com.pluxity.feature.entity.Feature
 import com.pluxity.feature.repository.FeatureRepository
+import com.pluxity.feature.service.FeatureAssignType
 import com.pluxity.feature.service.FeatureService
 import com.pluxity.global.exception.CustomException
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
@@ -77,8 +78,7 @@ internal class GsDeviceServiceTest {
         val nonExistingId = "non-existent-id"
 
         // when & then
-        assertThatThrownBy { gsDeviceService.findById(nonExistingId) }
-            .isInstanceOf(CustomException::class.java)
+        assertThrows<CustomException> { gsDeviceService.findById(nonExistingId) }
     }
 
     @Test
@@ -110,7 +110,7 @@ internal class GsDeviceServiceTest {
         val updateRequest = GsDeviceUpdateRequest("Updated Name", updatedCategory.id)
 
         // when
-        featureService.assignDeviceToFeature(updatedFeature.id, FeatureAssignDto(savedId), false)
+        featureService.assignSomethingToFeature(updatedFeature.id, FeatureAssignDto(savedId, FeatureAssignType.DEVICE), false)
         gsDeviceService.update(
             savedId,
             updateRequest,

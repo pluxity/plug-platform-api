@@ -172,56 +172,7 @@ public class AdminUserController {
     public ResponseEntity<Long> saveUser(
             @Parameter(description = "사용자 생성 정보", required = true) @Valid @RequestBody
                     UserCreateRequest request) {
-        return ResponseEntity.ok(service.save(request).id());
-    }
-
-    @Operation(summary = "사용자에게 역할 할당", description = "특정 사용자에게 역할을 할당합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "201", description = "역할 할당 성공"),
-                @ApiResponse(
-                        responseCode = "400",
-                        description = "잘못된 요청",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "401",
-                        description = "인증되지 않은 요청",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "403",
-                        description = "권한 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "사용자 또는 역할을 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @PostMapping("/{userId}/roles")
-    @ResponseCreated(path = "/admin/roles/{id}")
-    public ResponseEntity<Long> assignRolesToUser(
-            @Parameter(description = "사용자 ID", required = true) @PathVariable("userId") Long userId,
-            @Parameter(description = "할당할 역할 정보", required = true) @RequestBody @Valid
-                    UserRoleAssignRequest request) {
-        return ResponseEntity.ok(service.assignRolesToUser(userId, request).id());
+        return ResponseEntity.ok(service.save(request).getId());
     }
 
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다")

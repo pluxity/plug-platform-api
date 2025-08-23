@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.pluxity.config.MockBeansConfig;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.dto.*;
 import com.pluxity.user.entity.User;
@@ -21,11 +22,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Import(MockBeansConfig.class)
 @Transactional
 public class UserRoleTest {
     @Autowired private UserService userService;
@@ -63,17 +66,17 @@ public class UserRoleTest {
 
         // WHEN
         UserResponse savedUserResponse = userService.save(createRequest);
-        Long userId = savedUserResponse.id();
+        Long userId = savedUserResponse.getId();
         em.flush();
         em.clear();
 
         // THEN
         UserResponse foundUserResponse = userService.findById(userId);
-        assertThat(foundUserResponse.username()).isEqualTo("newUser");
-        assertThat(foundUserResponse.name()).isEqualTo("New User");
-        assertThat(foundUserResponse.roles()).hasSize(2);
+        assertThat(foundUserResponse.getUsername()).isEqualTo("newUser");
+        assertThat(foundUserResponse.getName()).isEqualTo("New User");
+        assertThat(foundUserResponse.getRoles()).hasSize(2);
 
-        List<Long> foundRoleIds = foundUserResponse.roles().stream().map(RoleResponse::id).toList();
+        List<Long> foundRoleIds = foundUserResponse.getRoles().stream().map(RoleResponse::id).toList();
         assertThat(foundRoleIds).containsExactlyInAnyOrderElementsOf(assignedRoleIds);
     }
 
@@ -112,7 +115,7 @@ public class UserRoleTest {
                                 "010-1111-1111",
                                 "Dept1",
                                 List.of(roleIds.get(0), roleIds.get(1))));
-        Long userId = originalUser.id();
+        Long userId = originalUser.getId();
         em.flush();
         em.clear();
 
@@ -126,11 +129,11 @@ public class UserRoleTest {
 
         // THEN
         UserResponse updatedUser = userService.findById(userId);
-        assertThat(updatedUser.name()).isEqualTo("Updated Name");
-        assertThat(updatedUser.code()).isEqualTo("C01"); // null로 보내면 변경되지 않음
-        assertThat(updatedUser.department()).isEqualTo("Dept2");
+        assertThat(updatedUser.getName()).isEqualTo("Updated Name");
+        assertThat(updatedUser.getCode()).isEqualTo("C01"); // null로 보내면 변경되지 않음
+        assertThat(updatedUser.getDepartment()).isEqualTo("Dept2");
 
-        List<Long> finalRoleIds = updatedUser.roles().stream().map(RoleResponse::id).toList();
+        List<Long> finalRoleIds = updatedUser.getRoles().stream().map(RoleResponse::id).toList();
         assertThat(finalRoleIds).hasSize(2);
         assertThat(finalRoleIds).containsExactlyInAnyOrderElementsOf(updatedRoleIds);
     }
@@ -143,7 +146,7 @@ public class UserRoleTest {
         UserResponse userResponse =
                 userService.save(
                         new UserCreateRequest("deleteUser", "pw", "Del Name", null, null, null, roleIds));
-        Long userId = userResponse.id();
+        Long userId = userResponse.getId();
         em.flush();
         em.clear();
 
@@ -174,7 +177,7 @@ public class UserRoleTest {
                 userService.save(
                         new UserCreateRequest(
                                 "pwUser", initialPassword, "PW User", null, null, null, List.of()));
-        Long userId = userResponse.id();
+        Long userId = userResponse.getId();
         em.flush();
         em.clear();
 
@@ -186,7 +189,7 @@ public class UserRoleTest {
         em.clear();
 
         // THEN
-        User updatedUser = userRepository.findById(userId).get();
+        User updatedUser = userRepository.findWithGraphById(userId);
         assertThat(passwordEncoder.matches(newPassword, updatedUser.getPassword())).isTrue();
     }
 
@@ -199,7 +202,7 @@ public class UserRoleTest {
                 userService.save(
                         new UserCreateRequest(
                                 "pwUser2", initialPassword, "PW User2", null, null, null, List.of()));
-        Long userId = userResponse.id();
+        Long userId = userResponse.getId();
         em.flush();
         em.clear();
 
@@ -217,7 +220,7 @@ public class UserRoleTest {
                 userService.save(
                         new UserCreateRequest(
                                 "initPwUser", "anyPassword", "Init PW", null, null, null, List.of()));
-        Long userId = userResponse.id();
+        Long userId = userResponse.getId();
         em.flush();
         em.clear();
 
@@ -227,7 +230,7 @@ public class UserRoleTest {
         em.clear();
 
         // THEN
-        User user = userRepository.findById(userId).get();
+        User user = userRepository.findWithGraphById(userId);
         // 실제 초기화 비밀번호 값은 @Value에서 주입되므로, 암호화된 값이 null이 아닌지만 체크
         assertThat(user.getPassword()).isNotNull();
         // isPasswordChangeRequired 로직으로 검증

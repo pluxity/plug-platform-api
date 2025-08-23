@@ -3,6 +3,7 @@ package com.pluxity.device;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.pluxity.config.MockBeansConfig;
 import com.pluxity.device.dto.*;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
@@ -20,9 +21,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Import(MockBeansConfig.class)
 @Transactional
 class DeviceCategoryServiceTest {
 
@@ -46,6 +49,11 @@ class DeviceCategoryServiceTest {
         @Override
         public String getName() {
             return "Test Device";
+        }
+
+        @Override
+        public DeviceInfoResponse toDeviceInfo() {
+            return null;
         }
     }
 
@@ -131,12 +139,12 @@ class DeviceCategoryServiceTest {
                                 "루트2", null, testFileUploader.initiateTestFileUpload("r2.png")));
 
         // WHEN
-        DeviceCategoryAllResponse response = deviceCategoryService.getDeviceCategories();
+        List<DeviceCategoryResponse> response = deviceCategoryService.getDeviceCategories();
 
         // THEN
-        assertThat(response.list()).hasSize(2);
+        assertThat(response).hasSize(2);
         DeviceCategoryResponse root1 =
-                response.list().stream().filter(c -> c.id().equals(root1Id)).findFirst().orElseThrow();
+                response.stream().filter(c -> c.id().equals(root1Id)).findFirst().orElseThrow();
         assertThat(root1.children()).hasSize(1);
         assertThat(root1.children().getFirst().id()).isEqualTo(child1Id);
     }
@@ -306,11 +314,11 @@ class DeviceCategoryServiceTest {
         deviceCategoryRepository.deleteAll();
 
         // WHEN
-        DeviceCategoryAllResponse response = deviceCategoryService.getDeviceCategories();
+        List<DeviceCategoryResponse> response = deviceCategoryService.getDeviceCategories();
 
         // THEN
         assertThat(response).isNotNull();
-        assertThat(response.list()).isNotNull().isEmpty();
+        assertThat(response).isEmpty();
     }
 
     @Test

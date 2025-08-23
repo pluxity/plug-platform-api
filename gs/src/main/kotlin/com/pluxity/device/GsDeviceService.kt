@@ -90,7 +90,7 @@ class GsDeviceService(
     ) {
         val device = getDevice(id)
         device.putUpdate(request.name)
-        val category = request.categoryId?.let(deviceCategoryService::findById)
+        val category = request.categoryId?.let { deviceCategoryService.findById(it) }
         device.changeCategory(category)
     }
 
@@ -126,7 +126,7 @@ class GsDeviceService(
         val deviceCctvs = deviceCctvRepository.findByDevice(device)
         return deviceCctvs
             .map { it.cctv }
-            .map { it.toCctvResponse(getThumbnailFile(it)) }
+            .map { it.toCctvResponse() }
     }
 
     @Transactional

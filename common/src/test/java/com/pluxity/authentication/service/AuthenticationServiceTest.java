@@ -8,6 +8,7 @@ import com.pluxity.authentication.dto.SignUpRequest;
 import com.pluxity.authentication.entity.RefreshToken;
 import com.pluxity.authentication.repository.RefreshTokenRepository;
 import com.pluxity.authentication.security.JwtProvider;
+import com.pluxity.config.MockBeansConfig;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.user.entity.User;
 import com.pluxity.user.repository.UserRepository;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -27,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Import(MockBeansConfig.class)
 @Transactional
 class AuthenticationServiceTest {
 
@@ -51,12 +54,14 @@ class AuthenticationServiceTest {
     void setUp() {
         // GIVEN: 모든 테스트에서 사용할 기본 사용자 생성
         testUser =
-                User.builder()
-                        .username("testuser")
-                        .password(passwordEncoder.encode("password")) // 실제 PasswordEncoder로 암호화
-                        .name("Test User")
-                        .code("U001")
-                        .build();
+                new User(
+                        null,
+                        "testuser",
+                        passwordEncoder.encode("password"), // 실제 PasswordEncoder로 암호
+                        "Test User",
+                        "U001",
+                        null,
+                        null);
         userRepository.save(testUser);
         em.flush();
         em.clear();
@@ -74,7 +79,7 @@ class AuthenticationServiceTest {
         em.clear();
 
         // THEN
-        User foundUser = userRepository.findById(userId).orElseThrow();
+        User foundUser = userRepository.findWithGraphById(userId);
         assertThat(foundUser.getUsername()).isEqualTo("newUser");
         assertThat(passwordEncoder.matches("password123", foundUser.getPassword())).isTrue();
     }

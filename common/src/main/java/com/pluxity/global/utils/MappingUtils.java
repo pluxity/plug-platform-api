@@ -21,7 +21,7 @@ public class MappingUtils {
                         v ->
                                 FacilityResponse.from(
                                         v, fileMap.get(v.getDrawingFileId()), fileMap.get(v.getThumbnailFileId())))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public static <T> Map<Long, FileResponse> getFileMapByIds(

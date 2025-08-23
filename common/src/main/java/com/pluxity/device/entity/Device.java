@@ -1,5 +1,6 @@
 package com.pluxity.device.entity;
 
+import com.pluxity.device.dto.DeviceInfoResponse;
 import com.pluxity.feature.entity.Feature;
 import com.pluxity.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -24,6 +25,10 @@ public abstract class Device extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private DeviceCategory category;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "device_type", insertable = false, updatable = false)
+    private DeviceType deviceType;
 
     protected Device(String id, DeviceCategory category) {
         this.id = id;
@@ -62,4 +67,6 @@ public abstract class Device extends BaseEntity {
     }
 
     public abstract String getName();
+
+    public abstract DeviceInfoResponse toDeviceInfo();
 }

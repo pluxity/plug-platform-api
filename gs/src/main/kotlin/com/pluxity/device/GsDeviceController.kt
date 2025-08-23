@@ -28,8 +28,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/devices")
-@Tag(name = "Device Controller", description = "디바이스 관리 API")
+@RequestMapping("/gs-devices")
+@Tag(name = "GS Device Controller", description = "디바이스 관리 API")
 class GsDeviceController(
     private val gsDeviceService: GsDeviceService,
 ) {

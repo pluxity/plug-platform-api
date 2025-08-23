@@ -15,6 +15,6 @@ fun GsDevice.toGsDeviceResponse(thumbnailFile: FileResponse?): GsDeviceResponse 
     GsDeviceResponse(
         id = this.id,
         name = this.name,
-        feature = this.feature?.let(FeatureResponse::from),
+        feature = this.feature?.let { FeatureResponse.from(it) },
         deviceCategory = this.category?.let { DeviceCategoryResponseWithoutChildren.from(it, thumbnailFile) },
     )
