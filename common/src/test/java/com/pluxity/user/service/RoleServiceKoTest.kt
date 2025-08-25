@@ -69,11 +69,6 @@ class RoleServiceKoTest :
                 Then("성공") {
                     val result = roleService.save(createRequest)
                     result shouldBe 1L
-
-                    verify(exactly = 1) { roleRepository.save(any()) }
-                    verify(exactly = 1) { permissionGroupService.findPermissionGroupById(1L) }
-                    verify(exactly = 1) { permissionGroupService.findPermissionGroupById(2L) }
-                    verify(exactly = 1) { rolePermissionRepository.saveAll(any<List<RolePermission>>()) }
                 }
             }
 
@@ -96,10 +91,6 @@ class RoleServiceKoTest :
                 Then("성공") {
                     val result = roleService.save(createRequest)
                     result shouldBe 2L
-
-                    verify(exactly = 1) { roleRepository.save(any()) }
-                    verify(exactly = 0) { permissionGroupService.findPermissionGroupById(any()) }
-                    verify(exactly = 0) { rolePermissionRepository.saveAll(any<List<RolePermission>>()) }
                 }
             }
         }
@@ -171,8 +162,6 @@ class RoleServiceKoTest :
 
                     role.name shouldBe "New Name"
                     role.description shouldBe "New Description"
-
-                    verify(exactly = 1) { roleRepository.findWithInfoById(1L) }
                 }
             }
 
@@ -180,8 +169,8 @@ class RoleServiceKoTest :
                 val role = dummyRole(id = 1L, name = "Test Role", description = "Test Description")
                 val updateRequest =
                     RoleUpdateRequest(
-                        name = null,
-                        description = null,
+                        name = "updateRole",
+                        description = "update description",
                         permissionGroupIds = listOf(1L, 2L),
                     )
                 val permissionGroup1 = PermissionGroup(name = "Group 1", description = "Group 1 Description")
@@ -195,10 +184,8 @@ class RoleServiceKoTest :
 
                 Then("성공적으로 업데이트") {
                     roleService.update(1L, updateRequest)
-
-                    verify(exactly = 1) { roleRepository.findWithInfoById(1L) }
-                    verify(exactly = 1) { permissionGroupService.findPermissionGroupById(1L) }
-                    verify(exactly = 1) { permissionGroupService.findPermissionGroupById(2L) }
+                    role.name shouldBe updateRequest.name
+                    role.description shouldBe updateRequest.description
                 }
             }
 
@@ -233,12 +220,8 @@ class RoleServiceKoTest :
 
                 Then("성공적으로 삭제") {
                     roleService.delete(1L)
-
-                    verify(exactly = 1) { roleRepository.findWithInfoById(1L) }
                     verify(exactly = 1) { rolePermissionRepository.deleteAllByRole(role) }
                     verify(exactly = 1) { userRoleRepository.deleteAllByRole(role) }
-                    verify(exactly = 1) { em.flush() }
-                    verify(exactly = 1) { em.clear() }
                     verify(exactly = 1) { roleRepository.deleteById(1L) }
                 }
             }

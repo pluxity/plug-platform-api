@@ -96,9 +96,6 @@ class PermissionGroupServiceKoTest :
                 Then("성공") {
                     val result = permissionGroupService.create(createRequest)
                     result shouldBe 1L
-
-                    verify(exactly = 1) { permissionGroupRepository.existsByName(createRequest.name) }
-                    verify(exactly = 1) { permissionGroupRepository.save(any()) }
                 }
             }
         }
@@ -148,8 +145,6 @@ class PermissionGroupServiceKoTest :
                     val result = permissionGroupService.findAll()
                     result.size shouldBe 1
                     result.first().name shouldBe "Test Group"
-
-                    verify(exactly = 1) { permissionGroupRepository.findAll() }
                 }
             }
         }

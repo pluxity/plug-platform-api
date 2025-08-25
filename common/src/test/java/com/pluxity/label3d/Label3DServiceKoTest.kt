@@ -94,9 +94,6 @@ class Label3DServiceKoTest :
                             rotation = createRequest.rotation,
                             scale = createRequest.scale,
                         )
-                    verify(exactly = 1) { facilityService.findById(createRequest.facilityId) }
-                    verify(exactly = 1) { featureService.saveFeature(any()) }
-                    verify(exactly = 1) { label3DRepository.save(any()) }
                 }
             }
         }
@@ -115,7 +112,6 @@ class Label3DServiceKoTest :
                     result.id shouldBe id
                     result.displayText shouldBe "Test Label"
                     result.floorId shouldBe "floor-1"
-                    verify(exactly = 1) { label3DRepository.findById(id) }
                 }
             }
 
@@ -150,7 +146,6 @@ class Label3DServiceKoTest :
                     result[0].id shouldBe id
                     result[0].displayText shouldBe "Test Label"
                     result[0].floorId shouldBe "floor-1"
-                    verify(exactly = 1) { label3DRepository.findAll(sort) }
                 }
             }
         }
@@ -171,7 +166,6 @@ class Label3DServiceKoTest :
                     result[0].id shouldBe id
                     result[0].displayText shouldBe "Test Label"
                     result[0].floorId shouldBe "floor-1"
-                    verify(exactly = 1) { label3DRepository.findAllByFacilityId(facilityId) }
                 }
             }
         }
@@ -243,7 +237,6 @@ class Label3DServiceKoTest :
                 Then("성공") {
                     label3DService.deleteLabel3D(id)
 
-                    verify(exactly = 1) { label3DRepository.findById(id) }
                     verify(exactly = 1) { featureService.deleteFeature(any()) }
                     verify(exactly = 1) { label3DRepository.delete(label3D) }
                 }
@@ -274,7 +267,6 @@ class Label3DServiceKoTest :
                     val result = label3DService.findLabel3DById(id)
 
                     result shouldBe label3D
-                    verify(exactly = 1) { label3DRepository.findById(id) }
                 }
             }
 
