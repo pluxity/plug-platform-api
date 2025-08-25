@@ -43,7 +43,7 @@ class Role(
         resourceName: String,
         resourceId: String,
     ): Boolean =
-        rolePermissions!!
+        rolePermissions
             .asSequence()
             .map { it.permissionGroup }
             .flatMap { it.permissions.asSequence() }

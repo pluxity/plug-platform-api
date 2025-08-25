@@ -1,6 +1,7 @@
 package com.pluxity.user.dto
 
 import com.pluxity.permission.dto.PermissionGroupResponse
+import com.pluxity.permission.dto.toPermissionGroupResponse
 import com.pluxity.user.entity.Role
 
 data class RoleResponse(
@@ -17,6 +18,6 @@ fun Role.toRoleResponse() =
         this.description,
         this.rolePermissions
             .map { it.permissionGroup }
-            .map { PermissionGroupResponse.from(it) }
+            .map { it.toPermissionGroupResponse() }
             .toList(),
     )

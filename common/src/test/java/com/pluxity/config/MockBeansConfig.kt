@@ -4,6 +4,7 @@ import com.pluxity.feature.service.FeatureAssignment
 import com.pluxity.global.utils.SortUtils
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
@@ -25,6 +26,7 @@ class MockBeansConfig {
                 every { isUnsorted } returns false
             }
 
+        mockkStatic(SortUtils::class)
         every { SortUtils.getOrderByCreatedAtDesc() } returns mockSort
 
         return mockSortUtils

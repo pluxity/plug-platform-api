@@ -1,7 +1,6 @@
 package com.pluxity.user.service
 
 import com.pluxity.permission.PermissionGroupService
-import com.pluxity.permission.PermissionService
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleResponse
 import com.pluxity.user.dto.RoleUpdateRequest
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class RoleService(
     private val roleRepository: RoleRepository,
-    private val permissionService: PermissionService,
     private val rolePermissionRepository: RolePermissionRepository,
     private val userRoleRepository: UserRoleRepository,
     private val permissionGroupService: PermissionGroupService,
