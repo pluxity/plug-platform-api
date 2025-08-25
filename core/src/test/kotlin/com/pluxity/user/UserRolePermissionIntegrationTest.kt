@@ -67,14 +67,7 @@ internal class UserRolePermissionIntegrationTest {
     @BeforeEach
     fun setUp() {
         // 1. 기본 역할 생성
-        adminRole =
-            roleRepository.save(
-                Role
-                    .builder()
-                    .name("ADMIN")
-                    .description("관리자")
-                    .build(),
-            )
+        adminRole = roleRepository.save(Role(name = "ADMIN", description = "관리자"))
 
         // 2. 기본 사용자 생성
         adminUser =

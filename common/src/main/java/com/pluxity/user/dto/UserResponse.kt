@@ -22,5 +22,5 @@ fun User.toUserResponse(): UserResponse =
         phoneNumber = this.phoneNumber,
         department = this.department,
         shouldChangePassword = this.isPasswordChangeRequired(),
-        roles = this.userRoles.mapNotNull { RoleResponse.from(it.role) },
+        roles = this.userRoles.map { it.role.toRoleResponse() },
     )

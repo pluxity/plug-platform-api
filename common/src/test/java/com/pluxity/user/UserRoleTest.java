@@ -76,7 +76,8 @@ public class UserRoleTest {
         assertThat(foundUserResponse.getName()).isEqualTo("New User");
         assertThat(foundUserResponse.getRoles()).hasSize(2);
 
-        List<Long> foundRoleIds = foundUserResponse.getRoles().stream().map(RoleResponse::id).toList();
+        List<Long> foundRoleIds =
+                foundUserResponse.getRoles().stream().map(RoleResponse::getId).toList();
         assertThat(foundRoleIds).containsExactlyInAnyOrderElementsOf(assignedRoleIds);
     }
 
@@ -133,7 +134,7 @@ public class UserRoleTest {
         assertThat(updatedUser.getCode()).isEqualTo("C01"); // null로 보내면 변경되지 않음
         assertThat(updatedUser.getDepartment()).isEqualTo("Dept2");
 
-        List<Long> finalRoleIds = updatedUser.getRoles().stream().map(RoleResponse::id).toList();
+        List<Long> finalRoleIds = updatedUser.getRoles().stream().map(RoleResponse::getId).toList();
         assertThat(finalRoleIds).hasSize(2);
         assertThat(finalRoleIds).containsExactlyInAnyOrderElementsOf(updatedRoleIds);
     }

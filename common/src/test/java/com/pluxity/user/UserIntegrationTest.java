@@ -133,8 +133,8 @@ class UserIntegrationTest {
         em.flush();
         em.clear();
 
-        Role roleToDelete = roleRepository.save(new Role("DELETABLE_ROLE", "곧 삭제될 역할"));
-        Role roleToKeep = roleRepository.save(new Role("KEEPER_ROLE", "유지될 역할"));
+        Role roleToDelete = roleRepository.save(new Role(null, "DELETABLE_ROLE", "곧 삭제될 역할"));
+        Role roleToKeep = roleRepository.save(new Role(null, "KEEPER_ROLE", "유지될 역할"));
 
         User userWithTwoRoles = new User(null, "multiRoleUser", "pw", "다중역할사용자", "", null, null);
         userWithTwoRoles.addRole(roleToDelete);

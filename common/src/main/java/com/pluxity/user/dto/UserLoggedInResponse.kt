@@ -22,5 +22,5 @@ fun User.toUserLoggedInResponse(isLoggedIn: Boolean): UserLoggedInResponse =
         phoneNumber = this.phoneNumber,
         department = this.department,
         isLoggedIn = isLoggedIn,
-        roles = this.getRoles().map { RoleResponse.from(it) },
+        roles = this.getRoles().map { it.toRoleResponse() },
     )

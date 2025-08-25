@@ -18,7 +18,7 @@ fun dummyRole(
     name: String = "name",
     description: String = "description",
 ): Role {
-    val retRole = Role(name, description)
+    val retRole = Role(id, name, description)
     ReflectionTestUtils.setField(retRole, "id", id)
     return retRole
 }

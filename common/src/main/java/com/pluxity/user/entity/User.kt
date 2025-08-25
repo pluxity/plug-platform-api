@@ -54,7 +54,7 @@ class User(
 
     fun addRole(role: Role) {
         check(!hasRole(role)) { "Role already exists for this user: ${role.name}" }
-        val userRole = UserRole(this, role)
+        val userRole = UserRole(user = this, role = role)
         this.userRoles.add(userRole)
     }
 

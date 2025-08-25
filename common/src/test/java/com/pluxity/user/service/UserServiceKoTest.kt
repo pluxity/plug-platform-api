@@ -237,7 +237,7 @@ class UserServiceKoTest :
                 every { roleRepository.findById(any()) } returns Optional.of(role)
 
                 Then("성공") {
-                    userService.removeRoleFromUser(user.id!!, role.id)
+                    userService.removeRoleFromUser(user.id!!, role.id!!)
                     user.getRoles().size shouldBe 0
                 }
             }

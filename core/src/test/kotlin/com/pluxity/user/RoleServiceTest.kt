@@ -210,28 +210,15 @@ internal class RoleServiceTest {
     fun delete_andVerifyDeletionWithService() {
         // GIVEN
         val role =
-            roleRepository.save(
-                Role
-                    .builder()
-                    .name("Deletable Role")
-                    .description("Desc")
-                    .build(),
-            )
+            roleRepository.save(Role(name = "Deletable Role", description = "Desc"))
         em.flush()
         em.clear()
         val permissionGroup =
             permissionGroupService.findPermissionGroupById(permissionGroupIds.first())
-        val newRolePermissions =
-            listOf(
-                RolePermission
-                    .builder()
-                    .permissionGroup(permissionGroup)
-                    .role(role)
-                    .build(),
-            )
+        val newRolePermissions = listOf(RolePermission(role = role, permissionGroup = permissionGroup))
         rolePermissionRepository.saveAll(newRolePermissions)
         newRolePermissions.forEach { rolePermission: RolePermission -> role.addRolePermission(rolePermission) }
-        val roleId = role.id
+        val roleId = role.id!!
 
         Assertions.assertThat(roleService.findById(roleId)).isNotNull()
 

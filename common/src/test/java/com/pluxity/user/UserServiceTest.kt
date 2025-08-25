@@ -49,8 +49,8 @@ class UserServiceTest
             refreshTokenRepository.deleteAll()
 
             // 공통으로 사용할 역할(Role) 생성
-            roleUser = roleRepository.save(Role("ROLE_USER", "description of role_user"))
-            roleAdmin = roleRepository.save(Role("ROLE_ADMIN", "description of role_admin"))
+            roleUser = roleRepository.save(Role(name = "ROLE_USER", description = "description of role_user"))
+            roleAdmin = roleRepository.save(Role(name = "ROLE_ADMIN", description = "description of role_admin"))
         }
 
         /** 테스트용 사용자를 생성하고 DB에 저장하는 헬퍼 메서드 */
@@ -93,9 +93,9 @@ class UserServiceTest
             assertThat(response.department).isEqualTo("테스트부서")
             assertThat(response.shouldChangePassword).isFalse()
             assertThat(response.roles).hasSize(1)
-            assertThat(response.roles.first().name()).isEqualTo("ROLE_USER")
-            assertThat(response.roles.first().description()).isEqualTo("description of role_user")
-            assertThat(response.roles.first().permissions()).isEmpty()
+            assertThat(response.roles.first().name).isEqualTo("ROLE_USER")
+            assertThat(response.roles.first().description).isEqualTo("description of role_user")
+            assertThat(response.roles.first().permissions).isEmpty()
         }
 
         @Test
