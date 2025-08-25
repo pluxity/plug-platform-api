@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/climates")
+@RequestMapping("/devices/climates")
 @Tag(name = "Climate data Controller", description = "온습도계 데이터 조회 API")
 class ClimateDataController(
     private val climateDataService: ClimateDataService,
