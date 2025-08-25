@@ -5,6 +5,6 @@ import org.springframework.data.domain.Sort;
 public class SortUtils {
 
     public static Sort getOrderByCreatedAtDesc() {
-        return Sort.by(Sort.Direction.DESC, "CreatedAt");
+        return Sort.by(Sort.Direction.DESC, "createdAt");
     }
 }

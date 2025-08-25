@@ -1,5 +1,8 @@
 package com.pluxity.facility;
 
+import com.pluxity.global.annotation.CheckPermission;
+import com.pluxity.user.entity.ExecutionPhase;
+import com.pluxity.user.entity.PermissionType;
 import java.util.List;
 import java.util.Optional;
 import lombok.NonNull;
@@ -20,4 +23,7 @@ public interface FacilityRepository extends JpaRepository<Facility, Long> {
     Optional<Facility> findByCode(String code);
 
     long countByIdIn(List<Long> ids);
+
+    @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.FILTER)
+    List<Facility> findAllByOrderByCreatedAtDesc();
 }

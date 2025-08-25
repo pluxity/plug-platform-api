@@ -2,18 +2,16 @@ package com.pluxity.facility;
 
 import static com.pluxity.global.constant.ErrorCode.*;
 
-import com.pluxity.facility.dto.FacilityCreateRequest;
-import com.pluxity.facility.dto.FacilityHistoryResponse;
-import com.pluxity.facility.dto.FacilityUpdateRequest;
+import com.pluxity.facility.dto.*;
 import com.pluxity.facility.history.FacilityHistoryService;
 import com.pluxity.facility.path.FacilityPathService;
-import com.pluxity.file.dto.FileResponse;
+import com.pluxity.facility.strategy.FloorService;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.annotation.CheckPermission;
-import com.pluxity.global.annotation.CheckPermissionAfter;
-import com.pluxity.global.annotation.CheckPermissionAll;
 import com.pluxity.global.exception.CustomException;
-import jakarta.validation.Valid;
+import com.pluxity.global.utils.MappingUtils;
+import com.pluxity.user.entity.ExecutionPhase;
+import com.pluxity.user.entity.PermissionType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -211,5 +209,11 @@ public class FacilityService {
     public void updateFloor(Long facilityId, FacilityFloorUpdateRequest request) {
         Facility facility = findById(facilityId);
         floorService.update(facility, request.floors());
+    }
+
+    @Transactional(readOnly = true)
+    public List<FacilityResponse> findAllFacilities() {
+        return MappingUtils.mapWithFiles(
+                facilityRepository.findAllByOrderByCreatedAtDesc(), fileService);
     }
 }

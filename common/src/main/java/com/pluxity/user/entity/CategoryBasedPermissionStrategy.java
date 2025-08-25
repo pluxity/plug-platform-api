@@ -10,7 +10,7 @@ public class CategoryBasedPermissionStrategy implements PermissionStrategy {
         return Optional.ofNullable(resource)
                 .filter(r -> r instanceof Permissible)
                 .map(r -> (Permissible) r)
-                .map(p -> user.canAccess(p.getResourceType().getResourceName(), p.getResourceId()))
+                .map(p -> user.canAccess(p.getResourceType().name(), p.getResourceId()))
                 .orElse(false);
     }
 }
