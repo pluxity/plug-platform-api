@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/parks")
+@RequestMapping("/facilities/parks")
 @Tag(name = "Park Controller", description = "공원 관리 API")
 class ParkController(
     private val parkService: ParkService,

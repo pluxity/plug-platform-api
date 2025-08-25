@@ -59,13 +59,7 @@ public class CommonApiConfig {
     public GroupedOpenApi facilityApiByPath() {
         return GroupedOpenApi.builder()
                 .group("5. 시설관리 API")
-                .pathsToMatch(
-                        "/facilities/**",
-                        "/facility-categories/**",
-                        "/buildings/**",
-                        "/stations/**",
-                        "/lines/**",
-                        "/parks/**")
+                .pathsToMatch("/facilities/**", "/facility-categories/**", "/lines/**")
                 .build();
     }
 
@@ -89,7 +83,7 @@ public class CommonApiConfig {
     public GroupedOpenApi deviceApiByPath() {
         return GroupedOpenApi.builder()
                 .group("8. Device 관리 API")
-                .pathsToMatch("/devices/**", "/device-categories/**", "/climates/**", "/gs-devices/**")
+                .pathsToMatch("/devices/**", "/device-categories/**")
                 .build();
     }
 
