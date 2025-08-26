@@ -11,7 +11,7 @@ public record FacilityUpdateRequest(
                         description = "시설 코드",
                         example = "SEOUL_STATION",
                         requiredMode = Schema.RequiredMode.REQUIRED)
-                @Size(max = 10, message = "코드는 최대 10자까지 입력 가능합니다.")
+                @Size(max = 50, message = "코드는 최대 50자까지 입력 가능합니다.")
                 String code,
         @Schema(
                         description = "시설 설명",

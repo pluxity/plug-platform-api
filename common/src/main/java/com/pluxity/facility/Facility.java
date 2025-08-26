@@ -34,7 +34,7 @@ public abstract class Facility extends BaseEntity implements Permissible {
     @JoinColumn(name = "category_id")
     private FacilityCategory category;
 
-    @Column(name = "code", length = 10)
+    @Column(name = "code", length = 50)
     private String code;
 
     @Column(name = "drawing_file_id")

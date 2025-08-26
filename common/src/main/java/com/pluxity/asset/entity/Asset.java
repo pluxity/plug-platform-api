@@ -27,7 +27,7 @@ public class Asset extends BaseEntity {
     @Column(name = "name", unique = true, nullable = false, length = 50)
     private String name;
 
-    @Column(name = "code", unique = true, nullable = false, length = 10)
+    @Column(name = "code", unique = true, nullable = false, length = 50)
     private String code;
 
     @Column(name = "file_id")
