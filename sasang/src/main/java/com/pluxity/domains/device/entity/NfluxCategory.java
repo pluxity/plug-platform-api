@@ -32,8 +32,4 @@ public class NfluxCategory extends DeviceCategory {
         this.contextPath = contextPath;
     }
 
-    @Override
-    public int getMaxDepth() {
-        return 1;
-    }
 }

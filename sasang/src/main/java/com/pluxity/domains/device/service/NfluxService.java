@@ -35,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class NfluxService {
 
     private final NfluxRepository repository;
-    private final DeviceCategoryRepository categoryRepository;
     private final DeviceCategoryService deviceCategoryService;
     private final AssetService assetService;
     private final FeatureRepository featureRepository;
@@ -65,6 +64,7 @@ public class NfluxService {
                 device.getCategory() != null ? device.getCategory().getId() : null,
                 device.getCategory() != null ? device.getCategory().getName() : null,
                 device.getName(),
+                device.getFeature() != null ? fileService.getFileResponse(device.getFeature().getAsset().getThumbnailFileId()) : null,
                 BaseResponse.of(device));
     }
 

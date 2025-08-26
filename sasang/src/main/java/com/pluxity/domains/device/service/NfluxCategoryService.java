@@ -34,11 +34,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class NfluxCategoryService {
 
     private final NfluxCategoryRepository nfluxCategoryRepository;
-    private final DeviceCategoryService deviceCategoryService;
     private final FileService fileService;
     private final NfluxService nfluxService;
 
-    @PersistenceContext private EntityManager entityManager;
 
     @Transactional
     public Long save(NfluxCategoryCreateRequest request) {
@@ -100,12 +98,12 @@ public class NfluxCategoryService {
         deviceCategory.updateIconFileId(request.iconFileId());
     }
 
-    private boolean isCircularReference(NfluxCategory source, NfluxCategory target) {
+    private boolean isCircularReference(DeviceCategory source, DeviceCategory target) {
         while (target != null) {
             if (target.getId().equals(source.getId())) {
                 return true;
             }
-            target = (NfluxCategory) target.getParent();
+            target = target.getParent();
         }
         return false;
     }
