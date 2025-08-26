@@ -18,7 +18,7 @@ public class AssetCategory extends Category<AssetCategory> {
     @OneToMany(mappedBy = "category")
     private final List<Asset> assets = new ArrayList<>();
 
-    @Column(name = "code", unique = true, length = 10)
+    @Column(name = "code", unique = true, length = 50)
     private String code;
 
     @Column(name = "icon_file_id")
