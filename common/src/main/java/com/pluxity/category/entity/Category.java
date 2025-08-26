@@ -56,4 +56,8 @@ public abstract class Category<T extends Category<T>> extends BaseEntity {
             throw new CustomException(ErrorCode.EXCEED_CATEGORY_DEPTH);
         }
     }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
 }

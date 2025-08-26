@@ -1,24 +1,29 @@
 package com.pluxity.domains.device.service;
 
+import static com.pluxity.device.service.DeviceCategoryService.DEVICE_CATEGORIES;
+import static com.pluxity.global.constant.ErrorCode.CIRCULAR_REFERENCE_CATEGORY;
+import static com.pluxity.global.constant.ErrorCode.INVALID_PARENT_CATEGORY;
+
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.service.DeviceCategoryService;
-import com.pluxity.domains.device.dto.NfluxCategoryCreateRequest;
-import com.pluxity.domains.device.dto.NfluxCategoryResponse;
-import com.pluxity.domains.device.dto.NfluxCategoryUpdateRequest;
-import com.pluxity.domains.device.dto.NfluxResponse;
+import com.pluxity.domains.device.dto.*;
 import com.pluxity.domains.device.entity.NfluxCategory;
 import com.pluxity.domains.device.repository.NfluxCategoryRepository;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
-import com.pluxity.global.response.BaseResponse;
+import com.pluxity.utils.MappingUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,12 +42,16 @@ public class NfluxCategoryService {
 
     @Transactional
     public Long save(NfluxCategoryCreateRequest request) {
-        String name = request.name();
+
+        NfluxCategory parent = null;
+        if (request.parentId() != null) {
+            parent = findNfluxCategoryById(request.parentId());
+        }
 
         NfluxCategory category =
                 NfluxCategory.nfluxBuilder()
-                        .name(name)
-                        .parent(null)
+                        .parent(parent)
+                        .name(request.name())
                         .contextPath(request.contextPath())
                         .build();
 
@@ -56,41 +65,49 @@ public class NfluxCategoryService {
         return nfluxCategoryRepository.save(category).getId();
     }
 
-    public List<NfluxCategoryResponse> findAll() {
-        return nfluxCategoryRepository.findAll().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-    }
-
-    public List<NfluxCategoryResponse> findAllRoots() {
-        return nfluxCategoryRepository.findAllRootCategories().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-    }
-
-    public NfluxCategoryResponse findById(Long id) {
-        NfluxCategory category = findNfluxCategoryById(id);
-        return toResponse(category);
-    }
-
     @Transactional
-    public NfluxCategoryResponse update(Long id, NfluxCategoryUpdateRequest request) {
-        NfluxCategory category = findNfluxCategoryById(id);
+    public void update(Long id, NfluxCategoryUpdateRequest request) {
+        DeviceCategory deviceCategory = findNfluxCategoryById(id);
 
-        if (request.name() != null) {
-            category.setName(request.name());
-        }
+        if (request.parentId() == null) {
+            if (request.name() != null) {
+                deviceCategory.updateName(request.name());
+            }
+            deviceCategory.assignToRootPreservingEntity();
+        } else {
+            NfluxCategory categoryToUpdate = findNfluxCategoryById(id);
+            NfluxCategory newParent =
+                    Optional.ofNullable(request.parentId()).map(this::findNfluxCategoryById).orElse(null);
 
-        if (request.contextPath() != null) {
-            category.updateContextPath(request.contextPath());
+            if (categoryToUpdate.getId().equals(request.parentId())) {
+                throw new CustomException(INVALID_PARENT_CATEGORY);
+            }
+
+            if (isCircularReference(categoryToUpdate, newParent)) {
+                throw new CustomException(CIRCULAR_REFERENCE_CATEGORY);
+            }
+
+            categoryToUpdate.updateName(request.name());
+            categoryToUpdate.assignToParent(newParent);
         }
 
         if (request.iconFileId() != null) {
-            category.updateIconFileId(
-                    fileService.finalizeUpload(request.iconFileId(), category.getPrefix()).getId());
+            deviceCategory.updateIconFileId(request.iconFileId());
+            fileService.finalizeUpload(
+                    request.iconFileId(), DEVICE_CATEGORIES + deviceCategory.getId() + "/");
         }
 
-        return toResponse(category);
+        deviceCategory.updateIconFileId(request.iconFileId());
+    }
+
+    private boolean isCircularReference(NfluxCategory source, NfluxCategory target) {
+        while (target != null) {
+            if (target.getId().equals(source.getId())) {
+                return true;
+            }
+            target = (NfluxCategory) target.getParent();
+        }
+        return false;
     }
 
     @Transactional
@@ -125,17 +142,6 @@ public class NfluxCategoryService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "카테고리를 찾을 수 없습니다."));
     }
 
-    private NfluxCategoryResponse toResponse(NfluxCategory category) {
-        FileResponse iconFileResponse = getIconFileResponse(category);
-
-        return new NfluxCategoryResponse(
-                category.getId(),
-                category.getName(),
-                category.getContextPath(),
-                iconFileResponse,
-                BaseResponse.of(category));
-    }
-
     private FileResponse getIconFileResponse(NfluxCategory category) {
         if (category.getIconFileId() == null) {
             return FileResponse.empty();
@@ -147,5 +153,45 @@ public class NfluxCategoryService {
             log.error("Failed to get icon file: {}", e.getMessage());
             return FileResponse.empty();
         }
+    }
+
+    public NfluxCategoryAllResponse getNfluxCategories() {
+        List<NfluxCategory> allCategories =
+                nfluxCategoryRepository.findAll(Sort.by(Sort.Direction.DESC, "CreatedAt"));
+
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(
+                        allCategories, nfluxCategory -> Stream.of(nfluxCategory.getIconFileId()), fileService);
+
+        List<NfluxCategoryResponse> list =
+                allCategories.stream()
+                        .map(
+                                category ->
+                                        NfluxCategoryResponse.from(category, fileMap.get(category.getIconFileId())))
+                        .toList();
+
+        return NfluxCategoryAllResponse.of(
+                NfluxCategory.builder().build().getMaxDepth(),
+                MappingUtils.makeCategoryTree(
+                        list,
+                        NfluxCategoryResponse::id,
+                        NfluxCategoryResponse::parentId,
+                        NfluxCategoryResponse::children));
+    }
+
+    public List<NfluxCategoryResponse> getChildDeviceCategories(Long parentId) {
+        List<NfluxCategory> childCategories = nfluxCategoryRepository.findByParentId(parentId);
+        return childCategories.stream()
+                .map(this::createDeviceCategoryResponseWithoutChildren)
+                .collect(Collectors.toList());
+    }
+
+    private NfluxCategoryResponse createDeviceCategoryResponseWithoutChildren(
+            NfluxCategory category) {
+        FileResponse iconFile =
+                category.getIconFileId() != null
+                        ? fileService.getFileResponse(category.getIconFileId())
+                        : null;
+        return NfluxCategoryResponse.fromWithoutChildren(category, iconFile);
     }
 }

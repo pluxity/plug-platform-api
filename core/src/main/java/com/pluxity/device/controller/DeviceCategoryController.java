@@ -1,8 +1,9 @@
 package com.pluxity.device.controller;
 
+import com.pluxity.device.dto.DeviceCategoryAllResponse;
 import com.pluxity.device.dto.DeviceCategoryRequest;
 import com.pluxity.device.dto.DeviceCategoryResponse;
-import com.pluxity.device.dto.DeviceCategoryTreeResponse;
+import com.pluxity.device.dto.DeviceCategoryUpdateRequest;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.global.annotation.ResponseCreated;
 import com.pluxity.global.response.DataResponseBody;
@@ -56,92 +57,38 @@ public class DeviceCategoryController {
         return ResponseEntity.ok(id);
     }
 
-    @Operation(summary = "루트 카테고리 목록 조회", description = "모든 최상위 디바이스 카테고리 목록을 조회합니다")
+    @Operation(summary = "디바이스 카테고리 목록 조회", description = "모든 디바이스 카테고리 목록을 계층 구조로 조회합니다.")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
                 @ApiResponse(
                         responseCode = "500",
                         description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public ResponseEntity<DataResponseBody<List<DeviceCategoryResponse>>> getRootCategories() {
-        List<DeviceCategoryResponse> responses = deviceCategoryService.getRootDeviceCategoryResponses();
-        return ResponseEntity.ok(DataResponseBody.of(responses));
+    public ResponseEntity<DataResponseBody<DeviceCategoryAllResponse>> getAllCategories() {
+        return ResponseEntity.ok(DataResponseBody.of(deviceCategoryService.getDeviceCategories()));
     }
 
-    @Operation(summary = "카테고리 트리 조회", description = "카테고리의 계층 구조를 조회합니다")
+    @Operation(summary = "하위 디바이스 카테고리 목록 조회", description = "특정 카테고리의 직계 하위 카테고리 목록을 조회합니다.")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "200", description = "조회 성공"),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/tree")
-    public ResponseEntity<DataResponseBody<List<DeviceCategoryTreeResponse>>> getCategoryTree() {
-        List<DeviceCategoryTreeResponse> responses = deviceCategoryService.getDeviceCategoryTree();
-        return ResponseEntity.ok(DataResponseBody.of(responses));
-    }
-
-    @Operation(summary = "카테고리 상세 조회", description = "ID로 특정 카테고리의 상세 정보를 조회합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "카테고리 조회 성공"),
+                @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "카테고리를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                        description = "부모 카테고리를 찾을 수 없음",
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class))),
                 @ApiResponse(
                         responseCode = "500",
                         description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/{id}")
-    public ResponseEntity<DataResponseBody<DeviceCategoryResponse>> getCategory(
-            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
-        DeviceCategoryResponse response = deviceCategoryService.getDeviceCategoryResponse(id);
-        return ResponseEntity.ok(DataResponseBody.of(response));
-    }
-
-    @Operation(summary = "하위 카테고리 조회", description = "특정 ID를 가진 카테고리의 하위 카테고리 목록을 조회합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "조회 성공"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "카테고리를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping("/{id}/children")
-    public ResponseEntity<DataResponseBody<List<DeviceCategoryResponse>>> getChildren(
-            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
-        List<DeviceCategoryResponse> responses = deviceCategoryService.getChildrenResponses(id);
-        return ResponseEntity.ok(DataResponseBody.of(responses));
+    public ResponseEntity<DataResponseBody<List<DeviceCategoryResponse>>> getChildCategories(
+            @Parameter(description = "부모 카테고리 ID", required = true) @PathVariable Long id) {
+        return ResponseEntity.ok(
+                DataResponseBody.of(deviceCategoryService.getChildDeviceCategories(id)));
     }
 
     @Operation(summary = "카테고리 수정", description = "기존 카테고리의 정보를 수정합니다")
@@ -174,7 +121,7 @@ public class DeviceCategoryController {
     public ResponseEntity<Void> update(
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id,
             @Parameter(description = "카테고리 수정 정보", required = true) @Valid @RequestBody
-                    DeviceCategoryRequest request) {
+                    DeviceCategoryUpdateRequest request) {
         deviceCategoryService.update(id, request);
         return ResponseEntity.noContent().build();
     }

@@ -39,6 +39,11 @@ public enum ErrorCode implements Code {
 
     EXCEED_CATEGORY_DEPTH(BAD_REQUEST, "카테고리는 깊이를 초과했습니다"),
     INVALID_REFERENCE(BAD_REQUEST, "요청 된 참조가 유효하지 않습니다."),
+
+    NOT_FOUND_DEVICE_CATEGORY(BAD_REQUEST, "ID: %s 디바이스 카테고리를 찾을 수 없습니다."),
+
+    INVALID_PARENT_CATEGORY(BAD_REQUEST, "카테고리는 자기 자신을 부모로 가질 수 없습니다."),
+    CIRCULAR_REFERENCE_CATEGORY(BAD_REQUEST, "하위 카테고리를 부모 카테고리로 지정할 수 없습니다."),
     ;
     private final HttpStatus httpStatus;
     private final String message;

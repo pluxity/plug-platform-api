@@ -1,17 +1,23 @@
 package com.pluxity.device.service;
 
+import static com.pluxity.global.constant.ErrorCode.NOT_FOUND_DEVICE_CATEGORY;
+
 import com.pluxity.category.service.CategoryService;
-import com.pluxity.device.dto.DeviceCategoryRequest;
-import com.pluxity.device.dto.DeviceCategoryResponse;
-import com.pluxity.device.dto.DeviceCategoryTreeResponse;
+import com.pluxity.device.dto.*;
 import com.pluxity.device.entity.DeviceCategory;
 import com.pluxity.device.repository.DeviceCategoryRepository;
+import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.constant.ErrorCode;
 import com.pluxity.global.exception.CustomException;
+import com.pluxity.utils.MappingUtils;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DeviceCategoryService extends CategoryService<DeviceCategory> {
 
+    public static final String DEVICE_CATEGORIES = "device-categories/";
     private final DeviceCategoryRepository deviceCategoryRepository;
     private final FileService fileService;
 
@@ -38,29 +45,36 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
         DeviceCategory deviceCategory =
                 DeviceCategory.builder().name(request.getName()).parent(parent).build();
 
+        Long id = deviceCategoryRepository.save(deviceCategory).getId();
+
         if (request.getIconFileId() != null) {
             deviceCategory.updateIconFileId(request.getIconFileId());
+            fileService.finalizeUpload(request.getIconFileId(), DEVICE_CATEGORIES + id + "/");
         }
 
-        return deviceCategoryRepository.save(deviceCategory).getId();
+        return id;
     }
 
     @Transactional
-    public void update(Long id, DeviceCategoryRequest request) {
+    public void update(Long id, DeviceCategoryUpdateRequest request) {
         DeviceCategory deviceCategory = findById(id);
 
-        if (request.getName() != null) {
-            deviceCategory.setName(request.getName());
+        if (request.parentId() == null) {
+            if (request.name() != null) {
+                deviceCategory.updateName(request.name());
+            }
+            deviceCategory.assignToRootPreservingEntity();
+        } else {
+            super.update(id, request.name(), request.parentId());
         }
 
-        if (request.getIconFileId() != null) {
-            deviceCategory.updateIconFileId(request.getIconFileId());
+        if (request.thumbnailFileId() != null) {
+            deviceCategory.updateIconFileId(request.thumbnailFileId());
+            fileService.finalizeUpload(
+                    request.thumbnailFileId(), DEVICE_CATEGORIES + deviceCategory.getId() + "/");
         }
 
-        if (request.getParentId() != null) {
-            DeviceCategory parent = findById(request.getParentId());
-            deviceCategory.assignToParent(parent);
-        }
+        deviceCategory.updateIconFileId(request.thumbnailFileId());
     }
 
     @Transactional
@@ -75,29 +89,73 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     }
 
     @Transactional(readOnly = true)
-    public List<DeviceCategoryResponse> getRootDeviceCategoryResponses() {
-        return getRootCategories().stream()
-                .map(this::createDeviceCategoryResponse)
-                .collect(Collectors.toList());
+    public DeviceCategoryResponse getDeviceCategory(Long id) {
+        DeviceCategoryAllResponse allCategories = getDeviceCategories();
+
+        return findCategoryInTree(allCategories.list(), id)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_DEVICE_CATEGORY, String.valueOf(id)));
+    }
+
+    private Optional<DeviceCategoryResponse> findCategoryInTree(
+            List<DeviceCategoryResponse> categories, Long id) {
+        for (DeviceCategoryResponse category : categories) {
+            if (category.id().equals(id)) {
+                return Optional.of(category);
+            }
+
+            if (category.children() != null && !category.children().isEmpty()) {
+                Optional<DeviceCategoryResponse> foundInChildren =
+                        findCategoryInTree(category.children(), id);
+                if (foundInChildren.isPresent()) {
+                    return foundInChildren;
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     @Transactional(readOnly = true)
-    public List<DeviceCategoryResponse> getChildrenResponses(Long id) {
-        return getChildren(id).stream()
-                .map(this::createDeviceCategoryResponse)
-                .collect(Collectors.toList());
+    public DeviceCategoryAllResponse getDeviceCategories() {
+        List<DeviceCategory> allCategories =
+                deviceCategoryRepository.findAll(Sort.by(Sort.Direction.DESC, "CreatedAt"));
+
+        Map<Long, FileResponse> fileMap =
+                MappingUtils.getFileMapByIds(
+                        allCategories,
+                        deviceCategory -> Stream.of(deviceCategory.getIconFileId()),
+                        fileService);
+
+        List<DeviceCategoryResponse> list =
+                allCategories.stream()
+                        .map(
+                                category ->
+                                        DeviceCategoryResponse.from(category, fileMap.get(category.getIconFileId())))
+                        .toList();
+
+        return DeviceCategoryAllResponse.of(
+                DeviceCategory.builder().build().getMaxDepth(),
+                MappingUtils.makeCategoryTree(
+                        list,
+                        DeviceCategoryResponse::id,
+                        DeviceCategoryResponse::parentId,
+                        DeviceCategoryResponse::children));
     }
 
     @Transactional(readOnly = true)
-    public List<DeviceCategoryTreeResponse> getDeviceCategoryTree() {
-        return getRootCategories().stream()
-                .map(this::createDeviceCategoryTreeResponse)
+    public List<DeviceCategoryResponse> getChildDeviceCategories(Long parentId) {
+        List<DeviceCategory> childCategories = deviceCategoryRepository.findByParentId(parentId);
+        return childCategories.stream()
+                .map(this::createDeviceCategoryResponseWithoutChildren)
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public DeviceCategoryResponse getDeviceCategoryResponse(Long id) {
-        return createDeviceCategoryResponse(findById(id));
+    private DeviceCategoryResponse createDeviceCategoryResponseWithoutChildren(
+            DeviceCategory category) {
+        FileResponse iconFile =
+                category.getIconFileId() != null
+                        ? fileService.getFileResponse(category.getIconFileId())
+                        : null;
+        return DeviceCategoryResponse.fromWithoutChildren(category, iconFile);
     }
 
     protected DeviceCategoryResponse createDeviceCategoryResponse(DeviceCategory deviceCategory) {

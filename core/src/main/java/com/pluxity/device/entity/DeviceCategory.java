@@ -37,7 +37,7 @@ public class DeviceCategory extends Category<DeviceCategory> {
 
     @Override
     public int getMaxDepth() {
-        return 3;
+        return 2;
     }
 
     public void updateIconFileId(Long iconFileId) {
@@ -81,5 +81,10 @@ public class DeviceCategory extends Category<DeviceCategory> {
 
         // 컬렉션 비우기 (이미 updateCategory에서 처리되지만 명시적으로 수행)
         this.devices.clear();
+    }
+
+    public void assignToRootPreservingEntity() {
+        this.parent = null;
+        this.validateDepth();
     }
 }

@@ -1,9 +1,9 @@
 package com.pluxity.domains.device.controller;
 
+import com.pluxity.domains.device.dto.NfluxCategoryAllResponse;
 import com.pluxity.domains.device.dto.NfluxCategoryCreateRequest;
 import com.pluxity.domains.device.dto.NfluxCategoryResponse;
 import com.pluxity.domains.device.dto.NfluxCategoryUpdateRequest;
-import com.pluxity.domains.device.dto.NfluxResponse;
 import com.pluxity.domains.device.service.NfluxCategoryService;
 import com.pluxity.global.response.DataResponseBody;
 import com.pluxity.global.response.ErrorResponseBody;
@@ -16,21 +16,22 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/device-categories")
 @RequiredArgsConstructor
-@Tag(name = "Device Category Controller", description = "디바이스 카테고리 관리 API")
+@Tag(name = "Nflux Category Controller", description = "엔플럭스 카테고리 관리 API")
 public class NfluxCategoryController {
 
     private final NfluxCategoryService nfluxCategoryService;
 
-    @Operation(summary = "디바이스 카테고리 생성", description = "새로운 디바이스 카테고리를 생성합니다")
+    @Operation(summary = "엔플럭스 카테고리 생성", description = "새로운 엔플럭스 카테고리를 생성합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "201", description = "카테고리 생성 성공"),
@@ -52,13 +53,13 @@ public class NfluxCategoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public DataResponseBody<Long> create(
-            @Parameter(description = "디바이스 카테고리 생성 정보", required = true) @Valid @RequestBody
+            @Parameter(description = "엔플럭스 카테고리 생성 정보", required = true) @Valid @RequestBody
                     NfluxCategoryCreateRequest request) {
         Long id = nfluxCategoryService.save(request);
-        return DataResponseBody.of(HttpStatus.CREATED, "디바이스 카테고리가 생성되었습니다.", id);
+        return DataResponseBody.of(HttpStatus.CREATED, "엔플럭스 카테고리가 생성되었습니다.", id);
     }
 
-    @Operation(summary = "디바이스 카테고리 목록 조회", description = "모든 디바이스 카테고리 목록을 조회합니다")
+    @Operation(summary = "엔플럭스 카테고리 목록 조회", description = "모든 엔플럭스 카테고리 목록을 조회합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
@@ -71,82 +72,32 @@ public class NfluxCategoryController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping
-    public DataResponseBody<List<NfluxCategoryResponse>> findAll() {
-        List<NfluxCategoryResponse> categories = nfluxCategoryService.findAll();
+    public DataResponseBody<NfluxCategoryAllResponse> findAll() {
+        NfluxCategoryAllResponse categories = nfluxCategoryService.getNfluxCategories();
         return DataResponseBody.of(categories);
     }
 
-    @Operation(summary = "루트 디바이스 카테고리 목록 조회", description = "최상위 디바이스 카테고리 목록을 조회합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "루트 카테고리 목록 조회 성공"),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/roots")
-    public DataResponseBody<List<NfluxCategoryResponse>> findAllRoots() {
-        List<NfluxCategoryResponse> categories = nfluxCategoryService.findAllRoots();
-        return DataResponseBody.of(categories);
-    }
-
-    @Operation(summary = "디바이스 카테고리 상세 조회", description = "ID로 특정 디바이스 카테고리의 상세 정보를 조회합니다")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "카테고리 조회 성공"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "카테고리를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
-                @ApiResponse(
-                        responseCode = "500",
-                        description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
-            })
-    @GetMapping("/{id}")
-    public DataResponseBody<NfluxCategoryResponse> findById(
-            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id) {
-        NfluxCategoryResponse category = nfluxCategoryService.findById(id);
-        return DataResponseBody.of(category);
-    }
-
-    @Operation(summary = "카테고리별 디바이스 목록 조회", description = "특정 카테고리에 속한 모든 디바이스 목록을 조회합니다")
+    @Operation(summary = "하위 엔플럭스 카테고리 목록 조회", description = "특정 카테고리의 직계 하위 카테고리 목록을 조회합니다.")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "목록 조회 성공"),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "카테고리를 찾을 수 없음",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class))),
+                        description = "부모 카테고리를 찾을 수 없음",
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class))),
                 @ApiResponse(
                         responseCode = "500",
                         description = "서버 오류",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        schema = @Schema(implementation = ErrorResponseBody.class)))
+                        content = @Content(schema = @Schema(implementation = ErrorResponseBody.class)))
             })
-    @GetMapping("/{categoryId}/devices")
-    public ResponseEntity<DataResponseBody<List<NfluxResponse>>> getDevicesByCategory(
-            @Parameter(description = "카테고리 ID", required = true) @PathVariable Long categoryId) {
+    @GetMapping("/{id}/children")
+    public ResponseEntity<DataResponseBody<List<NfluxCategoryResponse>>> findAllRoots(
+            @Parameter(description = "부모 카테고리 ID", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(
-                DataResponseBody.of(nfluxCategoryService.findDevicesByCategoryId(categoryId)));
+                DataResponseBody.of(nfluxCategoryService.getChildDeviceCategories(id)));
     }
 
-    @Operation(summary = "디바이스 카테고리 수정", description = "기존 디바이스 카테고리의 정보를 수정합니다")
+    @Operation(summary = "엔플럭스 카테고리 수정", description = "기존 엔플럭스 카테고리의 정보를 수정합니다")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "카테고리 수정 성공"),
@@ -173,12 +124,12 @@ public class NfluxCategoryController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @PutMapping("/{id}")
-    public DataResponseBody<NfluxCategoryResponse> update(
+    public ResponseEntity<Void> update(
             @Parameter(description = "카테고리 ID", required = true) @PathVariable Long id,
             @Parameter(description = "카테고리 수정 정보", required = true) @Valid @RequestBody
                     NfluxCategoryUpdateRequest request) {
-        NfluxCategoryResponse updatedCategory = nfluxCategoryService.update(id, request);
-        return DataResponseBody.of(HttpStatus.OK, "NFlux 카테고리가 업데이트되었습니다.", updatedCategory);
+        nfluxCategoryService.update(id, request);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Nflux 카테고리 삭제", description = "ID로 Nflux 카테고리를 삭제합니다")
@@ -194,7 +145,7 @@ public class NfluxCategoryController {
                                         schema = @Schema(implementation = ErrorResponseBody.class))),
                 @ApiResponse(
                         responseCode = "400",
-                        description = "하위 카테고리나 연결된 디바이스가 있어 삭제할 수 없음",
+                        description = "하위 카테고리나 연결된 엔플럭스가 있어 삭제할 수 없음",
                         content =
                                 @Content(
                                         mediaType = "application/json",

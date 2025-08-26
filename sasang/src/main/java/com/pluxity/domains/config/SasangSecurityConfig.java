@@ -9,23 +9,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -35,89 +32,45 @@ public class SasangSecurityConfig {
 
     private final UserRepository repository;
     private final JwtProvider jwtProvider;
-
+    private final CorsConfig corsConfig;
 
     @Bean
-    @Order(1)
-    public SecurityFilterChain permitGetRequestsFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher(new AntPathRequestMatcher("/**", HttpMethod.GET.name()))
-                .authorizeHttpRequests(
-                        authorize ->
-                                authorize
-                                        .anyRequest()
-                                        .permitAll())
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .addFilterBefore(
-                        sasangJwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(
-                        exceptions ->
-                                exceptions.authenticationEntryPoint(
-                                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
-
-        return http.build();
-    }
-
-    @Bean
-    @Order(2)
-    public SecurityFilterChain nonGetRequestsFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher(request -> !HttpMethod.GET.matches(request.getMethod()))
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers(
-                                                new AntPathRequestMatcher("/actuator/**"),
-                                                new AntPathRequestMatcher("/health"),
-                                                new AntPathRequestMatcher("/info"),
-                                                new AntPathRequestMatcher("/prometheus"),
-                                                new AntPathRequestMatcher("/error"),
-                                                new AntPathRequestMatcher("/swagger-ui/**"),
-                                                new AntPathRequestMatcher("/swagger-ui.html"),
-                                                new AntPathRequestMatcher("/api-docs/**"),
-                                                new AntPathRequestMatcher("/swagger-config/**"),
-                                                new AntPathRequestMatcher("/docs/**"),
-                                                new AntPathRequestMatcher("/open/**"))
+                                auth.requestMatchers(HttpMethod.OPTIONS, "/**")
                                         .permitAll()
-                                        .requestMatchers(new AntPathRequestMatcher("/auth/**"))
+                                        .requestMatchers(HttpMethod.GET, "/**")
+                                        .permitAll()
+                                        .requestMatchers(
+                                                "/actuator/**",
+                                                "/health",
+                                                "/info",
+                                                "/prometheus",
+                                                "/error",
+                                                "/swagger-ui/**",
+                                                "/swagger-ui.html",
+                                                "/api-docs/**",
+                                                "/swagger-config/**",
+                                                "/docs/**",
+                                                "/open/**",
+                                                "/auth/**",
+                                                "/3d-map/api/auth/**")
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .addFilterBefore(
                         sasangJwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(
-                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(
                         exceptions ->
                                 exceptions.authenticationEntryPoint(
                                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOriginPatterns(List.of("*"));
-
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-
-        configuration.setAllowedHeaders(List.of("*"));
-
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-
-        return source;
-    }
-
-    @Bean
-    public SasangJwtAuthenticationFilter sasangJwtAuthenticationFilter() {
-        return new SasangJwtAuthenticationFilter(jwtProvider, userDetailsService());
     }
 
     @Bean
@@ -127,5 +80,21 @@ public class SasangSecurityConfig {
                         .findByUsername(username)
                         .map(CustomUserDetails::new)
                         .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+            throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public SasangJwtAuthenticationFilter sasangJwtAuthenticationFilter() {
+        return new SasangJwtAuthenticationFilter(jwtProvider, userDetailsService());
     }
 }

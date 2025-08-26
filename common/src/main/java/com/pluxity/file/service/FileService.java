@@ -1,5 +1,8 @@
 package com.pluxity.file.service;
 
+import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
+import static com.pluxity.global.constant.ErrorCode.INVALID_FILE_STATUS;
+
 import com.pluxity.file.constant.FileStatus;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.entity.FileEntity;
@@ -11,6 +14,11 @@ import com.pluxity.global.config.S3Config;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.global.utils.FileUtils;
 import jakarta.validation.constraints.NotNull;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,14 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-
-import static com.pluxity.global.constant.ErrorCode.FAILED_TO_UPLOAD_FILE;
-import static com.pluxity.global.constant.ErrorCode.INVALID_FILE_STATUS;
 
 @Service
 @RequiredArgsConstructor
@@ -145,6 +145,14 @@ public class FileService {
                 .findById(fileId)
                 .orElseThrow(
                         () -> new CustomException("File not found", HttpStatus.NOT_FOUND, "해당 파일을 찾을 수 없습니다"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<FileResponse> getFiles(List<Long> fileIds) {
+        if (fileIds.isEmpty()) {
+            return List.of();
+        }
+        return repository.findByIdIn(fileIds).stream().map(this::getFileResponse).toList();
     }
 
     @Transactional(readOnly = true)
