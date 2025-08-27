@@ -25,25 +25,16 @@ class CctvService(
     fun create(request: CctvCreateRequest): String = cctvRepository.save(Cctv(id = request.id, name = request.name, url = request.url)).id
 
     @Transactional(readOnly = true)
-    fun findAll(): List<CctvResponse> {
-        val list = cctvRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
-        return list.map { it.toCctvResponse() }
-    }
+    fun findAll(): List<CctvResponse> = cctvRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).map { it.toCctvResponse() }
 
     @Transactional(readOnly = true)
-    fun getById(id: String): CctvResponse {
-        val cctv = findById(id)
-        return cctv.toCctvResponse()
-    }
+    fun getById(id: String): CctvResponse = findById(id).toCctvResponse()
 
     @Transactional
     fun update(
         id: String,
         request: CctvUpdateRequest,
-    ) {
-        val cctv = findById(id)
-        cctv.updateCctv(request)
-    }
+    ) = findById(id).updateCctv(request)
 
     @Transactional
     fun delete(id: String) {
@@ -80,7 +71,5 @@ class CctvService(
         cctvRepository.findByIdOrNull(id).let { it?.changeFeature(null) }
     }
 
-    override fun revokeByFeature(feature: Feature) {
-        cctvRepository.updateFeatureByFeature(feature)
-    }
+    override fun revokeByFeature(feature: Feature) = cctvRepository.updateFeatureByFeature(feature)
 }
