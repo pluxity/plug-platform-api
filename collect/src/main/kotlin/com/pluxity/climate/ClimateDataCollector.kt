@@ -1,19 +1,20 @@
-package com.pluxity.collect.climate
+package com.pluxity.climate
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.context.annotation.Profile
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.springframework.http.MediaType
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.awaitBody
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 private val log = KotlinLogging.logger {}
 
 @Component
-@Profile("!local")
 class ClimateDataCollector(
     private val climateDataRequest: ClimateDataRepository,
 ) {
@@ -30,30 +31,37 @@ class ClimateDataCollector(
         val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")
     }
 
-    @Scheduled(cron = "0 0/1 * * * *")
-    fun collectClimateData() {
+    suspend fun collectClimateData(list: List<String>) {
         ensureToken()
-        val (deviceId, results) = callClimateData()
-        climateDataRequest.save(
-            ClimateData(
-                deviceId = deviceId,
-                temperature = results.temperature,
-                humidity = results.humidity,
-                status = results.connStatus,
-                firmwareVersion = results.firmwareVersion,
-                battery = results.battery,
-                uploadTime = LocalDateTime.parse(results.uploadTime, FORMATTER),
-            ),
-        )
+
+        coroutineScope {
+            list
+                .map { id ->
+                    async {
+                        val (deviceId, results) = callClimateData(id)
+                        climateDataRequest.save(
+                            ClimateData(
+                                deviceId = deviceId,
+                                temperature = results.temperature,
+                                humidity = results.humidity,
+                                status = results.connStatus,
+                                firmwareVersion = results.firmwareVersion,
+                                battery = results.battery,
+                                uploadTime = LocalDateTime.parse(results.uploadTime, FORMATTER),
+                            ),
+                        )
+                    }
+                }.awaitAll()
+        }
     }
 
-    private fun ensureToken() {
+    private suspend fun ensureToken() {
         if (tokenInfo?.expiresAt?.isAfter(LocalDateTime.now().plusHours(1)) == true) return
         tokenInfo = fetchToken()
         log.info { "새 토큰 발급, 만료: ${tokenInfo?.expiresAt}" }
     }
 
-    private fun fetchToken(): TokenInfo {
+    private suspend fun fetchToken(): TokenInfo {
         val (token, expire) =
             client
                 .post()
@@ -62,8 +70,7 @@ class ClimateDataCollector(
                 .accept(MediaType.APPLICATION_JSON)
                 .bodyValue(ServerTokenRequest("PLUXITY2"))
                 .retrieve()
-                .bodyToMono(ServerTokenResponse::class.java)
-                .block() ?: throw RuntimeException("Failed to get server token")
+                .awaitBody<ServerTokenResponse>()
 
         return TokenInfo(
             value = token,
@@ -71,7 +78,7 @@ class ClimateDataCollector(
         )
     }
 
-    private fun callClimateData(): DeviceValuesResponse =
+    private suspend fun callClimateData(deviceId: String): DeviceValuesResponse =
         client
             .post()
             .uri("/conn/v1/inquire/device/values")
@@ -81,7 +88,7 @@ class ClimateDataCollector(
                     dwdServerId = "PLUXITY2",
                     dwdAccessToken = requireNotNull(tokenInfo).value,
                     groupId = "PLUXITY",
-                    deviceId = "DAWONDNS-TH110_ZB-1c34f1fffee4c504",
+                    deviceId = deviceId,
                     inquireValues =
                         listOf(
                             "conn_status",
@@ -93,8 +100,7 @@ class ClimateDataCollector(
                         ),
                 ),
             ).retrieve()
-            .bodyToMono(DeviceValuesResponse::class.java)
-            .block() ?: throw RuntimeException("Failed to get climate data")
+            .awaitBody<DeviceValuesResponse>()
 
     data class TokenInfo(
         val value: String,

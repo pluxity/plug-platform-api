@@ -1,7 +1,7 @@
-package com.pluxity.collect.climate
+package com.pluxity.climate
 
-import com.pluxity.collect.climate.dto.ClimateDataResponse
-import com.pluxity.collect.climate.dto.toClimateDataResponse
+import com.pluxity.climate.dto.ClimateDataResponse
+import com.pluxity.climate.dto.toClimateDataResponse
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

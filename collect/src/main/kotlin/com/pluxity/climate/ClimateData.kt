@@ -1,4 +1,4 @@
-package com.pluxity.collect.climate
+package com.pluxity.climate
 
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue

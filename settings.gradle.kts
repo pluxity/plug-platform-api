@@ -3,3 +3,4 @@ rootProject.name = "plug-platform-api"
 include("common")
 include("core")
 include("gs")
+include("collect")

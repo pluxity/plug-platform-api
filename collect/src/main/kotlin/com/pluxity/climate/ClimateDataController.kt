@@ -1,6 +1,6 @@
-package com.pluxity.collect.climate
+package com.pluxity.climate
 
-import com.pluxity.collect.climate.dto.ClimateDataResponse
+import com.pluxity.climate.dto.ClimateDataResponse
 import com.pluxity.global.response.DataResponseBody
 import com.pluxity.global.response.ErrorResponseBody
 import io.swagger.v3.oas.annotations.Operation

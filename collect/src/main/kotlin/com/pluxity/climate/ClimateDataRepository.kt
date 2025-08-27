@@ -1,4 +1,4 @@
-package com.pluxity.collect.climate
+package com.pluxity.climate
 
 import org.springframework.data.jpa.repository.JpaRepository
 import java.time.LocalDateTime

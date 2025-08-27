@@ -1,6 +1,6 @@
-package com.pluxity.collect.climate.dto
+package com.pluxity.climate.dto
 
-import com.pluxity.collect.climate.ClimateData
+import com.pluxity.climate.ClimateData
 
 data class ClimateDataResponse(
     val deviceId: String,
