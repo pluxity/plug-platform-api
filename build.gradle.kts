@@ -13,29 +13,13 @@ plugins {
     kotlin("plugin.lombok") version kotlinVersion
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-repositories {
-    mavenCentral()
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
+allprojects {
+    group = "com.pluxity"
+    version = "1.0.0"
+    repositories { mavenCentral() }
 }
 
 subprojects {
-    group = "com.pluxity"
-    version = "1.0.0"
 
     apply(plugin = "java")
     apply(plugin = "java-library")
@@ -50,6 +34,12 @@ subprojects {
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    plugins.withId("org.jetbrains.kotlin.jvm") {
+        extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension>("kotlin") {
+            compilerOptions { freeCompilerArgs.addAll("-Xjsr305=strict") }
         }
     }
 
@@ -94,10 +84,6 @@ subprojects {
         compileOnly {
             extendsFrom(configurations.getByName("annotationProcessor"))
         }
-    }
-
-    repositories {
-        mavenCentral()
     }
 
     tasks.test {
