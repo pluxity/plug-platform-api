@@ -31,7 +31,7 @@ public class FeatureService {
     private final FacilityService facilityService;
     private final AssetValidator assetValidator;
     private final DeviceRepository deviceRepository;
-    private final FeatureAssignment cctvAssignment;
+    private final Optional<FeatureAssignment> optionalFeatureAssignment;
 
     @Transactional
     public FeatureResponse createFeature(FeatureCreateRequest request) {
@@ -76,6 +76,8 @@ public class FeatureService {
     @Transactional
     public void deleteFeature(String id) {
         Feature feature = findFeatureById(id);
+        optionalFeatureAssignment.ifPresent(v -> v.revokeByFeature(feature));
+        deviceRepository.revokeByFeature(feature);
         featureRepository.delete(feature);
     }
 
@@ -108,13 +110,14 @@ public class FeatureService {
         }
 
         Feature feature = findFeatureById(featureId);
-        if (!force && cctvAssignment.isAssigned(assignDto.id())) {
+        FeatureAssignment assignment = optionalFeatureAssignment.orElse(null);
+        if (!force && assignment != null && assignment.isAssigned(assignDto.id())) {
             throw new CustomException(
                     ALREADY_ASSIGNED_TARGET, assignDto.id(), assignDto.type().getDescription());
         }
         validateAssign(featureId, force, feature);
         checkFeatureAlreadyOther(feature);
-        cctvAssignment.assignFeature(assignDto.id(), feature);
+        optionalFeatureAssignment.ifPresent(v -> v.assignFeature(assignDto.id(), feature));
     }
 
     @Transactional
@@ -123,8 +126,8 @@ public class FeatureService {
             removeDeviceFromFeature(featureId, assignDto);
             return;
         }
-        cctvAssignment.validateRevoke(assignDto.id(), featureId);
-        cctvAssignment.clearFeatureFromTarget(assignDto.id());
+        optionalFeatureAssignment.ifPresent(v -> v.validateRevoke(assignDto.id(), featureId));
+        optionalFeatureAssignment.ifPresent(v -> v.clearFeatureFromTarget(assignDto.id()));
     }
 
     private void assignDeviceToFeature(String featureId, FeatureAssignDto assignDto, boolean force) {
@@ -146,11 +149,12 @@ public class FeatureService {
 
     private void checkFeatureAlreadyOther(Feature feature) {
         deviceRepository.revokeByFeature(feature);
-        cctvAssignment.revokeByFeature(feature);
+        optionalFeatureAssignment.ifPresent(v -> v.revokeByFeature(feature));
     }
 
     private void validateAssign(String featureId, boolean force, Feature feature) {
-        boolean isAssignCctv = cctvAssignment.existsByFeature(feature);
+        FeatureAssignment assignment = optionalFeatureAssignment.orElse(null);
+        boolean isAssignCctv = assignment != null && assignment.existsByFeature(feature);
         if (!force && isAssignCctv) {
             throw new CustomException(DUPLICATE_FEATURE_OTHER_CCTV, featureId);
         }

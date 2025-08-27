@@ -7,16 +7,16 @@ import com.pluxity.config.MockBeansConfig;
 import com.pluxity.device.dto.*;
 import com.pluxity.device.entity.Device;
 import com.pluxity.device.entity.DeviceCategory;
+import com.pluxity.device.entity.DeviceCompanyType;
+import com.pluxity.device.entity.DeviceType;
 import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.repository.DeviceRepository;
 import com.pluxity.device.service.DeviceCategoryService;
 import com.pluxity.file.constant.FileStatus;
 import com.pluxity.global.exception.CustomException;
 import com.pluxity.util.TestFileUploader;
-import jakarta.persistence.Entity;
 import java.util.List;
 import java.util.UUID;
-import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,29 +33,6 @@ class DeviceCategoryServiceTest {
     @Autowired private DeviceCategoryRepository deviceCategoryRepository;
     @Autowired private TestFileUploader testFileUploader;
     @Autowired private DeviceRepository deviceRepository;
-
-    // 테스트용 Device 구현체
-    @Entity
-    @NoArgsConstructor
-    public static class DeviceInstance extends Device {
-        public static DeviceInstance createTestInstance() {
-            return new DeviceInstance();
-        }
-
-        public DeviceInstance(String id, DeviceCategory deviceCategory) {
-            super(id, deviceCategory);
-        }
-
-        @Override
-        public String getName() {
-            return "Test Device";
-        }
-
-        @Override
-        public DeviceInfoResponse toDeviceInfo() {
-            return null;
-        }
-    }
 
     @Test
     @DisplayName("성공: 유효한 요청으로 최상위 카테고리 생성 시 모든 필드가 정상적으로 저장된다")
@@ -200,7 +177,14 @@ class DeviceCategoryServiceTest {
         Long categoryId =
                 deviceCategoryService.create(new DeviceCategoryRequest("디바이스 있는 카테고리", null, null));
         DeviceCategory category = deviceCategoryService.findById(categoryId);
-        DeviceInstance device = new DeviceInstance(UUID.randomUUID().toString(), category);
+        Device device =
+                new Device(
+                        UUID.randomUUID().toString(),
+                        "name",
+                        null,
+                        category,
+                        DeviceType.TEMP_HUM,
+                        DeviceCompanyType.DAWONDNS);
 
         device.changeCategory(category);
         deviceRepository.save(device);

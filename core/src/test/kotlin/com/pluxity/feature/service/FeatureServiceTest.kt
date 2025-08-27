@@ -2,9 +2,10 @@ package com.pluxity.feature.service
 
 import com.pluxity.asset.entity.Asset
 import com.pluxity.asset.repository.AssetRepository
-import com.pluxity.device.dto.DeviceInfoResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
+import com.pluxity.device.entity.DeviceCompanyType
+import com.pluxity.device.entity.DeviceType
 import com.pluxity.device.repository.DeviceCategoryRepository
 import com.pluxity.device.repository.DeviceRepository
 import com.pluxity.facility.Facility
@@ -20,8 +21,6 @@ import com.pluxity.feature.repository.FeatureRepository
 import com.pluxity.global.exception.CustomException
 import com.pluxity.station.Station
 import com.pluxity.util.TestFileUploader
-import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.Entity
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -63,18 +62,6 @@ internal class FeatureServiceTest {
 
     @MockitoBean
     lateinit var featureAssignment: FeatureAssignment
-
-    // Device가 추상 클래스이므로, 테스트용 구체 클래스를 정의
-    @Entity
-    @DiscriminatorValue("TEST")
-    class DeviceInstance(
-        id: String,
-        category: DeviceCategory,
-    ) : Device(id, category) {
-        override fun getName(): String = "Test Device Instance"
-
-        override fun toDeviceInfo(): DeviceInfoResponse? = null
-    }
 
     @BeforeEach
     fun setUp() {
@@ -351,7 +338,7 @@ internal class FeatureServiceTest {
         // THEN: DB 직접 검증
         val updatedDevice = deviceRepository.findById(device.id).orElseThrow()
         Assertions.assertThat(updatedDevice.feature).isNotNull()
-        Assertions.assertThat(updatedDevice.feature.id).isEqualTo(feature.id)
+        Assertions.assertThat(updatedDevice.feature?.id).isEqualTo(feature.id)
     }
 
     @Test
@@ -385,8 +372,8 @@ internal class FeatureServiceTest {
         val assignedDevice = createAndSaveDevice()
         val otherDevice = createAndSaveDevice()
         featureService.assignSomethingToFeature(
-            feature.getId(),
-            FeatureAssignDto(assignedDevice.getId(), FeatureAssignType.DEVICE),
+            feature.id,
+            FeatureAssignDto(assignedDevice.id, FeatureAssignType.DEVICE),
             false,
         )
 
@@ -440,7 +427,14 @@ internal class FeatureServiceTest {
 
     private fun createAndSaveDevice(): Device {
         val deviceId = UUID.randomUUID().toString()
-        val device = DeviceInstance(deviceId, testDeviceCategory)
+        val device =
+            Device(
+                id = deviceId,
+                name = "Test Device",
+                category = testDeviceCategory,
+                deviceType = DeviceType.TEMP_HUM,
+                companyType = DeviceCompanyType.DAWONDNS,
+            )
         return deviceRepository.save(device)
     }
 }

@@ -205,7 +205,7 @@ public class DeviceCategoryController {
                                         schema = @Schema(implementation = ErrorResponseBody.class)))
             })
     @GetMapping("/{id}/devices")
-    public ResponseEntity<DataResponseBody<List<DeviceInfoResponse>>> getDevicesByCategoryId(
+    public ResponseEntity<DataResponseBody<List<DeviceResponse>>> getDevicesByCategoryId(
             @Parameter(description = "카테고리 ID") @PathVariable Long id,
             @RequestParam("facilityId") Long facilityId) {
         return ResponseEntity.ok(

@@ -10,6 +10,7 @@ import com.pluxity.device.repository.DeviceCategoryRepository;
 import com.pluxity.device.repository.DeviceRepository;
 import com.pluxity.facility.Facility;
 import com.pluxity.facility.FacilityService;
+import com.pluxity.feature.dto.FeatureResponse;
 import com.pluxity.file.dto.FileResponse;
 import com.pluxity.file.service.FileService;
 import com.pluxity.global.exception.CustomException;
@@ -17,6 +18,7 @@ import com.pluxity.global.utils.MappingUtils;
 import com.pluxity.global.utils.SortUtils;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -178,11 +180,25 @@ public class DeviceCategoryService extends CategoryService<DeviceCategory> {
     }
 
     @Transactional(readOnly = true)
-    public List<DeviceInfoResponse> getDevicesByCategoryId(Long id, Long facilityId) {
+    public List<DeviceResponse> getDevicesByCategoryId(Long id, Long facilityId) {
         DeviceCategory category = findById(id);
         Facility facility = facilityService.findById(facilityId);
         List<Device> list = deviceRepository.findByCategoryAndFacility(category, facility);
-        return list.stream().map(Device::toDeviceInfo).toList();
+        MappingUtils.getFileMapByIds(
+                list, v -> Stream.of(Objects.requireNonNull(v.getCategory()).getIconFileId()), fileService);
+        return list.stream()
+                .map(
+                        v ->
+                                new DeviceResponse(
+                                        v.getId(),
+                                        v.getName(),
+                                        v.getDeviceType(),
+                                        v.getCompanyType(),
+                                        v.getFeature() != null ? FeatureResponse.from(v.getFeature()) : null,
+                                        v.getCategory() != null
+                                                ? DeviceCategoryResponseWithoutChildren.from(v.getCategory(), null)
+                                                : null))
+                .toList();
     }
 
     public DeviceCategoryDepthResponse getDeviceCategoryDepth() {

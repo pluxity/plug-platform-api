@@ -6,6 +6,7 @@ import com.pluxity.facility.FacilityService
 import com.pluxity.facility.dto.FacilityCreateRequest
 import com.pluxity.feature.entity.Spatial
 import com.pluxity.feature.repository.FeatureRepository
+import com.pluxity.feature.service.FeatureAssignment
 import com.pluxity.global.exception.CustomException
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
@@ -37,6 +39,9 @@ internal class Label3DServiceTest {
 
     @Autowired
     private lateinit var featureRepository: FeatureRepository
+
+    @MockitoBean
+    lateinit var featureAssignment: FeatureAssignment
 
     // Facility 추상 클래스를 상속받는 테스트용 구체 클래스
     @Entity
