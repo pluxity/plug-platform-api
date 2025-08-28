@@ -1,6 +1,7 @@
 package com.pluxity.climate
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.pluxity.config.WebClientFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -17,15 +18,13 @@ private val log = KotlinLogging.logger {}
 @Component
 class ClimateDataCollector(
     private val climateDataRequest: ClimateDataRepository,
+    private val webClientFactory: WebClientFactory,
 ) {
     var tokenInfo: TokenInfo? = null
 
     private val client: WebClient =
-        WebClient
-            .builder()
-            .baseUrl("https://dwcon.enercare.co.kr:18443")
-            .defaultHeaders { it.accept = listOf(MediaType.APPLICATION_JSON) }
-            .build()
+        webClientFactory
+            .createClient("https://dwcon.enercare.co.kr:18443")
 
     companion object {
         val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S")
