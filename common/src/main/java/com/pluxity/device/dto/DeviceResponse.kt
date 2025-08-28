@@ -15,12 +15,12 @@ class DeviceResponse(
     val deviceCategory: DeviceCategoryResponseWithoutChildren?,
 )
 
-fun Device.toDeviceResponse(thumbnailFile: FileResponse?) =
+fun Device.toDeviceResponse(thumbnailFile: FileResponse? = FileResponse.empty()) =
     DeviceResponse(
         id = this.id,
         name = this.name,
         deviceType = this.deviceType,
         companyType = this.companyType,
         feature = this.feature?.let { FeatureResponse.from(it) },
-        deviceCategory = this.category?.let { DeviceCategoryResponseWithoutChildren.from(it, thumbnailFile) },
+        deviceCategory = this.category?.toDeviceCategoryResponseWithoutChildren(thumbnailFile!!),
     )

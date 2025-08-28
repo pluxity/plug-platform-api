@@ -8,7 +8,6 @@ import com.pluxity.global.response.ErrorResponseBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -175,13 +174,7 @@ public class DeviceCategoryController {
                 @ApiResponse(
                         responseCode = "200",
                         description = "조회 성공",
-                        content =
-                                @Content(
-                                        mediaType = "application/json",
-                                        examples =
-                                                @ExampleObject(
-                                                        value =
-                                                                "{ \"status\": 200, \"message\": \"성공\", \"data\": [ { \"id\": \"dev1\", \"name\": \"device1\", \"type\": \"DEVICE\" }, { \"id\": \"id33\", \"name\": \"cctv3\", \"url\": \"rtsp://example.com/stream\", \"type\": \"CCTV\" } ], \"timestamp\": \"2025-08-18 15:31:55\" }"))),
+                        content = @Content(mediaType = "application/json")),
                 @ApiResponse(
                         responseCode = "404",
                         description = "카테고리를 찾을 수 없음",
