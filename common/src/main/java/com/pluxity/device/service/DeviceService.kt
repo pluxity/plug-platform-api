@@ -12,11 +12,12 @@ import com.pluxity.device.entity.DeviceType
 import com.pluxity.device.repository.DeviceRepository
 import com.pluxity.file.dto.FileResponse
 import com.pluxity.file.service.FileService
-import com.pluxity.global.annotation.CheckPermissionCategory
+import com.pluxity.global.annotation.CheckPermission
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
-import com.pluxity.permission.ResourceType
+import com.pluxity.user.entity.ExecutionPhase
+import com.pluxity.user.entity.PermissionType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -47,7 +48,7 @@ class DeviceService(
     }
 
     @Transactional(readOnly = true)
-    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
+    @CheckPermission(type = PermissionType.ID)
     fun findById(id: String): DeviceResponse = getDevice(id).toDeviceResponse(getThumbnailFile(getDevice(id)))
 
     private fun getThumbnailFile(device: Device): FileResponse? =
@@ -60,7 +61,7 @@ class DeviceService(
             ?: throw CustomException(ErrorCode.NOT_FOUND_DEVICE, id)
 
     @Transactional(readOnly = true)
-    @CheckPermissionCategory(categoryResourceType = ResourceType.DEVICE_CATEGORY)
+    @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.FILTER)
     fun findAll(): List<DeviceResponse> {
         val devices = deviceRepository.findAll()
         val categoryList =
