@@ -7,8 +7,6 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import lombok.RequiredArgsConstructor
-import lombok.extern.slf4j.Slf4j
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
@@ -16,69 +14,51 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.web.filter.OncePerRequestFilter
-import java.io.IOException
-import java.util.*
-import java.util.function.Consumer
-import java.util.function.Function
-import java.util.function.Predicate
 
-@Slf4j
-@RequiredArgsConstructor
-class JwtAuthenticationFilter : OncePerRequestFilter() {
-    private val jwtProvider: JwtProvider? = null
-    private val userDetailsService: UserDetailsService? = null
-
-    @Throws(ServletException::class, IOException::class)
+class JwtAuthenticationFilter(
+    private val jwtProvider: JwtProvider,
+    private val userDetailsService: UserDetailsService,
+) : OncePerRequestFilter() {
+    @Throws(ServletException::class, java.io.IOException::class)
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         try {
-            Optional.of<HttpServletRequest?>(request)
-                .filter(Predicate { request: HttpServletRequest? -> this.authenticationRequired(request!!) })
-                .map<String?>(Function { request: HttpServletRequest? -> jwtProvider!!.getAccessTokenFromRequest(request) })
-                .filter(Predicate { token: String? -> jwtProvider!!.isAccessTokenValid(token) })
-                .map<String?>(Function { token: String? -> jwtProvider!!.extractUsername(token) })
-                .map<UserDetails?>(Function { username: String? -> userDetailsService!!.loadUserByUsername(username) })
-                .ifPresent(Consumer { userDetails: UserDetails? -> setAuthenticationContext(request, userDetails!!) })
+            if (authenticationRequired(request)) {
+                val token = jwtProvider.getAccessTokenFromRequest(request)
+                if (jwtProvider.isAccessTokenValid(token)) {
+                    val username = jwtProvider.extractUsername(token)
+                    val userDetails: UserDetails = userDetailsService.loadUserByUsername(username)
+                    setAuthenticationContext(request, userDetails)
+                }
+            }
         } catch (e: CustomException) {
             val objectMapper = ObjectMapper()
-            response.setStatus(e.getErrorCode().getHttpStatus().value())
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE)
-            response.setCharacterEncoding("UTF-8")
-
-            val errorResponse = ErrorResponseBody.of(e.getErrorCode().getHttpStatus(), e.message)
-
-            try {
-                response.getWriter().write(objectMapper.writeValueAsString(errorResponse))
-            } catch (ioException: IOException) {
-                JwtAuthenticationFilter.log.error(ioException.message)
-            }
-
+            response.status = e.errorCode.httpStatus.value()
+            response.contentType = MediaType.APPLICATION_JSON_VALUE
+            response.characterEncoding = "UTF-8"
+            val errorResponse = ErrorResponseBody.of(e.errorCode.httpStatus, e.message)
+            response.writer.write(objectMapper.writeValueAsString(errorResponse))
             return
         }
 
         filterChain.doFilter(request, response)
     }
 
-    private fun setAuthenticationContext(request: HttpServletRequest?, userDetails: UserDetails) {
-        val authToken =
-            UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
-
-        authToken.setDetails(WebAuthenticationDetailsSource().buildDetails(request))
-        SecurityContextHolder.getContext().setAuthentication(authToken)
+    private fun setAuthenticationContext(
+        request: HttpServletRequest,
+        userDetails: UserDetails,
+    ) {
+        val authToken = UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
+        authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
+        SecurityContextHolder.getContext().authentication = authToken
     }
 
     private fun authenticationRequired(request: HttpServletRequest): Boolean {
-        val contextPath = request.getContextPath()
-        val path = request.getRequestURI().substring(contextPath.length)
-
-        for (value in WhiteListPath.entries) {
-            if (path.startsWith("/" + value.getPath())) {
-                return false
-            }
-        }
-        return true
+        val contextPath = request.contextPath
+        val path = request.requestURI.substring(contextPath.length)
+        return WhiteListPath.entries.none { path.startsWith("/${it.path}") }
     }
 }
