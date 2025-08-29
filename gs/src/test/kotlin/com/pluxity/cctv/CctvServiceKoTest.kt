@@ -79,7 +79,7 @@ class CctvServiceKoTest :
                     val searchId = UUID.randomUUID().toString()
                     shouldThrowExactly<CustomException> {
                         cctvService.findById(searchId)
-                    }.message shouldBe ErrorCode.NOT_FOUND_CCTV.message.format(searchId)
+                    }.message shouldBe ErrorCode.NOT_FOUND_CCTV.getMessage().format(searchId)
                 }
             }
         }

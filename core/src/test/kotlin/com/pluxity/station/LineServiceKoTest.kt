@@ -32,7 +32,7 @@ class LineServiceKoTest :
                 Then("예외 발생") {
                     shouldThrowExactly<CustomException> {
                         lineService.save(createRequest)
-                    }.message shouldBe ErrorCode.DUPLICATE_LINE_NAME.message.format(createRequest.name)
+                    }.message shouldBe ErrorCode.DUPLICATE_LINE_NAME.getMessage().format(createRequest.name)
                 }
             }
 
@@ -71,7 +71,7 @@ class LineServiceKoTest :
                     val id = 1L
                     shouldThrowExactly<CustomException> {
                         lineService.findLineById(id)
-                    }.message shouldBe ErrorCode.NOT_FOUND_LINE.message.format(id)
+                    }.message shouldBe ErrorCode.NOT_FOUND_LINE.getMessage().format(id)
                 }
             }
 
@@ -95,7 +95,7 @@ class LineServiceKoTest :
                     val id = 1L
                     shouldThrowExactly<CustomException> {
                         lineService.findStationsByLineId(id)
-                    }.message shouldBe ErrorCode.NOT_FOUND_LINE.message.format(id)
+                    }.message shouldBe ErrorCode.NOT_FOUND_LINE.getMessage().format(id)
                 }
             }
 
@@ -124,7 +124,7 @@ class LineServiceKoTest :
                 Then("예외 발생") {
                     shouldThrowExactly<CustomException> {
                         lineService.update(line.id!!, updateRequest)
-                    }.message shouldBe ErrorCode.DUPLICATE_LINE_NAME.message.format(updateRequest.name)
+                    }.message shouldBe ErrorCode.DUPLICATE_LINE_NAME.getMessage().format(updateRequest.name)
                 }
             }
 

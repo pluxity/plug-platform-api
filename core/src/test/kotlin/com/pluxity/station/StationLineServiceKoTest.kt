@@ -137,7 +137,7 @@ class StationLineServiceKoTest :
                 Then("실패") {
                     shouldThrowExactly<CustomException> {
                         stationLineService.deleteStationLine(station, line)
-                    }.message shouldBe ErrorCode.NOT_FOUND_STATION_LINE.message.format(station.id, line.id)
+                    }.message shouldBe ErrorCode.NOT_FOUND_STATION_LINE.getMessage().format(station.id, line.id)
                 }
             }
         }
