@@ -4,8 +4,6 @@ import com.pluxity.asset.entity.AssetCategory
 import com.pluxity.global.annotation.CheckPermissionAll
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import java.util.Optional
 
 interface AssetCategoryRepository : JpaRepository<AssetCategory, Long> {
     fun existsByCode(code: String): Boolean

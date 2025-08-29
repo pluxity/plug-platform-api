@@ -1,6 +1,5 @@
 package com.pluxity.asset.dto
 
-import com.pluxity.asset.entity.Asset
 import com.pluxity.asset.entity.AssetCategory
 import com.pluxity.file.dto.FileResponse
 import io.swagger.v3.oas.annotations.media.Schema
@@ -38,7 +37,7 @@ data class AssetCategoryResponse(
                 parentId = category.parent?.id,
                 children = category.children.map { from(it) },
                 thumbnail = null,
-                assetIds = category.assets.map(Asset::getId),
+                assetIds = category.assets.mapNotNull { it.id },
                 createdAt = category.createdAt,
                 updatedAt = category.updatedAt,
                 depth = category.depth,
@@ -56,7 +55,7 @@ data class AssetCategoryResponse(
                 parentId = category.parent?.id,
                 children = emptyList(),
                 thumbnail = iconFile,
-                assetIds = category.assets.map(Asset::getId),
+                assetIds = category.assets.mapNotNull { it.id },
                 createdAt = category.createdAt,
                 updatedAt = category.updatedAt,
                 depth = category.depth,
@@ -71,7 +70,7 @@ data class AssetCategoryResponse(
                 parentId = category.parent?.id,
                 children = emptyList(),
                 thumbnail = null,
-                assetIds = category.assets.map(Asset::getId),
+                assetIds = category.assets.mapNotNull { it.id },
                 createdAt = category.createdAt,
                 updatedAt = category.updatedAt,
                 depth = category.depth,
@@ -89,7 +88,7 @@ data class AssetCategoryResponse(
                 parentId = category.parent?.id,
                 children = emptyList(),
                 thumbnail = iconFile,
-                assetIds = category.assets.map(Asset::getId),
+                assetIds = category.assets.mapNotNull { it.id },
                 createdAt = category.createdAt,
                 updatedAt = category.updatedAt,
                 depth = category.depth,

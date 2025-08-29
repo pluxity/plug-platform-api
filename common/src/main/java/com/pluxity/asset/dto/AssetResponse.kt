@@ -5,32 +5,37 @@ import com.pluxity.asset.entity.Asset
 import com.pluxity.file.dto.FileResponse
 import com.pluxity.global.response.BaseResponse
 
-@JvmRecord
 data class AssetResponse(
-    @JvmField val id: Long?,
-    @JvmField val name: String?,
-    @JvmField val code: String?,
-    @JvmField val categoryId: Long?,
-    @JvmField val categoryName: String?,
-    @JvmField val categoryCode: String?,
-    @JvmField val file: FileResponse?,
-    @JvmField val thumbnailFile: FileResponse?,
-    @field:JsonUnwrapped @param:JsonUnwrapped val baseResponse: BaseResponse?
+    val id: Long?,
+    val name: String?,
+    val code: String?,
+    val categoryId: Long?,
+    val categoryName: String?,
+    val categoryCode: String?,
+    val file: FileResponse?,
+    val thumbnailFile: FileResponse?,
+    @field:JsonUnwrapped val baseResponse: BaseResponse,
 ) {
     companion object {
-        @JvmOverloads
-        fun from(asset: Asset, file: FileResponse? = null, thumbnailFile: FileResponse? = null): AssetResponse {
-            return AssetResponse(
-                asset.getId(),
-                asset.getName(),
-                asset.getCode(),
-                if (asset.getCategory() != null) asset.getCategory().getId() else null,
-                if (asset.getCategory() != null) asset.getCategory().getName() else null,
-                if (asset.getCategory() != null) asset.getCategory().code else null,
-                if (file != null) file else FileResponse.empty(),
-                if (thumbnailFile != null) thumbnailFile else FileResponse.empty(),
-                BaseResponse.of(asset)
+        @JvmStatic
+        fun from(
+            asset: Asset,
+            file: FileResponse?,
+            thumbnailFile: FileResponse?,
+        ): AssetResponse =
+            AssetResponse(
+                id = asset.id,
+                name = asset.name,
+                code = asset.code,
+                categoryId = asset.category?.id,
+                categoryName = asset.category?.name,
+                categoryCode = asset.category?.code,
+                file = file ?: FileResponse.empty(),
+                thumbnailFile = thumbnailFile ?: FileResponse.empty(),
+                baseResponse = BaseResponse.of(asset),
             )
-        }
+
+        @JvmStatic
+        fun from(asset: Asset): AssetResponse = from(asset, null, null)
     }
 }

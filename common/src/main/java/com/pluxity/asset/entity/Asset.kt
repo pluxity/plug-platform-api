@@ -1,39 +1,64 @@
 package com.pluxity.asset.entity
 
 import com.pluxity.asset.dto.AssetCreateRequest
-import com.pluxity.asset.dto.AssetUpdateRequest
-import com.pluxity.asset.entity.AssetCategory.code
 import com.pluxity.file.entity.FileEntity
 import com.pluxity.global.entity.BaseEntity
-import jakarta.persistence.*
-import lombok.AccessLevel
-import lombok.Builder
-import lombok.Getter
-import lombok.NoArgsConstructor
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.Table
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
 @Table(name = "asset")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener::class)
-class Asset @Builder constructor(
-    @field:Column(name = "name", unique = true, nullable = false, length = 50) private var name: String?,
-    @field:Column(
-        name = "code",
-        unique = true,
-        nullable = false,
-        length = 50
-    ) private var code: String?,
-    @field:Column(name = "file_id") private var fileId: Long?,
-    @field:Column(name = "thumbnail_file_id") private var thumbnailFileId: Long?,
-    @field:JoinColumn(
-        name = "category_id"
-    ) @field:ManyToOne(fetch = FetchType.LAZY) private var category: AssetCategory?
+class Asset(
+    name: String? = null,
+    code: String? = null,
+    fileId: Long? = null,
+    thumbnailFileId: Long? = null,
+    category: AssetCategory? = null,
 ) : BaseEntity() {
+    companion object {
+        const val ASSETS_PATH: String = "assets"
+
+        @JvmStatic
+        fun create(request: AssetCreateRequest): Asset =
+            Asset(
+                name = request.name,
+                code = request.code,
+                thumbnailFileId = request.thumbnailFileId,
+            )
+
+        fun builder() = Builder()
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long? = null
+    var id: Long? = null
+
+    @Column(name = "name", unique = true, nullable = false, length = 50)
+    var name: String? = name
+
+    @Column(name = "code", unique = true, nullable = false, length = 50)
+    var code: String? = code
+
+    @Column(name = "file_id")
+    var fileId: Long? = fileId
+
+    @Column(name = "thumbnail_file_id")
+    var thumbnailFileId: Long? = thumbnailFileId
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    var category: AssetCategory? = category
+        private set
 
     init {
         if (this.category != null) {
@@ -41,34 +66,22 @@ class Asset @Builder constructor(
         }
     }
 
-    fun update(request: AssetUpdateRequest) {
-        if (request.name != null) {
-            this.name = request.name
-        }
-        if (request.code != null) {
-            this.code = request.code
-        }
-        if (request.thumbnailFileId != null) {
-            this.thumbnailFileId = request.thumbnailFileId
-        }
+    fun update(request: com.pluxity.asset.dto.AssetUpdateRequest) {
+        this.name = request.name
+        this.code = request.code
+        request.thumbnailFileId?.let { this.thumbnailFileId = it }
     }
 
     fun update(name: String?) {
-        if (name != null) {
-            this.name = name
-        }
+        name?.let { this.name = it }
     }
 
     fun updateFileEntity(fileEntity: FileEntity?) {
-        if (fileEntity != null) {
-            this.fileId = fileEntity.getId()
-        }
+        fileEntity?.let { this.fileId = it.id }
     }
 
     fun updateThumbnailFileEntity(fileEntity: FileEntity?) {
-        if (fileEntity != null) {
-            this.thumbnailFileId = fileEntity.getId()
-        }
+        fileEntity?.let { this.thumbnailFileId = it.id }
     }
 
     fun updateCategory(category: AssetCategory?) {
@@ -81,34 +94,42 @@ class Asset @Builder constructor(
         }
     }
 
-    val assetFilePath: String
-        get() = ASSETS_PATH + "/" + this.id + "/"
+    fun getAssetFilePath(): String = "$ASSETS_PATH/${this.id}/"
 
-    val thumbnailFilePath: String
-        get() = ASSETS_PATH + "/" + this.id + "/thumbnail/"
+    fun getThumbnailFilePath(): String = "$ASSETS_PATH/${this.id}/thumbnail/"
 
-    fun hasFile(): Boolean {
-        return this.fileId != null
-    }
+    fun hasFile(): Boolean = this.fileId != null
 
-    fun hasThumbnail(): Boolean {
-        return this.thumbnailFileId != null
-    }
+    fun hasThumbnail(): Boolean = this.thumbnailFileId != null
 
     fun clearAllRelations() {
-        // 카테고리 연관관계 제거
-        this.updateCategory(null)
+        updateCategory(null)
     }
 
-    companion object {
-        const val ASSETS_PATH: String = "assets"
+    class Builder {
+        private var name: String? = null
+        private var code: String? = null
+        private var fileId: Long? = null
+        private var thumbnailFileId: Long? = null
+        private var category: AssetCategory? = null
 
-        fun create(request: AssetCreateRequest): Asset? {
-            return Asset.builder()
-                .name(request.name)
-                .code(request.code)
-                .thumbnailFileId(request.thumbnailFileId)
-                .build()
-        }
+        fun name(name: String) = apply { this.name = name }
+
+        fun code(code: String) = apply { this.code = code }
+
+        fun fileId(fileId: Long?) = apply { this.fileId = fileId }
+
+        fun thumbnailFileId(thumbnailFileId: Long?) = apply { this.thumbnailFileId = thumbnailFileId }
+
+        fun category(category: AssetCategory?) = apply { this.category = category }
+
+        fun build(): Asset =
+            Asset(
+                name = name,
+                code = code,
+                fileId = fileId,
+                thumbnailFileId = thumbnailFileId,
+                category = category,
+            )
     }
 }
