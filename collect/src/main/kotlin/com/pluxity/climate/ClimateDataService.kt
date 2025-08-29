@@ -64,7 +64,7 @@ class ClimateDataService(
                 val bucket = rs.getObject("bucket_start", LocalDateTime::class.java)
                 val t = rs.getDouble("avg_temperature").round1Decimal()
                 val h = rs.getDouble("avg_humidity").round1Decimal()
-                ClimateListDto(bucket.toString(), t, h)
+                ClimateListDto(bucket.format(DateTimeFormatter.ofPattern(interval.format)), t, h)
             }
         return result.toDeviceListDataResponse(id, interval, timeRange)
     }
