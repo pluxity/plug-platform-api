@@ -92,7 +92,17 @@ class ClimateDataService(
     ): DeviceListDataResponse {
         val bucketList = map { it.bucketStart }
         val metrics = toMetricsMap()
-        val metaData = deviceId.toListMetaData(interval, timeRange, metrics.keys.toList())
+        val metaData =
+            ListMetaData(
+                deviceId,
+                ListQueryInfo(
+                    interval.name,
+                    timeRange.first.toString(),
+                    timeRange.second.toString(),
+                    metrics.keys.toList(),
+                ),
+            )
+
         return DeviceListDataResponse(metaData, bucketList, metrics)
     }
 
@@ -104,19 +114,4 @@ class ClimateDataService(
                 else -> 0.0
             }
         }
-
-    private fun String.toListMetaData(
-        interval: DataInterval,
-        timeRange: Pair<LocalDateTime, LocalDateTime>,
-        metricKeys: List<String>,
-    ): ListMetaData {
-        val queryInfo =
-            ListQueryInfo(
-                interval.name,
-                timeRange.first.toString(),
-                timeRange.second.toString(),
-                metricKeys,
-            )
-        return ListMetaData(this, queryInfo)
-    }
 }
