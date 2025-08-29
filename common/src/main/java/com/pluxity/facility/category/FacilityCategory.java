@@ -21,6 +21,8 @@ public class FacilityCategory extends Category<FacilityCategory> {
 
     @Builder
     public FacilityCategory(String name) {
-        this.name = name;
+        if (name != null) {
+            this.setName(name);
+        }
     }
 }

@@ -3,57 +3,60 @@ package com.pluxity.category.entity
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.entity.BaseEntity
 import com.pluxity.global.exception.CustomException
-import jakarta.persistence.*
-import lombok.Getter
-import lombok.Setter
+import jakarta.persistence.Column
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.OneToMany
 
 @MappedSuperclass
-@Getter
-abstract class Category<T : Category<T?>?> : BaseEntity() {
+abstract class Category<T : Category<T>> : BaseEntity() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long? = null
+    var id: Long? = null
 
-    @JvmField
     @Column(nullable = false)
-    @Setter
-    protected var name: String? = null
+    var name: String = ""
 
     @ManyToOne(fetch = FetchType.LAZY)
-    protected var parent: T? = null
+    var parent: T? = null
 
     @OneToMany(mappedBy = "parent", orphanRemoval = true)
-    protected var children: MutableList<T?> = ArrayList<T?>()
+    var children: MutableList<T> = mutableListOf()
 
     open val maxDepth: Int
         get() = 2
 
-    val isRoot: Boolean
-        get() = parent == null
-
     val depth: Int
-        get() = if (this.isRoot) 1 else parent.getDepth() + 1
+        get() = if (isRoot()) 1 else (parent?.depth ?: 1) + 1
 
-    fun updateName(name: String?) {
+    fun isRoot(): Boolean = parent == null
+
+    fun updateName(name: String) {
         this.name = name
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun assignToParent(newParent: T?) {
-        if (this.parent != null) {
-            this.parent.getChildren().remove(this)
+        val currentParent = this.parent
+        if (currentParent != null) {
+            currentParent.children.remove(this as T)
         }
 
         this.parent = newParent
 
         if (newParent != null) {
-            newParent.getChildren().add(this as T)
+            newParent.children.add(this as T)
         }
 
-        this.validateDepth()
+        validateDepth()
     }
 
     fun validateDepth() {
-        if (this.depth > this.maxDepth) {
+        if (depth > maxDepth) {
             throw CustomException(ErrorCode.EXCEED_CATEGORY_DEPTH)
         }
     }

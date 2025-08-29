@@ -3,73 +3,71 @@ package com.pluxity.category.service
 import com.pluxity.category.dto.CategoryResponse
 import com.pluxity.category.dto.CategoryTreeResponse
 import com.pluxity.category.entity.Category
-import com.pluxity.global.constant.ErrorCode
+import com.pluxity.global.constant.ErrorCode.CIRCULAR_REFERENCE_CATEGORY
+import com.pluxity.global.constant.ErrorCode.INVALID_PARENT_CATEGORY
+import com.pluxity.global.constant.ErrorCode.NOT_FOUND_CATEGORY
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
 import org.springframework.data.jpa.repository.JpaRepository
-import java.util.function.Function
-import java.util.function.Supplier
 
-abstract class CategoryService<T : Category<T?>?> {
-    protected abstract val repository: JpaRepository<T?, Long?>?
+abstract class CategoryService<T : Category<T>> {
+    protected abstract fun getRepository(): JpaRepository<T, Long>
 
-    fun create(category: T?, parent: T?): Long? {
-        category!!.assignToParent(parent)
-        return this.repository!!.save<T?>(category).getId()
+    fun create(
+        category: T,
+        parent: T?,
+    ): Long {
+        category.assignToParent(parent)
+        return getRepository().save(category).id!!
     }
 
-    fun update(id: Long, name: String?, parentId: Long?) {
+    fun update(
+        id: Long,
+        name: String?,
+        parentId: Long?,
+    ) {
         val categoryToUpdate = findById(id)
-        val newParent = MappingUtils.findByIdIfExists<Long?, T?>(parentId, Function { id: Long? -> this.findById(id!!) })
+        val newParent = MappingUtils.findByIdIfExists(parentId, ::findById)
 
-        if (categoryToUpdate!!.getId() == parentId) {
-            throw CustomException(ErrorCode.INVALID_PARENT_CATEGORY)
+        if (categoryToUpdate.id == parentId) {
+            throw CustomException(INVALID_PARENT_CATEGORY)
         }
 
         if (isCircularReference(categoryToUpdate, newParent)) {
-            throw CustomException(ErrorCode.CIRCULAR_REFERENCE_CATEGORY)
+            throw CustomException(CIRCULAR_REFERENCE_CATEGORY)
         }
 
-        categoryToUpdate.updateName(name)
+        if (name != null) {
+            categoryToUpdate.updateName(name)
+        }
         categoryToUpdate.assignToParent(newParent)
     }
 
-    private fun isCircularReference(source: T?, target: T?): Boolean {
-        var target = target
-        while (target != null) {
-            if (target.getId() == source!!.getId()) {
+    private fun isCircularReference(
+        source: T,
+        target: T?,
+    ): Boolean {
+        var current = target
+        while (current != null) {
+            if (current.id == source.id) {
                 return true
             }
-            target = target.getParent()
+            current = current.parent
         }
         return false
     }
 
-    fun findById(id: Long): T? {
-        return this.repository!!
-            .findById(id)
-            .orElseThrow<CustomException?>(Supplier { CustomException(ErrorCode.NOT_FOUND_CATEGORY, id) })
-    }
+    fun findById(id: Long): T = getRepository().findById(id).orElseThrow { CustomException(NOT_FOUND_CATEGORY, id) }
 
-    val rootCategories: MutableList<T?>
-        get() = this.repository!!.findAll().stream().filter { obj: T? -> obj!!.isRoot() }.toList()
+    fun getRootCategories(): List<T> = getRepository().findAll().filter { it.isRoot() }
 
-    fun getChildren(parentId: Long): MutableList<T?>? {
-        val parent = findById(parentId)
-        return parent!!.getChildren()
-    }
+    fun getChildren(parentId: Long): List<T> = findById(parentId).children
 
-    val rootCategoryResponses: MutableList<CategoryResponse?>
-        get() = this.rootCategories.stream().map<CategoryResponse?> { category: T? -> CategoryResponse.Companion.from(category) }.toList()
+    fun getRootCategoryResponses(): List<CategoryResponse> = getRootCategories().map { CategoryResponse.from(it) }
 
-    fun getChildResponses(parentId: Long): MutableList<CategoryResponse?> {
-        return getChildren(parentId)!!.stream().map<CategoryResponse?> { category: T? -> CategoryResponse.Companion.from(category) }.toList()
-    }
+    fun getChildResponses(parentId: Long): List<CategoryResponse> = getChildren(parentId).map { CategoryResponse.from(it) }
 
-    fun getResponse(id: Long): CategoryResponse {
-        return CategoryResponse.Companion.from<T?>(findById(id))
-    }
+    fun getResponse(id: Long): CategoryResponse = CategoryResponse.from(findById(id))
 
-    val categoryTree: MutableList<CategoryTreeResponse?>
-        get() = this.rootCategories.stream().map<CategoryTreeResponse?> { category: T? -> CategoryTreeResponse.Companion.from(category) }.toList()
+    fun getCategoryTree(): List<CategoryTreeResponse> = getRootCategories().map { CategoryTreeResponse.from(it) }
 }

@@ -4,21 +4,19 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.pluxity.category.entity.Category
 import com.pluxity.global.response.BaseResponse
 
-@JvmRecord
 data class CategoryTreeResponse(
-    val id: Long?,
-    val name: String?,
-    val children: MutableList<CategoryTreeResponse?>?,
-    @field:JsonUnwrapped @param:JsonUnwrapped val baseResponse: BaseResponse?
+    val id: Long,
+    val name: String,
+    val children: List<CategoryTreeResponse>,
+    @JsonUnwrapped val baseResponse: BaseResponse,
 ) {
     companion object {
-        fun <T : Category<T?>?> from(category: T?): CategoryTreeResponse {
-            return CategoryTreeResponse(
-                category!!.getId(),
-                category.getName(),
-                category.getChildren().stream().map<CategoryTreeResponse?> { category: T? -> from(category) }.toList(),
-                BaseResponse.of(category)
+        fun <T : Category<T>> from(category: T): CategoryTreeResponse =
+            CategoryTreeResponse(
+                id = category.id!!,
+                name = category.name,
+                children = category.children.map { from(it) },
+                baseResponse = BaseResponse.of(category),
             )
-        }
     }
 }

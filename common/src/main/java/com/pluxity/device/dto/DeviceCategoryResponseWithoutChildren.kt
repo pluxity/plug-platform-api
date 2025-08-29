@@ -5,7 +5,7 @@ import com.pluxity.file.dto.FileResponse
 import io.swagger.v3.oas.annotations.media.Schema
 
 data class DeviceCategoryResponseWithoutChildren(
-    val id: Long,
+    val id: Long?,
     val name: String,
     val parentId: Long?,
     val thumbnailFile: FileResponse,

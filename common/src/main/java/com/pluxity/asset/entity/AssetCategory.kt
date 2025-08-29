@@ -41,7 +41,8 @@ class AssetCategory(
         asset?.let { this.assets.remove(it) }
     }
 
-    override fun getMaxDepth(): Int = 1
+    override val maxDepth: Int
+        get() = 1
 
     companion object {
         fun builder() = Builder()

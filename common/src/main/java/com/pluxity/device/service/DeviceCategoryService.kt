@@ -43,7 +43,7 @@ class DeviceCategoryService(
         val parent =
             MappingUtils.findByIdIfExists(
                 request.parentId,
-            ) { id -> super.findById(id) }
+            ) { id -> id?.let { super.findById(it) } }
 
         val deviceCategoryId = super.create(deviceCategory, parent)
 
@@ -141,11 +141,11 @@ class DeviceCategoryService(
     fun delete(id: Long) {
         val deviceCategory = findById(id)
 
-        if (!deviceCategory.getChildren().isEmpty()) {
+        if (deviceCategory.children.isNotEmpty()) {
             throw CustomException(ErrorCode.CATEGORY_HAS_CHILDREN)
         }
 
-        if (!deviceCategory.devices.isEmpty()) {
+        if (deviceCategory.devices.isNotEmpty()) {
             throw CustomException(ErrorCode.CATEGORY_HAS_DEVICES)
         }
 
