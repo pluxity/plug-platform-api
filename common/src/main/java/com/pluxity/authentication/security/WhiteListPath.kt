@@ -1,9 +1,9 @@
-package com.pluxity.authentication.security;
+package com.pluxity.authentication.security
 
-import lombok.Getter;
+import lombok.Getter
 
 @Getter
-public enum WhiteListPath {
+enum class WhiteListPath(path: String) {
     AUTH_IN("auth/sign-in"),
     AUTH_UP("auth/sign-up"),
     REFRESH_TOKEN("auth/refresh-token"),
@@ -15,9 +15,9 @@ public enum WhiteListPath {
     SWAGGER("swagger-ui"),
     ;
 
-    private final String path;
+    private val path: String?
 
-    WhiteListPath(String path) {
-        this.path = path;
+    init {
+        this.path = path
     }
 }
