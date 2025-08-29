@@ -9,6 +9,4 @@ public interface Code {
     String getMessage();
 
     String getStatusName();
-
-    Integer getStatusValue();
 }
