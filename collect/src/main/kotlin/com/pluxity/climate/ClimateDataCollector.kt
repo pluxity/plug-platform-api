@@ -1,7 +1,7 @@
 package com.pluxity.climate
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.pluxity.climate.repository.ClimateDataRepository
+import com.pluxity.climate.ClimateDataRepository
 import com.pluxity.config.WebClientFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async

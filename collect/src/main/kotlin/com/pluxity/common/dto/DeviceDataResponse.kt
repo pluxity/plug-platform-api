@@ -1,7 +1,5 @@
 package com.pluxity.common.dto
 
-import com.pluxity.climate.ClimateData
-
 data class DeviceDataResponse(
     val meta: MetaData,
     val timestamp: String,
@@ -44,21 +42,3 @@ data class ListMetricData(
     val unit: String,
     val values: List<Double>,
 )
-
-fun ClimateData.toMetricMap(): Map<String, MetricData> =
-    buildMap {
-        temperature?.let { put("temperature", MetricData("℃", it)) }
-        humidity?.let { put("humidity", MetricData("%", it)) }
-    }
-
-fun ClimateData.toDeviceDataResponse(deviceId: String): DeviceDataResponse {
-    val metricMap = this.toMetricMap()
-    val queryInfo = QueryInfo(metricMap.keys.toList())
-    val meta = MetaData(deviceId, queryInfo)
-
-    return DeviceDataResponse(
-        meta = meta,
-        timestamp = this.createdAt.toString(),
-        metrics = metricMap,
-    )
-}
