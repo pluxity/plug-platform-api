@@ -62,8 +62,8 @@ class ClimateDataService(
                 params,
             ) { rs, _ ->
                 val bucket = rs.getObject("bucket_start", LocalDateTime::class.java)
-                val t = rs.getDouble("avg_temperature").roundToTwoDecimals()
-                val h = rs.getDouble("avg_humidity").roundToTwoDecimals()
+                val t = rs.getDouble("avg_temperature").round1Decimal()
+                val h = rs.getDouble("avg_humidity").round1Decimal()
                 ClimateListDto(bucket.toString(), t, h)
             }
         return result.toDeviceListDataResponse(id, interval, timeRange)
@@ -83,7 +83,7 @@ class ClimateDataService(
             LocalDateTime.parse(second, FORMATTER),
         )
 
-    private fun Double.roundToTwoDecimals(): Double = (this * 100).roundToInt() / 100.0
+    private fun Double.round1Decimal(): Double = (this * 10).roundToInt() / 10.0
 
     private fun List<ClimateListDto>.toDeviceListDataResponse(
         deviceId: String,
