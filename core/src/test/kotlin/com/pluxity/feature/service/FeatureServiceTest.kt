@@ -107,7 +107,7 @@ internal class FeatureServiceTest {
         // THEN: 데이터베이스 최종 상태 직접 검증
         val savedFeature = featureRepository.findById(featureId).orElseThrow()
         Assertions.assertThat(savedFeature.id).isEqualTo(featureId)
-        Assertions.assertThat(savedFeature.assetId).isEqualTo(testAsset.getId())
+        Assertions.assertThat(savedFeature.assetId).isEqualTo(testAsset.id)
         Assertions.assertThat(savedFeature.facility.id).isEqualTo(testFacility.id)
         Assertions.assertThat(savedFeature.floorId).isEqualTo("B1")
         Assertions.assertThat(savedFeature.position.x).isEqualTo(10.0)
