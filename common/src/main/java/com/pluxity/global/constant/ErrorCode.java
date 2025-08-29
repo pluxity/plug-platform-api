@@ -29,6 +29,7 @@ public enum ErrorCode implements Code {
     DUPLICATE_RESOURCE_ID(BAD_REQUEST, "중복된 리소스 ID가 포함되어 있습니다."),
 
     NOT_FOUND_USER(BAD_REQUEST, "해당 회원이 존재하지 않습니다."),
+    NOT_FOUND_DATA(BAD_REQUEST, "데이터가 존재하지 않습니다."),
     NOT_AUTHORIZED(UNAUTHORIZED, "권한이 없습니다."),
     PERMISSION_DENIED(FORBIDDEN, "접근 권한이 없습니다."),
     USER_CANNOT_ACCESS(UNAUTHORIZED, "사용자 '%s'는 ID가 %d인 %s에 접근할 권한이 없습니다."),

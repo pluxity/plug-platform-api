@@ -1,14 +1,18 @@
 package com.pluxity.climate
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.pluxity.climate.ClimateDataRepository
 import com.pluxity.config.WebClientFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.awaitBody
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -18,9 +22,10 @@ private val log = KotlinLogging.logger {}
 @Component
 class ClimateDataCollector(
     private val climateDataRequest: ClimateDataRepository,
-    private val webClientFactory: WebClientFactory,
+    webClientFactory: WebClientFactory,
 ) {
-    var tokenInfo: TokenInfo? = null
+    private var tokenInfo: TokenInfo? = null
+    private val tokenMutex = Mutex()
 
     private val client: WebClient =
         webClientFactory
@@ -37,7 +42,7 @@ class ClimateDataCollector(
             list
                 .map { id ->
                     async {
-                        val (deviceId, results) = callClimateData(id)
+                        val (deviceId, results) = callClimateDataWithRetry(id)
                         climateDataRequest.save(
                             ClimateData(
                                 deviceId = deviceId,
@@ -54,11 +59,50 @@ class ClimateDataCollector(
         }
     }
 
+    private suspend fun callClimateDataWithRetry(
+        deviceId: String,
+        isRetry: Boolean = false,
+    ): DeviceValuesResponse =
+        try {
+            callClimateData(deviceId)
+        } catch (e: WebClientResponseException) {
+            if (e.statusCode.value() == 400 && !isRetry && isTokenIncorrectError(e)) {
+                log.warn { "토큰 무효로 인한 400 응답, 토큰 갱신 후 재시도: deviceId=$deviceId" }
+
+                // 토큰 갱신을 동기화하여 중복 요청 방지
+                tokenMutex.withLock {
+                    // 400 에러가 발생했으므로 현재 토큰이 무효함 - 무조건 새로 발급
+                    val oldTokenValue = tokenInfo?.value
+                    log.info { "토큰 강제 갱신 시작 - 이전 토큰: ${oldTokenValue?.take(10)}..." }
+                    tokenInfo = fetchToken()
+                    log.info { "토큰 강제 갱신 완료 - 새 토큰: ${tokenInfo?.value?.take(10)}..., 만료: ${tokenInfo?.expiresAt}" }
+                }
+
+                // 재시도 플래그를 true로 설정하여 재귀 호출
+                callClimateDataWithRetry(deviceId, isRetry = true)
+            } else {
+                throw e
+            }
+        }
+
     private suspend fun ensureToken() {
-        if (tokenInfo?.expiresAt?.isAfter(LocalDateTime.now().plusHours(1)) == true) return
-        tokenInfo = fetchToken()
-        log.info { "새 토큰 발급, 만료: ${tokenInfo?.expiresAt}" }
+        tokenMutex.withLock {
+            // 토큰이 없거나 만료 1시간 전인 경우에만 발급
+            if (tokenInfo?.expiresAt?.isAfter(LocalDateTime.now().plusHours(1)) == true) return
+            tokenInfo = fetchToken()
+            log.info { "새 토큰 발급, 만료: ${tokenInfo?.expiresAt}" }
+        }
     }
+
+    private fun isTokenIncorrectError(e: WebClientResponseException): Boolean =
+        try {
+            val responseBody = e.responseBodyAsString
+            log.info { "400 응답 바디 확인: $responseBody" }
+            responseBody.contains("\"reason\":\"Token Incorrect\"")
+        } catch (ex: Exception) {
+            log.warn { "응답 바디 파싱 중 오류 발생: ${ex.message}" }
+            false
+        }
 
     private suspend fun fetchToken(): TokenInfo {
         val (token, expire) =

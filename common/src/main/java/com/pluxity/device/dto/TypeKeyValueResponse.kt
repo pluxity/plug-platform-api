@@ -6,5 +6,5 @@ class TypeKeyValueResponse(
     @field:Schema(description = "코드")
     val key: String,
     @field:Schema(description = "표시 이름")
-    val value: String,
+    val label: String,
 )
