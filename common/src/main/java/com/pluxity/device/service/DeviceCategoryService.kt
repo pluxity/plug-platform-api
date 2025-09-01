@@ -93,7 +93,7 @@ class DeviceCategoryService(
             )
 
         val list: List<DeviceCategoryResponse> =
-            allCategories.map { it.toDeviceCategoryResponse(fileMap[it.iconFileId] ?: FileResponse.empty()) }
+            allCategories.map { it.toDeviceCategoryResponse(fileMap[it.iconFileId] ?: FileResponse()) }
 
         return MappingUtils.makeCategoryTree(
             list,
@@ -110,7 +110,7 @@ class DeviceCategoryService(
         }
 
     private fun createDeviceCategoryResponseWithoutChildren(category: DeviceCategory): DeviceCategoryResponse {
-        val iconFile = category.iconFileId?.let { fileService.getFileResponse(it) } ?: FileResponse.empty()
+        val iconFile = category.iconFileId?.let { fileService.getFileResponse(it) } ?: FileResponse()
         return category.toDeviceCategoryResponse(iconFile)
     }
 

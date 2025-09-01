@@ -32,10 +32,10 @@ class ClimateDataService(
     fun getTimeSeries(
         id: String,
         interval: DataInterval,
-        startTime: String,
-        endTime: String,
+        from: String,
+        to: String,
     ): DeviceListDataResponse {
-        val timeRange = Pair(startTime, endTime).parseTimeRange()
+        val timeRange = Pair(from, to).parseTimeRange()
         val (start, end) = timeRange
 
         val params =

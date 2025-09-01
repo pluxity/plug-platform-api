@@ -30,7 +30,7 @@ public class MappingUtils {
         List<Long> fileIds = list.stream().flatMap(fileIdGetter).filter(Objects::nonNull).toList();
         // file id list로 파일 정보 조회 후 id, fileResponse 형태의 map 생성
         return fileService.getFiles(fileIds).stream()
-                .collect(Collectors.toMap(FileResponse::id, f -> f));
+                .collect(Collectors.toMap(FileResponse::getId, f -> f));
     }
 
     public static <T> List<T> makeCategoryTree(
