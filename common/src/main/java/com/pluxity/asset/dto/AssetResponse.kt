@@ -30,8 +30,8 @@ data class AssetResponse(
                 categoryId = asset.category?.id,
                 categoryName = asset.category?.name,
                 categoryCode = asset.category?.code,
-                file = file ?: FileResponse.empty(),
-                thumbnailFile = thumbnailFile ?: FileResponse.empty(),
+                file = file ?: FileResponse(),
+                thumbnailFile = thumbnailFile ?: FileResponse(),
                 baseResponse = BaseResponse.of(asset),
             )
 

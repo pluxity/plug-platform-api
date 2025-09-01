@@ -22,5 +22,5 @@ fun Device.toDeviceResponse(thumbnailFile: FileResponse?) =
         deviceType = this.deviceType,
         companyType = this.companyType,
         feature = this.feature?.let { FeatureResponse.from(it) },
-        deviceCategory = this.category?.toDeviceCategoryResponseWithoutChildren(iconFile = thumbnailFile ?: FileResponse.empty()),
+        deviceCategory = this.category?.toDeviceCategoryResponseWithoutChildren(iconFile = thumbnailFile ?: FileResponse()),
     )
