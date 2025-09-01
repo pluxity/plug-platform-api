@@ -25,26 +25,41 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        try {
+        runCatching {
             if (authenticationRequired(request)) {
-                val token = jwtProvider.getAccessTokenFromRequest(request)
-                if (jwtProvider.isAccessTokenValid(token)) {
-                    val username = jwtProvider.extractUsername(token)
-                    val userDetails: UserDetails = userDetailsService.loadUserByUsername(username)
-                    setAuthenticationContext(request, userDetails)
-                }
+                authenticateRequest(request)
             }
-        } catch (e: CustomException) {
-            val objectMapper = ObjectMapper()
-            response.status = e.errorCode.getHttpStatus().value()
-            response.contentType = MediaType.APPLICATION_JSON_VALUE
-            response.characterEncoding = "UTF-8"
-            val errorResponse = ErrorResponseBody.of(e.errorCode.getHttpStatus(), e.message)
-            response.writer.write(objectMapper.writeValueAsString(errorResponse))
-            return
+        }.onFailure { exception ->
+            if (exception is CustomException) {
+                handleAuthenticationError(response, exception)
+                return
+            }
         }
 
         filterChain.doFilter(request, response)
+    }
+
+    private fun authenticateRequest(request: HttpServletRequest) {
+        val token = jwtProvider.getAccessTokenFromRequest(request)
+
+        if (token != null && jwtProvider.isAccessTokenValid(token)) {
+            val username = jwtProvider.extractUsername(token)
+            val userDetails = userDetailsService.loadUserByUsername(username)
+            setAuthenticationContext(request, userDetails)
+        }
+    }
+
+    private fun handleAuthenticationError(
+        response: HttpServletResponse,
+        exception: CustomException,
+    ) {
+        val objectMapper = ObjectMapper()
+        response.status = exception.errorCode.getHttpStatus().value()
+        response.contentType = MediaType.APPLICATION_JSON_VALUE
+        response.characterEncoding = "UTF-8"
+
+        val errorResponse = ErrorResponseBody.of(exception.errorCode.getHttpStatus(), exception.message)
+        response.writer.write(objectMapper.writeValueAsString(errorResponse))
     }
 
     private fun setAuthenticationContext(
@@ -57,8 +72,9 @@ class JwtAuthenticationFilter(
     }
 
     private fun authenticationRequired(request: HttpServletRequest): Boolean {
-        val contextPath = request.contextPath
-        val path = request.requestURI.substring(contextPath.length)
-        return WhiteListPath.entries.none { path.startsWith("/${it.path}") }
+        val path = request.requestURI.substring(request.contextPath.length)
+        return WhiteListPath.entries.none { whiteListPath ->
+            path.startsWith("/${whiteListPath.path}")
+        }
     }
 }

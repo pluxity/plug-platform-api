@@ -4,30 +4,22 @@ import com.pluxity.authentication.dto.SignInRequest
 import com.pluxity.authentication.dto.SignUpRequest
 import com.pluxity.authentication.entity.RefreshToken
 import com.pluxity.authentication.repository.RefreshTokenRepository
-import com.pluxity.authentication.security.CustomUserDetails
 import com.pluxity.authentication.security.JwtProvider
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.user.entity.User
 import com.pluxity.user.repository.UserRepository
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseCookie
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.AuthenticationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.util.WebUtils
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Optional
 
 @Service
 class AuthenticationService(
@@ -51,42 +43,28 @@ class AuthenticationService(
 
     @Transactional
     fun signUp(signUpRequest: SignUpRequest): Long {
-        userRepository.findByUsername(signUpRequest.username).ifPresent { user ->
-            throw CustomException(ErrorCode.DUPLICATE_USERNAME, "사용자가 이미 존재합니다 : ${user.username}")
-        }
+        validateUserDoesNotExist(signUpRequest.username)
 
         val user =
             User(
-                null,
-                signUpRequest.username,
-                passwordEncoder.encode(signUpRequest.password),
-                signUpRequest.name,
-                signUpRequest.code,
-                null,
-                null,
+                id = null,
+                username = signUpRequest.username,
+                password = passwordEncoder.encode(signUpRequest.password),
+                name = signUpRequest.name,
+                code = signUpRequest.code,
             )
-        val savedUser = userRepository.save(user)
-        return savedUser.id!!
+
+        return userRepository.save(user).id!!
     }
 
     @Transactional
     fun signIn(
-        signInRequestDto: SignInRequest,
+        signInRequest: SignInRequest,
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        try {
-            authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken(signInRequestDto.username, signInRequestDto.password),
-            )
-        } catch (e: AuthenticationException) {
-            throw CustomException(ErrorCode.INVALID_ID_OR_PASSWORD)
-        }
-
-        val user =
-            userRepository
-                .findByUsername(signInRequestDto.username)
-                .orElseThrow { CustomException(ErrorCode.NOT_FOUND_USER) }
+        authenticateUser(signInRequest)
+        val user = findUserByUsername(signInRequest.username)
         publishToken(user, request, response)
     }
 
@@ -96,11 +74,11 @@ class AuthenticationService(
         response: HttpServletResponse,
     ) {
         val refreshToken = jwtProvider.getJwtFromRequest(refreshTokenName, request)
-        if (!refreshToken.isNullOrEmpty()) {
-            refreshTokenRepository.findByToken(refreshToken).ifPresent { refreshTokenRepository.delete(it) }
-            deleteAuthCookie(accessTokenName, request.contextPath, request, response)
-            deleteAuthCookie(refreshTokenName, request.contextPath + "/", request, response)
-            deleteExpiryCookie(request, response)
+        refreshToken?.let {
+            refreshTokenRepository
+                .findByToken(it)
+                .ifPresent { token -> refreshTokenRepository.delete(token) }
+            clearAllCookies(request, response)
         }
     }
 
@@ -110,16 +88,44 @@ class AuthenticationService(
         response: HttpServletResponse,
     ) {
         val refreshToken = jwtProvider.getJwtFromRequest(refreshTokenName, request)
+
         if (!jwtProvider.isRefreshTokenValid(refreshToken)) {
             throw CustomException(ErrorCode.INVALID_REFRESH_TOKEN)
         }
-        val username = jwtProvider.extractUsername(refreshToken, true)
-        val userDetails =
-            userRepository
-                .findByUsername(username)
-                .map { CustomUserDetails(it) }
-                .orElseThrow { CustomException(ErrorCode.NOT_FOUND_USER) }
-        publishToken(userDetails.user, request, response)
+
+        val username = jwtProvider.extractUsername(refreshToken!!, true)
+        val user = findUserByUsername(username)
+        publishToken(user, request, response)
+    }
+
+    private fun validateUserDoesNotExist(username: String) {
+        userRepository
+            .findByUsername(username)
+            .ifPresent { throw CustomException(ErrorCode.DUPLICATE_USERNAME, "사용자가 이미 존재합니다: $username") }
+    }
+
+    private fun authenticateUser(signInRequest: SignInRequest) {
+        runCatching {
+            authenticationManager.authenticate(
+                UsernamePasswordAuthenticationToken(signInRequest.username, signInRequest.password),
+            )
+        }.getOrElse {
+            throw CustomException(ErrorCode.INVALID_ID_OR_PASSWORD)
+        }
+    }
+
+    private fun findUserByUsername(username: String): User =
+        userRepository
+            .findByUsername(username)
+            .orElseThrow { CustomException(ErrorCode.NOT_FOUND_USER) }
+
+    private fun clearAllCookies(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ) {
+        deleteAuthCookie(accessTokenName, request.contextPath, request, response)
+        deleteAuthCookie(refreshTokenName, "${request.contextPath}/", request, response)
+        deleteExpiryCookie(request, response)
     }
 
     private fun publishToken(
@@ -129,9 +135,11 @@ class AuthenticationService(
     ) {
         val newAccessToken = jwtProvider.generateAccessToken(user.username)
         val newRefreshToken = jwtProvider.generateRefreshToken(user.username)
+
         createAuthCookie(accessTokenName, newAccessToken, accessExpiration, request.contextPath, response)
-        createAuthCookie(refreshTokenName, newRefreshToken, refreshExpiration, request.contextPath + "/", response)
+        createAuthCookie(refreshTokenName, newRefreshToken, refreshExpiration, "${request.contextPath}/", response)
         createExpiryCookie(request, response)
+
         refreshTokenRepository.save(RefreshToken.of(user.username, newRefreshToken, refreshExpiration))
     }
 
@@ -149,9 +157,10 @@ class AuthenticationService(
                 .httpOnly(true)
                 .sameSite("Lax")
                 .maxAge(expiry.toLong())
-                .path(if (StringUtils.isBlank(path)) "/" else path)
+                .path(path.takeIf { it.isNotBlank() } ?: "/")
                 .build()
                 .toString()
+
         response.addHeader(HttpHeaders.SET_COOKIE, cookie)
     }
 
@@ -161,12 +170,11 @@ class AuthenticationService(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        val cookie: Cookie? = WebUtils.getCookie(request, name)
-        if (cookie != null) {
-            cookie.value = null
-            cookie.maxAge = 0
-            cookie.path = path
-            response.addCookie(cookie)
+        WebUtils.getCookie(request, name)?.apply {
+            value = null
+            maxAge = 0
+            this.path = path
+            response.addCookie(this)
         }
     }
 
@@ -174,22 +182,17 @@ class AuthenticationService(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        val currentTimeMillis = System.currentTimeMillis()
-        val tokenExpiryInMillis = refreshExpiration * 1000L
-        val expiryTimeMillis = currentTimeMillis + tokenExpiryInMillis
-        val formattedTime =
-            DateTimeFormatter
-                .ofPattern("yyyy-MM-dd HH:mm:ss")
-                .withZone(ZoneId.of("Asia/Seoul"))
-                .format(Instant.ofEpochMilli(expiryTimeMillis))
-        val path = request.contextPath
+        val expiryTimeMillis = System.currentTimeMillis() + (refreshExpiration * 1000L)
+        val path = request.contextPath.takeIf { it.isNotEmpty() } ?: "/"
+
         val cookie =
             ResponseCookie
                 .from("expiry", expiryTimeMillis.toString())
                 .secure(false)
-                .path(Optional.ofNullable(path).filter { it.isNotEmpty() }.orElse("/"))
+                .path(path)
                 .build()
                 .toString()
+
         response.addHeader(HttpHeaders.SET_COOKIE, cookie)
     }
 
@@ -197,12 +200,11 @@ class AuthenticationService(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        val cookie: Cookie? = WebUtils.getCookie(request, "expiry")
-        if (cookie != null) {
-            val path = request.contextPath
-            cookie.maxAge = 0
-            cookie.path = Optional.ofNullable(path).filter { it.isNotEmpty() }.orElse("/")
-            response.addCookie(cookie)
+        WebUtils.getCookie(request, "expiry")?.apply {
+            val path = request.contextPath.takeIf { it.isNotEmpty() } ?: "/"
+            maxAge = 0
+            this.path = path
+            response.addCookie(this)
         }
     }
 }
