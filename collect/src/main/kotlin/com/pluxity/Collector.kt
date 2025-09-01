@@ -5,22 +5,22 @@ import com.pluxity.device.entity.DeviceCompanyType
 import com.pluxity.device.repository.DeviceRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("!local")
+@Profile("local")
 class Collector(
     private val climateDataCollector: ClimateDataCollector,
     private val deviceRepository: DeviceRepository,
 ) {
-    @Scheduled(cron = "0 0/1 * * * *")
+    @Scheduled(cron = "0/10 * * * * *")
     fun collectData() {
         runBlocking {
-            coroutineScope {
+            supervisorScope {
                 val devices = deviceRepository.findAll()
                 DeviceCompanyType.entries
                     .map { deviceCompanyType ->
