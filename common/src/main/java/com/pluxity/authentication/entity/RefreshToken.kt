@@ -12,11 +12,14 @@ data class RefreshToken(
     @TimeToLive val timeToLive: Int,
 ) {
     companion object {
-        @JvmStatic
         fun of(
             username: String,
             token: String,
             timeToLive: Int,
         ): RefreshToken = RefreshToken(username, token, timeToLive)
     }
+
+    fun isExpiredAt(currentTime: Long): Boolean = currentTime > (System.currentTimeMillis() + timeToLive * 1000L)
+
+    fun isValidToken(): Boolean = token.isNotBlank()
 }

@@ -1,6 +1,5 @@
 package com.pluxity.authentication.security
 
-import com.pluxity.authentication.entity.RefreshToken
 import com.pluxity.authentication.repository.RefreshTokenRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
@@ -11,14 +10,12 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import jakarta.annotation.PostConstruct
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.util.WebUtils
 import java.util.Base64
 import java.util.Date
-import java.util.HashMap
 import java.util.function.Function
 import javax.crypto.SecretKey
 
@@ -47,21 +44,16 @@ class JwtProvider(
         refreshSecretKey = Base64.getEncoder().encodeToString(refreshSecretKey.toByteArray())
     }
 
-    fun extractUsername(token: String): String = extractUsername(token, false)
-
     fun extractUsername(
         token: String,
-        isRefreshToken: Boolean,
+        isRefreshToken: Boolean = false,
     ): String = extractClaim(token, Claims::getSubject, isRefreshToken)
 
     fun <T> extractClaim(
         token: String,
         claimsResolver: Function<Claims, T>,
         isRefreshToken: Boolean,
-    ): T {
-        val claims = extractAllClaims(token, isRefreshToken)
-        return claimsResolver.apply(claims)
-    }
+    ): T = claimsResolver.apply(extractAllClaims(token, isRefreshToken))
 
     private fun extractAllClaims(
         token: String,
@@ -74,14 +66,12 @@ class JwtProvider(
             .parseSignedClaims(token)
             .payload
 
-    fun generateAccessToken(username: String): String = generateAccessToken(HashMap(), username)
-
     fun generateAccessToken(
-        extraClaims: Map<String, Any>,
         username: String,
+        extraClaims: Map<String, Any> = emptyMap(),
     ): String = buildToken(extraClaims, username, accessExpiration, false)
 
-    fun generateRefreshToken(username: String): String = buildToken(HashMap(), username, refreshExpiration, true)
+    fun generateRefreshToken(username: String): String = buildToken(emptyMap(), username, refreshExpiration, true)
 
     private fun buildToken(
         extraClaims: Map<String, Any>,
@@ -99,53 +89,64 @@ class JwtProvider(
             .compact()
 
     fun isAccessTokenValid(token: String): Boolean =
-        try {
+        runCatching {
             Jwts
                 .parser()
                 .verifyWith(getSecretKey(false))
                 .build()
                 .parseSignedClaims(token)
-            true
-        } catch (e: ExpiredJwtException) {
-            throw CustomException(ErrorCode.EXPIRED_ACCESS_TOKEN)
-        } catch (e: JwtException) {
-            throw CustomException(ErrorCode.INVALID_ACCESS_TOKEN)
-        } catch (e: IllegalArgumentException) {
-            throw CustomException(ErrorCode.INVALID_ACCESS_TOKEN)
-        }
+        }.fold(
+            onSuccess = { true },
+            onFailure = { exception ->
+                when (exception) {
+                    is ExpiredJwtException -> throw CustomException(ErrorCode.EXPIRED_ACCESS_TOKEN)
+                    is JwtException, is IllegalArgumentException ->
+                        throw CustomException(ErrorCode.INVALID_ACCESS_TOKEN)
+                    else -> throw exception
+                }
+            },
+        )
 
-    fun isRefreshTokenValid(token: String): Boolean =
-        try {
-            val refreshToken: RefreshToken =
+    fun isRefreshTokenValid(token: String?): Boolean {
+        if (token.isNullOrBlank()) return false
+
+        return runCatching {
+            val refreshToken =
                 refreshTokenRepository
                     .findByToken(token)
                     .orElseThrow { CustomException(ErrorCode.INVALID_REFRESH_TOKEN) }
+
+            if (!refreshToken.isValidToken()) {
+                throw CustomException(ErrorCode.INVALID_REFRESH_TOKEN)
+            }
+
             Jwts
                 .parser()
                 .verifyWith(getSecretKey(true))
                 .build()
                 .parseSignedClaims(refreshToken.token)
-            true
-        } catch (e: ExpiredJwtException) {
-            throw CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN)
-        } catch (e: JwtException) {
-            throw CustomException(ErrorCode.INVALID_REFRESH_TOKEN)
-        } catch (e: IllegalArgumentException) {
-            throw CustomException(ErrorCode.INVALID_REFRESH_TOKEN)
-        }
+        }.fold(
+            onSuccess = { true },
+            onFailure = { exception ->
+                when (exception) {
+                    is ExpiredJwtException -> throw CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN)
+                    is JwtException, is IllegalArgumentException ->
+                        throw CustomException(ErrorCode.INVALID_REFRESH_TOKEN)
+                    else -> throw exception
+                }
+            },
+        )
+    }
 
     private fun getSecretKey(isRefreshToken: Boolean): SecretKey {
         val keyBytes = Decoders.BASE64.decode(if (isRefreshToken) refreshSecretKey else accessSecretKey)
         return Keys.hmacShaKeyFor(keyBytes)
     }
 
-    fun getAccessTokenFromRequest(request: HttpServletRequest): String = getJwtFromRequest(accessTokenName, request)
+    fun getAccessTokenFromRequest(request: HttpServletRequest): String? = getJwtFromRequest(accessTokenName, request)
 
     fun getJwtFromRequest(
         name: String,
         request: HttpServletRequest,
-    ): String {
-        val cookie: Cookie = WebUtils.getCookie(request, name) ?: throw CustomException(ErrorCode.INVALID_TOKEN_FORMAT)
-        return cookie.value
-    }
+    ): String? = WebUtils.getCookie(request, name)?.value
 }
