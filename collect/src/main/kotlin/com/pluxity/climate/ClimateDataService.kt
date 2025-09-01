@@ -29,7 +29,7 @@ class ClimateDataService(
         val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
     }
 
-    fun getPeriodData(
+    fun getTimeSeries(
         id: String,
         interval: DataInterval,
         startTime: String,
@@ -37,17 +37,6 @@ class ClimateDataService(
     ): DeviceListDataResponse {
         val timeRange = Pair(startTime, endTime).parseTimeRange()
         val (start, end) = timeRange
-
-        val sql =
-            """
-            SELECT date_trunc('${interval.unit}', c.created_at) AS bucket_start,
-                AVG(c.temperature) AS avg_temperature,
-                AVG(c.humidity) AS avg_humidity
-            FROM climate_data c
-            WHERE c.created_at BETWEEN :start AND :end AND c.device_id = :deviceId
-            GROUP BY date_trunc('${interval.unit}', c.created_at)
-            ORDER BY date_trunc('${interval.unit}', c.created_at) ASC
-            """.trimIndent()
 
         val params =
             mapOf(
@@ -58,13 +47,13 @@ class ClimateDataService(
 
         val result =
             jdbcTemplate.query(
-                sql,
+                buildPeriodDataQuery(interval),
                 params,
             ) { rs, _ ->
                 val bucket = rs.getObject("bucket_start", LocalDateTime::class.java)
                 val t = rs.getDouble("avg_temperature").round1Decimal()
                 val h = rs.getDouble("avg_humidity").round1Decimal()
-                ClimateListDto(bucket.toString(), t, h)
+                ClimateListDto(bucket.format(DateTimeFormatter.ofPattern(interval.format)), t, h)
             }
         return result.toDeviceListDataResponse(id, interval, timeRange)
     }
@@ -76,6 +65,17 @@ class ClimateDataService(
             )
         return climateData.toDeviceDataResponse(id)
     }
+
+    private fun buildPeriodDataQuery(interval: DataInterval): String =
+        """
+        SELECT date_trunc('${interval.unit}', c.created_at) AS bucket_start,
+            AVG(c.temperature) AS avg_temperature,
+            AVG(c.humidity) AS avg_humidity
+        FROM climate_data c
+        WHERE c.created_at BETWEEN :start AND :end AND c.device_id = :deviceId
+        GROUP BY date_trunc('${interval.unit}', c.created_at)
+        ORDER BY date_trunc('${interval.unit}', c.created_at) ASC
+        """.trimIndent()
 
     private fun Pair<String, String>.parseTimeRange(): Pair<LocalDateTime, LocalDateTime> =
         Pair(

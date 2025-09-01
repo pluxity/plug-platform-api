@@ -1,7 +1,9 @@
 package com.pluxity.asset.repository
 
 import com.pluxity.asset.entity.AssetCategory
-import com.pluxity.global.annotation.CheckPermissionAll
+import com.pluxity.global.annotation.CheckPermission
+import com.pluxity.user.entity.ExecutionPhase
+import com.pluxity.user.entity.PermissionType
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.JpaRepository
 
@@ -10,6 +12,6 @@ interface AssetCategoryRepository : JpaRepository<AssetCategory, Long> {
 
     fun findByParentId(parentId: Long): List<AssetCategory>
 
-    @CheckPermissionAll(resourceName = "DEVICE_CATEGORY")
+    @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.FILTER)
     override fun findAll(sort: Sort): List<AssetCategory>
 }

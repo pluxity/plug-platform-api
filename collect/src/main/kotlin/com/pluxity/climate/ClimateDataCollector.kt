@@ -1,12 +1,11 @@
 package com.pluxity.climate
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.pluxity.climate.ClimateDataRepository
 import com.pluxity.config.WebClientFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.springframework.http.MediaType
@@ -38,7 +37,7 @@ class ClimateDataCollector(
     suspend fun collectClimateData(list: List<String>) {
         ensureToken()
 
-        coroutineScope {
+        supervisorScope {
             list
                 .map { id ->
                     async {

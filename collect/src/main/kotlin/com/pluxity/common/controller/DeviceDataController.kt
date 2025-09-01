@@ -61,7 +61,7 @@ class DeviceDataController(
                 DAWONDNS ->
                     when (deviceType) {
                         TEMP_HUM -> {
-                            climateDataService.getPeriodData(id, interval, startTime, endTime)
+                            climateDataService.getTimeSeries(id, interval, startTime, endTime)
                         }
                     }
             }

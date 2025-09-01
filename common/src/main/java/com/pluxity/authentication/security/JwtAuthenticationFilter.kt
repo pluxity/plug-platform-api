@@ -36,10 +36,10 @@ class JwtAuthenticationFilter(
             }
         } catch (e: CustomException) {
             val objectMapper = ObjectMapper()
-            response.status = e.errorCode.httpStatus.value()
+            response.status = e.errorCode.getHttpStatus().value()
             response.contentType = MediaType.APPLICATION_JSON_VALUE
             response.characterEncoding = "UTF-8"
-            val errorResponse = ErrorResponseBody.of(e.errorCode.httpStatus, e.message)
+            val errorResponse = ErrorResponseBody.of(e.errorCode.getHttpStatus(), e.message)
             response.writer.write(objectMapper.writeValueAsString(errorResponse))
             return
         }

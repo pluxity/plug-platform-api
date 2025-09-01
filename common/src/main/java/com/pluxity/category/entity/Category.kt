@@ -16,16 +16,16 @@ import jakarta.persistence.OneToMany
 abstract class Category<T : Category<T>> : BaseEntity() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
+    open var id: Long? = null
 
     @Column(nullable = false)
-    var name: String = ""
+    open var name: String = ""
 
     @ManyToOne(fetch = FetchType.LAZY)
-    var parent: T? = null
+    open var parent: T? = null
 
     @OneToMany(mappedBy = "parent", orphanRemoval = true)
-    var children: MutableList<T> = mutableListOf()
+    open var children: MutableList<T> = mutableListOf()
 
     open val maxDepth: Int
         get() = 2

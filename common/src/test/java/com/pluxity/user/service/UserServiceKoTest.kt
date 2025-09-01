@@ -268,7 +268,7 @@ class UserServiceKoTest :
                 Then("CustomException 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         userService.updateUserPassword(user.id!!, request)
-                    }.message shouldBe ErrorCode.INVALID_ID_OR_PASSWORD.message.format(user.id)
+                    }.message shouldBe ErrorCode.INVALID_ID_OR_PASSWORD.getMessage().format(user.id)
                 }
             }
         }
@@ -341,7 +341,7 @@ class UserServiceKoTest :
                 Then("CustomException 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         userService.updateUserPassword(user.id!!, request)
-                    }.message shouldBe ErrorCode.INVALID_ID_OR_PASSWORD.message.format(user.id)
+                    }.message shouldBe ErrorCode.INVALID_ID_OR_PASSWORD.getMessage().format(user.id)
                 }
             }
         }

@@ -84,7 +84,7 @@ class ParkServiceKoTest :
 
                     shouldThrowExactly<CustomException> {
                         parkService.findById(searchId)
-                    }.message shouldBe ErrorCode.NOT_FOUND_FACILITY.message.format(searchId)
+                    }.message shouldBe ErrorCode.NOT_FOUND_FACILITY.getMessage().format(searchId)
                 }
             }
         }
