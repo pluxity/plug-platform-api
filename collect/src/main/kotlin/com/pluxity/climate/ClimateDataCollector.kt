@@ -3,8 +3,7 @@ package com.pluxity.climate
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.pluxity.config.WebClientFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -40,7 +39,7 @@ class ClimateDataCollector(
         supervisorScope {
             list
                 .map { id ->
-                    async {
+                    launch {
                         runCatching {
                             val (deviceId, results) = callClimateDataWithRetry(id)
                             climateDataRequest.save(
@@ -58,7 +57,7 @@ class ClimateDataCollector(
                             log.warn(e) { "climate save failed for id=$id" }
                         }
                     }
-                }.awaitAll()
+                }
         }
     }
 

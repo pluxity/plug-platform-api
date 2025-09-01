@@ -3,8 +3,7 @@ package com.pluxity
 import com.pluxity.climate.ClimateDataCollector
 import com.pluxity.device.entity.DeviceCompanyType
 import com.pluxity.device.repository.DeviceRepository
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import org.springframework.context.annotation.Profile
@@ -24,7 +23,7 @@ class Collector(
                 val devices = deviceRepository.findAll()
                 DeviceCompanyType.entries
                     .map { deviceCompanyType ->
-                        async {
+                        launch {
                             runCatching {
                                 when (deviceCompanyType) {
                                     DeviceCompanyType.DAWONDNS -> {
@@ -37,7 +36,7 @@ class Collector(
                                 }
                             }
                         }
-                    }.awaitAll()
+                    }
             }
         }
     }
