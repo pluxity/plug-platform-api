@@ -69,3 +69,7 @@ plug-platform-api.tar
 
 /out/
 /build/
+
+CLAUDE.md
+/.claude/
+/.kotlin/
