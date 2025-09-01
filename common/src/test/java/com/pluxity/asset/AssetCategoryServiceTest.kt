@@ -130,12 +130,11 @@ class AssetCategoryServiceTest(
         val categoryId = createAndSaveCategory("카테고리", "CAT", null)
         val category: AssetCategory = assetCategoryRepository.findById(categoryId).orElseThrow()
         assetRepository.save(
-            Asset
-                .builder()
-                .name("에셋")
-                .code("A01")
-                .category(category)
-                .build(),
+            Asset(
+                name = "에셋",
+                code = "A01",
+                category = category,
+            ),
         )
 
         assertThrows<CustomException> { assetCategoryService.deleteAssetCategory(categoryId) }

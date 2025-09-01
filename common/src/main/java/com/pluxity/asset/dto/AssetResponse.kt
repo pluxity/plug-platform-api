@@ -15,27 +15,20 @@ data class AssetResponse(
     val file: FileResponse?,
     val thumbnailFile: FileResponse?,
     @field:JsonUnwrapped val baseResponse: BaseResponse,
-) {
-    companion object {
-        @JvmStatic
-        fun from(
-            asset: Asset,
-            file: FileResponse?,
-            thumbnailFile: FileResponse?,
-        ): AssetResponse =
-            AssetResponse(
-                id = asset.id,
-                name = asset.name,
-                code = asset.code,
-                categoryId = asset.category?.id,
-                categoryName = asset.category?.name,
-                categoryCode = asset.category?.code,
-                file = file ?: FileResponse.empty(),
-                thumbnailFile = thumbnailFile ?: FileResponse.empty(),
-                baseResponse = BaseResponse.of(asset),
-            )
+)
 
-        @JvmStatic
-        fun from(asset: Asset): AssetResponse = from(asset, null, null)
-    }
-}
+fun Asset.toResponse(
+    file: FileResponse? = null,
+    thumbnailFile: FileResponse? = null,
+): AssetResponse =
+    AssetResponse(
+        id = this.id,
+        name = this.name,
+        code = this.code,
+        categoryId = this.category?.id,
+        categoryName = this.category?.name,
+        categoryCode = this.category?.code,
+        file = file,
+        thumbnailFile = thumbnailFile,
+        baseResponse = BaseResponse.of(this),
+    )
