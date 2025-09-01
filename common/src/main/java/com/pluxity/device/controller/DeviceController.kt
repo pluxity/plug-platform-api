@@ -3,7 +3,7 @@ package com.pluxity.device.controller
 import com.pluxity.device.dto.DeviceCreateRequest
 import com.pluxity.device.dto.DeviceResponse
 import com.pluxity.device.dto.DeviceUpdateRequest
-import com.pluxity.device.dto.TypeKeyValueResponse
+import com.pluxity.device.dto.TypeKeyLabelResponse
 import com.pluxity.device.service.DeviceService
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.DataResponseBody
@@ -74,7 +74,7 @@ class DeviceController(
         ],
     )
     @GetMapping("/types")
-    fun getAllType(): ResponseEntity<DataResponseBody<List<TypeKeyValueResponse>>> =
+    fun getAllType(): ResponseEntity<DataResponseBody<List<TypeKeyLabelResponse>>> =
         ResponseEntity.ok(DataResponseBody.of(deviceService.findAllType()))
 
     @Operation(summary = "디바이스 회사 목록 조회", description = "모든 디바이스 회사 목록을 조회합니다.")
@@ -87,7 +87,7 @@ class DeviceController(
         ],
     )
     @GetMapping("/company-types")
-    fun getAllCompanyType(): ResponseEntity<DataResponseBody<List<TypeKeyValueResponse>>> =
+    fun getAllCompanyType(): ResponseEntity<DataResponseBody<List<TypeKeyLabelResponse>>> =
         ResponseEntity.ok(DataResponseBody.of(deviceService.findAllCompanyType()))
 
     @Operation(summary = "디바이스 상세 조회", description = "ID로 특정 디바이스의 상세 정보를 조회합니다.")

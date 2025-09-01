@@ -1,6 +1,6 @@
 package com.pluxity.device.entity
 
-import com.pluxity.device.dto.TypeKeyValueResponse
+import com.pluxity.device.dto.TypeKeyLabelResponse
 
 enum class DeviceCompanyType(
     private val description: String,
@@ -9,6 +9,6 @@ enum class DeviceCompanyType(
     ;
 
     companion object {
-        fun toKeyValueList(): List<TypeKeyValueResponse> = DeviceCompanyType.entries.map { TypeKeyValueResponse(it.name, it.description) }
+        fun toKeyValueList(): List<TypeKeyLabelResponse> = DeviceCompanyType.entries.map { TypeKeyLabelResponse(it.name, it.description) }
     }
 }

@@ -3,7 +3,7 @@ package com.pluxity.device.service
 import com.pluxity.device.dto.DeviceCreateRequest
 import com.pluxity.device.dto.DeviceResponse
 import com.pluxity.device.dto.DeviceUpdateRequest
-import com.pluxity.device.dto.TypeKeyValueResponse
+import com.pluxity.device.dto.TypeKeyLabelResponse
 import com.pluxity.device.dto.toDeviceResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
@@ -78,9 +78,9 @@ class DeviceService(
         }
     }
 
-    fun findAllType(): List<TypeKeyValueResponse> = DeviceType.toKeyValueList()
+    fun findAllType(): List<TypeKeyLabelResponse> = DeviceType.toKeyValueList()
 
-    fun findAllCompanyType(): List<TypeKeyValueResponse> = DeviceCompanyType.toKeyValueList()
+    fun findAllCompanyType(): List<TypeKeyLabelResponse> = DeviceCompanyType.toKeyValueList()
 
     @Transactional
     fun putUpdate(
