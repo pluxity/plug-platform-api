@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("local")
+@Profile("!local")
 class Collector(
     private val climateDataCollector: ClimateDataCollector,
     private val deviceRepository: DeviceRepository,
