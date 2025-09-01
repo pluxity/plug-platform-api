@@ -391,11 +391,7 @@ internal class FeatureServiceTest {
         code: String,
     ): Asset =
         assetRepository.save(
-            Asset
-                .builder()
-                .name(name)
-                .code(code)
-                .build(),
+            Asset(name = name, code = code),
         )
 
     private fun createAndSaveFacility(

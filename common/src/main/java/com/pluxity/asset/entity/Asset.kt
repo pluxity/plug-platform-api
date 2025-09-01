@@ -1,8 +1,11 @@
 package com.pluxity.asset.entity
 
 import com.pluxity.asset.dto.AssetCreateRequest
+import com.pluxity.asset.dto.AssetUpdateRequest
 import com.pluxity.file.entity.FileEntity
+import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.entity.BaseEntity
+import com.pluxity.global.exception.CustomException
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
@@ -19,61 +22,64 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 @Table(name = "asset")
 @EntityListeners(AuditingEntityListener::class)
 class Asset(
-    name: String? = null,
-    code: String? = null,
-    fileId: Long? = null,
-    thumbnailFileId: Long? = null,
-    category: AssetCategory? = null,
+    @Column(name = "name", unique = true, nullable = false, length = 50)
+    var name: String,
+    @Column(name = "code", unique = true, nullable = false, length = 50)
+    var code: String,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    var category: AssetCategory? = null,
+    @Column(name = "file_id")
+    var fileId: Long? = null,
+    @Column(name = "thumbnail_file_id")
+    var thumbnailFileId: Long? = null,
 ) : BaseEntity() {
-    companion object {
-        const val ASSETS_PATH: String = "assets"
-
-        @JvmStatic
-        fun create(request: AssetCreateRequest): Asset =
-            Asset(
-                name = request.name,
-                code = request.code,
-                thumbnailFileId = request.thumbnailFileId,
-            )
-
-        fun builder() = Builder()
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
 
-    @Column(name = "name", unique = true, nullable = false, length = 50)
-    var name: String? = name
+    companion object {
+        const val ASSETS_PATH: String = "assets"
 
-    @Column(name = "code", unique = true, nullable = false, length = 50)
-    var code: String? = code
+        fun create(request: AssetCreateRequest): Asset {
+            require(!request.name.isNullOrBlank()) {
+                "Asset name cannot be null or blank"
+            }
+            require(!request.code.isNullOrBlank()) {
+                "Asset code cannot be null or blank"
+            }
 
-    @Column(name = "file_id")
-    var fileId: Long? = fileId
-
-    @Column(name = "thumbnail_file_id")
-    var thumbnailFileId: Long? = thumbnailFileId
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    var category: AssetCategory? = category
-        private set
-
-    init {
-        if (this.category != null) {
-            this.category!!.addAsset(this)
+            return Asset(
+                name = request.name,
+                code = request.code,
+                fileId = request.fileId,
+                thumbnailFileId = request.thumbnailFileId,
+            )
         }
     }
 
-    fun update(request: com.pluxity.asset.dto.AssetUpdateRequest) {
+    init {
+        category?.addAsset(this)
+    }
+
+    fun update(request: AssetUpdateRequest) {
+        validateUpdateRequest(request)
         this.name = request.name
         this.code = request.code
         request.thumbnailFileId?.let { this.thumbnailFileId = it }
     }
 
     fun update(name: String?) {
-        name?.let { this.name = it }
+        name?.takeIf { it.isNotBlank() }?.let { this.name = it }
+    }
+
+    private fun validateUpdateRequest(request: AssetUpdateRequest) {
+        require(!request.name.isNullOrBlank()) {
+            "Asset name cannot be null or blank"
+        }
+        require(!request.code.isNullOrBlank()) {
+            "Asset code cannot be null or blank"
+        }
     }
 
     fun updateFileEntity(fileEntity: FileEntity?) {
@@ -85,51 +91,34 @@ class Asset(
     }
 
     fun updateCategory(category: AssetCategory?) {
-        if (this.category != null) {
-            this.category!!.removeAsset(this)
-        }
+        this.category?.removeAsset(this)
         this.category = category
-        if (category != null) {
-            category.addAsset(this)
-        }
+        category?.addAsset(this)
     }
 
-    fun getAssetFilePath(): String = "$ASSETS_PATH/${this.id}/"
+    fun assignCategory(category: AssetCategory) {
+        updateCategory(category)
+    }
 
-    fun getThumbnailFilePath(): String = "$ASSETS_PATH/${this.id}/thumbnail/"
+    fun removeCategory() {
+        require(this.category != null) {
+            throw CustomException(ErrorCode.NOT_EXIST_ASSET_CATEGORY, this.id)
+        }
+        updateCategory(null)
+    }
+
+    fun getAssetFilePath(): String = "$ASSETS_PATH/${requireNotNull(this.id)}/"
+
+    fun getThumbnailFilePath(): String = "$ASSETS_PATH/${requireNotNull(this.id)}/thumbnail/"
 
     fun hasFile(): Boolean = this.fileId != null
 
     fun hasThumbnail(): Boolean = this.thumbnailFileId != null
 
     fun clearAllRelations() {
-        updateCategory(null)
+        this.category?.removeAsset(this)
+        this.category = null
     }
 
-    class Builder {
-        private var name: String? = null
-        private var code: String? = null
-        private var fileId: Long? = null
-        private var thumbnailFileId: Long? = null
-        private var category: AssetCategory? = null
-
-        fun name(name: String) = apply { this.name = name }
-
-        fun code(code: String) = apply { this.code = code }
-
-        fun fileId(fileId: Long?) = apply { this.fileId = fileId }
-
-        fun thumbnailFileId(thumbnailFileId: Long?) = apply { this.thumbnailFileId = thumbnailFileId }
-
-        fun category(category: AssetCategory?) = apply { this.category = category }
-
-        fun build(): Asset =
-            Asset(
-                name = name,
-                code = code,
-                fileId = fileId,
-                thumbnailFileId = thumbnailFileId,
-                category = category,
-            )
-    }
+    fun isValid(): Boolean = !name.isNullOrBlank() && !code.isNullOrBlank()
 }
