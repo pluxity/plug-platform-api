@@ -41,18 +41,22 @@ class ClimateDataCollector(
             list
                 .map { id ->
                     async {
-                        val (deviceId, results) = callClimateDataWithRetry(id)
-                        climateDataRequest.save(
-                            ClimateData(
-                                deviceId = deviceId,
-                                temperature = results.temperature,
-                                humidity = results.humidity,
-                                status = results.connStatus,
-                                firmwareVersion = results.firmwareVersion,
-                                battery = results.battery,
-                                uploadTime = LocalDateTime.parse(results.uploadTime, FORMATTER),
-                            ),
-                        )
+                        runCatching {
+                            val (deviceId, results) = callClimateDataWithRetry(id)
+                            climateDataRequest.save(
+                                ClimateData(
+                                    deviceId = deviceId,
+                                    temperature = results.temperature,
+                                    humidity = results.humidity,
+                                    status = results.connStatus,
+                                    firmwareVersion = results.firmwareVersion,
+                                    battery = results.battery,
+                                    uploadTime = LocalDateTime.parse(results.uploadTime, FORMATTER),
+                                ),
+                            )
+                        }.onFailure { e ->
+                            log.warn(e) { "climate save failed for id=$id" }
+                        }
                     }
                 }.awaitAll()
         }

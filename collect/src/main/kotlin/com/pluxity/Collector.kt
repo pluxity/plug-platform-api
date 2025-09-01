@@ -25,13 +25,15 @@ class Collector(
                 DeviceCompanyType.entries
                     .map { deviceCompanyType ->
                         async {
-                            when (deviceCompanyType) {
-                                DeviceCompanyType.DAWONDNS -> {
-                                    climateDataCollector.collectClimateData(
-                                        devices
-                                            .filter { it.companyType == DeviceCompanyType.DAWONDNS }
-                                            .map { it.id },
-                                    )
+                            runCatching {
+                                when (deviceCompanyType) {
+                                    DeviceCompanyType.DAWONDNS -> {
+                                        climateDataCollector.collectClimateData(
+                                            devices
+                                                .filter { it.companyType == DeviceCompanyType.DAWONDNS }
+                                                .map { it.id },
+                                        )
+                                    }
                                 }
                             }
                         }
