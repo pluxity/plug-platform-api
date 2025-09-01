@@ -17,7 +17,7 @@ class Collector(
     private val climateDataCollector: ClimateDataCollector,
     private val deviceRepository: DeviceRepository,
 ) {
-    @Scheduled(cron = "0/10 * * * * *")
+    @Scheduled(cron = "0 0/1 * * * *")
     fun collectData() {
         runBlocking {
             supervisorScope {
