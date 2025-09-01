@@ -6,6 +6,7 @@ fun dummyDeviceCategory(
     name: String = "category-name",
     iconFileId: Long? = null,
 ) = DeviceCategory(
-    name,
     iconFileId,
-)
+).apply {
+    updateName(name)
+}
