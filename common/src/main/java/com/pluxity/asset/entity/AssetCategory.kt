@@ -9,15 +9,11 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "asset_category")
 class AssetCategory(
-    code: String? = null,
-    iconFileId: Long? = null,
-) : Category<AssetCategory>() {
     @Column(name = "code", unique = true, length = 50)
-    var code: String? = code
-
+    var code: String? = null,
     @Column(name = "icon_file_id")
-    var iconFileId: Long? = iconFileId
-
+    var iconFileId: Long? = null,
+) : Category<AssetCategory>() {
     @OneToMany(mappedBy = "category")
     val assets: MutableList<Asset> = mutableListOf()
 
@@ -42,27 +38,9 @@ class AssetCategory(
     }
 
     override val maxDepth: Int
-        get() = 1
+        get() = MAX_DEPTH
 
     companion object {
-        fun builder() = Builder()
-    }
-
-    class Builder {
-        private var name: String? = null
-        private var code: String? = null
-        private var iconFileId: Long? = null
-
-        fun name(name: String) = apply { this.name = name }
-
-        fun code(code: String) = apply { this.code = code }
-
-        fun iconFileId(iconFileId: Long?) = apply { this.iconFileId = iconFileId }
-
-        fun build(): AssetCategory {
-            val category = AssetCategory(code, iconFileId)
-            name?.let { category.name = it }
-            return category
-        }
+        const val MAX_DEPTH = 1
     }
 }

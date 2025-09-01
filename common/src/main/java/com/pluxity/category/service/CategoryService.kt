@@ -1,73 +1,79 @@
 package com.pluxity.category.service
 
 import com.pluxity.category.dto.CategoryResponse
-import com.pluxity.category.dto.CategoryTreeResponse
+import com.pluxity.category.dto.toResponse
 import com.pluxity.category.entity.Category
-import com.pluxity.global.constant.ErrorCode.CIRCULAR_REFERENCE_CATEGORY
+import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.constant.ErrorCode.INVALID_PARENT_CATEGORY
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_CATEGORY
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
+import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.repository.findByIdOrNull
 
 abstract class CategoryService<T : Category<T>> {
-    protected abstract fun getRepository(): JpaRepository<T, Long>
+    protected abstract val repository: JpaRepository<T, Long>
 
-    fun create(
+    @Transactional
+    open fun create(
         category: T,
         parent: T?,
-    ): Long {
-        category.assignToParent(parent)
-        return getRepository().save(category).id!!
-    }
+    ): Long =
+        repository
+            .save(
+                category.apply { assignToParent(parent) },
+            ).id!!
 
-    fun update(
+    @Transactional
+    open fun update(
         id: Long,
         name: String?,
         parentId: Long?,
     ) {
         val categoryToUpdate = findById(id)
-        val newParent = MappingUtils.findByIdIfExists(parentId, ::findById)
+        val newParent = parentId?.let { findById(it) }
 
-        if (categoryToUpdate.id == parentId) {
+        require(categoryToUpdate.id != parentId) {
             throw CustomException(INVALID_PARENT_CATEGORY)
         }
 
-        if (isCircularReference(categoryToUpdate, newParent)) {
-            throw CustomException(CIRCULAR_REFERENCE_CATEGORY)
+        require(!categoryToUpdate.isCircularReferenceWith(newParent)) {
+            throw CustomException(ErrorCode.CIRCULAR_REFERENCE_CATEGORY)
         }
 
-        if (name != null) {
-            categoryToUpdate.updateName(name)
+        categoryToUpdate.apply {
+            name?.let { updateName(it) }
+            assignToParent(newParent)
         }
-        categoryToUpdate.assignToParent(newParent)
     }
 
-    private fun isCircularReference(
-        source: T,
-        target: T?,
-    ): Boolean {
-        var current = target
+    private fun T.isCircularReferenceWith(newParent: T?): Boolean {
+        var current = newParent
         while (current != null) {
-            if (current.id == source.id) {
-                return true
-            }
+            if (current.id == this.id) return true
             current = current.parent
         }
         return false
     }
 
-    fun findById(id: Long): T = getRepository().findById(id).orElseThrow { CustomException(NOT_FOUND_CATEGORY, id) }
+    fun findById(id: Long): T = repository.findByIdOrNull(id) ?: throw CustomException(NOT_FOUND_CATEGORY, id)
 
-    fun getRootCategories(): List<T> = getRepository().findAll().filter { it.isRoot() }
+    fun getRootCategories(): List<T> = repository.findAll().filter { it.isRoot() }
 
     fun getChildren(parentId: Long): List<T> = findById(parentId).children
 
-    fun getRootCategoryResponses(): List<CategoryResponse> = getRootCategories().map { CategoryResponse.from(it) }
+    // 자식 없이 단일 카테고리 정보만 원할 때
+    fun getResponse(id: Long): CategoryResponse = findById(id).toResponse()
 
-    fun getChildResponses(parentId: Long): List<CategoryResponse> = getChildren(parentId).map { CategoryResponse.from(it) }
+    // 직계 자식만 포함하고 싶을 때
+    fun getChildResponses(parentId: Long): List<CategoryResponse> {
+        val parentCategory = findById(parentId)
+        return parentCategory.children.map { it.toResponse() }
+    }
 
-    fun getResponse(id: Long): CategoryResponse = CategoryResponse.from(findById(id))
-
-    fun getCategoryTree(): List<CategoryTreeResponse> = getRootCategories().map { CategoryTreeResponse.from(it) }
+    // 전체 트리 구조를 원할 때 (재귀적으로 모든 자식 포함)
+    fun getCategoryTree(): List<CategoryResponse> =
+        getRootCategories().map {
+            it.toResponse(includeChildren = true, recursive = true)
+        }
 }

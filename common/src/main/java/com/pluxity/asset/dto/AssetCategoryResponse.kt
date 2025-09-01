@@ -26,72 +26,26 @@ data class AssetCategoryResponse(
     val updatedAt: LocalDateTime?,
     @field:Schema(description = "depth", example = "1")
     val depth: Int,
-) {
-    companion object {
-        @JvmStatic
-        fun from(category: AssetCategory): AssetCategoryResponse =
-            AssetCategoryResponse(
-                id = category.id,
-                name = category.name,
-                code = category.code,
-                parentId = category.parent?.id,
-                children = category.children.map { from(it) },
-                thumbnail = null,
-                assetIds = category.assets.mapNotNull { it.id },
-                createdAt = category.createdAt,
-                updatedAt = category.updatedAt,
-                depth = category.depth,
-            )
+)
 
-        @JvmStatic
-        fun from(
-            category: AssetCategory,
-            iconFile: FileResponse?,
-        ): AssetCategoryResponse =
-            AssetCategoryResponse(
-                id = category.id,
-                name = category.name,
-                code = category.code,
-                parentId = category.parent?.id,
-                children = emptyList(),
-                thumbnail = iconFile,
-                assetIds = category.assets.mapNotNull { it.id },
-                createdAt = category.createdAt,
-                updatedAt = category.updatedAt,
-                depth = category.depth,
-            )
-
-        @JvmStatic
-        fun fromWithoutChildren(category: AssetCategory): AssetCategoryResponse =
-            AssetCategoryResponse(
-                id = category.id,
-                name = category.name,
-                code = category.code,
-                parentId = category.parent?.id,
-                children = emptyList(),
-                thumbnail = null,
-                assetIds = category.assets.mapNotNull { it.id },
-                createdAt = category.createdAt,
-                updatedAt = category.updatedAt,
-                depth = category.depth,
-            )
-
-        @JvmStatic
-        fun fromWithoutChildren(
-            category: AssetCategory,
-            iconFile: FileResponse?,
-        ): AssetCategoryResponse =
-            AssetCategoryResponse(
-                id = category.id,
-                name = category.name,
-                code = category.code,
-                parentId = category.parent?.id,
-                children = emptyList(),
-                thumbnail = iconFile,
-                assetIds = category.assets.mapNotNull { it.id },
-                createdAt = category.createdAt,
-                updatedAt = category.updatedAt,
-                depth = category.depth,
-            )
-    }
-}
+fun AssetCategory.toResponse(
+    includeChildren: Boolean = true,
+    thumbnailFile: FileResponse? = null,
+): AssetCategoryResponse =
+    AssetCategoryResponse(
+        id = this.id!!,
+        name = this.name,
+        code = this.code,
+        parentId = this.parent?.id,
+        children =
+            if (includeChildren) {
+                this.children.map { it.toResponse(includeChildren = true, thumbnailFile = null) }
+            } else {
+                emptyList()
+            },
+        thumbnail = thumbnailFile,
+        assetIds = this.assets.mapNotNull { it.id },
+        createdAt = this.createdAt!!,
+        updatedAt = this.updatedAt!!,
+        depth = this.depth,
+    )

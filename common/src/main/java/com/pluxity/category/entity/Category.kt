@@ -31,7 +31,7 @@ abstract class Category<T : Category<T>> : BaseEntity() {
         get() = 2
 
     val depth: Int
-        get() = if (isRoot()) 1 else (parent?.depth ?: 1) + 1
+        get() = 1 + (parent?.depth ?: 0)
 
     fun isRoot(): Boolean = parent == null
 

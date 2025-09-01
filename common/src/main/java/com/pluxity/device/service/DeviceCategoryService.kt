@@ -30,9 +30,8 @@ class DeviceCategoryService(
     private val deviceRepository: DeviceRepository,
     private val fileService: FileService,
     private val facilityService: FacilityService,
+    override val repository: JpaRepository<DeviceCategory, Long>,
 ) : CategoryService<DeviceCategory>() {
-    override fun getRepository(): JpaRepository<DeviceCategory, Long> = deviceCategoryRepository
-
     @Transactional
     fun create(request: DeviceCategoryRequest): Long {
         val deviceCategory =

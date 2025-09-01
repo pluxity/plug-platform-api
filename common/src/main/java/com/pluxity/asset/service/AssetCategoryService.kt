@@ -4,10 +4,10 @@ import com.pluxity.asset.dto.AssetCategoryCreateRequest
 import com.pluxity.asset.dto.AssetCategoryDepthResponse
 import com.pluxity.asset.dto.AssetCategoryResponse
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest
+import com.pluxity.asset.dto.toResponse
 import com.pluxity.asset.entity.AssetCategory
 import com.pluxity.asset.repository.AssetCategoryRepository
 import com.pluxity.category.service.CategoryService
-import com.pluxity.file.dto.FileResponse
 import com.pluxity.file.service.FileService
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
@@ -20,33 +20,25 @@ import org.springframework.transaction.annotation.Transactional
 class AssetCategoryService(
     private val assetCategoryRepository: AssetCategoryRepository,
     private val fileService: FileService,
+    override val repository: JpaRepository<AssetCategory, Long>,
 ) : CategoryService<AssetCategory>() {
-    companion object {
-        const val ASSET_CATEGORIES: String = "asset-categories/"
-    }
-
-    override fun getRepository(): JpaRepository<AssetCategory, Long> = assetCategoryRepository
-
     @Transactional(readOnly = true)
     fun getAllCategories(): List<AssetCategoryResponse> {
         val allCategories = assetCategoryRepository.findAll(SortUtils.getOrderByCreatedAtDesc())
-        val fileMap: Map<Long, FileResponse> =
-            MappingUtils.getFileMapByIds(
-                allCategories,
-                { v ->
-                    java.util.stream.Stream
-                        .of(v.iconFileId)
-                },
-                fileService,
-            )
+        if (allCategories.isEmpty()) return emptyList()
 
-        val list =
+        val iconFileIds = allCategories.mapNotNull { it.iconFileId }
+        val fileMap = fileService.getFiles(iconFileIds).associateBy { it.id }
+        val flatList =
             allCategories.map { category ->
-                AssetCategoryResponse.from(category, fileMap[category.iconFileId])
+                category.toResponse(
+                    includeChildren = false,
+                    thumbnailFile = fileMap[category.iconFileId],
+                )
             }
 
         return MappingUtils.makeCategoryTree(
-            list,
+            flatList,
             AssetCategoryResponse::id,
             AssetCategoryResponse::parentId,
             AssetCategoryResponse::children,
@@ -56,34 +48,36 @@ class AssetCategoryService(
     @Transactional(readOnly = true)
     fun getChildCategories(parentId: Long): List<AssetCategoryResponse> {
         val childCategories = assetCategoryRepository.findByParentId(parentId)
-        return childCategories.map { createAssetCategoryResponseWithoutChildren(it) }
+        return childCategories.map { category ->
+            category.toResponse(
+                includeChildren = false,
+                thumbnailFile = fileService.getFileResponse(category.iconFileId),
+            )
+        }
     }
-
-    private fun createAssetCategoryResponseWithoutChildren(category: AssetCategory): AssetCategoryResponse =
-        AssetCategoryResponse.fromWithoutChildren(
-            category,
-            category.iconFileId?.let { fileService.getFileResponse(it) },
-        )
 
     @Transactional
     fun createAssetCategory(request: AssetCategoryCreateRequest): Long {
         validateCodeUniqueness(request.code)
+
+        val parent = request.parentId?.let { id: Long -> super.findById(id) }
+
         val category =
-            AssetCategory
-                .builder()
-                .name(request.name)
-                .code(request.code)
-                .iconFileId(request.thumbnailFileId)
-                .build()
+            AssetCategory(
+                code = request.code,
+                iconFileId = request.thumbnailFileId,
+            ).apply {
+                this.name = request.name
+                assignToParent(parent)
+            }
 
-        val parent = MappingUtils.findByIdIfExists(request.parentId) { id: Long -> super.findById(id) }
+        assetCategoryRepository.save(category)
 
-        if (request.thumbnailFileId != null) {
-            category.updateIconFileId(request.thumbnailFileId)
-            fileService.finalizeUpload(request.thumbnailFileId, "$ASSET_CATEGORIES${category.id}/")
+        request.thumbnailFileId?.let {
+            fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${category.id}")
         }
 
-        return super.create(category, parent)
+        return category.id!!
     }
 
     @Transactional
@@ -99,8 +93,8 @@ class AssetCategoryService(
         category.updateCode(request.code)
         category.updateIconFileId(request.thumbnailFileId)
 
-        if (request.thumbnailFileId != null) {
-            fileService.finalizeUpload(request.thumbnailFileId, "$ASSET_CATEGORIES${category.id}/")
+        request.thumbnailFileId?.let {
+            fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${category.id}")
         }
     }
 
@@ -108,11 +102,11 @@ class AssetCategoryService(
     fun deleteAssetCategory(id: Long) {
         val category = findById(id)
 
-        if (category.assets.isNotEmpty()) {
+        require(category.assets.isEmpty()) {
             throw CustomException(com.pluxity.global.constant.ErrorCode.ASSET_CATEGORY_HAS_ASSET)
         }
 
-        if (category.children.isNotEmpty()) {
+        require(category.children.isEmpty()) {
             throw CustomException(com.pluxity.global.constant.ErrorCode.CATEGORY_HAS_CHILDREN)
         }
 
@@ -125,5 +119,9 @@ class AssetCategoryService(
         }
     }
 
-    fun getCategoryDepth(): AssetCategoryDepthResponse = AssetCategoryDepthResponse(AssetCategory.builder().build().maxDepth)
+    fun getCategoryDepth(): AssetCategoryDepthResponse = AssetCategoryDepthResponse(AssetCategory.MAX_DEPTH)
+
+    companion object {
+        private const val ASSET_CATEGORIES: String = "asset-categories/"
+    }
 }
