@@ -52,16 +52,16 @@ class DeviceDataController(
         @Parameter(description = "데이터 집계 간격", example = "HOUR")
         @RequestParam(defaultValue = "HOUR", required = false) interval: DataInterval,
         @Parameter(description = "조회 시작일(yyyyMMddHHmmss)", required = true)
-        @RequestParam("startTime") startTime: String,
+        @RequestParam("from") from: String,
         @Parameter(description = "조회 종료일(yyyyMMddHHmmss)", required = true)
-        @RequestParam("endTime") endTime: String,
+        @RequestParam("to") to: String,
     ): ResponseEntity<DataResponseBody<DeviceListDataResponse>> {
         val result =
             when (companyType) {
                 DAWONDNS ->
                     when (deviceType) {
                         TEMP_HUM -> {
-                            climateDataService.getTimeSeries(id, interval, startTime, endTime)
+                            climateDataService.getTimeSeries(id, interval, from, to)
                         }
                     }
             }
