@@ -88,7 +88,7 @@ class AuthenticationServiceTest(
         Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("$ACCESS_TOKEN_NAME=") }
         Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("$REFRESH_TOKEN_NAME=") }
         val refreshTokenValue = requireNotNull(extractTokenValueFromCookie(setCookieHeaders, REFRESH_TOKEN_NAME))
-        Assertions.assertThat(refreshTokenRepository.findByToken(refreshTokenValue)).isPresent
+        Assertions.assertThat(refreshTokenRepository.findByToken(refreshTokenValue)).isNotNull
     }
 
     @Test
@@ -108,7 +108,7 @@ class AuthenticationServiceTest(
 
         authenticationService.signOut(servletRequest, servletResponse)
 
-        Assertions.assertThat(refreshTokenRepository.findByToken(refreshTokenValue)).isEmpty
+        Assertions.assertThat(refreshTokenRepository.findByToken(refreshTokenValue)).isNull()
         val deletedCookies = servletResponse.getHeaders(HttpHeaders.SET_COOKIE)
         Assertions
             .assertThat(deletedCookies)
@@ -142,7 +142,7 @@ class AuthenticationServiceTest(
         Assertions.assertThat(cookies).anyMatch { it.startsWith("$ACCESS_TOKEN_NAME=") }
         Assertions.assertThat(cookies).anyMatch { it.startsWith("$REFRESH_TOKEN_NAME=") }
         val newRefreshTokenValue = requireNotNull(extractTokenValueFromCookie(cookies, REFRESH_TOKEN_NAME))
-        Assertions.assertThat(refreshTokenRepository.findByToken(newRefreshTokenValue)).isPresent
+        Assertions.assertThat(refreshTokenRepository.findByToken(newRefreshTokenValue)).isNotNull
     }
 
     @Test

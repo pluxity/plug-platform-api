@@ -28,7 +28,4 @@ fun dummySpatial(
     z: Double = 0.0,
 ) = Spatial(x, y, z)
 
-private class DummyFacility(
-    private val facilityId: String = "dummy_facility_id",
-    private val facilityName: String = "Dummy Facility",
-) : Facility()
+private class DummyFacility : Facility()

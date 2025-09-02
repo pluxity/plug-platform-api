@@ -114,7 +114,7 @@ class JwtProvider(
             val refreshToken =
                 refreshTokenRepository
                     .findByToken(token)
-                    .orElseThrow { CustomException(ErrorCode.INVALID_REFRESH_TOKEN) }
+                    ?: throw CustomException(ErrorCode.INVALID_REFRESH_TOKEN)
 
             if (!refreshToken.isValidToken()) {
                 throw CustomException(ErrorCode.INVALID_REFRESH_TOKEN)

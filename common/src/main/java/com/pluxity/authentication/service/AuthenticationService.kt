@@ -77,7 +77,7 @@ class AuthenticationService(
         refreshToken?.let {
             refreshTokenRepository
                 .findByToken(it)
-                .ifPresent { token -> refreshTokenRepository.delete(token) }
+                ?.let { token -> refreshTokenRepository.delete(token) }
             clearAllCookies(request, response)
         }
     }
