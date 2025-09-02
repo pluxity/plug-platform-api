@@ -22,8 +22,8 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
-import java.util.Optional
 
 class UserServiceKoTest :
     BehaviorSpec({
@@ -141,8 +141,8 @@ class UserServiceKoTest :
                 } returns ""
 
                 every {
-                    roleRepository.findById(any())
-                } returns Optional.of(role)
+                    roleRepository.findByIdOrNull(any())
+                } returns role
 
                 Then("성공") {
                     val res = userService.save(createRequest)
@@ -234,7 +234,7 @@ class UserServiceKoTest :
                 user.addRole(role)
 
                 every { userRepository.findWithGraphById(any()) } returns user
-                every { roleRepository.findById(any()) } returns Optional.of(role)
+                every { roleRepository.findByIdOrNull(any()) } returns role
 
                 Then("성공") {
                     userService.removeRoleFromUser(user.id!!, role.id!!)
@@ -279,7 +279,7 @@ class UserServiceKoTest :
                 val token = dummyRefreshToken()
 
                 every { userRepository.findAllBy(any()) } returns listOf(user)
-                every { refreshTokenRepository.findById(any()) } returns Optional.of(token)
+                every { refreshTokenRepository.findByIdOrNull(any()) } returns token
 
                 Then("성공") {
                     val res = userService.isLoggedIn()

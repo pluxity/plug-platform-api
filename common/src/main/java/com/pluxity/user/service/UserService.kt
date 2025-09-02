@@ -177,8 +177,8 @@ class UserService(
     fun isLoggedIn(): List<UserLoggedInResponse> {
         val users = userRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc())
         return users.map { user ->
-            val refreshToken = refreshTokenRepository.findById(user.username)
-            val isLoggedIn = refreshToken.isPresent
+            val refreshToken = refreshTokenRepository.findByIdOrNull(user.username)
+            val isLoggedIn = refreshToken != null
             user.toUserLoggedInResponse(isLoggedIn)
         }
     }

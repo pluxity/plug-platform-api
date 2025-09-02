@@ -86,7 +86,7 @@ class DeviceCategoryServiceKoTest :
                         parent = parentCategory
                     }
 
-                every { jpaRepository.findById(10L) } returns java.util.Optional.of(parentCategory)
+                every { jpaRepository.findByIdOrNull(10L) } returns parentCategory
                 every { jpaRepository.save(any()) } returns savedCategory
 
                 Then("성공") {
@@ -175,7 +175,7 @@ class DeviceCategoryServiceKoTest :
                         thumbnailFileId = 2L,
                     )
 
-                every { jpaRepository.findById(1L) } returns java.util.Optional.of(existingCategory)
+                every { jpaRepository.findByIdOrNull(1L) } returns existingCategory
 
                 Then("성공") {
                     deviceCategoryService.update(1L, updateRequest)
@@ -210,7 +210,7 @@ class DeviceCategoryServiceKoTest :
                         id = 1L
                     }
 
-                every { jpaRepository.findById(1L) } returns java.util.Optional.of(category)
+                every { jpaRepository.findByIdOrNull(1L) } returns category
                 every { deviceCategoryRepository.delete(any()) } just runs
 
                 Then("성공") {
@@ -228,7 +228,7 @@ class DeviceCategoryServiceKoTest :
                     }
                 parentCategory.children.add(childCategory)
 
-                every { jpaRepository.findById(1L) } returns java.util.Optional.of(parentCategory)
+                every { jpaRepository.findByIdOrNull(1L) } returns parentCategory
 
                 Then("CATEGORY_HAS_CHILDREN 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -242,7 +242,7 @@ class DeviceCategoryServiceKoTest :
                 val device: Device = mockk(relaxed = true)
                 category.devices.add(device)
 
-                every { jpaRepository.findById(1L) } returns java.util.Optional.of(category)
+                every { jpaRepository.findByIdOrNull(1L) } returns category
 
                 Then("CATEGORY_HAS_DEVICES 예외 발생") {
                     shouldThrowExactly<CustomException> {
