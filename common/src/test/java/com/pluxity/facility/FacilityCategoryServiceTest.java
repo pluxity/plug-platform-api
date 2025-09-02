@@ -91,7 +91,7 @@ class FacilityCategoryServiceTest {
 
         // when
         FacilityCategoryAllResponse allResponse = categoryService.findAll();
-        List<FacilityCategoryResponse> responses = allResponse.list;
+        List<FacilityCategoryResponse> responses = allResponse.getList();
 
         // then
         assertThat(responses).isNotEmpty();
@@ -151,7 +151,7 @@ class FacilityCategoryServiceTest {
         Long savedCategoryId = categoryService.create(createRequest);
         Long nonExistingParentId = 9999L;
         FacilityCategoryUpdateRequest invalidRequest =
-                new FacilityCategoryUpdateRequest(null, nonExistingParentId);
+                new FacilityCategoryUpdateRequest("유효한 이름", nonExistingParentId);
 
         // when & then
         assertThrows(
@@ -199,7 +199,7 @@ class FacilityCategoryServiceTest {
         Long savedCategoryId = categoryService.create(createRequest);
         FacilityCategoryUpdateRequest invalidRequest =
                 new FacilityCategoryUpdateRequest(
-                        null, savedCategoryId // 자기 자신을 부모로 설정
+                        "유효한 이름", savedCategoryId // 자기 자신을 부모로 설정
                         );
 
         // when & then
@@ -287,6 +287,6 @@ class FacilityCategoryServiceTest {
         // then
         FacilityCategory updatedCategory = categoryService.findById(savedCategoryId);
         assertThat(updatedCategory.getName()).isEqualTo("새 이름 업데이트");
-        assertThat(updatedCategory.getParent().getId()).isEqualTo(updateRequest.parentId);
+        assertThat(updatedCategory.getParent().getId()).isEqualTo(updateRequest.getParentId());
     }
 }
