@@ -15,6 +15,7 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
 import jakarta.validation.Valid
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -83,7 +84,7 @@ class AssetService(
         val asset =
             assetRepository
                 .findByCode(code)
-                .orElseThrow { CustomException(ErrorCode.NOT_FOUND_ASSET_BY_CODE, code) }
+                ?: throw CustomException(ErrorCode.NOT_FOUND_ASSET_BY_CODE, code)
 
         return asset.toResponse(
             file = getFileResponse(asset),
@@ -95,10 +96,11 @@ class AssetService(
     fun createAsset(
         @Valid request: AssetCreateRequest,
     ): Long {
-        assetRepository.findByName(request.name).ifPresent {
+        if (assetRepository.findByName(request.name) != null) {
             throw CustomException(ErrorCode.DUPLICATE_ASSET_NAME, request.name)
         }
-        assetRepository.findByCode(request.code).ifPresent {
+
+        if (assetRepository.findByCode(request.code) != null) {
             throw CustomException(ErrorCode.DUPLICATE_ASSET_CODE, request.code)
         }
 
@@ -107,8 +109,8 @@ class AssetService(
         request.categoryId?.let { categoryId ->
             val category =
                 assetCategoryRepository
-                    .findById(categoryId)
-                    .orElseThrow { CustomException(ErrorCode.NOT_FOUND_ASSET_CATEGORY, categoryId) }
+                    .findByIdOrNull(categoryId)
+                    ?: throw CustomException(ErrorCode.NOT_FOUND_ASSET_CATEGORY, categoryId)
             asset.assignCategory(category)
         }
 
@@ -132,10 +134,11 @@ class AssetService(
         id: Long,
         @Valid request: AssetUpdateRequest,
     ) {
-        assetRepository.findByNameAndIdNot(request.name, id).ifPresent {
+        if (assetRepository.findByNameAndIdNot(request.name, id) != null) {
             throw CustomException(ErrorCode.DUPLICATE_ASSET_NAME, request.name)
         }
-        assetRepository.findByCodeAndIdNot(request.code, id).ifPresent {
+
+        if (assetRepository.findByCodeAndIdNot(request.code, id) != null) {
             throw CustomException(ErrorCode.DUPLICATE_ASSET_CODE, request.code)
         }
 
@@ -145,8 +148,8 @@ class AssetService(
         request.categoryId?.let { categoryId ->
             val category =
                 assetCategoryRepository
-                    .findById(categoryId)
-                    .orElseThrow { CustomException(ErrorCode.NOT_FOUND_ASSET_CATEGORY, categoryId) }
+                    .findByIdOrNull(categoryId)
+                    ?: throw CustomException(ErrorCode.NOT_FOUND_ASSET_CATEGORY, categoryId)
             asset.assignCategory(category)
         }
 
@@ -192,7 +195,7 @@ class AssetService(
     }
 
     @Transactional(readOnly = true)
-    fun findById(id: Long): Asset = assetRepository.findById(id).orElseThrow { notFoundAsset(id) }
+    fun findById(id: Long): Asset = assetRepository.findByIdOrNull(id) ?: throw notFoundAsset(id)
 
     fun getFileResponse(asset: Asset?): FileResponse? = asset?.takeIf { it.hasFile() }?.let { fileService.getFileResponse(it.fileId) }
 

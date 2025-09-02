@@ -35,7 +35,7 @@ class FeatureService(
 
         // ID 중복 체크
         val featureId = request.id
-        featureRepository.findByIdOrNull(featureId)?.let {
+        if (featureRepository.findByIdOrNull(featureId) != null) {
             throw CustomException(ErrorCode.DUPLICATE_FEATURE_ID, featureId)
         }
 

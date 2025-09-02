@@ -18,11 +18,9 @@ class LineService(
 ) {
     @Transactional
     fun save(request: LineCreateRequest): Long {
-        lineRepository
-            .findByName(request.name)
-            ?.let {
-                throw CustomException(ErrorCode.DUPLICATE_LINE_NAME, request.name)
-            }
+        if (lineRepository.findByName(request.name) != null) {
+            throw CustomException(ErrorCode.DUPLICATE_LINE_NAME, request.name)
+        }
         val line =
             Line(
                 name = request.name,
@@ -51,11 +49,9 @@ class LineService(
         val line = findLineById(id)
 
         if (request.name != null) {
-            lineRepository
-                .findByNameAndIdNot(request.name, id)
-                ?.let {
-                    throw CustomException(ErrorCode.DUPLICATE_LINE_NAME, request.name)
-                }
+            if (lineRepository.findByNameAndIdNot(request.name, id) != null) {
+                throw CustomException(ErrorCode.DUPLICATE_LINE_NAME, request.name)
+            }
         }
 
         line.update(request.name, request.color)
