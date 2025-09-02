@@ -188,8 +188,8 @@ class FeatureService(
 
     private fun findDeviceById(deviceId: String): Device =
         deviceRepository
-            .findById(deviceId)
-            .orElseThrow { CustomException(ErrorCode.NOT_FOUND_DEVICE, deviceId) }
+            .findByIdOrNull(deviceId)
+            ?: throw CustomException(ErrorCode.NOT_FOUND_DEVICE, deviceId)
 
     private fun removeDeviceFromFeature(
         featureId: String,

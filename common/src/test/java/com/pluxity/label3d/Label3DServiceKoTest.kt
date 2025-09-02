@@ -3,10 +3,10 @@ package com.pluxity.label3d
 import com.pluxity.facility.Facility
 import com.pluxity.facility.FacilityService
 import com.pluxity.feature.entity.Spatial
-import com.pluxity.feature.entity.dummyFeature
 import com.pluxity.feature.service.FeatureService
 import com.pluxity.global.utils.SortUtils
 import com.pluxity.label3d.entity.dummyLabel3d
+import entity.dummyFeature
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec

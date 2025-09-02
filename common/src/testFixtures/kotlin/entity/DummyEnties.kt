@@ -1,7 +1,8 @@
-package com.pluxity.feature.entity
+package entity
 
 import com.pluxity.facility.Facility
-import io.mockk.mockk
+import com.pluxity.feature.entity.Feature
+import com.pluxity.feature.entity.Spatial
 
 fun dummyFeature(
     id: String? = "feature_id",
@@ -9,7 +10,7 @@ fun dummyFeature(
     rotation: Spatial? = dummySpatial(),
     scale: Spatial? = dummySpatial(),
     assetId: Long? = 1L,
-    facility: Facility = mockk(),
+    facility: Facility = DummyFacility(),
     floorId: String? = "1",
 ) = Feature(
     id,
@@ -26,3 +27,8 @@ fun dummySpatial(
     y: Double = 0.0,
     z: Double = 0.0,
 ) = Spatial(x, y, z)
+
+private class DummyFacility(
+    private val facilityId: String = "dummy_facility_id",
+    private val facilityName: String = "Dummy Facility",
+) : Facility()
