@@ -2,6 +2,7 @@ package com.pluxity
 
 import com.pluxity.climate.ClimateDataCollector
 import com.pluxity.device.entity.DeviceCompanyType
+import com.pluxity.device.entity.DeviceType
 import com.pluxity.device.repository.DeviceRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -20,16 +21,20 @@ class Collector(
     fun collectData() {
         runBlocking {
             supervisorScope {
-                val devices = deviceRepository.findAll()
                 DeviceCompanyType.entries
                     .map { deviceCompanyType ->
                         launch {
                             runCatching {
                                 when (deviceCompanyType) {
                                     DeviceCompanyType.DAWONDNS -> {
+                                        val devices =
+                                            deviceRepository.findByCompanyTypeAndDeviceType(
+                                                DeviceCompanyType.DAWONDNS,
+                                                DeviceType.TEMP_HUM,
+                                            )
                                         climateDataCollector.collectClimateData(
                                             devices
-                                                .filter { it.companyType == DeviceCompanyType.DAWONDNS }
+                                                .filter { it.id.startsWith(DeviceCompanyType.DAWONDNS.toString()) }
                                                 .map { it.id },
                                         )
                                     }

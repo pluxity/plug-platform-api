@@ -2,6 +2,8 @@ package com.pluxity.device.repository
 
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
+import com.pluxity.device.entity.DeviceCompanyType
+import com.pluxity.device.entity.DeviceType
 import com.pluxity.facility.Facility
 import com.pluxity.feature.entity.Feature
 import org.springframework.data.jpa.repository.JpaRepository
@@ -20,4 +22,9 @@ interface DeviceRepository : JpaRepository<Device, String> {
     ): List<Device>
 
     fun existsByFeature(feature: Feature): Boolean
+
+    fun findByCompanyTypeAndDeviceType(
+        companyType: DeviceCompanyType,
+        deviceType: DeviceType,
+    ): List<Device>
 }
