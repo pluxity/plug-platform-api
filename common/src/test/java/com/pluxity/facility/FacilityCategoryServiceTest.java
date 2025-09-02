@@ -91,7 +91,7 @@ class FacilityCategoryServiceTest {
 
         // when
         FacilityCategoryAllResponse allResponse = categoryService.findAll();
-        List<FacilityCategoryResponse> responses = allResponse.list();
+        List<FacilityCategoryResponse> responses = allResponse.list;
 
         // then
         assertThat(responses).isNotEmpty();
@@ -287,6 +287,6 @@ class FacilityCategoryServiceTest {
         // then
         FacilityCategory updatedCategory = categoryService.findById(savedCategoryId);
         assertThat(updatedCategory.getName()).isEqualTo("새 이름 업데이트");
-        assertThat(updatedCategory.getParent().getId()).isEqualTo(updateRequest.parentId());
+        assertThat(updatedCategory.getParent().getId()).isEqualTo(updateRequest.parentId);
     }
 }
