@@ -24,6 +24,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.verify
 import org.springframework.data.repository.findByIdOrNull
 
@@ -415,6 +416,68 @@ class FeatureServiceKoTest :
                     val response = featureService.saveFeature(feature)
                     response shouldBe savedFeature
                     verify { featureRepository.save(feature) }
+                }
+            }
+        }
+
+        Given("Feature에 CCTV 할당할 때") {
+            When("유효한 요청으로 CCTV 할당") {
+                val featureId = "test-feature-id"
+                val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
+                val feature = dummyFeature(id = featureId)
+                val slot = slot<String>()
+
+                every { featureRepository.findByIdOrNull(featureId) } returns feature
+                every { deviceRepository.existsByFeature(feature) } returns false
+                every { deviceRepository.revokeByFeature(any()) } just runs
+                every { featureAssignment.assignFeature(capture(slot), any()) } just runs
+
+                Then("성공") {
+                    featureService.assignSomethingToFeature(featureId, assignDto, false)
+                    slot.captured shouldBe assignDto.id
+                }
+            }
+
+            When("이미 할당된 CCTV가 있는 Feature에 강제하지 않고 할당") {
+                val featureId = "test-feature-id"
+                val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
+                val feature = dummyFeature(id = featureId)
+
+                every { featureRepository.findByIdOrNull(featureId) } returns feature
+                every { featureAssignment.existsByFeature(feature) } returns true
+
+                Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        featureService.assignSomethingToFeature(featureId, assignDto, false)
+                    }.message shouldBe ErrorCode.DUPLICATE_FEATURE_OTHER_CCTV.getMessage().format(featureId)
+                }
+            }
+
+            When("이미 다른 Feature에 할당된 CCTV 할당 시도") {
+                val featureId = "test-feature-id"
+                val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
+                val feature = dummyFeature(id = featureId)
+
+                every { featureRepository.findByIdOrNull(featureId) } returns feature
+                every { featureAssignment.isAssigned(assignDto.id) } returns true
+
+                Then("ALREADY_ASSIGNED_TARGET 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        featureService.assignSomethingToFeature(featureId, assignDto, false)
+                    }.message shouldBe ErrorCode.ALREADY_ASSIGNED_TARGET.getMessage().format(assignDto.id, assignDto.type.description)
+                }
+            }
+        }
+
+        Given("Feature에서 Cctv 제거할 때") {
+            When("유효한 요청으로 Cctv 제거") {
+                val featureId = "test-feature-id"
+                val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
+
+                Then("성공") {
+                    featureService.removeSomethingFromFeature(featureId, assignDto)
+                    verify(exactly = 1) { featureAssignment.validateRevoke(assignDto.id, featureId) }
+                    verify(exactly = 1) { featureAssignment.clearFeatureFromTarget(assignDto.id) }
                 }
             }
         }
