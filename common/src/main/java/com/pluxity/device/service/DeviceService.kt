@@ -10,6 +10,8 @@ import com.pluxity.device.entity.DeviceCategory
 import com.pluxity.device.entity.DeviceCompanyType
 import com.pluxity.device.entity.DeviceType
 import com.pluxity.device.repository.DeviceRepository
+import com.pluxity.facility.Facility
+import com.pluxity.feature.entity.Feature
 import com.pluxity.file.dto.FileResponse
 import com.pluxity.file.service.FileService
 import com.pluxity.global.annotation.CheckPermission
@@ -62,8 +64,24 @@ class DeviceService(
 
     @Transactional(readOnly = true)
     @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.FILTER)
-    fun findAll(): List<DeviceResponse> {
-        val devices = deviceRepository.findAll()
+    fun findAll(facilityId: Long? = null): List<DeviceResponse> {
+        val devices =
+            deviceRepository
+                .findAll {
+                    select(
+                        entity(Device::class),
+                    ).from(
+                        entity(Device::class),
+                        leftFetchJoin(Device::category),
+                        leftFetchJoin(Device::feature),
+                        leftFetchJoin(Feature::facility),
+                    ).where(
+                        and(
+                            facilityId?.let { path(Facility::getId).eq(it) },
+                        ),
+                    )
+                }.filterNotNull()
+
         val categoryList =
             devices
                 .mapNotNull { it.category }

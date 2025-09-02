@@ -2,6 +2,7 @@ package com.pluxity.device
 
 import com.pluxity.device.dto.DeviceCreateRequest
 import com.pluxity.device.dto.DeviceUpdateRequest
+import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCompanyType
 import com.pluxity.device.entity.DeviceType
 import com.pluxity.device.repository.DeviceRepository
@@ -179,7 +180,7 @@ class DeviceServiceKoTest :
                     fileService.getFiles(any())
                 } returns mutableListOf(dummyFileResponse())
 
-                every { deviceRepository.findAll() } returns devices
+                every { deviceRepository.findAll<Device>(isNull(), isNull(), any()) } returns devices
 
                 Then("정상 조회") {
                     val result = deviceService.findAll()

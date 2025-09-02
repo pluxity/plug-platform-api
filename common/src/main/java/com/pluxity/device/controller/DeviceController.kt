@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -62,7 +63,9 @@ class DeviceController(
         ],
     )
     @GetMapping
-    fun get(): ResponseEntity<DataResponseBody<List<DeviceResponse>>> = ResponseEntity.ok(DataResponseBody.of(deviceService.findAll()))
+    fun get(
+        @Parameter(description = "시설 아이디") @RequestParam("facilityId", required = false) facilityId: Long?,
+    ): ResponseEntity<DataResponseBody<List<DeviceResponse>>> = ResponseEntity.ok(DataResponseBody.of(deviceService.findAll(facilityId)))
 
     @Operation(summary = "디바이스 타입 목록 조회", description = "모든 디바이스 타입 목록을 조회합니다.")
     @ApiResponses(
