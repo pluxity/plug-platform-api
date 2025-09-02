@@ -123,10 +123,10 @@ internal class Label3DServiceTest {
 
         // THEN: DB에서 직접 엔티티를 조회하여 변경사항 검증
         val updatedFeature = featureRepository.findById(featureId).orElseThrow()
-        Assertions.assertThat(updatedFeature.position.x).isEqualTo(99.0)
-        Assertions.assertThat(updatedFeature.scale.y).isEqualTo(2.0)
+        Assertions.assertThat(updatedFeature.position?.x).isEqualTo(99.0)
+        Assertions.assertThat(updatedFeature.scale?.y).isEqualTo(2.0)
         // rotation은 요청에 없었으므로 기존 값(0) 유지
-        Assertions.assertThat(updatedFeature.rotation.z).isEqualTo(0.0)
+        Assertions.assertThat(updatedFeature.rotation?.z).isEqualTo(0.0)
 
         // 라벨의 텍스트는 변경되지 않음
         val label = label3DRepository.findById(featureId).orElseThrow()
@@ -261,10 +261,10 @@ internal class Label3DServiceTest {
         // THEN
         val updatedFeature = featureRepository.findById(featureId).orElseThrow()
         // position과 scale은 기존 값 유지
-        Assertions.assertThat(updatedFeature.position.x).isEqualTo(1.0)
-        Assertions.assertThat(updatedFeature.scale.x).isEqualTo(3.0)
+        Assertions.assertThat(updatedFeature.position?.x).isEqualTo(1.0)
+        Assertions.assertThat(updatedFeature.scale?.x).isEqualTo(3.0)
         // rotation은 새로운 값으로 변경
-        Assertions.assertThat(updatedFeature.rotation.x).isEqualTo(99.0)
+        Assertions.assertThat(updatedFeature.rotation?.x).isEqualTo(99.0)
     }
 
     @Test

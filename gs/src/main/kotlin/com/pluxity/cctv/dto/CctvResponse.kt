@@ -2,6 +2,7 @@ package com.pluxity.cctv.dto
 
 import com.pluxity.cctv.entity.Cctv
 import com.pluxity.feature.dto.FeatureResponse
+import com.pluxity.feature.dto.toFeatureResponse
 
 data class CctvResponse(
     val id: String,
@@ -15,5 +16,5 @@ fun Cctv.toCctvResponse() =
         id = this.id,
         name = this.name,
         url = this.url,
-        feature = this.feature?.let { FeatureResponse.from(it) },
+        feature = this.feature?.toFeatureResponse(),
     )

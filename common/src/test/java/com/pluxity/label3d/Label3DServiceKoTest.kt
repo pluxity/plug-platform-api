@@ -39,27 +39,9 @@ class Label3DServiceKoTest :
                         displayText = "Test Label",
                         facilityId = 1L,
                         floorId = "floor-1",
-                        position =
-                            Spatial
-                                .builder()
-                                .x(1.0)
-                                .y(2.0)
-                                .z(3.0)
-                                .build(),
-                        rotation =
-                            Spatial
-                                .builder()
-                                .x(0.0)
-                                .y(90.0)
-                                .z(0.0)
-                                .build(),
-                        scale =
-                            Spatial
-                                .builder()
-                                .x(1.0)
-                                .y(1.0)
-                                .z(1.0)
-                                .build(),
+                        position = Spatial(1.0, 2.0, 3.0),
+                        rotation = Spatial(0.0, 90.0, 0.0),
+                        scale = Spatial(1.0, 1.0, 1.0),
                     )
 
                 val facility = mockk<Facility>()
@@ -175,27 +157,9 @@ class Label3DServiceKoTest :
                 val id = "test-id"
                 val updateRequest =
                     Label3DUpdateRequest(
-                        position =
-                            Spatial
-                                .builder()
-                                .x(2.0)
-                                .y(3.0)
-                                .z(4.0)
-                                .build(),
-                        rotation =
-                            Spatial
-                                .builder()
-                                .x(0.0)
-                                .y(180.0)
-                                .z(0.0)
-                                .build(),
-                        scale =
-                            Spatial
-                                .builder()
-                                .x(2.0)
-                                .y(2.0)
-                                .z(2.0)
-                                .build(),
+                        position = Spatial(2.0, 3.0, 4.0),
+                        rotation = Spatial(0.0, 180.0, 0.0),
+                        scale = Spatial(2.0, 2.0, 2.0),
                     )
                 val feature = dummyFeature(id = id, floorId = "floor-1")
                 val label3D = Label3D(feature = feature, displayText = "Test Label")

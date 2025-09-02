@@ -82,7 +82,7 @@ internal class FeatureServiceTest {
                 Spatial(10.0, 20.0, 30.0),
                 Spatial(0.0, 45.0, 0.0),
                 Spatial(1.5, 1.5, 1.5),
-                testAsset.id,
+                testAsset.id!!,
                 testFacility.id,
                 "B1",
             )
@@ -110,7 +110,7 @@ internal class FeatureServiceTest {
         Assertions.assertThat(savedFeature.assetId).isEqualTo(testAsset.id)
         Assertions.assertThat(savedFeature.facility.id).isEqualTo(testFacility.id)
         Assertions.assertThat(savedFeature.floorId).isEqualTo("B1")
-        Assertions.assertThat(savedFeature.position.x).isEqualTo(10.0)
+        Assertions.assertThat(savedFeature.position?.x).isEqualTo(10.0)
     }
 
     @Test
@@ -124,7 +124,7 @@ internal class FeatureServiceTest {
                 null,
                 null,
                 null,
-                testAsset.id,
+                testAsset.id!!,
                 testFacility.id,
                 "Lobby",
             )
@@ -144,8 +144,8 @@ internal class FeatureServiceTest {
         Assertions.assertThat(response.scale).usingRecursiveComparison().isEqualTo(Spatial(1.0, 1.0, 1.0))
 
         val savedFeature = featureRepository.findById(featureId).orElseThrow()
-        Assertions.assertThat(savedFeature.position.x).isEqualTo(0.0)
-        Assertions.assertThat(savedFeature.scale.x).isEqualTo(1.0)
+        Assertions.assertThat(savedFeature.position?.x).isEqualTo(0.0)
+        Assertions.assertThat(savedFeature.scale?.x).isEqualTo(1.0)
     }
 
     @Test
@@ -159,7 +159,7 @@ internal class FeatureServiceTest {
                 null,
                 null,
                 null,
-                testAsset.id,
+                testAsset.id!!,
                 testFacility.id,
                 "F1",
             ),
@@ -172,7 +172,7 @@ internal class FeatureServiceTest {
                 null,
                 null,
                 null,
-                testAsset.id,
+                testAsset.id!!,
                 testFacility.id,
                 "F2",
             )
@@ -194,7 +194,7 @@ internal class FeatureServiceTest {
                 null,
                 null,
                 null,
-                testAsset.id,
+                testAsset.id!!,
                 invalidFacilityId,
                 "F1",
             )
@@ -268,7 +268,7 @@ internal class FeatureServiceTest {
         val request = FeatureUpdateRequest(newPosition, null, null)
 
         // WHEN
-        val response = featureService.updateFeature(originalFeature.id, request)
+        val response = featureService.updateFeature(originalFeature.id!!, request)
 
         // THEN: 응답 DTO 검증
         Assertions.assertThat(response.id).isEqualTo(originalFeature.id)
@@ -277,9 +277,9 @@ internal class FeatureServiceTest {
         Assertions.assertThat(response.scale).isEqualTo(originalFeature.scale) // 유지됨
 
         // THEN: DB 직접 검증
-        val updatedFeature = featureRepository.findById(originalFeature.id).orElseThrow()
-        Assertions.assertThat(updatedFeature.position.x).isEqualTo(100.0)
-        Assertions.assertThat(updatedFeature.rotation.x).isEqualTo(originalFeature.rotation.x)
+        val updatedFeature = featureRepository.findById(originalFeature.id!!).orElseThrow()
+        Assertions.assertThat(updatedFeature.position?.x).isEqualTo(100.0)
+        Assertions.assertThat(updatedFeature.rotation?.x).isEqualTo(originalFeature.rotation?.x)
     }
 
     @Test
@@ -299,13 +299,13 @@ internal class FeatureServiceTest {
     fun deleteFeature_WithExistingId_DeletesFeature() {
         // GIVEN
         val featureToDelete = createAndSaveFeature("F_DELETE", testFacility)
-        Assertions.assertThat(featureRepository.findById(featureToDelete.id)).isPresent()
+        Assertions.assertThat(featureRepository.findById(featureToDelete.id!!)).isPresent()
 
         // WHEN
-        featureService.deleteFeature(featureToDelete.id)
+        featureService.deleteFeature(featureToDelete.id!!)
 
         // THEN
-        Assertions.assertThat(featureRepository.findById(featureToDelete.id)).isNotPresent()
+        Assertions.assertThat(featureRepository.findById(featureToDelete.id!!)).isNotPresent()
     }
 
     @Test
@@ -330,7 +330,7 @@ internal class FeatureServiceTest {
 
         // WHEN
         featureService.assignSomethingToFeature(
-            feature.id,
+            feature.id!!,
             FeatureAssignDto(device.id, FeatureAssignType.DEVICE),
             false,
         )
@@ -348,7 +348,7 @@ internal class FeatureServiceTest {
         val feature = createAndSaveFeature("F_REMOVE_DEV", testFacility)
         val device = createAndSaveDevice()
         featureService.assignSomethingToFeature(
-            feature.id,
+            feature.id!!,
             FeatureAssignDto(device.id, FeatureAssignType.DEVICE),
             false,
         )
@@ -357,7 +357,7 @@ internal class FeatureServiceTest {
             .isNotNull()
 
         // WHEN
-        featureService.removeSomethingFromFeature(feature.id, FeatureAssignDto(device.id, FeatureAssignType.DEVICE))
+        featureService.removeSomethingFromFeature(feature.id!!, FeatureAssignDto(device.id, FeatureAssignType.DEVICE))
 
         // THEN: DB 직접 검증
         val updatedDevice = deviceRepository.findById(device.id).orElseThrow()
@@ -372,7 +372,7 @@ internal class FeatureServiceTest {
         val assignedDevice = createAndSaveDevice()
         val otherDevice = createAndSaveDevice()
         featureService.assignSomethingToFeature(
-            feature.id,
+            feature.id!!,
             FeatureAssignDto(assignedDevice.id, FeatureAssignType.DEVICE),
             false,
         )
@@ -380,7 +380,7 @@ internal class FeatureServiceTest {
         // WHEN & THEN: 다른 디바이스 ID로 해제 시도
         assertThrows<CustomException> {
             featureService.removeSomethingFromFeature(
-                feature.id,
+                feature.id!!,
                 FeatureAssignDto(otherDevice.id, FeatureAssignType.DEVICE),
             )
         }
@@ -408,16 +408,15 @@ internal class FeatureServiceTest {
         facility: Facility,
     ): Feature {
         val feature =
-            Feature
-                .builder()
-                .id(id)
-                .position(Spatial(1.0, 2.0, 3.0))
-                .rotation(Spatial(0.0, 0.0, 0.0))
-                .scale(Spatial(1.0, 1.0, 1.0))
-                .assetId(testAsset.id)
-                .facility(facility)
-                .floorId("TEST_FLOOR")
-                .build()
+            Feature(
+                id = id,
+                position = Spatial(1.0, 2.0, 3.0),
+                rotation = Spatial(0.0, 0.0, 0.0),
+                scale = Spatial(1.0, 1.0, 1.0),
+                assetId = testAsset.id!!,
+                facility = facility,
+                floorId = "TEST_FLOOR",
+            )
         return featureRepository.save(feature)
     }
 

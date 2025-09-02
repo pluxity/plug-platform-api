@@ -3,7 +3,7 @@ package com.pluxity.station
 import com.pluxity.facility.FacilityService
 import com.pluxity.facility.dto.FacilityResponse
 import com.pluxity.facility.strategy.FloorService
-import com.pluxity.feature.dto.FeatureResponse
+import com.pluxity.feature.dto.toFeatureResponse
 import com.pluxity.feature.entity.Feature
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
@@ -192,7 +192,7 @@ class StationService(
         val features =
             station.features
                 .filter { feature: Feature -> !label3DFeatureIds.contains(feature.id) }
-                .map { FeatureResponse.from(it) }
+                .map { it.toFeatureResponse() }
 
         val label3Ds =
             label3DRepository

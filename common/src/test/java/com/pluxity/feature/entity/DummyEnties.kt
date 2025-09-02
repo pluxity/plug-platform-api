@@ -9,7 +9,7 @@ fun dummyFeature(
     rotation: Spatial? = dummySpatial(),
     scale: Spatial? = dummySpatial(),
     assetId: Long? = 1L,
-    facility: Facility? = mockk(),
+    facility: Facility = mockk(),
     floorId: String? = "1",
 ) = Feature(
     id,
