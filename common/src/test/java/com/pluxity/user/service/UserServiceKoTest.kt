@@ -80,7 +80,7 @@ class UserServiceKoTest :
 
             When("유효한 username으로 조회 요청") {
                 val user = dummyUser()
-                every { userRepository.findByUsername(any()) } returns Optional.of(user)
+                every { userRepository.findByUsername(any()) } returns user
                 Then("정상 조회") {
                     val res = userService.findByUsername(user.username)
                     res.id shouldBe user.id
@@ -89,7 +89,7 @@ class UserServiceKoTest :
             }
 
             When("없는 username으로 조회 요청") {
-                every { userRepository.findByUsername(any()) } returns Optional.empty()
+                every { userRepository.findByUsername(any()) } returns null
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     val userName = "targetUser"
                     shouldThrowExactly<EntityNotFoundException> {
@@ -319,7 +319,7 @@ class UserServiceKoTest :
                 val user = dummyUser()
                 val request = dummyUserPasswordUpdateRequest()
 
-                every { userRepository.findByUsername(any()) } returns Optional.of(user)
+                every { userRepository.findByUsername(any()) } returns user
                 every { userRepository.findWithGraphById(any()) } returns user
                 every { passwordEncoder.matches(any(), any()) } returns true
                 every { passwordEncoder.encode(any()) } returns request.newPassword
@@ -334,7 +334,7 @@ class UserServiceKoTest :
                 val user = dummyUser()
                 val request = dummyUserPasswordUpdateRequest()
 
-                every { userRepository.findByUsername(any()) } returns Optional.empty()
+                every { userRepository.findByUsername(any()) } returns null
                 every { userRepository.findWithGraphById(any()) } returns user
                 every { passwordEncoder.matches(any(), any()) } returns false
 

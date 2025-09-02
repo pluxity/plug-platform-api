@@ -160,10 +160,10 @@ class UserIntegrationTest {
         assertThat(userRepository.count()).isEqualTo(2);
         assertThat(userRoleRepository.count()).isEqualTo(1);
 
-        User survivingUser1 = userRepository.findByUsername("multiRoleUser").orElseThrow();
-        User survivingUser2 = userRepository.findByUsername("singleRoleUser").orElseThrow();
+        User survivingUser1 = userRepository.findByUsername("multiRoleUser");
+        User survivingUser2 = userRepository.findByUsername("singleRoleUser");
         assertThat(survivingUser1.getRoles()).hasSize(1);
-        assertThat(survivingUser1.getRoles().get(0).getId()).isEqualTo(roleToKeep.getId());
+        assertThat(survivingUser1.getRoles().getFirst().getId()).isEqualTo(roleToKeep.getId());
         assertThat(survivingUser2.getRoles()).isEmpty();
     }
 

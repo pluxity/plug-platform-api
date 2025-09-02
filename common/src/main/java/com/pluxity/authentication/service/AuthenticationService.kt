@@ -101,7 +101,7 @@ class AuthenticationService(
     private fun validateUserDoesNotExist(username: String) {
         userRepository
             .findByUsername(username)
-            .ifPresent { throw CustomException(ErrorCode.DUPLICATE_USERNAME, "사용자가 이미 존재합니다: $username") }
+            ?.let { throw CustomException(ErrorCode.DUPLICATE_USERNAME, "사용자가 이미 존재합니다: $username") }
     }
 
     private fun authenticateUser(signInRequest: SignInRequest) {
@@ -117,7 +117,7 @@ class AuthenticationService(
     private fun findUserByUsername(username: String): User =
         userRepository
             .findByUsername(username)
-            .orElseThrow { CustomException(ErrorCode.NOT_FOUND_USER) }
+            ?: throw CustomException(ErrorCode.NOT_FOUND_USER)
 
     private fun clearAllCookies(
         request: HttpServletRequest,

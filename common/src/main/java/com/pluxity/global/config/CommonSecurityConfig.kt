@@ -5,7 +5,6 @@ import com.pluxity.authentication.security.JwtAuthenticationFilter
 import com.pluxity.authentication.security.JwtProvider
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.user.entity.User
 import com.pluxity.user.repository.UserRepository
 import lombok.RequiredArgsConstructor
 import org.springframework.context.annotation.Bean
@@ -25,8 +24,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import java.util.function.Function
-import java.util.function.Supplier
 
 @Configuration
 @EnableWebSecurity
@@ -82,8 +79,8 @@ class CommonSecurityConfig(
         UserDetailsService { username: String ->
             repository
                 .findByUsername(username)
-                .map(Function { user: User -> CustomUserDetails(user) })
-                .orElseThrow(Supplier { CustomException(ErrorCode.NOT_FOUND_USER) })
+                ?.let { CustomUserDetails(it) }
+                ?: throw CustomException(ErrorCode.NOT_FOUND_USER)
         }
 
     @Bean

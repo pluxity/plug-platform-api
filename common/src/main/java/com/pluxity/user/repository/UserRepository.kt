@@ -4,7 +4,6 @@ import com.pluxity.user.entity.User
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
-import java.util.Optional
 
 interface UserRepository : JpaRepository<User, Long> {
     @EntityGraph(
@@ -26,5 +25,5 @@ interface UserRepository : JpaRepository<User, Long> {
             "userRoles", "userRoles.role",
         ],
     )
-    fun findByUsername(username: String): Optional<User>
+    fun findByUsername(username: String): User?
 }

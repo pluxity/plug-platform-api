@@ -19,6 +19,7 @@ import com.pluxity.user.repository.UserRepository
 import com.pluxity.user.repository.UserRoleRepository
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -123,17 +124,13 @@ class UserService(
 
     private fun findRoleById(id: Long): Role =
         roleRepository
-            .findById(id)
-            .orElseThrow {
-                EntityNotFoundException("Role not found with id: $id")
-            }
+            .findByIdOrNull(id)
+            ?: throw EntityNotFoundException("Role not found with id: $id")
 
     fun findUserByUsername(username: String): User =
         userRepository
             .findByUsername(username)
-            .orElseThrow {
-                EntityNotFoundException("User not found with username: $username")
-            }
+            ?: throw EntityNotFoundException("User not found with username: $username")
 
     @Transactional
     fun updateUserPassword(
