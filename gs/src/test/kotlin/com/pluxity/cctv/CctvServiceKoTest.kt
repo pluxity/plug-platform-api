@@ -2,11 +2,13 @@ package com.pluxity.cctv
 
 import com.pluxity.cctv.dto.CctvCreateRequest
 import com.pluxity.cctv.dto.CctvUpdateRequest
+import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.entity.dummyCctv
 import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import entity.dummyFeature
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -16,7 +18,6 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
-import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import java.util.UUID
 
@@ -49,8 +50,8 @@ class CctvServiceKoTest :
         Given("CCTV 목록 조회를 진행할 때") {
             When("정상 요청이 오면") {
                 every {
-                    cctvRepository.findAll(any<Sort>())
-                } returns mutableListOf(dummyCctv())
+                    cctvRepository.findAll<Cctv>(any(), any(), any())
+                } returns mutableListOf(dummyCctv(feature = dummyFeature()))
 
                 Then("정상 조회") {
                     cctvService.findAll().size shouldBe 1

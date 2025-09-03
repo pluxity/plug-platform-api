@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -62,7 +63,9 @@ class CctvController(
         ],
     )
     @Operation(summary = "CCTV 목록 조회", description = "모든 CCTV 목록을 조회합니다.")
-    fun getAll(): ResponseEntity<DataResponseBody<List<CctvResponse>>> = ResponseEntity.ok(DataResponseBody.of(cctvService.findAll()))
+    fun getAll(
+        @Parameter(description = "시설 아이디") @RequestParam("facilityId", required = false) facilityId: Long?,
+    ): ResponseEntity<DataResponseBody<List<CctvResponse>>> = ResponseEntity.ok(DataResponseBody.of(cctvService.findAll(facilityId)))
 
     @Operation(summary = "CCTV 상세 조회", description = "ID로 특정 CCTV의 상세 정보를 조회합니다.")
     @ApiResponses(

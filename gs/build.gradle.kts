@@ -5,4 +5,5 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":core"))
     implementation(project(":collect"))
+    testImplementation(testFixtures(project(":common")))
 }

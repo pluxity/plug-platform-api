@@ -7,11 +7,11 @@ import com.pluxity.cctv.dto.toCctvResponse
 import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
+import com.pluxity.facility.Facility
 import com.pluxity.feature.entity.Feature
 import com.pluxity.feature.service.FeatureAssignment
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,7 +25,23 @@ class CctvService(
     fun create(request: CctvCreateRequest): String = cctvRepository.save(Cctv(id = request.id, name = request.name, url = request.url)).id
 
     @Transactional(readOnly = true)
-    fun findAll(): List<CctvResponse> = cctvRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).map { it.toCctvResponse() }
+    fun findAll(facilityId: Long? = null): List<CctvResponse> {
+        val list =
+            cctvRepository
+                .findAll {
+                    select(entity(Cctv::class))
+                        .from(
+                            entity(Cctv::class),
+                            leftFetchJoin(Cctv::feature),
+                            leftFetchJoin(Feature::facility),
+                        ).where(
+                            and(
+                                facilityId?.let { path(Facility::getId).eq(it) },
+                            ),
+                        )
+                }.filterNotNull()
+        return list.map { it.toCctvResponse() }
+    }
 
     @Transactional(readOnly = true)
     fun getById(id: String): CctvResponse = findById(id).toCctvResponse()
