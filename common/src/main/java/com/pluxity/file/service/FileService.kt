@@ -88,7 +88,7 @@ class FileService(
                     contentType = FileUtils.getContentType(file),
                 )
 
-            val savedFile = repository.save<FileEntity>(fileEntity)
+            val savedFile = repository.save(fileEntity)
 
             // 임시 파일 삭제
             Files.deleteIfExists(tempPath)
