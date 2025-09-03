@@ -1,4 +1,4 @@
-package com.pluxity.category.dto
+package com.pluxity.device.controller
 
 import com.pluxity.device.dto.DeviceCategoryDepthResponse
 import com.pluxity.device.dto.DeviceCategoryRequest

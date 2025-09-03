@@ -1,6 +1,8 @@
 package com.pluxity.device.entity
 
 import com.pluxity.category.entity.Category
+import com.pluxity.permission.ResourceType
+import com.pluxity.user.entity.Permissible
 import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorColumn
 import jakarta.persistence.DiscriminatorValue
@@ -18,7 +20,8 @@ import jakarta.persistence.Table
 class DeviceCategory(
     @Column(name = "icon_file_id")
     var iconFileId: Long? = null,
-) : Category<DeviceCategory>() {
+) : Category<DeviceCategory>(),
+    Permissible {
     @OneToMany(mappedBy = "category") // Persist ALL 하면 생성할때 id 중복되서 오류 발생 가능
     val devices: MutableList<Device> = mutableListOf()
 
@@ -38,4 +41,9 @@ class DeviceCategory(
         this.parent = null
         this.validateDepth()
     }
+
+    override val resourceId: String
+        get() = this.id.toString()
+    override val resourceType: ResourceType
+        get() = ResourceType.DEVICE_CATEGORY
 }
