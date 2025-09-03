@@ -32,11 +32,11 @@ class Collector(
                                                 DeviceCompanyType.DAWONDNS,
                                                 DeviceType.TEMP_HUM,
                                             )
-                                        climateDataCollector.collectClimateData(
-                                            devices
-                                                .filter { it.id.startsWith(DeviceCompanyType.DAWONDNS.toString()) }
-                                                .map { it.id },
-                                        )
+                                        devices
+                                            .filter { it.id.startsWith(DeviceCompanyType.DAWONDNS.toString()) }
+                                            .map { it.id }
+                                            .takeIf { it.isNotEmpty() }
+                                            ?.let { climateDataCollector.collectClimateData(it) }
                                     }
                                 }
                             }
