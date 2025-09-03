@@ -66,7 +66,7 @@ class FileService(
     fun initiateUpload(file: MultipartFile): Long {
         try {
             // 임시 파일로 저장
-            val tempPath = FileUtils.createTempFile(file.originalFilename)
+            val tempPath = FileUtils.createTempFile(file.originalFilename!!)
             file.transferTo(tempPath)
 
             // 파일 컨텍스트 생성

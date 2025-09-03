@@ -30,7 +30,7 @@ class ParkService(
 
     @Transactional(readOnly = true)
     fun findAll(): List<ParkResponse> {
-        val parks = parkRepository.findAll(SortUtils.getOrderByCreatedAtDesc())
+        val parks = parkRepository.findAll(SortUtils.orderByCreatedAtDesc)
         val fileMap =
             MappingUtils.getFileMapByIds(
                 parks,

@@ -112,14 +112,12 @@ class Label3DServiceKoTest :
 
         Given("Label3D 전체 목록 조회를 진행할 때") {
             When("정상 요청이 오면") {
-                val sort = mockk<Sort>()
                 val id = "test-id"
                 val feature = dummyFeature(id = id, floorId = "floor-1")
                 val label3D = dummyLabel3d(id = id, feature = feature, displayText = "Test Label")
 
                 mockkStatic(SortUtils::class)
-                every { SortUtils.getOrderByCreatedAtDesc() } returns sort
-                every { label3DRepository.findAll(sort) } returns listOf(label3D)
+                every { label3DRepository.findAll(any<Sort>()) } returns listOf(label3D)
 
                 Then("정상 조회") {
                     val result = label3DService.getAllLabel3Ds()

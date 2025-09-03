@@ -39,7 +39,7 @@ class UserService(
     fun findById(id: Long): UserResponse = findUserById(id).toUserResponse()
 
     @Transactional(readOnly = true)
-    fun findAll(): List<UserResponse> = userRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc()).map { it.toUserResponse() }
+    fun findAll(): List<UserResponse> = userRepository.findAllBy(SortUtils.orderByCreatedAtDesc).map { it.toUserResponse() }
 
     @Transactional(readOnly = true)
     fun findByUsername(username: String): UserResponse = findUserByUsername(username).toUserResponse()
@@ -175,7 +175,7 @@ class UserService(
 
     @Transactional(readOnly = true)
     fun isLoggedIn(): List<UserLoggedInResponse> {
-        val users = userRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc())
+        val users = userRepository.findAllBy(SortUtils.orderByCreatedAtDesc)
         return users.map { user ->
             val refreshToken = refreshTokenRepository.findByIdOrNull(user.username)
             val isLoggedIn = refreshToken != null

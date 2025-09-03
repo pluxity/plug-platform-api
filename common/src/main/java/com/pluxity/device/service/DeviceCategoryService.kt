@@ -79,7 +79,7 @@ class DeviceCategoryService(
     @Transactional(readOnly = true)
     fun getDeviceCategories(): List<DeviceCategoryResponse> {
         val allCategories: List<DeviceCategory> =
-            deviceCategoryRepository.findAllBy(SortUtils.getOrderByCreatedAtDesc())
+            deviceCategoryRepository.findAllBy(SortUtils.orderByCreatedAtDesc)
 
         val fileMap =
             MappingUtils.getFileMapByIds(

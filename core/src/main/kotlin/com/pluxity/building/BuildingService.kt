@@ -35,7 +35,7 @@ class BuildingService(
 
     @Transactional(readOnly = true)
     fun findAll(): List<BuildingResponse> {
-        val buildings = repository.findAll(SortUtils.getOrderByCreatedAtDesc())
+        val buildings = repository.findAll(SortUtils.orderByCreatedAtDesc)
         val fileMap =
             MappingUtils.getFileMapByIds(
                 buildings,

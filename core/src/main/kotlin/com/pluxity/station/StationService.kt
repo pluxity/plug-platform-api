@@ -59,7 +59,7 @@ class StationService(
 
     @Transactional(readOnly = true)
     fun findAll(): List<StationResponse> {
-        val stations = stationRepository.findAll(SortUtils.getOrderByCreatedAtDesc())
+        val stations = stationRepository.findAll(SortUtils.orderByCreatedAtDesc)
         val fileMap =
             MappingUtils.getFileMapByIds(
                 stations,

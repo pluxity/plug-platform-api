@@ -38,7 +38,7 @@ class AssetService(
 
     @Transactional(readOnly = true)
     fun getAssets(): List<AssetResponse> {
-        val assets = assetRepository.findAll(SortUtils.getOrderByCreatedAtDesc())
+        val assets = assetRepository.findAll(SortUtils.orderByCreatedAtDesc)
         val fileMap =
             MappingUtils.getFileMapByIds(
                 assets,

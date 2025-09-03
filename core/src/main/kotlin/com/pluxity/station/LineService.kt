@@ -30,7 +30,7 @@ class LineService(
     }
 
     @Transactional(readOnly = true)
-    fun findAll(): List<LineResponse> = lineRepository.findAll(SortUtils.getOrderByCreatedAtDesc()).map { it.toLineResponse() }
+    fun findAll(): List<LineResponse> = lineRepository.findAll(SortUtils.orderByCreatedAtDesc).map { it.toLineResponse() }
 
     @Transactional(readOnly = true)
     fun findById(id: Long): LineResponse = (lineRepository.findByIdOrNull(id) ?: throw notFoundException(id)).toLineResponse()

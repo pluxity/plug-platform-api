@@ -42,7 +42,7 @@ class Label3DService(
     @Transactional(readOnly = true)
     fun getAllLabel3Ds(): List<Label3DResponse> =
         label3DRepository
-            .findAll(SortUtils.getOrderByCreatedAtDesc())
+            .findAll(SortUtils.orderByCreatedAtDesc)
             .map { it.toLabel3DResponse() }
 
     @Transactional(readOnly = true)

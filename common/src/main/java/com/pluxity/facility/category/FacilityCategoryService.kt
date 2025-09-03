@@ -36,7 +36,7 @@ class FacilityCategoryService(
     fun findAll(): FacilityCategoryAllResponse {
         val list =
             facilityCategoryRepository
-                .findAll(SortUtils.getOrderByCreatedAtDesc())
+                .findAll(SortUtils.orderByCreatedAtDesc)
                 .map { it.toResponse() }
 
         val categoryTree =

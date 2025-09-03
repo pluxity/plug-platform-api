@@ -24,7 +24,7 @@ class AssetCategoryService(
 ) : CategoryService<AssetCategory>() {
     @Transactional(readOnly = true)
     fun getAllCategories(): List<AssetCategoryResponse> {
-        val allCategories = assetCategoryRepository.findAll(SortUtils.getOrderByCreatedAtDesc())
+        val allCategories = assetCategoryRepository.findAll(SortUtils.orderByCreatedAtDesc)
         if (allCategories.isEmpty()) return emptyList()
 
         val iconFileIds = allCategories.mapNotNull { it.iconFileId }
