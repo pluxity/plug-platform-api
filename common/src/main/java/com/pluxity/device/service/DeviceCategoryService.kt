@@ -127,13 +127,15 @@ class DeviceCategoryService(
         } ?: deviceCategory.assignToRootPreservingEntity()
 
         // 썸네일 파일 업데이트 (중복 제거)
-        request.thumbnailFileId?.let { thumbnailId ->
-            deviceCategory.updateIconFileId(thumbnailId)
-            fileService.finalizeUpload(
-                thumbnailId,
-                "$DEVICE_CATEGORIES${deviceCategory.id}/",
-            )
-        } ?: deviceCategory.updateIconFileId(null)
+        if (deviceCategory.iconFileId != request.thumbnailFileId) {
+            request.thumbnailFileId?.let { thumbnailId ->
+                deviceCategory.updateIconFileId(thumbnailId)
+                fileService.finalizeUpload(
+                    thumbnailId,
+                    "$DEVICE_CATEGORIES${deviceCategory.id}/",
+                )
+            } ?: deviceCategory.updateIconFileId(null)
+        }
     }
 
     @Transactional

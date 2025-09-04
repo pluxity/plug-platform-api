@@ -91,10 +91,12 @@ class AssetCategoryService(
         }
         super.update(id, request.name, request.parentId)
         category.updateCode(request.code)
-        category.updateIconFileId(request.thumbnailFileId)
 
-        request.thumbnailFileId?.let {
-            fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${category.id}")
+        if (category.iconFileId != request.thumbnailFileId) {
+            request.thumbnailFileId?.let { thumbnailId ->
+                category.updateIconFileId(thumbnailId)
+                fileService.finalizeUpload(thumbnailId, "${ASSET_CATEGORIES}${category.id}")
+            } ?: category.updateIconFileId(null)
         }
     }
 

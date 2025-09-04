@@ -1,9 +1,5 @@
 package com.pluxity.global.response;
 
-import static com.pluxity.global.constant.SuccessCode.SUCCESS;
-
-import com.pluxity.global.constant.SuccessCode;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import lombok.Getter;
@@ -23,17 +19,5 @@ public class ResponseBody {
         this.timestamp = now.format(formatter);
         this.status = status.value();
         this.message = message;
-    }
-
-    public static ResponseBody of() {
-        return new ResponseBody(SUCCESS.getHttpStatus(), SUCCESS.getMessage());
-    }
-
-    public static <C extends SuccessCode> ResponseBody of(@NotNull C code) {
-        return new ResponseBody(code.getHttpStatus(), code.getMessage());
-    }
-
-    public static ResponseBody of(HttpStatus status, String message) {
-        return new ResponseBody(status, message);
     }
 }
