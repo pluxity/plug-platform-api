@@ -10,10 +10,9 @@ fun dummyDeviceCategory(
     name: String = "category-name",
     iconFileId: Long? = null,
 ) = DeviceCategory(
-    iconFileId,
-).apply {
-    updateName(name)
-}
+    categoryName = name,
+    iconFileId = iconFileId,
+)
 
 fun dummyDevice(
     id: String = "device_id",

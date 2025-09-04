@@ -66,8 +66,8 @@ class AssetCategoryService(
             AssetCategory(
                 code = request.code,
                 iconFileId = request.thumbnailFileId,
+                categoryName = request.name,
             ).apply {
-                this.name = request.name
                 assignToParent(parent)
             }
 

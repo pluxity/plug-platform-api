@@ -13,13 +13,13 @@ import jakarta.persistence.MappedSuperclass
 import jakarta.persistence.OneToMany
 
 @MappedSuperclass
-abstract class Category<T : Category<T>> : BaseEntity() {
+abstract class Category<T : Category<T>>(
+    @Column(nullable = false)
+    var name: String = "",
+) : BaseEntity() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     open var id: Long? = null
-
-    @Column(nullable = false)
-    open var name: String = ""
 
     @ManyToOne(fetch = FetchType.LAZY)
     open var parent: T? = null
@@ -42,15 +42,11 @@ abstract class Category<T : Category<T>> : BaseEntity() {
     @Suppress("UNCHECKED_CAST")
     fun assignToParent(newParent: T?) {
         val currentParent = this.parent
-        if (currentParent != null) {
-            currentParent.children.remove(this as T)
-        }
+        currentParent?.children?.remove(this)
 
         this.parent = newParent
 
-        if (newParent != null) {
-            newParent.children.add(this as T)
-        }
+        newParent?.children?.add(this as T)
 
         validateDepth()
     }

@@ -18,9 +18,10 @@ import jakarta.persistence.Table
 @DiscriminatorColumn(name = "CATEGORY_TYPE")
 @DiscriminatorValue("DEVICE_BASE")
 class DeviceCategory(
+    var categoryName: String,
     @Column(name = "icon_file_id")
     var iconFileId: Long? = null,
-) : Category<DeviceCategory>(),
+) : Category<DeviceCategory>(categoryName),
     Permissible {
     @OneToMany(mappedBy = "category") // Persist ALL 하면 생성할때 id 중복되서 오류 발생 가능
     val devices: MutableList<Device> = mutableListOf()

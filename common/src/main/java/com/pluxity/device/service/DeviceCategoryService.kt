@@ -36,10 +36,9 @@ class DeviceCategoryService(
     fun create(request: DeviceCategoryRequest): Long {
         val deviceCategory =
             DeviceCategory(
+                categoryName = request.name,
                 iconFileId = request.thumbnailFileId,
-            ).apply {
-                updateName(request.name)
-            }
+            )
         val parent =
             MappingUtils.findByIdIfExists(
                 request.parentId,
@@ -169,7 +168,7 @@ class DeviceCategoryService(
         return list.map { it.toDeviceResponse(fileMap[it.category?.iconFileId]) }
     }
 
-    fun getDeviceCategoryDepth(): DeviceCategoryDepthResponse = DeviceCategoryDepthResponse(DeviceCategory().maxDepth)
+    fun getDeviceCategoryDepth(): DeviceCategoryDepthResponse = DeviceCategoryDepthResponse(DeviceCategory("").maxDepth)
 
     companion object {
         const val DEVICE_CATEGORIES: String = "device-categories/"

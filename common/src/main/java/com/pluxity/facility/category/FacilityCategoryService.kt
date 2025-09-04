@@ -47,7 +47,7 @@ class FacilityCategoryService(
                 FacilityCategoryResponse::children,
             )
 
-        return categoryTree.toAllResponse(FacilityCategory().maxDepth)
+        return categoryTree.toAllResponse(FacilityCategory("").maxDepth)
     }
 
     @Transactional

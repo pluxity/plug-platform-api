@@ -9,12 +9,8 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "facility_category")
 class FacilityCategory(
-    name: String? = null,
-) : Category<FacilityCategory>() {
+    name: String,
+) : Category<FacilityCategory>(name) {
     @OneToMany(mappedBy = "category")
     val facilities: List<Facility> = mutableListOf()
-
-    init {
-        name?.let { updateName(it) }
-    }
 }
