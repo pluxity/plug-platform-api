@@ -29,7 +29,8 @@ public class FacilityHistoryService {
         List<FacilityHistory> histories =
                 facilityHistoryRepository.findByFacilityIdOrderByCreatedAtDesc(facilityId);
         Map<Long, FileResponse> fileMap =
-                MappingUtils.getFileMapByIds(histories, v -> Stream.of(v.getFileId()), fileService);
+                MappingUtils.INSTANCE.getFileMapByIds(
+                        histories, v -> Stream.of(v.getFileId()), fileService);
         return histories.stream()
                 .map(v -> FacilityHistoryResponse.from(v, fileMap.get(v.getFileId())))
                 .toList();

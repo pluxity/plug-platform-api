@@ -19,37 +19,9 @@ data class FacilityResponse(
     val lat: Double?,
     val locationMeta: String?,
     @JsonUnwrapped val baseResponse: BaseResponse,
-) {
-    companion object {
-        // FIXME: MappingUtils kt 변환 후 from 메소드 제거 필요.
-        @Deprecated("MappingUtils kt 변환 후 from 메소드 제거 필요.")
-        @JvmStatic
-        fun from(
-            facility: Facility,
-            drawing: FileResponse? = null,
-            thumbnail: FileResponse? = null,
-        ): FacilityResponse {
-            val emptyFileResponse = FileResponse(null, null, null, null, null, null)
+)
 
-            return FacilityResponse(
-                id = facility.id,
-                code = facility.code,
-                name = facility.name,
-                description = facility.description,
-                type = facility.facilityType,
-                drawing = drawing ?: emptyFileResponse,
-                thumbnail = thumbnail ?: emptyFileResponse,
-                paths = facility.paths.map { FacilityPathResponse.from(it) },
-                lon = facility.position?.lon,
-                lat = facility.position?.lat,
-                locationMeta = facility.position?.locationMeta,
-                baseResponse = BaseResponse.of(facility),
-            )
-        }
-    }
-}
-
-fun Facility.toFacilityResponse(
+fun Facility.toResponse(
     drawing: FileResponse? = null,
     thumbnail: FileResponse? = null,
 ): FacilityResponse {

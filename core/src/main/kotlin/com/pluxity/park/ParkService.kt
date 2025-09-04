@@ -1,7 +1,7 @@
 package com.pluxity.park
 
 import com.pluxity.facility.FacilityService
-import com.pluxity.facility.dto.FacilityResponse
+import com.pluxity.facility.dto.toResponse
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
@@ -40,8 +40,7 @@ class ParkService(
 
         return parks.map {
             ParkResponse(
-                FacilityResponse.from(
-                    it,
+                it.toResponse(
                     fileMap[it.drawingFileId],
                     fileMap[it.thumbnailFileId],
                 ),
@@ -55,8 +54,7 @@ class ParkService(
         val park = facilityService.findById(id) as Park
 
         return ParkResponse(
-            FacilityResponse.from(
-                park,
+            park.toResponse(
                 fileService.getFileResponse(park.drawingFileId),
                 fileService.getFileResponse(park.thumbnailFileId),
             ),

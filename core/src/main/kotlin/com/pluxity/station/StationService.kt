@@ -1,7 +1,7 @@
 package com.pluxity.station
 
 import com.pluxity.facility.FacilityService
-import com.pluxity.facility.dto.FacilityResponse
+import com.pluxity.facility.dto.toResponse
 import com.pluxity.facility.strategy.FloorService
 import com.pluxity.feature.dto.toFeatureResponse
 import com.pluxity.feature.entity.Feature
@@ -72,8 +72,7 @@ class StationService(
         val lineMap: Map<Station, List<Long>> = stationLineService.findLineMapByStationIds(stations)
         return stations.map {
             StationResponse(
-                FacilityResponse.from(
-                    it,
+                it.toResponse(
                     fileMap[it.drawingFileId],
                     fileMap[it.thumbnailFileId],
                 ),
@@ -89,8 +88,7 @@ class StationService(
         val floorResponse = floorService.findAllByFacility(station)
 
         return StationResponse(
-            FacilityResponse.from(
-                station,
+            station.toResponse(
                 fileService.getFileResponse(station.drawingFileId),
                 fileService.getFileResponse(station.thumbnailFileId),
             ),
@@ -178,8 +176,7 @@ class StationService(
         val lineIds: List<Long> = stationLineService.findLinesByStation(station)
 
         val facilityResponse =
-            FacilityResponse.from(
-                station,
+            station.toResponse(
                 fileService.getFileResponse(station.drawingFileId),
                 fileService.getFileResponse(station.thumbnailFileId),
             )

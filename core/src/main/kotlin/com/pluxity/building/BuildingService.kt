@@ -4,7 +4,7 @@ import com.pluxity.building.dto.BuildingCreateRequest
 import com.pluxity.building.dto.BuildingResponse
 import com.pluxity.building.dto.BuildingUpdateRequest
 import com.pluxity.facility.FacilityService
-import com.pluxity.facility.dto.FacilityResponse
+import com.pluxity.facility.dto.toResponse
 import com.pluxity.facility.strategy.FloorService
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
@@ -46,8 +46,7 @@ class BuildingService(
         return buildings
             .map {
                 BuildingResponse(
-                    FacilityResponse.from(
-                        it,
+                    it.toResponse(
                         fileMap[it.drawingFileId],
                         fileMap[it.thumbnailFileId],
                     ),
@@ -62,8 +61,7 @@ class BuildingService(
         val floorResponses = floorService.findAllByFacility(building)
 
         return BuildingResponse(
-            FacilityResponse.from(
-                building,
+            building.toResponse(
                 fileService.getFileResponse(building.drawingFileId),
                 fileService.getFileResponse(building.thumbnailFileId),
             ),

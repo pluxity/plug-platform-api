@@ -14,7 +14,7 @@ data class DeviceCategoryResponse(
             "[{\"id\":2,\"name\":\"서브 카테고리\",\"parentId\":1,\"children\":[],\"thumbnail\":null," +
                 "\"assetIds\":[0],\"createdAt\":\"string\",\"updatedAt\":\"string\",\"depth\":2}]",
     )
-    val children: List<DeviceCategoryResponse>,
+    val children: MutableList<DeviceCategoryResponse> = mutableListOf(),
     val thumbnailFile: FileResponse,
     @field:Schema(
         description = "depth",

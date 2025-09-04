@@ -15,7 +15,7 @@ data class AssetCategoryResponse(
     @field:Schema(description = "부모 카테고리 ID", example = "2")
     val parentId: Long?,
     @field:Schema(description = "자식 카테고리 목록")
-    val children: List<AssetCategoryResponse>,
+    val children: MutableList<AssetCategoryResponse> = mutableListOf(),
     @field:Schema(description = "아이콘 파일 정보")
     val thumbnail: FileResponse?,
     @field:Schema(description = "소속 에셋 ID 목록")
@@ -39,9 +39,9 @@ fun AssetCategory.toResponse(
         parentId = this.parent?.id,
         children =
             if (includeChildren) {
-                this.children.map { it.toResponse(includeChildren = true, thumbnailFile = null) }
+                this.children.map { it.toResponse(includeChildren = true, thumbnailFile = null) }.toMutableList()
             } else {
-                emptyList()
+                mutableListOf()
             },
         thumbnail = thumbnailFile,
         assetIds = this.assets.mapNotNull { it.id },
