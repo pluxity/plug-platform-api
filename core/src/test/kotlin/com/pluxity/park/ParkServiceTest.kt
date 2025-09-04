@@ -251,7 +251,7 @@ internal class ParkServiceTest {
     ): Long {
         val request =
             ParkCreateRequest(
-                FacilityCreateRequest(name, code, "설명", null, null, null, null, null),
+                FacilityCreateRequest(name!!, code!!, "설명", null, null, null, null, null),
                 BOUNDARY_JSON_1,
             )
         return parkService.save(request)

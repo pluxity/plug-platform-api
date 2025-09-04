@@ -1,225 +1,243 @@
 package com.pluxity.facility
 
-import com.pluxity.facility.dto.*
+import com.pluxity.facility.dto.FacilityCreateRequest
+import com.pluxity.facility.dto.FacilityDrawingUpdateRequest
+import com.pluxity.facility.dto.FacilityFloorUpdateRequest
+import com.pluxity.facility.dto.FacilityHistoryResponse
+import com.pluxity.facility.dto.FacilityLocationUpdateRequest
+import com.pluxity.facility.dto.FacilityPathSaveRequest
+import com.pluxity.facility.dto.FacilityPathUpdateRequest
+import com.pluxity.facility.dto.FacilityResponse
+import com.pluxity.facility.dto.FacilityUpdateRequest
 import com.pluxity.facility.history.FacilityHistoryService
 import com.pluxity.facility.path.FacilityPathService
 import com.pluxity.facility.strategy.FloorService
 import com.pluxity.file.service.FileService
 import com.pluxity.global.annotation.CheckPermission
-import com.pluxity.global.constant.ErrorCode
+import com.pluxity.global.constant.ErrorCode.DUPLICATE_FACILITY_CODE
+import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY
+import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CODE
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
 import com.pluxity.user.entity.ExecutionPhase
 import com.pluxity.user.entity.PermissionType
-import lombok.RequiredArgsConstructor
-import lombok.extern.slf4j.Slf4j
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.function.Supplier
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
-class FacilityService {
-    private val facilityRepository: FacilityRepository? = null
-    private val fileService: FileService? = null
-
-    private val PREFIX = "facilities/"
-    private val facilityHistoryService: FacilityHistoryService? = null
-    private val facilityPathService: FacilityPathService? = null
-    private val floorService: FloorService? = null
+class FacilityService(
+    private val facilityRepository: FacilityRepository,
+    private val fileService: FileService,
+    private val facilityHistoryService: FacilityHistoryService,
+    private val facilityPathService: FacilityPathService,
+    private val floorService: FloorService,
+) {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+    private val prefix = "facilities/"
 
     @Transactional
-    fun save(facility: Facility, request: FacilityCreateRequest): Facility {
-        // 코드 중복 검사
-        if (request.code != null && !request.code.isEmpty()) {
-            checkDuplicateCode(request.code)
-            facility.updateCode(request.code)
+    fun save(
+        facility: Facility,
+        request: FacilityCreateRequest,
+    ): Facility {
+        request.code?.let { code ->
+            if (code.isNotEmpty()) {
+                validateCodeUniqueness(code)
+                facility.updateCode(code)
+            }
         }
 
-        val savedFacility = facilityRepository!!.save<Facility>(facility)
+        val savedFacility = facilityRepository.save(facility)
+        val filePath = "$prefix${savedFacility.id}/"
 
-        val filePath = PREFIX + savedFacility.getId() + "/"
-        if (request.drawingFileId != null) {
-            facility.updateDrawingFileId(fileService!!.finalizeUpload(request.drawingFileId, filePath))
-            facilityHistoryService!!.save(request.drawingFileId, facility.getId(), "최초등록")
+        request.drawingFileId?.let { drawingFileId ->
+            val drawingFile = fileService.finalizeUpload(drawingFileId, filePath)
+            facility.updateDrawingFile(drawingFile)
+            facilityHistoryService.save(drawingFileId, facility.id, "최초등록")
         }
 
-        if (request.thumbnailFileId != null) {
-            facility.updateThumbnailFileId(
-                fileService!!.finalizeUpload(request.thumbnailFileId, filePath)
-            )
+        request.thumbnailFileId?.let { thumbnailFileId ->
+            val thumbnailFile = fileService.finalizeUpload(thumbnailFileId, filePath)
+            facility.updateThumbnailFile(thumbnailFile)
         }
-        facility.updatePosition(
-            FacilityPosition.builder()
-                .lon(request.lon)
-                .lat(request.lat)
-                .locationMeta(request.locationMeta)
-                .build()
-        )
+
+        facility.updatePosition(request.lon, request.lat, request.locationMeta)
 
         return savedFacility
     }
 
-    private fun checkDuplicateCode(code: String?) {
-        if (facilityRepository!!.existsByCode(code)) {
-            throw CustomException(ErrorCode.DUPLICATE_FACILITY_CODE, code)
+    private fun validateCodeUniqueness(code: String) {
+        if (facilityRepository.existsByCode(code)) {
+            throw CustomException(DUPLICATE_FACILITY_CODE, code)
         }
     }
 
     @CheckPermission(type = PermissionType.ID)
     @Transactional(readOnly = true)
-    fun findByCode(code: String?): Facility? {
-        return facilityRepository!!
+    fun findByCode(code: String): Facility =
+        facilityRepository
             .findByCode(code)
-            .orElseThrow<CustomException?>(Supplier { CustomException(ErrorCode.NOT_FOUND_FACILITY_CODE, code) })
-    }
+            .orElseThrow { CustomException(NOT_FOUND_FACILITY_CODE, code) }
 
     @CheckPermission(type = PermissionType.ID)
     @Transactional(readOnly = true)
-    fun findById(id: Long): Facility {
-        return facilityRepository!!
+    fun findById(id: Long): Facility =
+        facilityRepository
             .findById(id)
-            .orElseThrow<CustomException?>(Supplier { CustomException(ErrorCode.NOT_FOUND_FACILITY, id) })
-    }
+            .orElseThrow { CustomException(NOT_FOUND_FACILITY, id) }
 
     @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.FILTER)
     @Transactional(readOnly = true)
-    fun findAll(): MutableList<Facility?> {
-        return facilityRepository!!.findAll()
-    }
+    fun findAll(): List<Facility> = facilityRepository.findAll()
 
     @Transactional
-    fun update(id: Long, request: FacilityUpdateRequest?) {
-        if (request == null) {
-            return
-        }
+    fun update(
+        id: Long,
+        request: FacilityUpdateRequest,
+    ) {
         val facility = findById(id)
 
-        // 코드 변경 요청이 있고, 기존 코드와 다른 경우에만 중복 검사
-        if (request.code != null && request.code != facility.getCode()) {
-            checkDuplicateCode(request.code)
-            facility.updateCode(request.code)
+        request.code?.let { newCode ->
+            if (newCode != facility.code) {
+                validateCodeUniqueness(newCode)
+                facility.updateCode(newCode)
+            }
         }
 
-        if (request.name != null) {
-            facility.updateName(request.name)
+        request.name?.let { facility.updateName(it) }
+        request.description?.let { facility.updateDescription(it) }
+
+        request.thumbnailFileId?.let { thumbnailFileId ->
+            if (thumbnailFileId != facility.thumbnailFileId) {
+                val filePath = "$prefix${facility.id}/"
+                val thumbnailFile = fileService.finalizeUpload(thumbnailFileId, filePath)
+                facility.updateThumbnailFile(thumbnailFile)
+            }
         }
 
-        if (request.description != null) {
-            facility.updateDescription(request.description)
-        }
-
-        if (request.thumbnailFileId != null
-            && request.thumbnailFileId != facility.getThumbnailFileId()
-        ) {
-            val filePath = PREFIX + facility.getId() + "/"
-            facility.updateThumbnailFileId(
-                fileService!!.finalizeUpload(request.thumbnailFileId, filePath)
-            )
-        }
         facility.updatePosition(request.lon, request.lat, request.locationMeta)
     }
 
     @Transactional
-    fun putUpdate(id: Long, request: FacilityUpdateRequest) {
+    fun putUpdate(
+        id: Long,
+        request: FacilityUpdateRequest,
+    ) {
         val facility = findById(id)
 
-        if (request.code != null && request.code != facility.getCode()) {
-            checkDuplicateCode(request.code)
+        request.code?.let { newCode ->
+            if (newCode != facility.code) {
+                validateCodeUniqueness(newCode)
+            }
         }
 
         facility.updateCode(request.code)
-        facility.updateName(request.name)
+        facility.updateName(request.name!!)
         facility.updateDescription(request.description)
 
-        if (request.thumbnailFileId != null
-            && request.thumbnailFileId != facility.getThumbnailFileId()
-        ) {
-            val filePath = PREFIX + facility.getId() + "/"
-            facility.updateThumbnailFileId(
-                fileService!!.finalizeUpload(request.thumbnailFileId, filePath)
-            )
-        }
-        facility.updateThumbnailFileId(request.thumbnailFileId)
+        request.thumbnailFileId?.let { thumbnailFileId ->
+            val filePath = "$prefix${facility.id}/"
+            val thumbnailFile = fileService.finalizeUpload(thumbnailFileId, filePath)
+            facility.updateThumbnailFile(thumbnailFile)
+        } ?: facility.updateThumbnailFileId(null)
 
         facility.updatePosition(request.lon, request.lat, request.locationMeta)
     }
 
     @Transactional
-    fun update(id: Long, newFacility: Facility) {
+    fun update(
+        id: Long,
+        newFacility: Facility,
+    ) {
         val facility = findById(id)
 
-        // 코드 변경 요청이 있고, 기존 코드와 다른 경우에만 중복 검사
-        if (newFacility.getCode() != null && newFacility.getCode() != facility.getCode()) {
-            checkDuplicateCode(newFacility.getCode())
+        newFacility.code?.let { newCode ->
+            if (newCode != facility.code) {
+                validateCodeUniqueness(newCode)
+            }
         }
 
         facility.update(newFacility)
-        facilityRepository!!.save<Facility?>(facility)
+        facilityRepository.save(facility)
     }
 
     @Transactional
     fun deleteFacility(id: Long) {
         val facility = findById(id)
-        facilityRepository!!.delete(facility)
+        facilityRepository.delete(facility)
     }
 
     @Transactional(readOnly = true)
-    fun findFacilityHistories(facilityId: Long): MutableList<FacilityHistoryResponse?>? {
-        facilityRepository!!
+    fun findFacilityHistories(facilityId: Long): List<FacilityHistoryResponse> {
+        facilityRepository
             .findById(facilityId)
-            .orElseThrow<CustomException?>(Supplier { CustomException(ErrorCode.NOT_FOUND_FACILITY, facilityId) })
-        return facilityHistoryService!!.findByFacilityId(facilityId)
+            .orElseThrow { CustomException(NOT_FOUND_FACILITY, facilityId) }
+        return facilityHistoryService.findByFacilityId(facilityId)
     }
 
     @Transactional
-    fun updateDrawingFile(id: Long, request: FacilityDrawingUpdateRequest) {
+    fun updateDrawingFile(
+        id: Long,
+        request: FacilityDrawingUpdateRequest,
+    ) {
         val facility = findById(id)
-        val filePath = PREFIX + facility.getId() + "/"
-        facility.updateDrawingFileId(fileService!!.finalizeUpload(request.drawingFileId, filePath))
-        facilityHistoryService!!.save(request.drawingFileId, facility.getId(), request.comment)
+        val filePath = "$prefix${facility.id}/"
+        val drawingFile = fileService.finalizeUpload(request.drawingFileId, filePath)
+        facility.updateDrawingFile(drawingFile)
+        facilityHistoryService.save(request.drawingFileId, facility.id, request.comment)
     }
 
     @Transactional
-    fun savePath(facilityId: Long, request: FacilityPathSaveRequest) {
-        facilityPathService!!.save(findById(facilityId), request.name, request.type, request.path)
-    }
-
-    @Transactional
-    fun updatePath(facilityId: Long, pathId: Long?, request: FacilityPathUpdateRequest) {
-        findById(facilityId)
-        facilityPathService!!.update(pathId, request.name, request.type, request.path)
-    }
-
-    @Transactional
-    fun deletePath(facilityId: Long, pathId: Long?) {
-        findById(facilityId)
-        facilityPathService!!.delete(pathId)
-    }
-
-    @Transactional
-    fun updateLocation(facilityId: Long, request: FacilityLocationUpdateRequest) {
+    fun savePath(
+        facilityId: Long,
+        request: FacilityPathSaveRequest,
+    ) {
         val facility = findById(facilityId)
-        facility.updatePosition(
-            FacilityPosition.builder()
-                .lon(request.lon)
-                .lat(request.lat)
-                .locationMeta(request.locationMeta)
-                .build()
-        )
+        facilityPathService.save(facility, request.name, request.type, request.path)
     }
 
     @Transactional
-    fun updateFloor(facilityId: Long, request: FacilityFloorUpdateRequest) {
+    fun updatePath(
+        facilityId: Long,
+        pathId: Long,
+        request: FacilityPathUpdateRequest,
+    ) {
+        findById(facilityId)
+        facilityPathService.update(pathId, request.name, request.type, request.path)
+    }
+
+    @Transactional
+    fun deletePath(
+        facilityId: Long,
+        pathId: Long,
+    ) {
+        findById(facilityId)
+        facilityPathService.delete(pathId)
+    }
+
+    @Transactional
+    fun updateLocation(
+        facilityId: Long,
+        request: FacilityLocationUpdateRequest,
+    ) {
         val facility = findById(facilityId)
-        floorService!!.update<Facility?>(facility, request.floors)
+        facility.updatePosition(request.lon, request.lat, request.locationMeta)
+    }
+
+    @Transactional
+    fun updateFloor(
+        facilityId: Long,
+        request: FacilityFloorUpdateRequest,
+    ) {
+        val facility = findById(facilityId)
+        floorService.update(facility, request.floors)
     }
 
     @Transactional(readOnly = true)
-    fun findAllFacilities(): MutableList<FacilityResponse?>? {
-        return MappingUtils.mapWithFiles(
-            facilityRepository!!.findAllByOrderByCreatedAtDesc(), fileService
+    fun findAllFacilities(): List<FacilityResponse> =
+        MappingUtils.mapWithFiles(
+            facilityRepository.findAllByOrderByCreatedAtDesc(),
+            fileService,
         )
-    }
 }

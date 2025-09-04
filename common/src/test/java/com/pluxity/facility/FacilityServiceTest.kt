@@ -1,22 +1,31 @@
 package com.pluxity.facility
 
 import com.pluxity.config.MockBeansConfig
-import com.pluxity.facility.dto.*
-import com.pluxity.facility.floor.dto.FloorRequest
+import com.pluxity.facility.dto.FacilityCreateRequest
+import com.pluxity.facility.dto.FacilityDrawingUpdateRequest
+import com.pluxity.facility.dto.FacilityFloorUpdateRequest
+import com.pluxity.facility.dto.FacilityLocationUpdateRequest
+import com.pluxity.facility.dto.FacilityPathSaveRequest
+import com.pluxity.facility.dto.FacilityPathUpdateRequest
+import com.pluxity.facility.dto.FacilityUpdateRequest
 import com.pluxity.facility.history.FacilityHistoryService
 import com.pluxity.facility.path.FacilityPathService
 import com.pluxity.facility.strategy.FloorService
 import com.pluxity.global.exception.CustomException
 import com.pluxity.util.TestFileUploader
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
-import lombok.NoArgsConstructor
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.function.Executable
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -26,401 +35,408 @@ import org.springframework.transaction.annotation.Transactional
 @SpringBootTest
 @Import(MockBeansConfig::class)
 @Transactional
-internal class FacilityServiceTest {
+class FacilityServiceTest {
     @Autowired
-    private val facilityService: FacilityService? = null
-
-    @Autowired
-    private val facilityRepository: FacilityRepository? = null
+    private lateinit var facilityService: FacilityService
 
     @Autowired
-    private val testFileUploader: TestFileUploader? = null
+    private lateinit var facilityRepository: FacilityRepository
+
+    @Autowired
+    private lateinit var testFileUploader: TestFileUploader
 
     @MockitoBean
-    private val facilityHistoryService: FacilityHistoryService? = null
+    private lateinit var facilityHistoryService: FacilityHistoryService
 
     @MockitoBean
-    private val facilityPathService: FacilityPathService? = null
+    private lateinit var facilityPathService: FacilityPathService
 
     @MockitoBean
-    private val floorService: FloorService? = null
+    private lateinit var floorService: FloorService
 
-    // Facility 추상 클래스를 상속받는 테스트용 구체 클래스
     @Entity
     @DiscriminatorValue("TEST")
-    @NoArgsConstructor
-    class FacilityInstance(name: String?, code: String?, description: String?, drawingFileId: Long?, thumbnailFileId: Long?) :
-        Facility(name, code, description, drawingFileId, thumbnailFileId)
+    class FacilityInstance(
+        name: String,
+        code: String? = null,
+        description: String? = null,
+        historyComment: String? = null,
+        drawingFileId: Long? = null,
+        thumbnailFileId: Long? = null,
+        position: FacilityPosition? = null,
+        category: com.pluxity.facility.category.FacilityCategory? = null,
+    ) : Facility(
+            name = name,
+            code = code,
+            description = description,
+            historyComment = historyComment,
+            drawingFileId = drawingFileId,
+            thumbnailFileId = thumbnailFileId,
+            position = position,
+        ) {
+        init {
+            category?.let { assignCategory(it) }
+        }
+    }
 
-    // --- 1. save (생성) 테스트 ---
     @Test
     @DisplayName("성공: 유효한 요청으로 시설 생성 시 모든 필드가 정상적으로 저장된다")
-    fun save_withValidRequest_savesFacility() {
+    fun `save with valid request saves facility`() {
         // GIVEN
-        val drawingFileId = testFileUploader!!.initiateTestFileUpload("drawing.dwg")
+        val drawingFileId = testFileUploader.initiateTestFileUpload("drawing.dwg")
         val thumbnailFileId = testFileUploader.initiateTestFileUpload("thumb.png")
         val request =
             FacilityCreateRequest(
-                "서울역",
-                "SEOUL_ST",
-                "대한민국 수도의 관문",
-                drawingFileId,
-                thumbnailFileId,
-                126.97,
-                37.55,
-                "{'floor': 5}"
+                name = "서울역",
+                code = "SEOUL_ST",
+                description = "대한민국 수도의 관문",
+                drawingFileId = drawingFileId,
+                thumbnailFileId = thumbnailFileId,
+                lon = 126.97,
+                lat = 37.55,
+                locationMeta = "{'floor': 5}",
             )
         val facility =
             FacilityInstance(
-                request.name,
-                request.code,
-                request.description,
-                request.drawingFileId,
-                request.thumbnailFileId
+                name = request.name,
+                code = request.code,
+                description = request.description,
+                drawingFileId = request.drawingFileId,
+                thumbnailFileId = request.thumbnailFileId,
             )
 
         // WHEN
-        val savedFacility = facilityService!!.save(facility, request)
+        val savedFacility = facilityService.save(facility, request)
 
         // THEN
-        assertThat(savedFacility.getId()).isNotNull()
-        assertThat(savedFacility.getName()).isEqualTo("서울역")
-        assertThat(savedFacility.getCode()).isEqualTo("SEOUL_ST")
-        assertThat(savedFacility.getDescription()).isEqualTo("대한민국 수도의 관문")
-        assertThat(savedFacility.getDrawingFileId()).isEqualTo(drawingFileId)
-        assertThat(savedFacility.getThumbnailFileId()).isEqualTo(thumbnailFileId)
-        assertThat(savedFacility.getPosition().getLon()).isEqualTo(126.97)
-        assertThat(savedFacility.getPosition().getLat()).isEqualTo(37.55)
-        assertThat(savedFacility.getPosition().getLocationMeta()).isEqualTo("{'floor': 5}")
+        savedFacility.id.shouldNotBeNull()
+        savedFacility.name shouldBe "서울역"
+        savedFacility.code shouldBe "SEOUL_ST"
+        savedFacility.description shouldBe "대한민국 수도의 관문"
+        savedFacility.drawingFileId shouldBe drawingFileId
+        savedFacility.thumbnailFileId shouldBe thumbnailFileId
+        savedFacility.position?.lon shouldBe 126.97
+        savedFacility.position?.lat shouldBe 37.55
+        savedFacility.position?.locationMeta shouldBe "{'floor': 5}"
 
-        // Mock 객체 호출 검증
-        Mockito.verify<FacilityHistoryService?>(facilityHistoryService, Mockito.times(1)).save(drawingFileId, savedFacility.getId(), "최초등록")
+        verify(facilityHistoryService, times(1)).save(drawingFileId, savedFacility.id!!, "최초등록")
     }
 
     @Test
     @DisplayName("실패: 중복된 코드로 시설 생성 시 예외가 발생한다")
-    fun save_withDuplicateCode_throwsCustomException() {
+    fun `save with duplicate code throws CustomException`() {
         // GIVEN
-        facilityService!!.save(
-            FacilityInstance("시설1", "DUP_CODE", null, null, null),
-            FacilityCreateRequest("시설1", "DUP_CODE", null, null, null, null, null, null)
+        facilityService.save(
+            FacilityInstance(name = "시설1", code = "DUP_CODE"),
+            FacilityCreateRequest("시설1", "DUP_CODE", null, null, null, null, null, null),
         )
 
-        val duplicateRequest =
-            FacilityCreateRequest("시설2", "DUP_CODE", null, null, null, null, null, null)
-        val facility2 = FacilityInstance("시설2", "DUP_CODE", null, null, null)
+        val duplicateRequest = FacilityCreateRequest("시설2", "DUP_CODE", null, null, null, null, null, null)
+        val facility2 = FacilityInstance(name = "시설2", code = "DUP_CODE")
 
         // WHEN & THEN
-        Assertions.assertThrows<CustomException?>(CustomException::class.java, Executable { facilityService.save(facility2, duplicateRequest) })
+        shouldThrow<CustomException> {
+            facilityService.save(facility2, duplicateRequest)
+        }
     }
 
-    // --- 2. find (조회) 테스트 ---
     @Test
     @DisplayName("실패: 존재하지 않는 ID로 조회 시 예외가 발생한다")
-    fun findById_withNonExistingId_throwsCustomException() {
-        Assertions.assertThrows<CustomException?>(CustomException::class.java, Executable { facilityService!!.findById(9999L) })
+    fun `findById with non-existing id throws CustomException`() {
+        shouldThrow<CustomException> {
+            facilityService.findById(9999L)
+        }
     }
 
-    // --- 3. update (PATCH 스타일 수정) 테스트 ---
     @Test
     @DisplayName("성공: update 요청 시 일부 필드만 정상적으로 수정된다")
-    fun update_withPartialRequest_updatesOnlyProvidedFields() {
+    fun `update with partial request updates only provided fields`() {
         // GIVEN
         val saved =
-            facilityService!!.save(
+            facilityService.save(
                 FacilityInstance("원본 이름", "ORI_CODE", "원본 설명", null, null),
-                FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null)
+                FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null),
             )
 
-        val request =
-            FacilityUpdateRequest("수정된 이름", null, null, null, 2.0, null, null)
+        val request = FacilityUpdateRequest("수정된 이름", null, null, null, 2.0, null, null)
 
         // WHEN
-        facilityService.update(saved.getId(), request)
+        facilityService.update(saved.id!!, request)
 
         // THEN
-        val updated = facilityService.findById(saved.getId())
-        assertThat(updated.getName()).isEqualTo("수정된 이름") // 변경된 필드
-        assertThat(updated.getPosition().getLon()).isEqualTo(2.0) // 변경된 필드
-        assertThat(updated.getCode()).isEqualTo("ORI_CODE") // 유지된 필드
-        assertThat(updated.getDescription()).isEqualTo("원본 설명") // 유지된 필드
+        val updated = facilityService.findById(saved.id!!)
+        updated.name shouldBe "수정된 이름"
+        updated.position?.lon shouldBe 2.0
+        updated.code shouldBe "ORI_CODE"
+        updated.description shouldBe "원본 설명"
     }
 
-    // --- 4. putUpdate (PUT 스타일 수정) 테스트 ---
     @Test
     @DisplayName("성공: putUpdate 요청 시 모든 필드가 요청대로 덮어쓰기된다 (null 포함)")
-    fun putUpdate_withFullRequest_overwritesAllFields() {
+    fun `putUpdate with full request overwrites all fields`() {
         // GIVEN
         val saved =
-            facilityService!!.save(
+            facilityService.save(
                 FacilityInstance("원본 이름", "ORI_CODE", "원본 설명", null, null),
-                FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null)
+                FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null),
             )
 
-        // description을 null로 하여 덮어쓰기 테스트
-        val request =
-            FacilityUpdateRequest("수정된 이름", "UPD_CODE", null, null, 2.0, 2.0, "{}")
+        val request = FacilityUpdateRequest("수정된 이름", "UPD_CODE", null, null, 2.0, 2.0, "{}")
 
         // WHEN
-        facilityService.putUpdate(saved.getId(), request)
+        facilityService.putUpdate(saved.id!!, request)
 
         // THEN
-        val updated = facilityService.findById(saved.getId())
-        assertThat(updated.getName()).isEqualTo("수정된 이름")
-        assertThat(updated.getCode()).isEqualTo("UPD_CODE")
-        assertThat(updated.getDescription()).isNull() // null로 덮어쓰기 되었는지 확인
-        assertThat(updated.getPosition().getLat()).isEqualTo(2.0)
+        val updated = facilityService.findById(saved.id!!)
+        updated.name shouldBe "수정된 이름"
+        updated.code shouldBe "UPD_CODE"
+        updated.description shouldBe null
+        updated.position?.lat shouldBe 2.0
     }
 
-    // --- 5. delete (삭제) 테스트 ---
     @Test
     @DisplayName("성공: 시설 삭제 시 DB에서 소프트 삭제된다")
-    fun deleteFacility_withExistingId_softDeletesFacility() {
+    fun `deleteFacility with existing id soft deletes facility`() {
         // GIVEN
         val saved =
-            facilityService!!.save(
+            facilityService.save(
                 FacilityInstance("삭제될 시설", "DEL_CODE", null, null, null),
-                FacilityCreateRequest("삭제될 시설", "DEL_CODE", null, null, null, null, null, null)
+                FacilityCreateRequest("삭제될 시설", "DEL_CODE", null, null, null, null, null, null),
             )
 
         // WHEN
-        facilityService.deleteFacility(saved.getId())
+        facilityService.deleteFacility(saved.id!!)
 
         // THEN
-        // SoftDelete 이므로 findById는 예외를 던져야 함
-        Assertions.assertThrows<CustomException?>(CustomException::class.java, Executable { facilityService.findById(saved.getId()) })
-        // Repository 레벨에서는 여전히 존재해야 함 (필요 시 네이티브 쿼리 등으로 확인 가능)
+        shouldThrow<CustomException> {
+            facilityService.findById(saved.id!!)
+        }
     }
 
-    // --- 6. 도면/경로/위치/층 등 서브 도메인 관련 메서드 테스트 ---
     @Test
     @DisplayName("성공: 도면 파일 업데이트 시 히스토리가 기록된다")
-    fun updateDrawingFile_updatesFileAndSavesHistory() {
+    fun `updateDrawingFile updates file and saves history`() {
         // GIVEN
         val saved =
-            facilityService!!.save(
+            facilityService.save(
                 FacilityInstance("시설", "CODE", null, null, null),
-                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null)
+                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null),
             )
-        val newDrawingFileId = testFileUploader!!.initiateTestFileUpload("new_drawing.dwg")
-        val request =
-            FacilityDrawingUpdateRequest(newDrawingFileId, "도면 교체")
+        val newDrawingFileId = testFileUploader.initiateTestFileUpload("new_drawing.dwg")
+        val request = FacilityDrawingUpdateRequest(newDrawingFileId, "도면 교체")
 
         // WHEN
-        facilityService.updateDrawingFile(saved.getId(), request)
+        facilityService.updateDrawingFile(saved.id!!, request)
 
         // THEN
-        val updated = facilityService.findById(saved.getId())
-        assertThat(updated.getDrawingFileId()).isEqualTo(newDrawingFileId)
+        val updated = facilityService.findById(saved.id!!)
+        updated.drawingFileId shouldBe newDrawingFileId
 
-        Mockito.verify<FacilityHistoryService?>(facilityHistoryService, Mockito.times(1)).save(newDrawingFileId, saved.getId(), "도면 교체")
+        verify(facilityHistoryService, times(1)).save(newDrawingFileId, saved.id!!, "도면 교체")
     }
 
     @Test
     @DisplayName("성공: 경로 저장 시 FacilityPathService가 호출된다")
-    fun savePath_delegatesToPathService() {
+    fun `savePath delegates to PathService`() {
         // GIVEN
         val saved =
-            facilityService!!.save(
+            facilityService.save(
                 FacilityInstance("시설", "CODE", null, null, null),
-                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null)
+                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null),
             )
         val request = FacilityPathSaveRequest("주 경로", "MAIN", "{}")
 
         // WHEN
-        facilityService.savePath(saved.getId(), request)
+        facilityService.savePath(saved.id!!, request)
 
         // THEN
-        Mockito.verify<FacilityPathService?>(facilityPathService, Mockito.times(1))
-            .save(
-                ArgumentMatchers.any<Facility?>(Facility::class.java),
-                ArgumentMatchers.eq<String?>("주 경로"),
-                ArgumentMatchers.eq<String?>("MAIN"),
-                ArgumentMatchers.eq<String?>("{}")
-            )
+        verify(facilityPathService, times(1))
+            .save(any<Facility>(), eq("주 경로"), eq("MAIN"), eq("{}"))
     }
 
     @Test
     @DisplayName("성공: 층 정보 업데이트 시 FloorService가 호출된다")
-    fun updateFloor_delegatesToFloorService() {
+    fun `updateFloor delegates to FloorService`() {
         // GIVEN
         val saved =
-            facilityService!!.save(
+            facilityService.save(
                 FacilityInstance("시설", "CODE", null, null, null),
-                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null)
+                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null),
             )
-        val request = FacilityFloorUpdateRequest(mutableListOf<FloorRequest?>())
+        val request = FacilityFloorUpdateRequest(emptyList())
 
         // WHEN
-        facilityService.updateFloor(saved.getId(), request)
+        facilityService.updateFloor(saved.id!!, request)
 
         // THEN
-        Mockito.verify<FloorService?>(floorService, Mockito.times(1))
-            .update<Facility?>(ArgumentMatchers.any<Facility?>(Facility::class.java), ArgumentMatchers.anyList<FloorRequest?>())
+        verify(floorService, times(1)).update(any<Facility>(), any())
     }
 
     @Test
     @DisplayName("실패: 존재하지 않는 시설의 경로 저장 시 예외가 발생한다")
-    fun savePath_onNonExistingFacility_throwsCustomException() {
+    fun `savePath on non-existing facility throws CustomException`() {
         // GIVEN
         val request = FacilityPathSaveRequest("주 경로", "MAIN", "{}")
 
         // WHEN & THEN
-        Assertions.assertThrows<CustomException?>(CustomException::class.java, Executable { facilityService!!.savePath(9999L, request) })
+        shouldThrow<CustomException> {
+            facilityService.savePath(9999L, request)
+        }
     }
 
     @Test
     @DisplayName("성공: 일부 선택적 필드가 null일 때도 시설 생성이 성공한다")
-    fun save_withNullOptionalFields_succeeds() {
-        // GIVEN: code, description, files, location 정보가 모두 null인 요청
-        val request =
-            FacilityCreateRequest("필수 필드만 있는 시설", "MANDATORY", null, null, null, null, null, null)
-        val facility =
-            FacilityInstance(request.name, request.code, null, null, null)
+    fun `save with null optional fields succeeds`() {
+        // GIVEN
+        val request = FacilityCreateRequest("필수 필드만 있는 시설", "MANDATORY", null, null, null, null, null, null)
+        val facility = FacilityInstance(request.name, request.code, null, null, null)
 
         // WHEN
-        val savedFacility = facilityService!!.save(facility, request)
+        val savedFacility = facilityService.save(facility, request)
 
         // THEN
-        org.assertj.core.api.Assertions.assertThat<Facility?>(savedFacility).isNotNull()
-        assertThat(savedFacility.getName()).isEqualTo("필수 필드만 있는 시설")
-        assertThat(savedFacility.getCode()).isEqualTo("MANDATORY")
-        assertThat(savedFacility.getDescription()).isNull()
-        assertThat(savedFacility.getDrawingFileId()).isNull()
-        assertThat(savedFacility.getPosition()).isNotNull() // Embedded 객체는 생성됨
+        savedFacility.shouldNotBeNull()
+        savedFacility.name shouldBe "필수 필드만 있는 시설"
+        savedFacility.code shouldBe "MANDATORY"
+        savedFacility.description shouldBe null
+        savedFacility.drawingFileId shouldBe null
+        savedFacility.position shouldBe null
     }
 
     @Test
     @DisplayName("실패: update 시 다른 시설이 사용 중인 코드로 변경하면 예외가 발생한다")
-    fun update_withExistingCodeOfAnotherFacility_throwsCustomException() {
-        // GIVEN: 두 개의 시설 생성
-        facilityService!!.save(
+    fun `update with existing code of another facility throws CustomException`() {
+        // GIVEN
+        facilityService.save(
             FacilityInstance("시설1", "CODE1", null, null, null),
-            FacilityCreateRequest("시설1", "CODE1", null, null, null, null, null, null)
+            FacilityCreateRequest("시설1", "CODE1", null, null, null, null, null, null),
         )
         val saved2 =
             facilityService.save(
                 FacilityInstance("시설2", "CODE2", null, null, null),
-                FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null)
+                FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null),
             )
 
-        // WHEN & THEN: 시설2의 코드를 시설1의 코드로 변경 시도
-        val request =
-            FacilityUpdateRequest(null, "CODE1", null, null, null, null, null)
-        Assertions.assertThrows<CustomException?>(CustomException::class.java, Executable { facilityService.update(saved2.getId(), request) })
+        // WHEN & THEN
+        val request = FacilityUpdateRequest(null, "CODE1", null, null, null, null, null)
+        shouldThrow<CustomException> {
+            facilityService.update(saved2.id!!, request)
+        }
     }
 
     @Test
     @DisplayName("성공: findAll 호출 시 모든 시설 목록을 반환한다")
-    fun findAll_whenFacilitiesExist_returnsListOfFacilities() {
+    fun `findAll when facilities exist returns list of facilities`() {
         // GIVEN
-        facilityService!!.save(
+        facilityService.save(
             FacilityInstance("시설1", "CODE1", null, null, null),
-            FacilityCreateRequest("시설1", "CODE1", null, null, null, null, null, null)
+            FacilityCreateRequest("시설1", "CODE1", null, null, null, null, null, null),
         )
         facilityService.save(
             FacilityInstance("시설2", "CODE2", null, null, null),
-            FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null)
+            FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null),
         )
 
         // WHEN
         val facilities = facilityService.findAll()
 
         // THEN
-        org.assertj.core.api.Assertions.assertThat<Facility?>(facilities).hasSize(2)
+        facilities shouldHaveSize 2
     }
 
     @Test
     @DisplayName("성공: 시설이 없을 때 findAll 호출 시 빈 리스트를 반환한다")
-    fun findAll_whenNoFacilitiesExist_returnsEmptyList() {
-        // GIVEN: 데이터가 없는 상태
-        facilityRepository!!.deleteAll()
+    fun `findAll when no facilities exist returns empty list`() {
+        // GIVEN
+        facilityRepository.deleteAll()
 
         // WHEN
-        val facilities = facilityService!!.findAll()
+        val facilities = facilityService.findAll()
 
         // THEN
-        org.assertj.core.api.Assertions.assertThat<Facility?>(facilities).isNotNull().isEmpty()
+        facilities.shouldNotBeNull()
+        facilities.shouldBeEmpty()
     }
 
     @Test
     @DisplayName("성공: 유효한 코드로 findByCode 호출 시 시설을 반환한다")
-    fun findByCode_withValidCode_returnsFacility() {
+    fun `findByCode with valid code returns facility`() {
         // GIVEN
         val code = "VALID_CODE"
-        facilityService!!.save(
+        facilityService.save(
             FacilityInstance("시설", code, null, null, null),
-            FacilityCreateRequest("시설", code, null, null, null, null, null, null)
+            FacilityCreateRequest("시설", code, null, null, null, null, null, null),
         )
 
         // WHEN
         val found = facilityService.findByCode(code)
 
         // THEN
-        org.assertj.core.api.Assertions.assertThat<Facility?>(found).isNotNull()
-        assertThat(found.getCode()).isEqualTo(code)
+        found.shouldNotBeNull()
+        found.code shouldBe code
     }
 
     @Test
     @DisplayName("실패: 존재하지 않는 코드로 findByCode 호출 시 예외가 발생한다")
-    fun findByCode_withNonExistingCode_throwsCustomException() {
-        Assertions.assertThrows<CustomException?>(CustomException::class.java, Executable { facilityService!!.findByCode("NON_EXISTING") })
+    fun `findByCode with non-existing code throws CustomException`() {
+        shouldThrow<CustomException> {
+            facilityService.findByCode("NON_EXISTING")
+        }
     }
 
     @Test
     @DisplayName("성공: 경로 수정 시 FacilityPathService가 호출된다")
-    fun updatePath_delegatesToPathService() {
+    fun `updatePath delegates to PathService`() {
         // GIVEN
         val saved =
-            facilityService!!.save(
+            facilityService.save(
                 FacilityInstance("시설", "CODE", null, null, null),
-                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null)
+                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null),
             )
         val request = FacilityPathUpdateRequest("수정된 경로", "SUB", "{}")
 
         // WHEN
-        facilityService.updatePath(saved.getId(), 1L, request)
+        facilityService.updatePath(saved.id!!, 1L, request)
 
         // THEN
-        Mockito.verify<FacilityPathService?>(facilityPathService, Mockito.times(1)).update(1L, "수정된 경로", "SUB", "{}")
+        verify(facilityPathService, times(1)).update(1L, "수정된 경로", "SUB", "{}")
     }
 
     @Test
     @DisplayName("성공: 경로 삭제 시 FacilityPathService가 호출된다")
-    fun deletePath_delegatesToPathService() {
+    fun `deletePath delegates to PathService`() {
         // GIVEN
         val saved =
-            facilityService!!.save(
+            facilityService.save(
                 FacilityInstance("시설", "CODE", null, null, null),
-                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null)
+                FacilityCreateRequest("시설", "CODE", null, null, null, null, null, null),
             )
 
         // WHEN
-        facilityService.deletePath(saved.getId(), 1L)
+        facilityService.deletePath(saved.id!!, 1L)
 
         // THEN
-        Mockito.verify<FacilityPathService?>(facilityPathService, Mockito.times(1)).delete(1L)
+        verify(facilityPathService, times(1)).delete(1L)
     }
 
     @Test
     @DisplayName("성공: 위치 정보 업데이트 시 좌표와 메타 정보가 변경된다")
-    fun updateLocation_updatesPositionCorrectly() {
+    fun `updateLocation updates position correctly`() {
         // GIVEN
         val saved =
-            facilityService!!.save(
+            facilityService.save(
                 FacilityInstance("시설", "CODE", null, null, null),
-                FacilityCreateRequest("시설", "CODE", null, null, null, 1.0, 1.0, null)
+                FacilityCreateRequest("시설", "CODE", null, null, null, 1.0, 1.0, null),
             )
-        val request =
-            FacilityLocationUpdateRequest(127.5, 37.5, "{'new_meta': true}")
+        val request = FacilityLocationUpdateRequest(127.5, 37.5, "{'new_meta': true}")
 
         // WHEN
-        facilityService.updateLocation(saved.getId(), request)
+        facilityService.updateLocation(saved.id!!, request)
 
         // THEN
-        val updated = facilityService.findById(saved.getId())
-        assertThat(updated.getPosition().getLon()).isEqualTo(127.5)
-        assertThat(updated.getPosition().getLat()).isEqualTo(37.5)
-        assertThat(updated.getPosition().getLocationMeta()).isEqualTo("{'new_meta': true}")
+        val updated = facilityService.findById(saved.id!!)
+        updated.position?.lon shouldBe 127.5
+        updated.position?.lat shouldBe 37.5
+        updated.position?.locationMeta shouldBe "{'new_meta': true}"
     }
 }

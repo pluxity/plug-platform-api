@@ -11,4 +11,4 @@ import jakarta.persistence.Table
 class Station(
     name: String,
     description: String? = null,
-) : Facility(name, description)
+) : Facility(name = name, description = description)

@@ -105,7 +105,7 @@ class BuildingServiceKoTest :
         Given("Building 수정을 진행할 때") {
             When("정상 수정 요청") {
                 val updateRequest = dummyUpdateBuildingRequest()
-                val building = dummyBuilding(name = updateRequest.facility.name)
+                val building = updateRequest.facility.name?.let { dummyBuilding(name = it) }
                 every {
                     repository.findByIdOrNull(any())
                 } returns building
@@ -119,7 +119,7 @@ class BuildingServiceKoTest :
                 } just runs
 
                 Then("정상 수정") {
-                    buildingService.putUpdate(building.id, updateRequest)
+                    buildingService.putUpdate(building!!.id, updateRequest)
                     building.name shouldBe updateRequest.facility.name
                 }
             }

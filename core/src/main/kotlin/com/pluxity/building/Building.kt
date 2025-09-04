@@ -11,4 +11,4 @@ import jakarta.persistence.Table
 class Building(
     name: String,
     description: String?,
-) : Facility(name, description)
+) : Facility(name = name, description = description)

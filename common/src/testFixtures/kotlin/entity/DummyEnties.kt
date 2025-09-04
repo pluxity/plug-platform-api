@@ -28,4 +28,4 @@ fun dummySpatial(
     z: Double = 0.0,
 ) = Spatial(x, y, z)
 
-private class DummyFacility : Facility()
+private class DummyFacility : Facility(name = "Dummy Facility")

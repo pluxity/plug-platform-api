@@ -147,7 +147,7 @@ class StationServiceKoTest :
         Given("Station 수정을 진행할 때") {
             When("정상 수정 요청") {
                 val updateRequest = dummyUpdateStationRequest()
-                val station = dummyStation(name = updateRequest.facility.name)
+                val station = dummyStation(name = updateRequest.facility.name!!)
                 val line = dummyLine()
                 every {
                     stationRepository.findByIdOrNull(any())

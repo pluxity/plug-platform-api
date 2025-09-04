@@ -12,7 +12,7 @@ class Park(
     name: String,
     description: String?,
     var boundary: String?,
-) : Facility(name, description) {
+) : Facility(name = name, description = description) {
     fun updateBoundary(boundary: String?) {
         this.boundary = boundary
     }

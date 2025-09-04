@@ -7,10 +7,23 @@ import com.pluxity.file.entity.FileEntity
 import com.pluxity.global.entity.BaseEntity
 import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.Permissible
-import jakarta.persistence.*
-import lombok.AccessLevel
-import lombok.Getter
-import lombok.NoArgsConstructor
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorColumn
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Inheritance
+import jakarta.persistence.InheritanceType
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import org.hibernate.annotations.SoftDelete
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
@@ -18,98 +31,52 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 @Table(name = "facility")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "facility_type")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener::class)
 @SoftDelete
-abstract class Facility : BaseEntity, Permissible {
+abstract class Facility(
+    @Column(name = "name", nullable = false, length = 50)
+    var name: String,
+    @Column(name = "code", length = 50)
+    var code: String? = null,
+    @Column(name = "description")
+    var description: String? = null,
+    @Column(name = "history_comment")
+    var historyComment: String? = null,
+    @Column(name = "drawing_file_id")
+    var drawingFileId: Long? = null,
+    @Column(name = "thumbnail_file_id")
+    var thumbnailFileId: Long? = null,
+    @Embedded
+    var position: FacilityPosition? = null,
+) : BaseEntity(),
+    Permissible {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private var id: Long? = null
+    val id: Long = 0
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
-    private var category: FacilityCategory? = null
-
-    @Column(name = "code", length = 50)
-    private var code: String?
-
-    @Column(name = "drawing_file_id")
-    private var drawingFileId: Long? = null
-
-    @Column(name = "thumbnail_file_id")
-    private var thumbnailFileId: Long? = null
-
-    @Column(name = "name", nullable = false, length = 50)
-    private var name: String?
-
-    @Column(name = "description")
-    private var description: String? = null
-
-    @Column(name = "history_comment")
-    private var historyComment: String? = null
-
-    @Embedded
-    private var position: FacilityPosition? = null
+    lateinit var category: FacilityCategory
+        private set
 
     @Enumerated(EnumType.STRING)
     @Column(name = "facility_type", insertable = false, updatable = false)
-    private var facilityType: FacilityType? = null
+    var facilityType: FacilityType? = null
+        private set
 
     @OneToMany(mappedBy = "facility")
-    private val features: MutableList<Feature?> = ArrayList<Feature?>()
+    val features: MutableList<Feature> = mutableListOf()
 
     @OneToMany(mappedBy = "facility")
-    private val paths: MutableList<FacilityPath?> = ArrayList<FacilityPath?>()
-
-    protected constructor(name: String?, description: String?) : this(name, null, description, null)
-
-    constructor(name: String?, description: String?, historyComment: String?) : this(name, null, description, historyComment)
-
-    protected constructor(name: String?, code: String?, drawingFileId: Long?, thumbnailFileId: Long?) {
-        this.code = code
-        this.name = name
-        this.drawingFileId = drawingFileId
-        this.thumbnailFileId = thumbnailFileId
-    }
-
-    protected constructor(name: String?, code: String?, description: String?, historyComment: String?) {
-        this.code = code
-        this.name = name
-        this.description = description
-        this.historyComment = historyComment
-    }
-
-    constructor(name: String?, code: String?, description: String?, drawingFileId: Long?, thumbnailFileId: Long?) {
-        this.name = name
-        this.code = code
-        this.description = description
-        this.drawingFileId = drawingFileId
-        this.thumbnailFileId = thumbnailFileId
-    }
-
-    fun updateDrawingFileId(drawingFile: FileEntity) {
-        this.drawingFileId = drawingFile.id
-    }
-
-    fun updateThumbnailFileId(thumbnailFile: FileEntity) {
-        this.thumbnailFileId = thumbnailFile.id
-    }
-
-    fun updateDrawingFileId(drawingFileId: Long?) {
-        this.drawingFileId = drawingFileId
-    }
-
-    fun updateThumbnailFileId(thumbnailFileId: Long?) {
-        this.thumbnailFileId = thumbnailFileId
-    }
-
-    fun updateName(name: String?) {
-        this.name = name
-    }
+    val paths: MutableList<FacilityPath> = mutableListOf()
 
     fun updateCode(code: String?) {
         this.code = code
+    }
+
+    fun updateName(name: String) {
+        require(name.isNotBlank()) { "시설명은 빈 값일 수 없습니다" }
+        this.name = name
     }
 
     fun updateDescription(description: String?) {
@@ -120,55 +87,59 @@ abstract class Facility : BaseEntity, Permissible {
         this.historyComment = historyComment
     }
 
-    fun assignCategory(category: FacilityCategory?) {
-        this.category = category
+    fun updateDrawingFileId(drawingFileId: Long?) {
+        this.drawingFileId = drawingFileId
     }
 
-    fun addFeature(feature: Feature?) {
-        if (!this.features.contains(feature)) {
-            this.features.add(feature)
-        }
+    fun updateDrawingFile(drawingFile: FileEntity) {
+        this.drawingFileId = drawingFile.id
     }
 
-    fun removeFeature(feature: Feature?) {
-        this.features.remove(feature)
+    fun updateThumbnailFileId(thumbnailFileId: Long?) {
+        this.thumbnailFileId = thumbnailFileId
     }
 
-    fun update(facility: Facility) {
-        if (facility.name != null) {
-            this.name = facility.name
-        }
-        if (facility.code != null) {
-            this.code = facility.code
-        }
-        if (facility.description != null) {
-            this.description = facility.description
-        }
-        if (facility.historyComment != null) {
-            this.historyComment = facility.historyComment
-        }
-        if (facility.drawingFileId != null) {
-            this.drawingFileId = facility.drawingFileId
-        }
-        if (facility.thumbnailFileId != null) {
-            this.thumbnailFileId = facility.thumbnailFileId
-        }
+    fun updateThumbnailFile(thumbnailFile: FileEntity) {
+        this.thumbnailFileId = thumbnailFile.id
     }
 
     fun updatePosition(position: FacilityPosition?) {
         this.position = position
     }
 
-    fun updatePosition(lon: Double?, lat: Double?, locationMeta: String?) {
-        if (this.position == null) {
-            this.position = FacilityPosition()
-        }
-        this.position!!.merge(lon, lat, locationMeta)
+    fun updatePosition(
+        lon: Double?,
+        lat: Double?,
+        locationMeta: String?,
+    ) {
+        this.position =
+            if (lon != null || lat != null || locationMeta != null) {
+                FacilityPosition(lon, lat, locationMeta)
+            } else {
+                null
+            }
     }
 
-    val resourceId: String
-        get() = this.id.toString()
+    fun assignCategory(category: FacilityCategory) {
+        this.category = category
+    }
 
-    val resourceType: ResourceType
+    fun update(other: Facility) {
+        this.name = other.name
+        this.code = other.code
+        this.description = other.description
+        this.historyComment = other.historyComment
+        this.drawingFileId = other.drawingFileId
+        this.thumbnailFileId = other.thumbnailFileId
+        this.position = other.position
+        if (::category.isInitialized && other::category.isInitialized) {
+            this.category = other.category
+        }
+    }
+
+    override val resourceId: String
+        get() = id.toString()
+
+    override val resourceType: ResourceType
         get() = ResourceType.FACILITY
 }

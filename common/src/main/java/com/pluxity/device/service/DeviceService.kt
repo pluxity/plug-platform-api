@@ -77,7 +77,7 @@ class DeviceService(
                         leftFetchJoin(Feature::facility),
                     ).where(
                         and(
-                            facilityId?.let { path(Facility::getId).eq(it) },
+                            facilityId?.let { path(Facility::id).eq(it) },
                         ),
                     )
                 }.filterNotNull()

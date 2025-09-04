@@ -22,7 +22,7 @@ class Label3DService(
             featureService.saveFeature(
                 Feature(
                     id = request.id,
-                    facility = facilityService.findById(request.facilityId),
+                    facility = facilityService.findById(request.facilityId!!),
                     floorId = request.floorId,
                     position = request.position,
                     rotation = request.rotation,

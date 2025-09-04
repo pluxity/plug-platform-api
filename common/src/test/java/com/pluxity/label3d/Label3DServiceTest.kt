@@ -48,15 +48,15 @@ internal class Label3DServiceTest {
     @DiscriminatorValue("TEST_FACILITY")
     @NoArgsConstructor
     class FacilityInstance(
-        name: String?,
-        code: String?,
+        name: String,
+        code: String? = null,
     ) : Facility(name, code)
 
     private fun createTestFacility(): Long {
         val request =
             FacilityCreateRequest("테스트 시설", "FAC01", null, null, null, null, null, null)
-        val facility = FacilityInstance(request.name, request.code)
-        return facilityService.save(facility, request).id
+        val facility = FacilityInstance(name = request.name, code = request.code)
+        return facilityService.save(facility, request).id ?: throw IllegalStateException("Saved facility must have an ID")
     }
 
     @Test
