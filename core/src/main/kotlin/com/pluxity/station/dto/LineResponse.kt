@@ -2,6 +2,7 @@ package com.pluxity.station.dto
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.pluxity.global.response.BaseResponse
+import com.pluxity.global.response.toBaseResponse
 import com.pluxity.station.Line
 
 data class LineResponse(
@@ -18,5 +19,5 @@ fun Line.toLineResponse(): LineResponse =
         this.color,
         this.name,
         this.getStations().mapNotNull { it.id },
-        BaseResponse.of(this),
+        this.toBaseResponse(),
     )
