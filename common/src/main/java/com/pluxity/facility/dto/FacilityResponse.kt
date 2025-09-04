@@ -5,6 +5,7 @@ import com.pluxity.facility.Facility
 import com.pluxity.facility.FacilityType
 import com.pluxity.file.dto.FileResponse
 import com.pluxity.global.response.BaseResponse
+import com.pluxity.global.response.toBaseResponse
 
 data class FacilityResponse(
     val id: Long?,
@@ -18,7 +19,7 @@ data class FacilityResponse(
     val lon: Double?,
     val lat: Double?,
     val locationMeta: String?,
-    @JsonUnwrapped val baseResponse: BaseResponse,
+    @field:JsonUnwrapped val baseResponse: BaseResponse,
 )
 
 fun Facility.toResponse(
@@ -39,6 +40,6 @@ fun Facility.toResponse(
         lon = this.position?.lon,
         lat = this.position?.lat,
         locationMeta = this.position?.locationMeta,
-        baseResponse = BaseResponse.of(this),
+        baseResponse = this.toBaseResponse(),
     )
 }

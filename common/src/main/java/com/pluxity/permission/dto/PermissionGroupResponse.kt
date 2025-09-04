@@ -2,6 +2,7 @@ package com.pluxity.permission.dto
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.pluxity.global.response.BaseResponse
+import com.pluxity.global.response.toBaseResponse
 import com.pluxity.permission.PermissionGroup
 import io.swagger.v3.oas.annotations.media.Schema
 import kotlin.collections.component1
@@ -32,5 +33,5 @@ fun PermissionGroup.toPermissionGroupResponse(): PermissionGroupResponse =
                     resourceIds = permissions.map { it.resourceId },
                 )
             },
-        baseResponse = BaseResponse.of(this),
+        baseResponse = this.toBaseResponse(),
     )

@@ -8,5 +8,5 @@ data class CategoryResponse(
     val name: String,
     val parentId: Long?,
     val children: List<CategoryResponse>,
-    @JsonUnwrapped val baseResponse: BaseResponse,
+    @field:JsonUnwrapped val baseResponse: BaseResponse,
 )

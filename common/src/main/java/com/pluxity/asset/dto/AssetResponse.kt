@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.pluxity.asset.entity.Asset
 import com.pluxity.file.dto.FileResponse
 import com.pluxity.global.response.BaseResponse
+import com.pluxity.global.response.toBaseResponse
 
 data class AssetResponse(
     val id: Long?,
@@ -30,5 +31,5 @@ fun Asset.toResponse(
         categoryCode = this.category?.code,
         file = file,
         thumbnailFile = thumbnailFile,
-        baseResponse = BaseResponse.of(this),
+        baseResponse = this.toBaseResponse(),
     )
