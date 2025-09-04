@@ -17,8 +17,6 @@ fun Line.toLineResponse(): LineResponse =
         this.id,
         this.color,
         this.name,
-        this.getStations().map {
-            it.id
-        },
+        this.getStations().mapNotNull { it.id },
         BaseResponse.of(this),
     )

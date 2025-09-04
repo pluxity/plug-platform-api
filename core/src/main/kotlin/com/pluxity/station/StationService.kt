@@ -54,7 +54,7 @@ class StationService(
             }
         }
 
-        return saved.id
+        return saved.id!!
     }
 
     @Transactional(readOnly = true)

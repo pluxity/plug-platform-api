@@ -175,14 +175,14 @@ internal class UserRolePermissionIntegrationTest {
         Assertions.assertThat(accessibleIds).containsExactlyInAnyOrderElementsOf(permittedBuildingIds)
 
         // 추가 검증: 허가된 시설(1번)에 ID로 직접 접근하면 성공해야 합니다.
-        val permittedId = buildings[0].id
+        val permittedId = buildings[0].id!!
         // FacilityService가 Building ID로 조회하는 메서드가 있다고 가정
         org.junit.jupiter.api.Assertions.assertDoesNotThrow {
             facilityService.findById(permittedId)
         }
 
         // 추가 검증: 허가되지 않은 시설(2번)에 ID로 직접 접근하면 예외가 발생해야 합니다.
-        val forbiddenId = buildings[1].id
+        val forbiddenId = buildings[1].id!!
         org.junit.jupiter.api.Assertions.assertThrows(
             CustomException::class.java,
             { facilityService.findById(forbiddenId) },

@@ -125,7 +125,7 @@ class StationServiceKoTest :
                 } returns listOf("code")
 
                 Then("정상 조회") {
-                    val res = stationService.findById(station.id)
+                    val res = stationService.findById(station.id!!)
                     res.facility.name shouldBe station.name
                     res.floors.size shouldBe 1
                 }
@@ -170,7 +170,7 @@ class StationServiceKoTest :
                 every { stationCodeService.save(any(), any()) } just runs
 
                 Then("정상 수정") {
-                    stationService.putUpdate(station.id, updateRequest)
+                    stationService.putUpdate(station.id!!, updateRequest)
                     station.name shouldBe updateRequest.facility.name
                 }
             }
@@ -203,7 +203,7 @@ class StationServiceKoTest :
                 } just runs
 
                 Then("정상 삭제") {
-                    stationService.delete(station.id)
+                    stationService.delete(station.id!!)
                     verify(exactly = 1) { facilityService.deleteFacility(any()) }
                     slot.captured shouldBe station.id
                 }
@@ -228,7 +228,7 @@ class StationServiceKoTest :
                     every {
                         stationLineService.save(station, line)
                     } just runs
-                    stationService.addLineToStation(station.id, line.id!!)
+                    stationService.addLineToStation(station.id!!, line.id!!)
                     verify(exactly = 1) { stationLineService.save(station, line) }
                 }
             }
@@ -239,7 +239,7 @@ class StationServiceKoTest :
                         stationLineService.checkAlreadyConnect(any(), any())
                     } returns true
 
-                    stationService.addLineToStation(station.id, line.id!!)
+                    stationService.addLineToStation(station.id!!, line.id!!)
                     verify(exactly = 0) { stationLineService.save(any(), any()) }
                 }
             }
@@ -263,7 +263,7 @@ class StationServiceKoTest :
                 } just runs
 
                 Then("정상 삭제") {
-                    stationService.removeLineFromStation(station.id, line.id!!)
+                    stationService.removeLineFromStation(station.id!!, line.id!!)
                     verify(exactly = 1) { stationLineService.deleteStationLine(any(), any()) }
                     stationSlot.captured.id shouldBe station.id
                     lineSlot.captured.id shouldBe line.id

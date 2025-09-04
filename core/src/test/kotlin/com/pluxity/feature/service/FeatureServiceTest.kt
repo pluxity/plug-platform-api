@@ -83,7 +83,7 @@ internal class FeatureServiceTest {
                 Spatial(0.0, 45.0, 0.0),
                 Spatial(1.5, 1.5, 1.5),
                 testAsset.id!!,
-                testFacility.id,
+                testFacility.id!!,
                 "B1",
             )
 
@@ -125,7 +125,7 @@ internal class FeatureServiceTest {
                 null,
                 null,
                 testAsset.id!!,
-                testFacility.id,
+                testFacility.id!!,
                 "Lobby",
             )
 
@@ -160,7 +160,7 @@ internal class FeatureServiceTest {
                 null,
                 null,
                 testAsset.id!!,
-                testFacility.id,
+                testFacility.id!!,
                 "F1",
             ),
         )
@@ -173,7 +173,7 @@ internal class FeatureServiceTest {
                 null,
                 null,
                 testAsset.id!!,
-                testFacility.id,
+                testFacility.id!!,
                 "F2",
             )
 
@@ -217,7 +217,7 @@ internal class FeatureServiceTest {
                 null,
                 null,
                 invalidAssetId,
-                testFacility.id,
+                testFacility.id!!,
                 "F1",
             )
 
@@ -239,7 +239,7 @@ internal class FeatureServiceTest {
         createAndSaveFeature("F3", otherFacility)
 
         // WHEN
-        val responses = featureService.getFeatures(testFacility.id)
+        val responses = featureService.getFeatures(testFacility.id!!)
 
         // THEN
         Assertions
@@ -254,7 +254,7 @@ internal class FeatureServiceTest {
     fun getFeatures_WithNoFeatures_ReturnsEmptyList() {
         // GIVEN: 피처가 없는 상태
         // WHEN
-        val responses = featureService.getFeatures(testFacility.id)
+        val responses = featureService.getFeatures(testFacility.id!!)
         // THEN
         Assertions.assertThat(responses).isNotNull().isEmpty()
     }

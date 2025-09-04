@@ -83,7 +83,7 @@ class BuildingServiceKoTest :
                 } returns dummyFileResponse()
 
                 Then("정상 조회") {
-                    val res = buildingService.findById(building.id)
+                    val res = buildingService.findById(building.id!!)
                     res.facility.name shouldBe building.name
                     res.floors?.size shouldBe 1
                 }
@@ -119,7 +119,7 @@ class BuildingServiceKoTest :
                 } just runs
 
                 Then("정상 수정") {
-                    buildingService.putUpdate(building!!.id, updateRequest)
+                    buildingService.putUpdate(building!!.id!!, updateRequest)
                     building.name shouldBe updateRequest.facility.name
                 }
             }
@@ -140,7 +140,7 @@ class BuildingServiceKoTest :
                 } just runs
 
                 Then("정상 삭제") {
-                    buildingService.delete(building.id)
+                    buildingService.delete(building.id!!)
                     verify(exactly = 1) { facilityService.deleteFacility(any()) }
                     slot.captured shouldBe building.id
                 }

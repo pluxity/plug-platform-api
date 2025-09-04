@@ -39,7 +39,7 @@ class LineService(
     fun findLineById(id: Long): Line = lineRepository.findByIdOrNull(id) ?: throw notFoundException(id)
 
     @Transactional(readOnly = true)
-    fun findStationsByLineId(lineId: Long): List<Long> = findLineById(lineId).getStations().map { it.id }
+    fun findStationsByLineId(lineId: Long): List<Long> = findLineById(lineId).getStations().map { it.id!! }
 
     @Transactional
     fun update(
