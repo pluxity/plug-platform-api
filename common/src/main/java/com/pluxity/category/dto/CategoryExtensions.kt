@@ -1,7 +1,7 @@
 package com.pluxity.category.dto
 
 import com.pluxity.category.entity.Category
-import com.pluxity.global.response.BaseResponse
+import com.pluxity.global.response.toBaseResponse
 
 fun <T : Category<T>> Category<T>.toResponse(
     includeChildren: Boolean = false,
@@ -21,6 +21,6 @@ fun <T : Category<T>> Category<T>.toResponse(
         name = this.name,
         parentId = this.parent?.id,
         children = childResponse,
-        baseResponse = BaseResponse.of(this),
+        baseResponse = this.toBaseResponse(),
     )
 }

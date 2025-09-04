@@ -3,6 +3,7 @@ package com.pluxity.file.dto
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.pluxity.file.entity.FileEntity
 import com.pluxity.global.response.BaseResponse
+import com.pluxity.global.response.toBaseResponse
 
 data class FileResponse(
     var id: Long? = null,
@@ -20,5 +21,5 @@ fun FileEntity.toFileResponse(url: String?) =
         originalFileName = this.originalFileName,
         contentType = this.contentType,
         fileStatus = this.fileStatus.toString(),
-        baseResponse = BaseResponse.of(this),
+        baseResponse = this.toBaseResponse(),
     )
