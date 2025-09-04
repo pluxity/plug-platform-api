@@ -21,7 +21,7 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
 import com.pluxity.user.entity.ExecutionPhase
 import com.pluxity.user.entity.PermissionType
-import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -33,7 +33,6 @@ class FacilityService(
     private val facilityPathService: FacilityPathService,
     private val floorService: FloorService,
 ) {
-    private val logger = LoggerFactory.getLogger(this::class.java)
     private val prefix = "facilities/"
 
     @Transactional
@@ -41,7 +40,7 @@ class FacilityService(
         facility: Facility,
         request: FacilityCreateRequest,
     ): Facility {
-        request.code?.let { code ->
+        request.code.let { code ->
             if (code.isNotEmpty()) {
                 validateCodeUniqueness(code)
                 facility.updateCode(code)
@@ -78,14 +77,14 @@ class FacilityService(
     fun findByCode(code: String): Facility =
         facilityRepository
             .findByCode(code)
-            .orElseThrow { CustomException(NOT_FOUND_FACILITY_CODE, code) }
+            ?: throw CustomException(NOT_FOUND_FACILITY_CODE, code)
 
     @CheckPermission(type = PermissionType.ID)
     @Transactional(readOnly = true)
     fun findById(id: Long): Facility =
         facilityRepository
-            .findById(id)
-            .orElseThrow { CustomException(NOT_FOUND_FACILITY, id) }
+            .findByIdOrNull(id)
+            ?: throw CustomException(NOT_FOUND_FACILITY, id)
 
     @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.FILTER)
     @Transactional(readOnly = true)
@@ -171,8 +170,8 @@ class FacilityService(
     @Transactional(readOnly = true)
     fun findFacilityHistories(facilityId: Long): List<FacilityHistoryResponse> {
         facilityRepository
-            .findById(facilityId)
-            .orElseThrow { CustomException(NOT_FOUND_FACILITY, facilityId) }
+            .findByIdOrNull(facilityId)
+            ?: throw CustomException(NOT_FOUND_FACILITY, facilityId)
         return facilityHistoryService.findByFacilityId(facilityId)
     }
 

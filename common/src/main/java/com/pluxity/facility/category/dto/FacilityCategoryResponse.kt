@@ -5,22 +5,22 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
 
 data class FacilityCategoryResponse(
-    @Schema(description = "카테고리 ID", example = "1")
+    @field:Schema(description = "카테고리 ID", example = "1")
     val id: Long,
-    @Schema(description = "카테고리 이름", example = "그래픽 에셋")
+    @field:Schema(description = "카테고리 이름", example = "그래픽 에셋")
     val name: String,
-    @Schema(description = "부모 카테고리 ID", example = "2")
+    @field:Schema(description = "부모 카테고리 ID", example = "2")
     val parentId: Long? = null,
-    @Schema(
+    @field:Schema(
         description = "자식 카테고리 목록",
         example = "[]",
     )
     val children: MutableList<FacilityCategoryResponse> = mutableListOf(),
-    @Schema(description = "생성일시")
+    @field:Schema(description = "생성일시")
     val createdAt: LocalDateTime,
-    @Schema(description = "수정일시")
+    @field:Schema(description = "수정일시")
     val updatedAt: LocalDateTime,
-    @Schema(description = "depth", example = "1")
+    @field:Schema(description = "depth", example = "1")
     val depth: Int,
 )
 
