@@ -53,7 +53,7 @@ class FacilityService(
         request.drawingFileId?.let { drawingFileId ->
             val drawingFile = fileService.finalizeUpload(drawingFileId, filePath)
             facility.updateDrawingFile(drawingFile)
-            facilityHistoryService.save(drawingFileId, facility.id, "최초등록")
+            facilityHistoryService.save(drawingFileId, facility.id!!, "최초등록")
         }
 
         request.thumbnailFileId?.let { thumbnailFileId ->
@@ -184,7 +184,7 @@ class FacilityService(
         val filePath = "$prefix${facility.id}/"
         val drawingFile = fileService.finalizeUpload(request.drawingFileId, filePath)
         facility.updateDrawingFile(drawingFile)
-        facilityHistoryService.save(request.drawingFileId, facility.id, request.comment)
+        facilityHistoryService.save(request.drawingFileId, facility.id!!, request.comment ?: "")
     }
 
     @Transactional

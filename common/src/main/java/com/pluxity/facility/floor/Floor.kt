@@ -1,31 +1,35 @@
 package com.pluxity.facility.floor
 
 import com.pluxity.facility.Facility
-import jakarta.persistence.*
-import lombok.AccessLevel
-import lombok.Builder
-import lombok.Getter
-import lombok.NoArgsConstructor
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.Table
 import org.hibernate.annotations.NotFound
 import org.hibernate.annotations.NotFoundAction
 
 @Entity
 @Table(name = "floor")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-class Floor @Builder constructor(
-    @field:NotFound(action = NotFoundAction.IGNORE) @field:JoinColumn(name = "facility_id") @field:ManyToOne(
-        fetch = FetchType.LAZY
-    ) private var facility: Facility?, @field:Column(name = "floor_id", nullable = false) private var floorId: String?, @field:Column(
-        name = "name",
-        nullable = false
-    ) private var name: String?
+class Floor(
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facility_id")
+    @NotFound(action = NotFoundAction.IGNORE)
+    var facility: Facility? = null,
+    @Column(name = "floor_id", nullable = false)
+    val floorId: String,
+    @Column(name = "name", nullable = false)
+    val name: String,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long? = null
+    val id: Long? = null
 
-    fun assignParent(facility: Facility?) {
+    fun assignParent(facility: Facility) {
         this.facility = facility
     }
 }

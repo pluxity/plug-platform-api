@@ -8,14 +8,14 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 @Repository
-interface FloorRepository : JpaRepository<Floor?, Long?> {
+interface FloorRepository : JpaRepository<Floor, Long> {
     @BatchSize(size = 2)
-    fun findAllByFacility(facility: Facility?): MutableList<Floor?>?
+    fun findAllByFacility(facility: Facility): List<Floor>
 
     @Query("SELECT f FROM Floor f WHERE f.facility IN :facilities")
-    fun <T : Facility?> findAllByFacilities(facilities: MutableList<T?>?): MutableList<Floor?>?
+    fun <T : Facility> findAllByFacilities(facilities: List<T>): List<Floor>
 
     @Modifying
     @Query("DELETE FROM Floor f WHERE f.facility = :facility")
-    fun deleteByFacility(facility: Facility?)
+    fun deleteByFacility(facility: Facility)
 }

@@ -2,16 +2,17 @@ package com.pluxity.facility.dto
 
 import com.pluxity.facility.path.FacilityPath
 
-@JvmRecord
-data class FacilityPathResponse(val id: Long?, val name: String?, val type: String?, val path: String?) {
-    companion object {
-        fun from(facilityPath: FacilityPath): FacilityPathResponse {
-            return FacilityPathResponse(
-                facilityPath.getId(),
-                facilityPath.getName(),
-                facilityPath.getPathType().name,
-                facilityPath.getPath()
-            )
-        }
-    }
-}
+data class FacilityPathResponse(
+    val id: Long,
+    val name: String,
+    val type: String,
+    val path: String,
+)
+
+fun FacilityPath.toPathResponse(): FacilityPathResponse =
+    FacilityPathResponse(
+        id = this.id!!,
+        name = this.name,
+        type = this.pathType.name,
+        path = this.path,
+    )

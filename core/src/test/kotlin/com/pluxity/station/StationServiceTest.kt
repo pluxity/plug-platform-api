@@ -257,7 +257,7 @@ internal class StationServiceTest {
             .assertThat(
                 floorRepository
                     .findAll()
-                    .filter { it.facility.id == stationId },
+                    .filter { it.facility?.id == stationId },
             ).isEmpty()
 
         val stationLines =
@@ -294,7 +294,7 @@ internal class StationServiceTest {
             .assertThat(
                 floorRepository
                     .findAll()
-                    .any { it.facility.id == stationId },
+                    .any { it.facility?.id == stationId },
             ).isTrue()
         Assertions
             .assertThat(
@@ -318,7 +318,7 @@ internal class StationServiceTest {
             .assertThat(
                 floorRepository
                     .findAll()
-                    .none { it.facility.id == stationId },
+                    .none { it.facility?.id == stationId },
             ).isTrue()
         Assertions
             .assertThat(

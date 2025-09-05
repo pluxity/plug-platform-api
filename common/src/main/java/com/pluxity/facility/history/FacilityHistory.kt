@@ -1,19 +1,21 @@
 package com.pluxity.facility.history
 
 import com.pluxity.global.entity.BaseEntity
-import jakarta.persistence.*
-import lombok.AccessLevel
-import lombok.Builder
-import lombok.Getter
-import lombok.NoArgsConstructor
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener::class)
-class FacilityHistory @Builder constructor(private var fileId: Long?, private var facilityId: Long?, private var comment: String?) : BaseEntity() {
+class FacilityHistory(
+    val fileId: Long,
+    val facilityId: Long,
+    val comment: String,
+) : BaseEntity() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long? = null
+    val id: Long? = null
 }

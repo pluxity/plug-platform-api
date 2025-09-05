@@ -1,27 +1,19 @@
 package com.pluxity.facility.path
 
-import com.pluxity.global.constant.ErrorCode
+import com.pluxity.global.constant.ErrorCode.NOT_FOUND_PATH_TYPE
 import com.pluxity.global.exception.CustomException
-import lombok.Getter
-import lombok.RequiredArgsConstructor
-import java.util.*
-import java.util.function.Supplier
 
-@Getter
-@RequiredArgsConstructor
-enum class PathType {
+enum class PathType(
+    val displayName: String,
+) {
     SUBWAY("지하철"),
     WAY("길찾기"),
-    PATROL("순찰");
-
-    private val name: String? = null
+    PATROL("순찰"),
+    ;
 
     companion object {
-        fun from(type: String?): PathType? {
-            return Arrays.stream<PathType?>(entries.toTypedArray())
-                .filter { e: PathType? -> e!!.name.equals(type, ignoreCase = true) }
-                .findFirst()
-                .orElseThrow<CustomException?>(Supplier { CustomException(ErrorCode.NOT_FOUND_PATH_TYPE, type) })
-        }
+        fun from(type: String): PathType =
+            entries.find { it.name.equals(type, ignoreCase = true) }
+                ?: throw CustomException(NOT_FOUND_PATH_TYPE, type)
     }
 }

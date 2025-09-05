@@ -36,7 +36,7 @@ fun Facility.toResponse(
         type = this.facilityType,
         drawing = drawing ?: emptyFileResponse,
         thumbnail = thumbnail ?: emptyFileResponse,
-        paths = this.paths.map { FacilityPathResponse.from(it) },
+        paths = this.paths.map { it.toPathResponse() },
         lon = this.position?.lon,
         lat = this.position?.lat,
         locationMeta = this.position?.locationMeta,

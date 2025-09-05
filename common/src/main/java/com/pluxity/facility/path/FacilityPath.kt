@@ -2,39 +2,47 @@ package com.pluxity.facility.path
 
 import com.pluxity.facility.Facility
 import com.pluxity.global.entity.BaseEntity
-import jakarta.persistence.*
-import lombok.AccessLevel
-import lombok.Builder
-import lombok.Getter
-import lombok.NoArgsConstructor
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import org.hibernate.annotations.NotFound
 import org.hibernate.annotations.NotFoundAction
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 @Entity
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener::class)
-class FacilityPath @Builder constructor(
-    @field:NotFound(action = NotFoundAction.IGNORE) @field:JoinColumn(name = "facility_id") @field:ManyToOne(
-        fetch = FetchType.LAZY
-    ) private var facility: Facility?, private var name: String?, @field:Enumerated(EnumType.STRING) private var pathType: PathType?, @field:Column(
-        columnDefinition = "text"
-    ) private var path: String?
+class FacilityPath(
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facility_id")
+    @NotFound(action = NotFoundAction.IGNORE)
+    var facility: Facility? = null,
+    var name: String,
+    @Enumerated(EnumType.STRING)
+    var pathType: PathType,
+    @Column(columnDefinition = "text")
+    var path: String,
 ) : BaseEntity() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long? = null
+    val id: Long? = null
 
-    fun updateName(name: String?) {
+    fun updateName(name: String) {
         this.name = name
     }
 
-    fun updatePathType(pathType: PathType?) {
+    fun updatePathType(pathType: PathType) {
         this.pathType = pathType
     }
 
-    fun updatePath(path: String?) {
+    fun updatePath(path: String) {
         this.path = path
     }
 }
