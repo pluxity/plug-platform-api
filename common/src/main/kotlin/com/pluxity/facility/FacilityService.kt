@@ -137,11 +137,12 @@ class FacilityService(
         facility.updateName(request.name!!)
         facility.updateDescription(request.description)
 
-        request.thumbnailFileId?.let { thumbnailFileId ->
-            val filePath = "$prefix${facility.id}/"
-            val thumbnailFile = fileService.finalizeUpload(thumbnailFileId, filePath)
-            facility.updateThumbnailFile(thumbnailFile)
-        } ?: facility.updateThumbnailFileId(null)
+        if (request.thumbnailFileId != facility.thumbnailFileId) {
+            request.thumbnailFileId?.let { thumbnailFileId ->
+                val thumbnailFile = fileService.finalizeUpload(thumbnailFileId, "${prefix}${facility.id}/")
+                facility.updateThumbnailFile(thumbnailFile)
+            } ?: facility.updateThumbnailFileId(null)
+        }
 
         facility.updatePosition(request.lon, request.lat, request.locationMeta)
     }
