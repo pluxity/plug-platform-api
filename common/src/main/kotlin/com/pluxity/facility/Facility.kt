@@ -35,40 +35,38 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 @SoftDelete
 abstract class Facility(
     @Column(name = "name", nullable = false, length = 50)
-    var name: String,
+    open var name: String,
     @Column(name = "code", length = 50)
-    var code: String? = null,
+    open var code: String? = null,
     @Column(name = "description")
-    var description: String? = null,
+    open var description: String? = null,
     @Column(name = "history_comment")
-    var historyComment: String? = null,
+    open var historyComment: String? = null,
     @Column(name = "drawing_file_id")
-    var drawingFileId: Long? = null,
+    open var drawingFileId: Long? = null,
     @Column(name = "thumbnail_file_id")
-    var thumbnailFileId: Long? = null,
+    open var thumbnailFileId: Long? = null,
     @Embedded
-    var position: FacilityPosition? = null,
+    open var position: FacilityPosition? = null,
 ) : BaseEntity(),
     Permissible {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null
+    open val id: Long? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
-    lateinit var category: FacilityCategory
-        private set
+    open var category: FacilityCategory? = null
 
     @Enumerated(EnumType.STRING)
     @Column(name = "facility_type", insertable = false, updatable = false)
-    var facilityType: FacilityType? = null
-        private set
+    open var facilityType: FacilityType? = null
 
     @OneToMany(mappedBy = "facility")
-    val features: MutableList<Feature> = mutableListOf()
+    open val features: MutableList<Feature> = mutableListOf()
 
     @OneToMany(mappedBy = "facility")
-    val paths: MutableList<FacilityPath> = mutableListOf()
+    open val paths: MutableList<FacilityPath> = mutableListOf()
 
     fun updateCode(code: String?) {
         this.code = code
@@ -132,9 +130,7 @@ abstract class Facility(
         this.drawingFileId = other.drawingFileId
         this.thumbnailFileId = other.thumbnailFileId
         this.position = other.position
-        if (::category.isInitialized && other::category.isInitialized) {
-            this.category = other.category
-        }
+        this.category = other.category
     }
 
     override val resourceId: String

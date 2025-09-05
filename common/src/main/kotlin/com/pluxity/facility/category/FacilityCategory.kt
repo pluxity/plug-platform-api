@@ -12,5 +12,5 @@ class FacilityCategory(
     name: String,
 ) : Category<FacilityCategory>(name) {
     @OneToMany(mappedBy = "category")
-    val facilities: List<Facility> = mutableListOf()
+    val facilities: MutableList<Facility> = mutableListOf()
 }
