@@ -1,8 +1,8 @@
 package com.pluxity.category.service
 
 import com.pluxity.category.dto.CategoryResponse
-import com.pluxity.category.dto.toResponse
 import com.pluxity.category.entity.Category
+import com.pluxity.category.extensions.toResponse
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.constant.ErrorCode.INVALID_PARENT_CATEGORY
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_CATEGORY

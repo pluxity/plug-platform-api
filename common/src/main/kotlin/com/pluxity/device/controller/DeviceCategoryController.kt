@@ -1,6 +1,6 @@
 package com.pluxity.device.controller
 
-import com.pluxity.device.dto.DeviceCategoryDepthResponse
+import com.pluxity.category.dto.CategoryDepthResponse
 import com.pluxity.device.dto.DeviceCategoryRequest
 import com.pluxity.device.dto.DeviceCategoryResponse
 import com.pluxity.device.dto.DeviceCategoryUpdateRequest
@@ -89,7 +89,7 @@ class DeviceCategoryController(
     @Operation(summary = "디바이스 카테고리 max depth 조회", description = "디바이스 카테고리 max depth를 조회합니다.")
     @ApiResponses(value = [ApiResponse(responseCode = "200", description = "조회 성공")])
     @GetMapping("/max-depth")
-    fun getCategoryDepth(): ResponseEntity<DataResponseBody<DeviceCategoryDepthResponse>> =
+    fun getCategoryDepth(): ResponseEntity<DataResponseBody<CategoryDepthResponse>> =
         ResponseEntity.ok(DataResponseBody(deviceCategoryService.getDeviceCategoryDepth()))
 
     @Operation(summary = "하위 디바이스 카테고리 목록 조회", description = "특정 카테고리의 직계 하위 카테고리 목록을 조회합니다.")

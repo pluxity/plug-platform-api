@@ -34,3 +34,12 @@ fun FacilityCategory.toResponse(): FacilityCategoryResponse =
         updatedAt = this.updatedAt,
         depth = this.depth,
     )
+
+fun FacilityCategory.toResponseWithChildren(): FacilityCategoryResponse =
+    this.toResponse().copy(
+        children =
+            this.children
+                .map {
+                    it.toResponseWithChildren()
+                }.toMutableList(),
+    )

@@ -1,16 +1,14 @@
 package com.pluxity.facility.category
 
+import com.pluxity.category.dto.CategoryDepthResponse
 import com.pluxity.category.service.CategoryService
-import com.pluxity.facility.category.dto.FacilityCategoryAllResponse
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest
 import com.pluxity.facility.category.dto.FacilityCategoryResponse
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest
-import com.pluxity.facility.category.dto.toAllResponse
-import com.pluxity.facility.category.dto.toResponse
+import com.pluxity.facility.category.dto.toResponseWithChildren
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.constant.ErrorCode.INVALID_REFERENCE
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Service
@@ -33,21 +31,13 @@ class FacilityCategoryService(
     }
 
     @Transactional(readOnly = true)
-    fun findAll(): FacilityCategoryAllResponse {
+    fun findAll(): List<FacilityCategoryResponse> {
         val list =
             facilityCategoryRepository
-                .findAll(SortUtils.orderByCreatedAtDesc)
-                .map { it.toResponse() }
+                .findByParentIsNull(SortUtils.orderByCreatedAtDesc)
+        if (list.isEmpty()) return emptyList()
 
-        val categoryTree =
-            MappingUtils.makeCategoryTree(
-                list,
-                FacilityCategoryResponse::id,
-                FacilityCategoryResponse::parentId,
-                FacilityCategoryResponse::children,
-            )
-
-        return categoryTree.toAllResponse(FacilityCategory("").maxDepth)
+        return list.map { it.toResponseWithChildren() }
     }
 
     @Transactional
@@ -89,4 +79,6 @@ class FacilityCategoryService(
             throw CustomException(INVALID_REFERENCE, name)
         }
     }
+
+    fun getCategoryDepth(): CategoryDepthResponse = CategoryDepthResponse(FacilityCategory("").maxDepth)
 }

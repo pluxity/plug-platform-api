@@ -82,8 +82,7 @@ internal class FacilityCategoryServiceTest {
         categoryService.create(createRequest)
 
         // when
-        val allResponse = categoryService.findAll()
-        val responses = allResponse.list
+        val responses = categoryService.findAll()
 
         // then
         assertThat(responses).isNotEmpty

@@ -1,10 +1,10 @@
 package com.pluxity.asset.controller
 
 import com.pluxity.asset.dto.AssetCategoryCreateRequest
-import com.pluxity.asset.dto.AssetCategoryDepthResponse
 import com.pluxity.asset.dto.AssetCategoryResponse
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest
 import com.pluxity.asset.service.AssetCategoryService
+import com.pluxity.category.dto.CategoryDepthResponse
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.DataResponseBody
 import com.pluxity.global.response.ErrorResponseBody
@@ -50,7 +50,7 @@ class AssetCategoryController(
     @Operation(summary = "에셋 카테고리 max depth 조회", description = "에셋 카테고리 max depth를 조회합니다")
     @ApiResponses(value = [ApiResponse(responseCode = "200", description = "조회 성공")])
     @GetMapping("/max-depth")
-    fun getCategoryDepth(): ResponseEntity<DataResponseBody<AssetCategoryDepthResponse>> =
+    fun getCategoryDepth(): ResponseEntity<DataResponseBody<CategoryDepthResponse>> =
         ResponseEntity.ok(DataResponseBody(service.getCategoryDepth()))
 
     @Operation(summary = "하위 에셋 카테고리 목록 조회", description = "특정 카테고리의 하위 카테고리 목록을 조회합니다")

@@ -1,12 +1,12 @@
 package com.pluxity.asset.service
 
 import com.pluxity.asset.dto.AssetCategoryCreateRequest
-import com.pluxity.asset.dto.AssetCategoryDepthResponse
 import com.pluxity.asset.dto.AssetCategoryResponse
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest
 import com.pluxity.asset.dto.toResponse
 import com.pluxity.asset.entity.AssetCategory
 import com.pluxity.asset.repository.AssetCategoryRepository
+import com.pluxity.category.dto.CategoryDepthResponse
 import com.pluxity.category.service.CategoryService
 import com.pluxity.file.service.FileService
 import com.pluxity.global.exception.CustomException
@@ -121,7 +121,7 @@ class AssetCategoryService(
         }
     }
 
-    fun getCategoryDepth(): AssetCategoryDepthResponse = AssetCategoryDepthResponse(AssetCategory.MAX_DEPTH)
+    fun getCategoryDepth(): CategoryDepthResponse = CategoryDepthResponse(AssetCategory.MAX_DEPTH)
 
     companion object {
         private const val ASSET_CATEGORIES: String = "asset-categories/"

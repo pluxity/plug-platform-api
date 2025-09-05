@@ -1,7 +1,8 @@
 package com.pluxity.facility.category
 
-import com.pluxity.facility.category.dto.FacilityCategoryAllResponse
+import com.pluxity.category.dto.CategoryDepthResponse
 import com.pluxity.facility.category.dto.FacilityCategoryCreateRequest
+import com.pluxity.facility.category.dto.FacilityCategoryResponse
 import com.pluxity.facility.category.dto.FacilityCategoryUpdateRequest
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.DataResponseBody
@@ -105,8 +106,14 @@ class FacilityCategoryController(
         ],
     )
     @GetMapping
-    fun getFacilityCategories(): ResponseEntity<DataResponseBody<FacilityCategoryAllResponse>> =
+    fun getFacilityCategories(): ResponseEntity<DataResponseBody<List<FacilityCategoryResponse>>> =
         ResponseEntity.ok(DataResponseBody(service.findAll()))
+
+    @Operation(summary = "시설 카테고리 max depth 조회", description = "시설 카테고리 max depth를 조회합니다.")
+    @ApiResponses(value = [ApiResponse(responseCode = "200", description = "조회 성공")])
+    @GetMapping("/max-depth")
+    fun getCategoryDepth(): ResponseEntity<DataResponseBody<CategoryDepthResponse>> =
+        ResponseEntity.ok(DataResponseBody(service.getCategoryDepth()))
 
     @Operation(summary = "시설 카테고리 수정", description = "ID를 기반으로 시설 카테고리를 수정합니다.")
     @ApiResponses(

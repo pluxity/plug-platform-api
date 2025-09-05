@@ -1,7 +1,7 @@
 package com.pluxity.device.service
 
+import com.pluxity.category.dto.CategoryDepthResponse
 import com.pluxity.category.service.CategoryService
-import com.pluxity.device.dto.DeviceCategoryDepthResponse
 import com.pluxity.device.dto.DeviceCategoryRequest
 import com.pluxity.device.dto.DeviceCategoryResponse
 import com.pluxity.device.dto.DeviceCategoryUpdateRequest
@@ -151,7 +151,7 @@ class DeviceCategoryService(
         return list.map { it.toDeviceResponse(fileMap[it.category?.iconFileId]) }
     }
 
-    fun getDeviceCategoryDepth(): DeviceCategoryDepthResponse = DeviceCategoryDepthResponse(DeviceCategory("").maxDepth)
+    fun getDeviceCategoryDepth(): CategoryDepthResponse = CategoryDepthResponse(DeviceCategory("").maxDepth)
 
     companion object {
         const val DEVICE_CATEGORIES: String = "device-categories/"

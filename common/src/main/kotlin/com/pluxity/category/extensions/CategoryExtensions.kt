@@ -1,5 +1,6 @@
-package com.pluxity.category.dto
+package com.pluxity.category.extensions
 
+import com.pluxity.category.dto.CategoryResponse
 import com.pluxity.category.entity.Category
 import com.pluxity.global.response.toBaseResponse
 
