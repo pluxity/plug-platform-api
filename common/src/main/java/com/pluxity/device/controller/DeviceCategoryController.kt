@@ -84,13 +84,13 @@ class DeviceCategoryController(
     )
     @GetMapping
     fun getAllCategories(): ResponseEntity<DataResponseBody<List<DeviceCategoryResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(deviceCategoryService.getDeviceCategories()))
+        ResponseEntity.ok(DataResponseBody(deviceCategoryService.getDeviceCategories()))
 
     @Operation(summary = "디바이스 카테고리 max depth 조회", description = "디바이스 카테고리 max depth를 조회합니다.")
     @ApiResponses(value = [ApiResponse(responseCode = "200", description = "조회 성공")])
     @GetMapping("/max-depth")
     fun getCategoryDepth(): ResponseEntity<DataResponseBody<DeviceCategoryDepthResponse>> =
-        ResponseEntity.ok(DataResponseBody.of(deviceCategoryService.getDeviceCategoryDepth()))
+        ResponseEntity.ok(DataResponseBody(deviceCategoryService.getDeviceCategoryDepth()))
 
     @Operation(summary = "하위 디바이스 카테고리 목록 조회", description = "특정 카테고리의 직계 하위 카테고리 목록을 조회합니다.")
     @ApiResponses(
@@ -112,7 +112,7 @@ class DeviceCategoryController(
     fun getChildCategories(
         @Parameter(description = "부모 카테고리 ID", required = true) @PathVariable id: Long,
     ): ResponseEntity<DataResponseBody<List<DeviceCategoryResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(deviceCategoryService.getChildDeviceCategories(id)))
+        ResponseEntity.ok(DataResponseBody(deviceCategoryService.getChildDeviceCategories(id)))
 
     @Operation(summary = "카테고리 수정", description = "기존 카테고리의 정보를 수정합니다")
     @ApiResponses(
@@ -257,6 +257,6 @@ class DeviceCategoryController(
         @RequestParam("facilityId") facilityId: Long,
     ): ResponseEntity<DataResponseBody<List<DeviceResponse>>> =
         ResponseEntity.ok(
-            DataResponseBody.of(deviceCategoryService.getDevicesByCategoryId(id, facilityId)),
+            DataResponseBody(deviceCategoryService.getDevicesByCategoryId(id, facilityId)),
         )
 }

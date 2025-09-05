@@ -69,7 +69,7 @@ class PermissionGroupController(
     )
     @Operation(summary = "권한 목록 조회", description = "모든 권한 목록을 조회합니다.")
     fun getPermissionGroups(): ResponseEntity<DataResponseBody<List<PermissionGroupResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(permissionGroupService.findAll()))
+        ResponseEntity.ok(DataResponseBody(permissionGroupService.findAll()))
 
     @Operation(summary = "권한 상세 조회", description = "ID로 특정 권한의 상세 정보를 조회합니다.")
     @ApiResponses(
@@ -87,8 +87,7 @@ class PermissionGroupController(
     @GetMapping("/{id}")
     fun getPermissionGroup(
         @Parameter(description = "권한 ID", required = true) @PathVariable id: Long,
-    ): ResponseEntity<DataResponseBody<PermissionGroupResponse>> =
-        ResponseEntity.ok(DataResponseBody.of(permissionGroupService.findById(id)))
+    ): ResponseEntity<DataResponseBody<PermissionGroupResponse>> = ResponseEntity.ok(DataResponseBody(permissionGroupService.findById(id)))
 
     @Operation(summary = "권한 정보 수정", description = "ID로 특정 권한의 정보를 수정합니다. (PATCH 방식)")
     @ApiResponses(
@@ -160,7 +159,7 @@ class PermissionGroupController(
     )
     fun getAvailableResourceTypes(): ResponseEntity<DataResponseBody<List<ResourceTypeResponse>>> =
         ResponseEntity.ok(
-            DataResponseBody.of(
+            DataResponseBody(
                 ResourceType.entries.map { it.ResourceTypeResponse() },
             ),
         )

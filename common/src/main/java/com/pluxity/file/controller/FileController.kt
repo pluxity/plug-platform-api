@@ -60,7 +60,7 @@ class FileController(
         @Parameter(description = "S3 버킷 키", required = true) @RequestParam s3Key: String,
     ): ResponseEntity<DataResponseBody<String>> {
         val url = fileService.generatePreSignedUrl(s3Key)
-        return ResponseEntity.ok(DataResponseBody.of(url))
+        return ResponseEntity.ok(DataResponseBody(url))
     }
 
     @Operation(summary = "파일 업로드", description = "새로운 파일을 업로드합니다")
@@ -129,7 +129,7 @@ class FileController(
         @Parameter(description = "파일 ID", required = true) @PathVariable id: Long,
     ): ResponseEntity<DataResponseBody<FileResponse>> =
         ResponseEntity.ok(
-            DataResponseBody.of(
+            DataResponseBody(
                 fileService.getFileResponse(id),
             ),
         )

@@ -59,7 +59,7 @@ class ParkController(
         ],
     )
     @Operation(summary = "공원 목록 조회", description = "모든 공원 목록을 조회합니다.")
-    fun getAll(): ResponseEntity<DataResponseBody<List<ParkResponse>>> = ResponseEntity.ok(DataResponseBody.of(parkService.findAll()))
+    fun getAll(): ResponseEntity<DataResponseBody<List<ParkResponse>>> = ResponseEntity.ok(DataResponseBody(parkService.findAll()))
 
     @Operation(summary = "공원 상세 조회", description = "ID로 특정 공원의 상세 정보를 조회합니다.")
     @ApiResponses(
@@ -79,7 +79,7 @@ class ParkController(
         @Parameter(description = "공원 ID", required = true) @PathVariable id: Long,
     ): ResponseEntity<DataResponseBody<ParkResponse>> =
         ResponseEntity.ok(
-            DataResponseBody.of(
+            DataResponseBody(
                 parkService.findById(
                     id,
                 ),

@@ -71,7 +71,7 @@ class AdminUserController(
         ],
     )
     @Operation(summary = "사용자 목록 조회", description = "모든 사용자 목록을 조회합니다")
-    fun getUsers(): ResponseEntity<DataResponseBody<List<UserResponse>>> = ResponseEntity.ok(DataResponseBody.of(service.findAll()))
+    fun getUsers(): ResponseEntity<DataResponseBody<List<UserResponse>>> = ResponseEntity.ok(DataResponseBody(service.findAll()))
 
     @Operation(summary = "사용자 상세 조회", description = "ID로 특정 사용자의 상세 정보를 조회합니다")
     @ApiResponses(
@@ -121,7 +121,7 @@ class AdminUserController(
     @GetMapping(value = ["/{id}"])
     fun getUser(
         @Parameter(description = "사용자 ID", required = true) @PathVariable("id") id: Long,
-    ): ResponseEntity<DataResponseBody<UserResponse>> = ResponseEntity.ok(DataResponseBody.of(service.findById(id)))
+    ): ResponseEntity<DataResponseBody<UserResponse>> = ResponseEntity.ok(DataResponseBody(service.findById(id)))
 
     @GetMapping("/with-is-logged-in")
     @ApiResponses(
@@ -161,7 +161,7 @@ class AdminUserController(
     )
     @Operation(summary = "로그인된 사용자 정보 조회", description = "현재 로그인된 사용자의 정보를 조회합니다.")
     fun getLoggedInUser(): ResponseEntity<DataResponseBody<List<UserLoggedInResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(service.isLoggedIn()))
+        ResponseEntity.ok(DataResponseBody(service.isLoggedIn()))
 
     @Operation(summary = "사용자 생성", description = "새로운 사용자를 생성합니다")
     @ApiResponses(

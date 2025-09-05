@@ -84,7 +84,7 @@ class BuildingController(
     )
     fun get(): ResponseEntity<DataResponseBody<List<BuildingResponse>>> =
         ResponseEntity.ok(
-            DataResponseBody.of(service.findAll()),
+            DataResponseBody(service.findAll()),
         )
 
     @Operation(summary = "건물 상세 조회", description = "ID로 특정 건물의 상세 정보를 조회합니다")
@@ -117,7 +117,7 @@ class BuildingController(
     @GetMapping("/{id}")
     fun get(
         @Parameter(description = "건물 ID", required = true) @PathVariable id: Long,
-    ): ResponseEntity<DataResponseBody<BuildingResponse>> = ResponseEntity.ok(DataResponseBody.of(service.findById(id)))
+    ): ResponseEntity<DataResponseBody<BuildingResponse>> = ResponseEntity.ok(DataResponseBody(service.findById(id)))
 
     @Operation(summary = "건물 수정", description = "기존 건물의 정보를 수정합니다")
     @ApiResponses(

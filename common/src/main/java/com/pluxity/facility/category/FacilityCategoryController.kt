@@ -106,7 +106,7 @@ class FacilityCategoryController(
     )
     @GetMapping
     fun getFacilityCategories(): ResponseEntity<DataResponseBody<FacilityCategoryAllResponse>> =
-        ResponseEntity.ok(DataResponseBody.of(service.findAll()))
+        ResponseEntity.ok(DataResponseBody(service.findAll()))
 
     @Operation(summary = "시설 카테고리 수정", description = "ID를 기반으로 시설 카테고리를 수정합니다.")
     @ApiResponses(

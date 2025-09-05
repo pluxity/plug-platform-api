@@ -45,13 +45,13 @@ class AssetCategoryController(
     )
     @GetMapping
     fun getAllCategories(): ResponseEntity<DataResponseBody<List<AssetCategoryResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(service.getAllCategories()))
+        ResponseEntity.ok(DataResponseBody(service.getAllCategories()))
 
     @Operation(summary = "에셋 카테고리 max depth 조회", description = "에셋 카테고리 max depth를 조회합니다")
     @ApiResponses(value = [ApiResponse(responseCode = "200", description = "조회 성공")])
     @GetMapping("/max-depth")
     fun getCategoryDepth(): ResponseEntity<DataResponseBody<AssetCategoryDepthResponse>> =
-        ResponseEntity.ok(DataResponseBody.of(service.getCategoryDepth()))
+        ResponseEntity.ok(DataResponseBody(service.getCategoryDepth()))
 
     @Operation(summary = "하위 에셋 카테고리 목록 조회", description = "특정 카테고리의 하위 카테고리 목록을 조회합니다")
     @ApiResponses(
@@ -72,8 +72,7 @@ class AssetCategoryController(
     @GetMapping("/{id}/children")
     fun getChildCategories(
         @Parameter(description = "부모 카테고리 ID", required = true) @PathVariable id: Long,
-    ): ResponseEntity<DataResponseBody<List<AssetCategoryResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(service.getChildCategories(id)))
+    ): ResponseEntity<DataResponseBody<List<AssetCategoryResponse>>> = ResponseEntity.ok(DataResponseBody(service.getChildCategories(id)))
 
     @Operation(summary = "에셋 카테고리 생성", description = "새로운 에셋 카테고리를 생성합니다")
     @ApiResponses(

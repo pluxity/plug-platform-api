@@ -83,7 +83,7 @@ class StationController(
         ],
     )
     @Operation(summary = "스테이션 목록 조회", description = "모든 스테이션 목록을 조회합니다")
-    fun get(): ResponseEntity<DataResponseBody<List<StationResponse>>> = ResponseEntity.ok(DataResponseBody.of(service.findAll()))
+    fun get(): ResponseEntity<DataResponseBody<List<StationResponse>>> = ResponseEntity.ok(DataResponseBody(service.findAll()))
 
     @Operation(summary = "스테이션 상세 조회", description = "ID로 특정 스테이션의 상세 정보를 조회합니다")
     @ApiResponses(
@@ -115,7 +115,7 @@ class StationController(
     @GetMapping("/{id}")
     fun get(
         @Parameter(description = "스테이션 ID", required = true) @PathVariable id: Long,
-    ): ResponseEntity<DataResponseBody<StationResponse>> = ResponseEntity.ok(DataResponseBody.of(service.findById(id)))
+    ): ResponseEntity<DataResponseBody<StationResponse>> = ResponseEntity.ok(DataResponseBody(service.findById(id)))
 
     @Operation(summary = "스테이션 수정", description = "기존 스테이션의 정보를 수정합니다")
     @ApiResponses(
@@ -300,5 +300,5 @@ class StationController(
     fun getStationFeatures(
         @Parameter(description = "스테이션 ID", required = true) @PathVariable stationId: Long,
     ): ResponseEntity<DataResponseBody<StationResponseWithFeature>> =
-        ResponseEntity.ok(DataResponseBody.of(service.findStationWithFeatures(stationId)))
+        ResponseEntity.ok(DataResponseBody(service.findStationWithFeatures(stationId)))
 }

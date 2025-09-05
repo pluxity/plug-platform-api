@@ -58,7 +58,17 @@ class JwtAuthenticationFilter(
         response.contentType = MediaType.APPLICATION_JSON_VALUE
         response.characterEncoding = "UTF-8"
 
-        val errorResponse = ErrorResponseBody.of(exception.errorCode.getHttpStatus(), exception.message)
+        val errorResponse =
+            ErrorResponseBody(
+                status = exception.errorCode.getHttpStatus(),
+                message = exception.message,
+                code =
+                    exception.errorCode
+                        .getHttpStatus()
+                        .value()
+                        .toString(),
+                error = exception.errorCode.name,
+            )
         response.writer.write(objectMapper.writeValueAsString(errorResponse))
     }
 

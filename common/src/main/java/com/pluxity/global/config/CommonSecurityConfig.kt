@@ -6,7 +6,6 @@ import com.pluxity.authentication.security.JwtProvider
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.user.repository.UserRepository
-import lombok.RequiredArgsConstructor
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -27,7 +26,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 class CommonSecurityConfig(
     private val repository: UserRepository,
     private val jwtProvider: JwtProvider,

@@ -65,7 +65,7 @@ class DeviceDataController(
                         }
                     }
             }
-        return ResponseEntity.ok(DataResponseBody.of(result))
+        return ResponseEntity.ok(DataResponseBody(result))
     }
 
     @Operation(summary = "온습도계 최근 데이터 조회", description = "ID로 특정 온습도계의 최근 데이터 정보를 조회합니다.")
@@ -102,6 +102,6 @@ class DeviceDataController(
                         }
                     }
             }
-        return ResponseEntity.ok(DataResponseBody.of(result))
+        return ResponseEntity.ok(DataResponseBody(result))
     }
 }

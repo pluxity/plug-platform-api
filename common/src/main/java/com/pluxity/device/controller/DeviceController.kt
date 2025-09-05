@@ -65,7 +65,7 @@ class DeviceController(
     @GetMapping
     fun get(
         @Parameter(description = "시설 아이디") @RequestParam("facilityId", required = false) facilityId: Long?,
-    ): ResponseEntity<DataResponseBody<List<DeviceResponse>>> = ResponseEntity.ok(DataResponseBody.of(deviceService.findAll(facilityId)))
+    ): ResponseEntity<DataResponseBody<List<DeviceResponse>>> = ResponseEntity.ok(DataResponseBody(deviceService.findAll(facilityId)))
 
     @Operation(summary = "디바이스 타입 목록 조회", description = "모든 디바이스 타입 목록을 조회합니다.")
     @ApiResponses(
@@ -78,7 +78,7 @@ class DeviceController(
     )
     @GetMapping("/types")
     fun getAllType(): ResponseEntity<DataResponseBody<List<TypeKeyLabelResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(deviceService.findAllType()))
+        ResponseEntity.ok(DataResponseBody(deviceService.findAllType()))
 
     @Operation(summary = "디바이스 회사 목록 조회", description = "모든 디바이스 회사 목록을 조회합니다.")
     @ApiResponses(
@@ -91,7 +91,7 @@ class DeviceController(
     )
     @GetMapping("/company-types")
     fun getAllCompanyType(): ResponseEntity<DataResponseBody<List<TypeKeyLabelResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(deviceService.findAllCompanyType()))
+        ResponseEntity.ok(DataResponseBody(deviceService.findAllCompanyType()))
 
     @Operation(summary = "디바이스 상세 조회", description = "ID로 특정 디바이스의 상세 정보를 조회합니다.")
     @ApiResponses(
@@ -109,7 +109,7 @@ class DeviceController(
     @GetMapping("/{id}")
     fun getById(
         @Parameter(description = "디바이스 ID", required = true) @PathVariable id: String,
-    ): ResponseEntity<DataResponseBody<DeviceResponse>> = ResponseEntity.ok(DataResponseBody.of(deviceService.findById(id)))
+    ): ResponseEntity<DataResponseBody<DeviceResponse>> = ResponseEntity.ok(DataResponseBody(deviceService.findById(id)))
 
     @Operation(summary = "디바이스 정보 수정", description = "ID로 특정 디바이스의 정보를 수정합니다.")
     @ApiResponses(

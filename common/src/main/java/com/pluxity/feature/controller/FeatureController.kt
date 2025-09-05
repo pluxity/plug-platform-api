@@ -99,8 +99,7 @@ class FeatureController(
     @GetMapping
     fun getFeatures(
         @RequestParam("facilityId") facilityId: Long,
-    ): ResponseEntity<DataResponseBody<List<FeatureResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(featureService.getFeatures(facilityId)))
+    ): ResponseEntity<DataResponseBody<List<FeatureResponse>>> = ResponseEntity.ok(DataResponseBody(featureService.getFeatures(facilityId)))
 
     @Operation(summary = "피처 정보 수정", description = "ID로 피처 정보를 수정합니다")
     @ApiResponses(

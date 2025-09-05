@@ -11,7 +11,6 @@ import com.pluxity.global.exception.CustomException
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityNotFoundException
-import lombok.NoArgsConstructor
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -46,7 +45,6 @@ internal class Label3DServiceTest {
     // Facility 추상 클래스를 상속받는 테스트용 구체 클래스
     @Entity
     @DiscriminatorValue("TEST_FACILITY")
-    @NoArgsConstructor
     class FacilityInstance(
         name: String,
         code: String? = null,

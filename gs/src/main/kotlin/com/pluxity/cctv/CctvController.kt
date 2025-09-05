@@ -65,7 +65,7 @@ class CctvController(
     @Operation(summary = "CCTV 목록 조회", description = "모든 CCTV 목록을 조회합니다.")
     fun getAll(
         @Parameter(description = "시설 아이디") @RequestParam("facilityId", required = false) facilityId: Long?,
-    ): ResponseEntity<DataResponseBody<List<CctvResponse>>> = ResponseEntity.ok(DataResponseBody.of(cctvService.findAll(facilityId)))
+    ): ResponseEntity<DataResponseBody<List<CctvResponse>>> = ResponseEntity.ok(DataResponseBody(cctvService.findAll(facilityId)))
 
     @Operation(summary = "CCTV 상세 조회", description = "ID로 특정 CCTV의 상세 정보를 조회합니다.")
     @ApiResponses(
@@ -83,7 +83,7 @@ class CctvController(
     @GetMapping("/{id}")
     fun getById(
         @Parameter(description = "CCTV ID", required = true) @PathVariable id: String,
-    ): ResponseEntity<DataResponseBody<CctvResponse>> = ResponseEntity.ok(DataResponseBody.of(cctvService.getById(id)))
+    ): ResponseEntity<DataResponseBody<CctvResponse>> = ResponseEntity.ok(DataResponseBody(cctvService.getById(id)))
 
     @Operation(summary = "CCTV 정보 수정", description = "ID로 특정 CCTV의 정보를 수정합니다.")
     @ApiResponses(

@@ -55,7 +55,7 @@ class FacilityController(
     )
     @GetMapping
     fun getFacilities(): ResponseEntity<DataResponseBody<List<FacilityResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(facilityService.findAllFacilities()))
+        ResponseEntity.ok(DataResponseBody(facilityService.findAllFacilities()))
 
     @Operation(summary = "시설 도면 정보 수정", description = "시설 도면 정보를 수정합니다")
     @ApiResponses(
@@ -317,7 +317,7 @@ class FacilityController(
     fun getFacilityHistoryById(
         @PathVariable id: Long,
     ): ResponseEntity<DataResponseBody<List<FacilityHistoryResponse>>> =
-        ResponseEntity.ok(DataResponseBody.of(facilityService.findFacilityHistories(id)))
+        ResponseEntity.ok(DataResponseBody(facilityService.findFacilityHistories(id)))
 
     @Operation(summary = "시설 층 정보 수정", description = "시설 층 정보를 수정합니다")
     @ApiResponses(

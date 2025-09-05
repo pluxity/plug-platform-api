@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import lombok.RequiredArgsConstructor
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/label-3d")
-@RequiredArgsConstructor
 @Tag(name = "Label3D", description = "Label3D 관리 API")
 class Label3DController(
     private val label3DService: Label3DService,
@@ -42,7 +40,7 @@ class Label3DController(
         @RequestBody @Valid request: Label3DCreateRequest,
     ): ResponseEntity<DataResponseBody<Label3DResponse>> {
         val response = label3DService.createLabel3D(request)
-        return ResponseEntity.ok(DataResponseBody.of(response))
+        return ResponseEntity.ok(DataResponseBody(response))
     }
 
     @GetMapping
@@ -50,7 +48,7 @@ class Label3DController(
     @ApiResponse(responseCode = "200", description = "조회 성공")
     fun getAll(): ResponseEntity<DataResponseBody<List<Label3DResponse>>> {
         val responses = label3DService.getAllLabel3Ds()
-        return ResponseEntity.ok(DataResponseBody.of(responses))
+        return ResponseEntity.ok(DataResponseBody(responses))
     }
 
     @GetMapping("/{id}")
@@ -68,7 +66,7 @@ class Label3DController(
         @Parameter(description = "Label3D ID") @PathVariable id: String,
     ): ResponseEntity<DataResponseBody<Label3DResponse>> {
         val response = label3DService.getLabel3DById(id)
-        return ResponseEntity.ok(DataResponseBody.of(response))
+        return ResponseEntity.ok(DataResponseBody(response))
     }
 
     @GetMapping("/facility/{facilityId}")
@@ -78,7 +76,7 @@ class Label3DController(
         @Parameter(description = "Facility ID") @PathVariable facilityId: Long,
     ): ResponseEntity<DataResponseBody<List<Label3DResponse>>> {
         val responses = label3DService.getLabel3DsByFacilityId(facilityId)
-        return ResponseEntity.ok(DataResponseBody.of(responses))
+        return ResponseEntity.ok(DataResponseBody(responses))
     }
 
     @PatchMapping("/{id}")

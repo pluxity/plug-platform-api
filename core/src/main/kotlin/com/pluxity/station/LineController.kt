@@ -82,7 +82,7 @@ class LineController(
         ],
     )
     @Operation(summary = "호선 목록 조회", description = "모든 호선 목록을 조회합니다")
-    fun get(): ResponseEntity<DataResponseBody<List<LineResponse>>> = ResponseEntity.ok(DataResponseBody.of(service.findAll()))
+    fun get(): ResponseEntity<DataResponseBody<List<LineResponse>>> = ResponseEntity.ok(DataResponseBody(service.findAll()))
 
     @Operation(summary = "호선 상세 조회", description = "ID로 특정 호선의 상세 정보를 조회합니다")
     @ApiResponses(
@@ -114,7 +114,7 @@ class LineController(
     @GetMapping("/{id}")
     fun get(
         @Parameter(description = "호선 ID", required = true) @PathVariable id: Long,
-    ): ResponseEntity<DataResponseBody<LineResponse>> = ResponseEntity.ok(DataResponseBody.of(service.findById(id)))
+    ): ResponseEntity<DataResponseBody<LineResponse>> = ResponseEntity.ok(DataResponseBody(service.findById(id)))
 
     @Operation(summary = "호선에 속한 역 목록 조회", description = "특정 호선에 속한 역 목록을 조회합니다")
     @ApiResponses(
@@ -146,7 +146,7 @@ class LineController(
     @GetMapping("/{id}/stations")
     fun getStations(
         @Parameter(description = "호선 ID", required = true) @PathVariable id: Long,
-    ): ResponseEntity<DataResponseBody<List<Long>>> = ResponseEntity.ok(DataResponseBody.of(service.findStationsByLineId(id)))
+    ): ResponseEntity<DataResponseBody<List<Long>>> = ResponseEntity.ok(DataResponseBody(service.findStationsByLineId(id)))
 
     @Operation(summary = "호선 수정", description = "기존 호선의 정보를 수정합니다")
     @ApiResponses(

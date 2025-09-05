@@ -58,7 +58,7 @@ class UserController(
     @GetMapping("/me")
     fun getUser(authentication: Authentication): ResponseEntity<DataResponseBody<UserResponse>> =
         ResponseEntity.ok(
-            DataResponseBody.of(
+            DataResponseBody(
                 service.findByUsername(authentication.name),
             ),
         )

@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import lombok.RequiredArgsConstructor
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/roles")
-@RequiredArgsConstructor
 @Tag(name = "Role Controller", description = "역할 관리 API")
 class RoleController(
     private val roleService: RoleService,
@@ -72,7 +70,7 @@ class RoleController(
     @GetMapping("/{id}")
     fun getRole(
         @Parameter(description = "역할 ID", required = true) @PathVariable(name = "id") id: Long,
-    ): ResponseEntity<DataResponseBody<RoleResponse>> = ResponseEntity.ok(DataResponseBody.of(roleService.findById(id)))
+    ): ResponseEntity<DataResponseBody<RoleResponse>> = ResponseEntity.ok(DataResponseBody(roleService.findById(id)))
 
     @GetMapping
     @ApiResponses(
@@ -102,7 +100,7 @@ class RoleController(
         ],
     )
     @Operation(summary = "역할 목록 조회", description = "모든 역할 목록을 조회합니다")
-    fun getAllRoles(): ResponseEntity<DataResponseBody<List<RoleResponse>>> = ResponseEntity.ok(DataResponseBody.of(roleService.findAll()))
+    fun getAllRoles(): ResponseEntity<DataResponseBody<List<RoleResponse>>> = ResponseEntity.ok(DataResponseBody(roleService.findAll()))
 
     @Operation(summary = "역할 생성", description = "새로운 역할을 생성합니다")
     @ApiResponses(

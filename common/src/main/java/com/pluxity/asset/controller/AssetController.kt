@@ -43,7 +43,7 @@ class AssetController(
         ],
     )
     @GetMapping
-    fun getAssets(): ResponseEntity<DataResponseBody<List<AssetResponse>>> = ResponseEntity.ok(DataResponseBody.of(service.getAssets()))
+    fun getAssets(): ResponseEntity<DataResponseBody<List<AssetResponse>>> = ResponseEntity.ok(DataResponseBody(service.getAssets()))
 
     @Operation(summary = "에셋 상세 조회", description = "ID로 특정 에셋의 상세 정보를 조회합니다")
     @ApiResponses(
@@ -64,7 +64,7 @@ class AssetController(
     @GetMapping("/{id}")
     fun getAsset(
         @Parameter(description = "에셋 ID", required = true) @PathVariable id: Long,
-    ): ResponseEntity<DataResponseBody<AssetResponse>> = ResponseEntity.ok(DataResponseBody.of(service.getAsset(id)))
+    ): ResponseEntity<DataResponseBody<AssetResponse>> = ResponseEntity.ok(DataResponseBody(service.getAsset(id)))
 
     @Operation(summary = "에셋 생성", description = "새로운 에셋을 생성합니다")
     @ApiResponses(
