@@ -45,7 +45,15 @@ fun AssetCategory.toResponse(
             },
         thumbnail = thumbnailFile,
         assetIds = this.assets.mapNotNull { it.id },
-        createdAt = this.createdAt!!,
-        updatedAt = this.updatedAt!!,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
         depth = this.depth,
+    )
+
+fun AssetCategory.toAssetCategoryResponseWithChildren(fileMap: Map<Long, FileResponse>): AssetCategoryResponse =
+    this.toResponse(includeChildren = true, thumbnailFile = fileMap[this.iconFileId] ?: FileResponse()).copy(
+        children =
+            this.children
+                .map { it.toAssetCategoryResponseWithChildren(fileMap) }
+                .toMutableList(),
     )

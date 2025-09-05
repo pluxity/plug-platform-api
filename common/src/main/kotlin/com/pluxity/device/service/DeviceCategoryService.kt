@@ -7,6 +7,7 @@ import com.pluxity.device.dto.DeviceCategoryResponse
 import com.pluxity.device.dto.DeviceCategoryUpdateRequest
 import com.pluxity.device.dto.DeviceResponse
 import com.pluxity.device.dto.toDeviceCategoryResponse
+import com.pluxity.device.dto.toDeviceCategoryResponseWithChildren
 import com.pluxity.device.dto.toDeviceResponse
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
@@ -18,7 +19,6 @@ import com.pluxity.file.extensions.getFileMapById
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Service
@@ -75,17 +75,11 @@ class DeviceCategoryService(
     fun getDeviceCategories(): List<DeviceCategoryResponse> {
         val allCategories: List<DeviceCategory> =
             deviceCategoryRepository.findAllBy(SortUtils.orderByCreatedAtDesc)
+        if (allCategories.isEmpty()) return emptyList()
 
         val fileMap = fileService.getFileMapById(allCategories) { it.iconFileId }
-        val list: List<DeviceCategoryResponse> =
-            allCategories.map { it.toDeviceCategoryResponse(fileMap[it.iconFileId] ?: FileResponse()) }
 
-        return MappingUtils.makeCategoryTree(
-            list,
-            DeviceCategoryResponse::id,
-            DeviceCategoryResponse::parentId,
-            DeviceCategoryResponse::children,
-        )
+        return allCategories.filter { it.parent == null }.map { it.toDeviceCategoryResponseWithChildren(fileMap) }
     }
 
     @Transactional(readOnly = true)

@@ -3,14 +3,15 @@ package com.pluxity.asset.service
 import com.pluxity.asset.dto.AssetCategoryCreateRequest
 import com.pluxity.asset.dto.AssetCategoryResponse
 import com.pluxity.asset.dto.AssetCategoryUpdateRequest
+import com.pluxity.asset.dto.toAssetCategoryResponseWithChildren
 import com.pluxity.asset.dto.toResponse
 import com.pluxity.asset.entity.AssetCategory
 import com.pluxity.asset.repository.AssetCategoryRepository
 import com.pluxity.category.dto.CategoryDepthResponse
 import com.pluxity.category.service.CategoryService
+import com.pluxity.file.extensions.getFileMapById
 import com.pluxity.file.service.FileService
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Service
@@ -27,22 +28,9 @@ class AssetCategoryService(
         val allCategories = assetCategoryRepository.findAll(SortUtils.orderByCreatedAtDesc)
         if (allCategories.isEmpty()) return emptyList()
 
-        val iconFileIds = allCategories.mapNotNull { it.iconFileId }
-        val fileMap = fileService.getFiles(iconFileIds).associateBy { it.id }
-        val flatList =
-            allCategories.map { category ->
-                category.toResponse(
-                    includeChildren = false,
-                    thumbnailFile = fileMap[category.iconFileId],
-                )
-            }
+        val fileMap = fileService.getFileMapById(allCategories) { it.iconFileId }
 
-        return MappingUtils.makeCategoryTree(
-            flatList,
-            AssetCategoryResponse::id,
-            AssetCategoryResponse::parentId,
-            AssetCategoryResponse::children,
-        )
+        return allCategories.filter { it.parent == null }.map { it.toAssetCategoryResponseWithChildren(fileMap) }
     }
 
     @Transactional(readOnly = true)

@@ -32,3 +32,11 @@ fun DeviceCategory.toDeviceCategoryResponse(iconFile: FileResponse) =
         thumbnailFile = iconFile,
         depth = this.depth,
     )
+
+fun DeviceCategory.toDeviceCategoryResponseWithChildren(fileMap: Map<Long, FileResponse>): DeviceCategoryResponse =
+    this.toDeviceCategoryResponse(fileMap[this.iconFileId] ?: FileResponse()).copy(
+        children =
+            this.children
+                .map { it.toDeviceCategoryResponseWithChildren(fileMap) }
+                .toMutableList(),
+    )
