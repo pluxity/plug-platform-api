@@ -8,8 +8,8 @@ import com.pluxity.feature.entity.Feature
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
+import com.pluxity.global.utils.getFileMapByIds
 import com.pluxity.label3d.Label3DRepository
 import com.pluxity.label3d.toLabel3DResponse
 import com.pluxity.station.dto.StationCreateRequest
@@ -21,7 +21,6 @@ import jakarta.persistence.EntityManager
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.stream.Stream
 
 @Service
 class StationService(
@@ -61,11 +60,9 @@ class StationService(
     fun findAll(): List<StationResponse> {
         val stations = stationRepository.findAll(SortUtils.orderByCreatedAtDesc)
         val fileMap =
-            MappingUtils.getFileMapByIds(
-                stations,
-                { v: Station -> Stream.of(v.drawingFileId, v.thumbnailFileId) },
-                fileService,
-            )
+            fileService.getFileMapByIds(stations) {
+                listOfNotNull(it.drawingFileId, it.thumbnailFileId)
+            }
         val floorMap = floorService.findAllByFacilities(stations)
         val stationCodeMap: Map<Station, List<String>> =
             stationCodeService.findCodeMapByStationIds(stations)

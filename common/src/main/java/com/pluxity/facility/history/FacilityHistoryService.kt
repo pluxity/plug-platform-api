@@ -2,12 +2,10 @@ package com.pluxity.facility.history
 
 import com.pluxity.facility.dto.FacilityHistoryResponse
 import com.pluxity.facility.dto.toHistoryResponse
-import com.pluxity.file.dto.FileResponse
 import com.pluxity.file.service.FileService
-import com.pluxity.global.utils.MappingUtils
+import com.pluxity.global.utils.getFileMapById
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.stream.Stream
 
 @Service
 class FacilityHistoryService(
@@ -32,12 +30,7 @@ class FacilityHistoryService(
     @Transactional(readOnly = true)
     fun findByFacilityId(facilityId: Long): List<FacilityHistoryResponse> {
         val histories = facilityHistoryRepository.findByFacilityIdOrderByCreatedAtDesc(facilityId)
-        val fileMap: Map<Long, FileResponse> =
-            MappingUtils.getFileMapByIds(
-                histories,
-                { Stream.of(it.fileId) },
-                fileService,
-            )
+        val fileMap = fileService.getFileMapById(histories) { it.fileId }
         return histories.map { history ->
             history.toHistoryResponse(fileMap[history.fileId]!!)
         }

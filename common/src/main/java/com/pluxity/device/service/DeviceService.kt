@@ -6,7 +6,6 @@ import com.pluxity.device.dto.DeviceUpdateRequest
 import com.pluxity.device.dto.TypeKeyLabelResponse
 import com.pluxity.device.dto.toDeviceResponse
 import com.pluxity.device.entity.Device
-import com.pluxity.device.entity.DeviceCategory
 import com.pluxity.device.entity.DeviceCompanyType
 import com.pluxity.device.entity.DeviceType
 import com.pluxity.device.repository.DeviceRepository
@@ -17,14 +16,13 @@ import com.pluxity.file.service.FileService
 import com.pluxity.global.annotation.CheckPermission
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
+import com.pluxity.global.utils.getFileMapById
 import com.pluxity.user.entity.ExecutionPhase
 import com.pluxity.user.entity.PermissionType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.stream.Stream
 
 private val log = KotlinLogging.logger {}
 
@@ -85,12 +83,7 @@ class DeviceService(
         val categoryList =
             devices
                 .mapNotNull { it.category }
-        val fileMap =
-            MappingUtils.getFileMapByIds(
-                categoryList,
-                { v: DeviceCategory -> Stream.of(v.iconFileId) },
-                fileService,
-            )
+        val fileMap = fileService.getFileMapById(categoryList) { it.iconFileId }
         return devices.map {
             it.toDeviceResponse(fileMap[it.category?.iconFileId])
         }

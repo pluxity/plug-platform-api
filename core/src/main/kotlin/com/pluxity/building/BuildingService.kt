@@ -9,12 +9,11 @@ import com.pluxity.facility.strategy.FloorService
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
+import com.pluxity.global.utils.getFileMapByIds
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.stream.Stream
 
 @Service
 class BuildingService(
@@ -37,11 +36,9 @@ class BuildingService(
     fun findAll(): List<BuildingResponse> {
         val buildings = repository.findAll(SortUtils.orderByCreatedAtDesc)
         val fileMap =
-            MappingUtils.getFileMapByIds(
-                buildings,
-                { v: Building -> Stream.of(v.drawingFileId, v.thumbnailFileId) },
-                fileService,
-            )
+            fileService.getFileMapByIds(buildings) {
+                listOfNotNull(it.drawingFileId, it.thumbnailFileId)
+            }
         val floorMap = floorService.findAllByFacilities(buildings)
         return buildings
             .map {

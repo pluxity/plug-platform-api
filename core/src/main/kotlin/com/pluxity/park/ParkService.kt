@@ -5,15 +5,14 @@ import com.pluxity.facility.dto.toResponse
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
+import com.pluxity.global.utils.getFileMapByIds
 import com.pluxity.park.dto.ParkCreateRequest
 import com.pluxity.park.dto.ParkResponse
 import com.pluxity.park.dto.ParkUpdateRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.stream.Stream
 
 @Service
 class ParkService(
@@ -32,11 +31,9 @@ class ParkService(
     fun findAll(): List<ParkResponse> {
         val parks = parkRepository.findAll(SortUtils.orderByCreatedAtDesc)
         val fileMap =
-            MappingUtils.getFileMapByIds(
-                parks,
-                { v: Park -> Stream.of(v.drawingFileId, v.thumbnailFileId) },
-                fileService,
-            )
+            fileService.getFileMapByIds(parks) {
+                listOfNotNull(it.drawingFileId, it.thumbnailFileId)
+            }
 
         return parks.map {
             ParkResponse(

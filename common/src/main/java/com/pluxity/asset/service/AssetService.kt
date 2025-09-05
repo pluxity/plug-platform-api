@@ -12,8 +12,8 @@ import com.pluxity.file.dto.FileResponse
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
+import com.pluxity.global.utils.getFileMapByIds
 import jakarta.validation.Valid
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -40,14 +40,9 @@ class AssetService(
     fun getAssets(): List<AssetResponse> {
         val assets = assetRepository.findAll(SortUtils.orderByCreatedAtDesc)
         val fileMap =
-            MappingUtils.getFileMapByIds(
-                assets,
-                { asset ->
-                    java.util.stream.Stream
-                        .of(asset.thumbnailFileId, asset.fileId)
-                },
-                fileService,
-            )
+            fileService.getFileMapByIds(assets) {
+                listOfNotNull(it.fileId, it.thumbnailFileId)
+            }
 
         return assets.map { asset ->
             asset.toResponse(
@@ -62,14 +57,9 @@ class AssetService(
         val category = assetCategoryService.findById(categoryId)
         val assets = assetRepository.findByCategory(category)
         val fileMap =
-            MappingUtils.getFileMapByIds(
-                assets,
-                { asset ->
-                    java.util.stream.Stream
-                        .of(asset.thumbnailFileId, asset.fileId)
-                },
-                fileService,
-            )
+            fileService.getFileMapByIds(assets) {
+                listOfNotNull(it.fileId, it.thumbnailFileId)
+            }
 
         return assets.map { asset ->
             asset.toResponse(

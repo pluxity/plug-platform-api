@@ -19,10 +19,10 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
+import com.pluxity.global.utils.getFileMapById
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.stream.Stream
 
 @Service
 class DeviceCategoryService(
@@ -80,17 +80,7 @@ class DeviceCategoryService(
         val allCategories: List<DeviceCategory> =
             deviceCategoryRepository.findAllBy(SortUtils.orderByCreatedAtDesc)
 
-        val fileMap =
-            MappingUtils.getFileMapByIds(
-                allCategories,
-                { deviceCategory: DeviceCategory ->
-                    Stream.of(
-                        deviceCategory.iconFileId,
-                    )
-                },
-                fileService,
-            )
-
+        val fileMap = fileService.getFileMapById(allCategories) { it.iconFileId }
         val list: List<DeviceCategoryResponse> =
             allCategories.map { it.toDeviceCategoryResponse(fileMap[it.iconFileId] ?: FileResponse()) }
 
@@ -161,12 +151,7 @@ class DeviceCategoryService(
         val category = findById(id)
         val facility = facilityService.findById(facilityId)
         val list: List<Device> = deviceRepository.findByCategoryAndFacility(category, facility)
-        val fileMap =
-            MappingUtils.getFileMapByIds(
-                list,
-                { v: Device -> Stream.of(v.category?.iconFileId) },
-                fileService,
-            )
+        val fileMap = fileService.getFileMapById(list) { it.category?.iconFileId }
         return list.map { it.toDeviceResponse(fileMap[it.category?.iconFileId]) }
     }
 

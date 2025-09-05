@@ -6,7 +6,6 @@ import com.pluxity.facility.dto.toResponse
 import com.pluxity.file.dto.FileResponse
 import com.pluxity.file.service.FileService
 import java.util.function.Function
-import java.util.stream.Stream
 
 object MappingUtils {
     fun mapWithFiles(
@@ -14,38 +13,15 @@ object MappingUtils {
         fileService: FileService,
     ): List<FacilityResponse> {
         val fileMap =
-            getFileMapByIds(
-                entities,
-                { entity -> Stream.of(entity.drawingFileId, entity.thumbnailFileId) },
-                fileService,
-            )
+            fileService.getFileMapByIds(entities) {
+                listOfNotNull(it.drawingFileId, it.thumbnailFileId)
+            }
         return entities.map { entity ->
             entity.toResponse(
                 fileMap[entity.drawingFileId],
                 fileMap[entity.thumbnailFileId],
             )
         }
-    }
-
-    fun <T> getFileMapByIds(
-        list: List<T>,
-        fileIdGetter: Function<T, Stream<Long>>,
-        fileService: FileService,
-    ): Map<Long, FileResponse> {
-        // file Id 추출
-        val fileIds =
-            list
-                .flatMap { fileIdGetter.apply(it).toList() }
-                .filterNotNull()
-                .distinct()
-
-        if (fileIds.isEmpty()) {
-            return emptyMap()
-        }
-
-        return fileService
-            .getFiles(fileIds)
-            .associateBy { it.id!! }
     }
 
     fun <T> makeCategoryTree(
@@ -77,4 +53,28 @@ object MappingUtils {
         id: ID?,
         getter: Function<ID, E>,
     ): E? = id?.let(getter::apply)
+}
+
+fun <T> FileService.getFileMapById(
+    items: List<T>,
+    idExtractor: (T) -> Long?,
+): Map<Long, FileResponse> {
+    val fileIds = items.mapNotNull(idExtractor)
+    return if (fileIds.isEmpty()) {
+        emptyMap()
+    } else {
+        getFiles(fileIds).associateBy { it.id!! }
+    }
+}
+
+fun <T> FileService.getFileMapByIds(
+    items: List<T>,
+    idExtractor: (T) -> List<Long?>,
+): Map<Long, FileResponse> {
+    val fileIds = items.flatMap(idExtractor).filterNotNull()
+    return if (fileIds.isEmpty()) {
+        emptyMap()
+    } else {
+        getFiles(fileIds).associateBy { it.id!! }
+    }
 }
