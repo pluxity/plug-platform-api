@@ -9,11 +9,11 @@ import com.pluxity.asset.repository.AssetCategoryRepository
 import com.pluxity.asset.repository.AssetRepository
 import com.pluxity.feature.service.FeatureService
 import com.pluxity.file.dto.FileResponse
+import com.pluxity.file.extensions.getFileMapByIds
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.SortUtils
-import com.pluxity.global.utils.getFileMapByIds
 import jakarta.validation.Valid
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service

@@ -14,12 +14,12 @@ import com.pluxity.device.repository.DeviceCategoryRepository
 import com.pluxity.device.repository.DeviceRepository
 import com.pluxity.facility.FacilityService
 import com.pluxity.file.dto.FileResponse
+import com.pluxity.file.extensions.getFileMapById
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.MappingUtils
 import com.pluxity.global.utils.SortUtils
-import com.pluxity.global.utils.getFileMapById
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

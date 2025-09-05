@@ -13,13 +13,13 @@ import com.pluxity.facility.dto.toResponse
 import com.pluxity.facility.history.FacilityHistoryService
 import com.pluxity.facility.path.FacilityPathService
 import com.pluxity.facility.strategy.FloorService
+import com.pluxity.file.extensions.getFileMapByIds
 import com.pluxity.file.service.FileService
 import com.pluxity.global.annotation.CheckPermission
 import com.pluxity.global.constant.ErrorCode.DUPLICATE_FACILITY_CODE
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CODE
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.getFileMapByIds
 import com.pluxity.user.entity.ExecutionPhase
 import com.pluxity.user.entity.PermissionType
 import org.springframework.data.repository.findByIdOrNull

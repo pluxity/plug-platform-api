@@ -6,11 +6,11 @@ import com.pluxity.building.dto.BuildingUpdateRequest
 import com.pluxity.facility.FacilityService
 import com.pluxity.facility.dto.toResponse
 import com.pluxity.facility.strategy.FloorService
+import com.pluxity.file.extensions.getFileMapByIds
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.SortUtils
-import com.pluxity.global.utils.getFileMapByIds
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

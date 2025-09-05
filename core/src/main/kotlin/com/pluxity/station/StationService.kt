@@ -5,11 +5,11 @@ import com.pluxity.facility.dto.toResponse
 import com.pluxity.facility.strategy.FloorService
 import com.pluxity.feature.dto.toFeatureResponse
 import com.pluxity.feature.entity.Feature
+import com.pluxity.file.extensions.getFileMapByIds
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.SortUtils
-import com.pluxity.global.utils.getFileMapByIds
 import com.pluxity.label3d.Label3DRepository
 import com.pluxity.label3d.toLabel3DResponse
 import com.pluxity.station.dto.StationCreateRequest

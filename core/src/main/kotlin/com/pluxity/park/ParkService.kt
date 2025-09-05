@@ -2,11 +2,11 @@ package com.pluxity.park
 
 import com.pluxity.facility.FacilityService
 import com.pluxity.facility.dto.toResponse
+import com.pluxity.file.extensions.getFileMapByIds
 import com.pluxity.file.service.FileService
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.SortUtils
-import com.pluxity.global.utils.getFileMapByIds
 import com.pluxity.park.dto.ParkCreateRequest
 import com.pluxity.park.dto.ParkResponse
 import com.pluxity.park.dto.ParkUpdateRequest

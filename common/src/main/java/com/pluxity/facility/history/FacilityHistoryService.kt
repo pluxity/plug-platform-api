@@ -2,8 +2,8 @@ package com.pluxity.facility.history
 
 import com.pluxity.facility.dto.FacilityHistoryResponse
 import com.pluxity.facility.dto.toHistoryResponse
+import com.pluxity.file.extensions.getFileMapById
 import com.pluxity.file.service.FileService
-import com.pluxity.global.utils.getFileMapById
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
