@@ -80,5 +80,5 @@ class FacilityCategoryService(
         }
     }
 
-    fun getCategoryDepth(): CategoryDepthResponse = CategoryDepthResponse(FacilityCategory("").maxDepth)
+    fun getCategoryDepth(): CategoryDepthResponse = CategoryDepthResponse(FacilityCategory().maxDepth)
 }

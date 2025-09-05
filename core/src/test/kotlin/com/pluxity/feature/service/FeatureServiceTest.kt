@@ -68,7 +68,7 @@ internal class FeatureServiceTest {
         testAsset = createAndSaveAsset("테스트 에셋", "ASSET_01")
         testFacility = createAndSaveFacility("테스트 시설", "FAC_01")
         val imageId = testFileUploader.initiateTestFileUpload("image")
-        testDeviceCategory = deviceCategoryRepository.save(DeviceCategory("category", imageId))
+        testDeviceCategory = deviceCategoryRepository.save(DeviceCategory(iconFileId = imageId))
     }
 
     @Test

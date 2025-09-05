@@ -18,7 +18,7 @@ import jakarta.persistence.Table
 @DiscriminatorColumn(name = "CATEGORY_TYPE")
 @DiscriminatorValue("DEVICE_BASE")
 class DeviceCategory(
-    var categoryName: String,
+    var categoryName: String = "",
     @Column(name = "icon_file_id")
     var iconFileId: Long? = null,
 ) : Category<DeviceCategory>(categoryName),

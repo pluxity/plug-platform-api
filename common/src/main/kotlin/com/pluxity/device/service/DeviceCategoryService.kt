@@ -145,7 +145,7 @@ class DeviceCategoryService(
         return list.map { it.toDeviceResponse(fileMap[it.category?.iconFileId]) }
     }
 
-    fun getDeviceCategoryDepth(): CategoryDepthResponse = CategoryDepthResponse(DeviceCategory("").maxDepth)
+    fun getDeviceCategoryDepth(): CategoryDepthResponse = CategoryDepthResponse(DeviceCategory().maxDepth)
 
     companion object {
         const val DEVICE_CATEGORIES: String = "device-categories/"
