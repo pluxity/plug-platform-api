@@ -8,9 +8,6 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7" apply false
     kotlin("plugin.jpa") version kotlinVersion
     id("com.diffplug.spotless") version "7.2.1"
-
-    // kotlin 에서 lombok 사용이 가능해지게 만들어주는 플러그인
-    kotlin("plugin.lombok") version kotlinVersion
 }
 
 allprojects {
@@ -21,15 +18,12 @@ allprojects {
 
 subprojects {
 
-    apply(plugin = "java")
-    apply(plugin = "java-library")
     apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "com.diffplug.spotless")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
     apply(plugin = "org.jetbrains.kotlin.plugin.jpa")
-    apply(plugin = "org.jetbrains.kotlin.plugin.lombok")
 
     java {
         toolchain {
@@ -55,9 +49,6 @@ subprojects {
         runtimeOnly("com.h2database:h2")
         runtimeOnly("org.postgresql:postgresql")
 
-        compileOnly("org.projectlombok:lombok")
-        annotationProcessor("org.projectlombok:lombok")
-
         implementation("org.flywaydb:flyway-core")
         runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
@@ -72,15 +63,12 @@ subprojects {
         implementation("com.linecorp.kotlin-jdsl:jpql-render:3.5.5")
         implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.5")
 
-        testImplementation("org.projectlombok:lombok")
         testImplementation("org.mockito:mockito-core")
         testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation("org.junit.jupiter:junit-jupiter-api")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
         testImplementation("io.mockk:mockk:1.14.5")
         testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
-
-        testAnnotationProcessor("org.projectlombok:lombok")
     }
 
     configurations {
@@ -98,23 +86,6 @@ subprojects {
     }
 
     spotless {
-        java {
-            target("src/**/*.java")
-            importOrder(
-                "java",
-                "jakarta",
-                "javax",
-                "com",
-                "org",
-                ""
-            )
-            removeUnusedImports()
-            googleJavaFormat()
-            leadingSpacesToTabs(2)
-            leadingTabsToSpaces(4)
-            trimTrailingWhitespace()
-            endWithNewline()
-        }
         kotlin {
             target("src/**/*.kt")
             ktlint()

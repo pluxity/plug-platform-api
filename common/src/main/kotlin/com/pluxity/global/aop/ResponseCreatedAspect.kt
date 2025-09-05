@@ -12,7 +12,6 @@ import java.net.URI
 @Component
 class ResponseCreatedAspect {
     @Around("@annotation(responseCreated)")
-    @Throws(Throwable::class)
     fun <ID> handleResponseCreated(
         joinPoint: ProceedingJoinPoint,
         responseCreated: ResponseCreated,

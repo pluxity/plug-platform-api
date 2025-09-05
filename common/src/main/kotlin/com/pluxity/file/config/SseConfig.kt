@@ -26,7 +26,6 @@ class SseConfig : WebMvcConfigurer {
     /** SseEmitter를 반환하여 비동기 요청 처리가 시작된 후, 해당 요청의 타임아웃을 재설정하는 인터셉터.  */
     internal class SseTimeoutSettingInterceptor : AsyncHandlerInterceptor {
         /** 이 메소드는 컨트롤러가 SseEmitter를 반환하고, 서블릿 스레드가 풀에 반환된 직후(즉, 비동기 처리가 시작된 후)에 호출됩니다.  */
-        @Throws(Exception::class)
         override fun afterConcurrentHandlingStarted(
             request: HttpServletRequest,
             response: HttpServletResponse,

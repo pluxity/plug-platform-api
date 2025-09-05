@@ -34,7 +34,6 @@ class CommonSecurityConfig(
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
     @Bean
-    @Throws(Exception::class)
     fun defaultSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
@@ -69,7 +68,6 @@ class CommonSecurityConfig(
     }
 
     @Bean
-    @Throws(Exception::class)
     fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager = config.authenticationManager
 
     @Bean

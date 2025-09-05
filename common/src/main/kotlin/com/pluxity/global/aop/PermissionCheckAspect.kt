@@ -23,7 +23,6 @@ class PermissionCheckAspect(
     private val strategyResolver: PermissionStrategyResolver,
 ) {
     @Around("@annotation(checkPermission)")
-    @Throws(Throwable::class)
     fun execute(
         joinPoint: ProceedingJoinPoint,
         checkPermission: CheckPermission,

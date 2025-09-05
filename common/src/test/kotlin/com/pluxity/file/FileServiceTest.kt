@@ -45,7 +45,6 @@ internal class FileServiceTest {
     private lateinit var tempFilePath: String
 
     @BeforeEach
-    @Throws(Exception::class)
     fun setUp() {
         // GIVEN: 모든 테스트에서 사용할 기본 MockMultipartFile 생성
         testFile =
@@ -72,7 +71,6 @@ internal class FileServiceTest {
 
     @Test
     @DisplayName("파일 업로드 시작 시 임시 파일 엔티티를 생성하고 ID를 반환한다")
-    @Throws(Exception::class)
     fun initiateUpload_withValidFile_createsTempFileEntityAndReturnsId() {
         // WHEN
         val fileId = fileService.initiateUpload(testFile)
@@ -98,7 +96,6 @@ internal class FileServiceTest {
 
     @Test
     @DisplayName("파일 업로드 중 I/O 오류 발생 시 CustomException을 던진다")
-    @Throws(IOException::class)
     fun initiateUpload_whenIoErrorOccurs_throwsCustomException() {
         // GIVEN: 파일 전송 시 IOException을 발생시키는 Mock 객체 생성
         val failingFile = Mockito.mock(MockMultipartFile::class.java)
@@ -119,7 +116,6 @@ internal class FileServiceTest {
 
     @Test
     @DisplayName("임시 파일을 영구 저장 시 상태와 경로를 업데이트한다")
-    @Throws(Exception::class)
     fun finalizeUpload_withTempFile_updatesStatusAndPath() {
         // GIVEN: 임시 상태의 파일 엔티티를 미리 저장
         val tempFile = createAndSaveTempFileEntity()

@@ -25,7 +25,6 @@ class S3StorageStrategy(
     private val s3Config: S3Config,
     private val s3Client: S3Client,
 ) : StorageStrategy {
-    @Throws(Exception::class)
     override fun save(context: FileProcessingContext): String {
         val s3Key =
             "temp/${UUID.randomUUID()}/${UUIDUtils.generateShortUUID()}${FileUtils.getFileExtension(context.originalFileName)}"

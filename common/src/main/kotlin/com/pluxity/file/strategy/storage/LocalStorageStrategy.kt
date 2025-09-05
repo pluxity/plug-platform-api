@@ -84,7 +84,6 @@ class LocalStorageStrategy : StorageStrategy {
         }
     }
 
-    @Throws(IOException::class)
     private fun moveDirectory(
         sourceDir: Path,
         targetDir: Path,

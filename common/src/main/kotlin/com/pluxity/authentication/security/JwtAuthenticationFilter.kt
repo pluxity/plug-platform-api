@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.response.ErrorResponseBody
 import jakarta.servlet.FilterChain
-import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.MediaType
@@ -19,7 +18,6 @@ class JwtAuthenticationFilter(
     private val jwtProvider: JwtProvider,
     private val userDetailsService: UserDetailsService,
 ) : OncePerRequestFilter() {
-    @Throws(ServletException::class, java.io.IOException::class)
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
