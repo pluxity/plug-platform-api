@@ -39,11 +39,7 @@ class DeviceCategoryService(
                 categoryName = request.name,
                 iconFileId = request.thumbnailFileId,
             )
-        val parent =
-            MappingUtils.findByIdIfExists(
-                request.parentId,
-            ) { id -> id?.let { super.findById(it) } }
-
+        val parent = request.parentId?.let { findById(it) }
         val deviceCategoryId = super.create(deviceCategory, parent)
 
         request.thumbnailFileId?.let { thumbnailId ->

@@ -9,6 +9,7 @@ import com.pluxity.facility.dto.FacilityPathSaveRequest
 import com.pluxity.facility.dto.FacilityPathUpdateRequest
 import com.pluxity.facility.dto.FacilityResponse
 import com.pluxity.facility.dto.FacilityUpdateRequest
+import com.pluxity.facility.dto.toResponse
 import com.pluxity.facility.history.FacilityHistoryService
 import com.pluxity.facility.path.FacilityPathService
 import com.pluxity.facility.strategy.FloorService
@@ -18,12 +19,13 @@ import com.pluxity.global.constant.ErrorCode.DUPLICATE_FACILITY_CODE
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CODE
 import com.pluxity.global.exception.CustomException
-import com.pluxity.global.utils.MappingUtils
+import com.pluxity.global.utils.getFileMapByIds
 import com.pluxity.user.entity.ExecutionPhase
 import com.pluxity.user.entity.PermissionType
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import kotlin.collections.get
 
 @Service
 class FacilityService(
@@ -234,9 +236,18 @@ class FacilityService(
     }
 
     @Transactional(readOnly = true)
-    fun findAllFacilities(): List<FacilityResponse> =
-        MappingUtils.mapWithFiles(
-            facilityRepository.findAllByOrderByCreatedAtDesc(),
-            fileService,
-        )
+    fun findAllFacilities(): List<FacilityResponse> {
+        val list = facilityRepository.findAllByOrderByCreatedAtDesc()
+        val fileMap =
+            fileService.getFileMapByIds(list) {
+                listOfNotNull(it.drawingFileId, it.thumbnailFileId)
+            }
+
+        return list.map { entity ->
+            entity.toResponse(
+                fileMap[entity.drawingFileId],
+                fileMap[entity.thumbnailFileId],
+            )
+        }
+    }
 }

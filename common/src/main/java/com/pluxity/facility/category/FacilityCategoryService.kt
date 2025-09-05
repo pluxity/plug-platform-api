@@ -27,7 +27,7 @@ class FacilityCategoryService(
         validateDuplicateName(request.name, request.parentId)
 
         val entity = FacilityCategory(request.name)
-        val parent = MappingUtils.findByIdIfExists(request.parentId, ::findById)
+        val parent = request.parentId?.let { findById(it) }
 
         return super.create(entity, parent)
     }
