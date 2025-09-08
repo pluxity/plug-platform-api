@@ -160,7 +160,7 @@ class PermissionGroupController(
     fun getAvailableResourceTypes(): ResponseEntity<DataResponseBody<List<ResourceTypeResponse>>> =
         ResponseEntity.ok(
             DataResponseBody(
-                ResourceType.entries.map { it.ResourceTypeResponse() },
+                ResourceType.entries.filter { it != ResourceType.NONE }.map { it.ResourceTypeResponse() },
             ),
         )
 }

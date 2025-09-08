@@ -6,6 +6,7 @@ import com.pluxity.cctv.repository.CctvCustomRepository
 import com.pluxity.facility.Facility
 import com.pluxity.feature.entity.Feature
 import com.pluxity.global.annotation.CheckPermission
+import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.ExecutionPhase
 import com.pluxity.user.entity.PermissionType
 import org.springframework.stereotype.Repository
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Repository
 class CctvCustomRepositoryImpl(
     private val kotlinJdslJpqlExecutor: KotlinJdslJpqlExecutor,
 ) : CctvCustomRepository {
-    @CheckPermission(type = PermissionType.TOTAL, phase = ExecutionPhase.BLOCK_ALL)
+    @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.BLOCK_ALL, resourceType = ResourceType.CCTV)
     override fun findAllByFacilityIdIfPresent(facilityId: Long?): List<Cctv> =
         kotlinJdslJpqlExecutor
             .findAll {

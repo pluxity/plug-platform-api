@@ -7,6 +7,7 @@ enum class ResourceType(
     val resourceName: String,
     val endpoint: String,
 ) {
+    NONE("NONE", ""),
     FACILITY("시설", "facilities"),
     DEVICE_CATEGORY("장비 분류", "device-categories"),
     CCTV("CCTV", "cctvs"),
@@ -14,7 +15,7 @@ enum class ResourceType(
 
     companion object {
         fun fromString(resourceName: String): ResourceType =
-            entries.find { it.name.equals(resourceName, ignoreCase = true) }
+            entries.firstOrNull { it != NONE && it.name.equals(resourceName, ignoreCase = true) }
                 ?: throw CustomException(ErrorCode.INVALID_RESOURCE_TYPE, "Resource type: $resourceName")
     }
 }

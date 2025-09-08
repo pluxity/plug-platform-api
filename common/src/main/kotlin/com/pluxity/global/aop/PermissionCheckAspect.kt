@@ -5,6 +5,7 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.user.entity.ExecutionPhase
 import com.pluxity.user.entity.PermissionStrategyResolver
+import com.pluxity.user.entity.ResourceAllPermissible
 import com.pluxity.user.entity.Role
 import com.pluxity.user.entity.User
 import com.pluxity.user.service.UserService
@@ -45,18 +46,10 @@ class PermissionCheckAspect(
                 returnObject
             }
             ExecutionPhase.BLOCK_ALL -> {
-                when (returnObject) {
-                    is MutableCollection<*> -> {
-                        if (returnObject.isNotEmpty() &&
-                            !strategy.check(user, returnObject.first()!!)
-                        ) {
-                            returnObject.clear()
-                        }
-                    }
-                    else -> {
-                        if (!strategy.check(user, returnObject)) {
-                            throw CustomException(ErrorCode.PERMISSION_DENIED)
-                        }
+                if (!strategy.check(user, ResourceAllPermissible(checkPermission.resourceType))) {
+                    when (returnObject) {
+                        is MutableCollection<*> -> returnObject.clear()
+                        else -> throw CustomException(ErrorCode.PERMISSION_DENIED)
                     }
                 }
                 returnObject

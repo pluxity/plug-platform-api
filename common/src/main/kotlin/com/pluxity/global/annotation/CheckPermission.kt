@@ -1,5 +1,6 @@
 package com.pluxity.global.annotation
 
+import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.ExecutionPhase
 import com.pluxity.user.entity.PermissionType
 
@@ -9,4 +10,5 @@ annotation class CheckPermission(
     val type: PermissionType,
     val target: String = "#returnObject",
     val phase: ExecutionPhase = ExecutionPhase.AFTER,
+    val resourceType: ResourceType = ResourceType.NONE,
 )
