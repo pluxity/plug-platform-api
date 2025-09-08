@@ -28,7 +28,7 @@ class PermissionCheckAspect(
         joinPoint: ProceedingJoinPoint,
         checkPermission: CheckPermission,
     ): Any {
-        val user = this.currentUserIfApplicable ?: return joinPoint.proceed()
+        val user = getCurrentUserIfApplicable() ?: return joinPoint.proceed()
         val strategy = strategyResolver.resolve(checkPermission.type)
         val returnObject = joinPoint.proceed()
 
@@ -39,12 +39,14 @@ class PermissionCheckAspect(
                 }
                 returnObject
             }
+
             ExecutionPhase.FILTER -> {
                 if (returnObject is MutableCollection<*>) {
                     returnObject.removeIf { item: Any? -> !strategy.check(user, item!!) }
                 }
                 returnObject
             }
+
             ExecutionPhase.BLOCK_ALL -> {
                 if (!strategy.check(user, ResourceAllPermissible(checkPermission.resourceType))) {
                     when (returnObject) {
@@ -57,19 +59,18 @@ class PermissionCheckAspect(
         }
     }
 
-    private val currentUserIfApplicable: User?
-        get() {
-            val authentication =
-                SecurityContextHolder.getContext().authentication
-            if (authentication == null || !authentication.isAuthenticated || "anonymousUser" == authentication.principal) {
-                throw CustomException(ErrorCode.PERMISSION_DENIED)
-            }
-
-            val user = userService.findUserByUsername(authentication.name)
-
-            if (user.getRoles().stream().anyMatch { role: Role? -> "ADMIN" == role?.name }) {
-                return null
-            }
-            return user
+    private fun getCurrentUserIfApplicable(): User? {
+        val authentication =
+            SecurityContextHolder.getContext().authentication
+        if (authentication == null || !authentication.isAuthenticated || "anonymousUser" == authentication.principal) {
+            throw CustomException(ErrorCode.PERMISSION_DENIED)
         }
+
+        val user = userService.findUserByUsername(authentication.name)
+
+        if (user.getRoles().stream().anyMatch { role: Role? -> "ADMIN" == role?.name }) {
+            return null
+        }
+        return user
+    }
 }
