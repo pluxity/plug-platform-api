@@ -76,7 +76,7 @@ class ClimateDataCollector(
                     // 400 에러가 발생했으므로 현재 토큰이 무효함 - 무조건 새로 발급
                     val oldTokenValue = tokenInfo?.value
                     log.info { "토큰 강제 갱신 시작 - 이전 토큰: ${oldTokenValue?.take(10)}..." }
-                    tokenInfo = fetchToken()
+                    ensureToken()
                     log.info { "토큰 강제 갱신 완료 - 새 토큰: ${tokenInfo?.value?.take(10)}..., 만료: ${tokenInfo?.expiresAt}" }
                 }
 
@@ -88,12 +88,10 @@ class ClimateDataCollector(
         }
 
     private suspend fun ensureToken() {
-        tokenMutex.withLock {
-            // 토큰이 없거나 만료 1시간 전인 경우에만 발급
-            if (tokenInfo?.expiresAt?.isAfter(LocalDateTime.now().plusHours(1)) == true) return
-            tokenInfo = fetchToken()
-            log.info { "새 토큰 발급, 만료: ${tokenInfo?.expiresAt}" }
-        }
+        // 토큰이 없거나 만료 1시간 전인 경우에만 발급
+        if (tokenInfo?.expiresAt?.isAfter(LocalDateTime.now().plusHours(1)) == true) return
+        tokenInfo = fetchToken()
+        log.info { "새 토큰 발급, 만료: ${tokenInfo?.expiresAt}" }
     }
 
     private fun isTokenIncorrectError(e: WebClientResponseException): Boolean =
