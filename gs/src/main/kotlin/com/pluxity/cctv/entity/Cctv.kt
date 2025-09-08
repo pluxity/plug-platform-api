@@ -3,6 +3,8 @@ package com.pluxity.cctv.entity
 import com.pluxity.cctv.dto.CctvUpdateRequest
 import com.pluxity.feature.entity.Feature
 import com.pluxity.global.entity.BaseEntity
+import com.pluxity.permission.ResourceType
+import com.pluxity.user.entity.Permissible
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -22,7 +24,8 @@ class Cctv(
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST])
     @JoinColumn(name = "feature_id")
     var feature: Feature? = null,
-) : BaseEntity() {
+) : BaseEntity(),
+    Permissible {
     fun updateCctv(request: CctvUpdateRequest) {
         this.name = request.name
         this.url = request.url
@@ -31,4 +34,9 @@ class Cctv(
     fun changeFeature(feature: Feature?) {
         this.feature = feature
     }
+
+    override val resourceId: String
+        get() = this.id
+    override val resourceType: ResourceType
+        get() = ResourceType.CCTV
 }

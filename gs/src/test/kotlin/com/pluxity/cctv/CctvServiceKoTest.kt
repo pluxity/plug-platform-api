@@ -2,7 +2,6 @@ package com.pluxity.cctv
 
 import com.pluxity.cctv.dto.CctvCreateRequest
 import com.pluxity.cctv.dto.CctvUpdateRequest
-import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.entity.dummyCctv
 import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
@@ -50,7 +49,7 @@ class CctvServiceKoTest :
         Given("CCTV 목록 조회를 진행할 때") {
             When("정상 요청이 오면") {
                 every {
-                    cctvRepository.findAll<Cctv>(any(), any(), any())
+                    cctvRepository.findAllByFacilityIdIfPresent(any())
                 } returns mutableListOf(dummyCctv(feature = dummyFeature()))
 
                 Then("정상 조회") {

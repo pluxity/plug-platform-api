@@ -28,24 +28,40 @@ class PermissionCheckAspect(
         checkPermission: CheckPermission,
     ): Any {
         val user = this.currentUserIfApplicable ?: return joinPoint.proceed()
-
         val strategy = strategyResolver.resolve(checkPermission.type)
-
         val returnObject = joinPoint.proceed()
 
-        if (checkPermission.phase == ExecutionPhase.AFTER) {
-            if (!strategy.check(user, returnObject)) {
-                throw CustomException(ErrorCode.PERMISSION_DENIED)
+        return when (checkPermission.phase) {
+            ExecutionPhase.AFTER -> {
+                if (!strategy.check(user, returnObject)) {
+                    throw CustomException(ErrorCode.PERMISSION_DENIED)
+                }
+                returnObject
+            }
+            ExecutionPhase.FILTER -> {
+                if (returnObject is MutableCollection<*>) {
+                    returnObject.removeIf { item: Any? -> !strategy.check(user, item!!) }
+                }
+                returnObject
+            }
+            ExecutionPhase.BLOCK_ALL -> {
+                when (returnObject) {
+                    is MutableCollection<*> -> {
+                        if (returnObject.isNotEmpty() &&
+                            !strategy.check(user, returnObject.first()!!)
+                        ) {
+                            returnObject.clear()
+                        }
+                    }
+                    else -> {
+                        if (!strategy.check(user, returnObject)) {
+                            throw CustomException(ErrorCode.PERMISSION_DENIED)
+                        }
+                    }
+                }
+                returnObject
             }
         }
-
-        if (checkPermission.phase == ExecutionPhase.FILTER) {
-            if (returnObject is MutableCollection<*>) {
-                returnObject.removeIf { item: Any? -> !strategy.check(user, item!!) }
-            }
-        }
-
-        return returnObject
     }
 
     private val currentUserIfApplicable: User?
