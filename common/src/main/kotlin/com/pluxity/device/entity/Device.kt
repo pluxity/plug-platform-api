@@ -2,6 +2,8 @@ package com.pluxity.device.entity
 
 import com.pluxity.feature.entity.Feature
 import com.pluxity.global.entity.BaseEntity
+import com.pluxity.permission.ResourceType
+import com.pluxity.user.entity.Permissible
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -12,6 +14,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
+import kotlin.toString
 
 @Entity
 @Table(name = "device")
@@ -29,7 +32,8 @@ class Device(
     var deviceType: DeviceType,
     @Enumerated(EnumType.STRING)
     var companyType: DeviceCompanyType,
-) : BaseEntity() {
+) : BaseEntity(),
+    Permissible {
     fun changeFeature(feature: Feature?) {
         this.feature = feature
     }
@@ -54,4 +58,9 @@ class Device(
         this.deviceType = deviceType
         this.companyType = companyType
     }
+
+    override val resourceId: String
+        get() = this.category?.id.toString()
+    override val resourceType: ResourceType
+        get() = ResourceType.DEVICE_CATEGORY
 }

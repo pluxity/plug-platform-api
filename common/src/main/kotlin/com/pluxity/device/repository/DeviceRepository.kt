@@ -1,6 +1,5 @@
 package com.pluxity.device.repository
 
-import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
 import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCategory
 import com.pluxity.device.entity.DeviceCompanyType
@@ -13,7 +12,7 @@ import org.springframework.data.jpa.repository.Query
 
 interface DeviceRepository :
     JpaRepository<Device, String>,
-    KotlinJdslJpqlExecutor {
+    DeviceCustomRepository {
     @Modifying
     @Query("UPDATE Device d SET d.feature = NULL WHERE d.feature = :feature")
     fun revokeByFeature(feature: Feature)

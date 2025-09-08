@@ -2,7 +2,6 @@ package com.pluxity.device
 
 import com.pluxity.device.dto.DeviceCreateRequest
 import com.pluxity.device.dto.DeviceUpdateRequest
-import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCompanyType
 import com.pluxity.device.entity.DeviceType
 import com.pluxity.device.repository.DeviceRepository
@@ -23,7 +22,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
-import org.springframework.data.repository.findByIdOrNull
 
 class DeviceServiceKoTest :
     BehaviorSpec({
@@ -107,7 +105,7 @@ class DeviceServiceKoTest :
                         companyType = DeviceCompanyType.DAWONDNS,
                     )
 
-                every { deviceRepository.findByIdOrNull(deviceId) } returns device
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns device
 
                 Then("정상 조회") {
                     val result = deviceService.findById(deviceId)
@@ -134,7 +132,7 @@ class DeviceServiceKoTest :
                         "test-path",
                     )
 
-                every { deviceRepository.findByIdOrNull(deviceId) } returns device
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns device
                 every { fileService.getFileResponse(category.iconFileId!!) } returns fileResponse
 
                 Then("파일 정보와 함께 정상 조회") {
@@ -147,7 +145,7 @@ class DeviceServiceKoTest :
 
             When("없는 아이디로 조회 요청") {
                 val deviceId = "not-found"
-                every { deviceRepository.findByIdOrNull(deviceId) } returns null
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns null
 
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -180,7 +178,7 @@ class DeviceServiceKoTest :
                     fileService.getFiles(any())
                 } returns mutableListOf(dummyFileResponse())
 
-                every { deviceRepository.findAll<Device>(isNull(), isNull(), any()) } returns devices
+                every { deviceRepository.findAllByFacilityIdIfPresent(any()) } returns devices
 
                 Then("정상 조회") {
                     val result = deviceService.findAll()
@@ -228,7 +226,7 @@ class DeviceServiceKoTest :
                     )
                 val category = dummyDeviceCategory()
 
-                every { deviceRepository.findByIdOrNull(deviceId) } returns device
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns device
                 every { deviceCategoryService.findById(1L) } returns category
 
                 Then("성공") {
@@ -247,7 +245,7 @@ class DeviceServiceKoTest :
                         companyType = DeviceCompanyType.DAWONDNS,
                     )
 
-                every { deviceRepository.findByIdOrNull(deviceId) } returns null
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns null
 
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -268,7 +266,7 @@ class DeviceServiceKoTest :
                         companyType = DeviceCompanyType.DAWONDNS,
                     )
 
-                every { deviceRepository.findByIdOrNull(deviceId) } returns device
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns device
                 every { deviceRepository.deleteById(deviceId) } just runs
 
                 Then("성공") {
@@ -279,7 +277,7 @@ class DeviceServiceKoTest :
 
             When("없는 아이디로 삭제 요청") {
                 val deviceId = "not-found"
-                every { deviceRepository.findByIdOrNull(deviceId) } returns null
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns null
 
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -302,7 +300,7 @@ class DeviceServiceKoTest :
                     )
                 val category = dummyDeviceCategory()
 
-                every { deviceRepository.findByIdOrNull(deviceId) } returns device
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns device
                 every { deviceCategoryService.findById(categoryId) } returns category
 
                 Then("성공") {
@@ -314,7 +312,7 @@ class DeviceServiceKoTest :
             When("없는 디바이스에 카테고리 할당 요청") {
                 val deviceId = "not-found"
                 val categoryId = 1L
-                every { deviceRepository.findByIdOrNull(deviceId) } returns null
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns null
 
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -337,7 +335,7 @@ class DeviceServiceKoTest :
                         companyType = DeviceCompanyType.DAWONDNS,
                     )
 
-                every { deviceRepository.findByIdOrNull(deviceId) } returns device
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns device
 
                 Then("성공") {
                     deviceService.removeCategory(deviceId)
@@ -355,7 +353,7 @@ class DeviceServiceKoTest :
                         companyType = DeviceCompanyType.DAWONDNS,
                     )
 
-                every { deviceRepository.findByIdOrNull(deviceId) } returns device
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns device
 
                 Then("NOT_FOUND_ASSIGN_DEVICE_CATEGORY 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -366,7 +364,7 @@ class DeviceServiceKoTest :
 
             When("없는 디바이스에서 카테고리 제거 요청") {
                 val deviceId = "not-found"
-                every { deviceRepository.findByIdOrNull(deviceId) } returns null
+                every { deviceRepository.findByIdOrNullCustom(deviceId) } returns null
 
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     shouldThrowExactly<CustomException> {

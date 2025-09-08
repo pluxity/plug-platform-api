@@ -9,18 +9,12 @@ import com.pluxity.device.entity.Device
 import com.pluxity.device.entity.DeviceCompanyType
 import com.pluxity.device.entity.DeviceType
 import com.pluxity.device.repository.DeviceRepository
-import com.pluxity.facility.Facility
-import com.pluxity.feature.entity.Feature
 import com.pluxity.file.dto.FileResponse
 import com.pluxity.file.extensions.getFileMapById
 import com.pluxity.file.service.FileService
-import com.pluxity.global.annotation.CheckPermission
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.user.entity.ExecutionPhase
-import com.pluxity.user.entity.PermissionType
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -48,7 +42,6 @@ class DeviceService(
     }
 
     @Transactional(readOnly = true)
-    @CheckPermission(type = PermissionType.ID)
     fun findById(id: String): DeviceResponse = getDevice(id).toDeviceResponse(getThumbnailFile(getDevice(id)))
 
     private fun getThumbnailFile(device: Device): FileResponse? =
@@ -57,28 +50,12 @@ class DeviceService(
         }
 
     private fun getDevice(id: String): Device =
-        deviceRepository.findByIdOrNull(id)
+        deviceRepository.findByIdOrNullCustom(id)
             ?: throw CustomException(ErrorCode.NOT_FOUND_DEVICE, id)
 
     @Transactional(readOnly = true)
-    @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.FILTER)
     fun findAll(facilityId: Long? = null): List<DeviceResponse> {
-        val devices =
-            deviceRepository
-                .findAll {
-                    select(
-                        entity(Device::class),
-                    ).from(
-                        entity(Device::class),
-                        leftFetchJoin(Device::category),
-                        leftFetchJoin(Device::feature),
-                        leftFetchJoin(Feature::facility),
-                    ).where(
-                        and(
-                            facilityId?.let { path(Facility::id).eq(it) },
-                        ),
-                    )
-                }.filterNotNull()
+        val devices = deviceRepository.findAllByFacilityIdIfPresent(facilityId)
 
         val categoryList =
             devices
