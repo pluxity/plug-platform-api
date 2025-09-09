@@ -22,7 +22,7 @@ class ParkService(
 ) {
     @Transactional
     fun save(request: ParkCreateRequest): Long {
-        val park: Park = Park(request.facility.name, request.facility.description, request.boundary)
+        val park = Park(request.facility.name, request.facility.description, request.boundary)
         val saved = facilityService.save(park, request.facility)
         return saved.id!!
     }

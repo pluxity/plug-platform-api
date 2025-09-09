@@ -69,19 +69,6 @@ class AssetService(
         }
     }
 
-    @Transactional(readOnly = true)
-    fun getAssetByCode(code: String): AssetResponse {
-        val asset =
-            assetRepository
-                .findByCode(code)
-                ?: throw CustomException(ErrorCode.NOT_FOUND_ASSET_BY_CODE, code)
-
-        return asset.toResponse(
-            file = getFileResponse(asset),
-            thumbnailFile = getThumbnailFileResponse(asset),
-        )
-    }
-
     @Transactional
     fun createAsset(
         @Valid request: AssetCreateRequest,

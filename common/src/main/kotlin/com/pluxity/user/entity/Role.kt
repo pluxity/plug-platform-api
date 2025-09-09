@@ -24,7 +24,7 @@ class Role(
     var auth: String? = "USER"
 
     @OneToMany(mappedBy = "role")
-    var userRoles: List<UserRole> = mutableListOf()
+    var userRoles: MutableList<UserRole> = mutableListOf()
 
     @OneToMany(mappedBy = "role")
     var rolePermissions: MutableSet<RolePermission> = mutableSetOf()

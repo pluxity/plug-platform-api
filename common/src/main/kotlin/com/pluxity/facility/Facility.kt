@@ -81,14 +81,6 @@ abstract class Facility(
         this.description = description
     }
 
-    fun updateHistoryComment(historyComment: String?) {
-        this.historyComment = historyComment
-    }
-
-    fun updateDrawingFileId(drawingFileId: Long?) {
-        this.drawingFileId = drawingFileId
-    }
-
     fun updateDrawingFile(drawingFile: FileEntity) {
         this.drawingFileId = drawingFile.id
     }
@@ -99,10 +91,6 @@ abstract class Facility(
 
     fun updateThumbnailFile(thumbnailFile: FileEntity) {
         this.thumbnailFileId = thumbnailFile.id
-    }
-
-    fun updatePosition(position: FacilityPosition?) {
-        this.position = position
     }
 
     fun updatePosition(

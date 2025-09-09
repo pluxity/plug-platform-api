@@ -19,7 +19,5 @@ data class RefreshToken(
         ): RefreshToken = RefreshToken(username, token, timeToLive)
     }
 
-    fun isExpiredAt(currentTime: Long): Boolean = currentTime > (System.currentTimeMillis() + timeToLive * 1000L)
-
     fun isValidToken(): Boolean = token.isNotBlank()
 }

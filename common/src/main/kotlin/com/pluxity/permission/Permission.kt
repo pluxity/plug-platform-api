@@ -23,14 +23,6 @@ class Permission(
     @ManyToOne(fetch = FetchType.LAZY)
     var permissionGroup: PermissionGroup? = null,
 ) : BaseEntity() {
-    fun changeResourceName(resourceName: String) {
-        this.resourceName = resourceName
-    }
-
-    fun changeResourceId(resourceId: String) {
-        this.resourceId = resourceId
-    }
-
     fun matches(
         resourceName: String?,
         resourceId: String?,

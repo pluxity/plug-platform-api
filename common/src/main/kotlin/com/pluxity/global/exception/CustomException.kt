@@ -14,7 +14,7 @@ class CustomException(
             if (params.isEmpty()) return errorCode.getMessage()
             return try {
                 String.format(errorCode.getMessage(), *params)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 "${errorCode.getMessage()} (format params: ${params.contentToString()})"
             }
         }

@@ -6,10 +6,10 @@ import jakarta.validation.constraints.NotNull
 data class PermissionGroupCreateRequest(
     @field:Schema(description = "권한 집합 이름")
     @field:NotNull
-    val name: String,
+    var name: String,
     @field:Schema(description = "권한에 대한 설명")
     val description: String?,
     @field:Schema(description = "권한의 상세 목록")
     @field:NotNull
-    val permissions: List<PermissionRequest>,
+    var permissions: List<PermissionRequest>,
 )

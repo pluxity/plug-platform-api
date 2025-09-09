@@ -516,7 +516,7 @@ class AdminUserController(
         @Parameter(description = "역할 ID", required = true) @PathVariable("roleId") roleId: Long,
     ): ResponseEntity<Void> {
         service.removeRoleFromUser(userId, roleId)
-        return ResponseEntity.noContent().build<Void>()
+        return ResponseEntity.noContent().build()
     }
 
     @Operation(summary = "사용자 비밀번호 초기화", description = "사용자의 비밀번호를 초기화합니다")
@@ -578,6 +578,6 @@ class AdminUserController(
         @Parameter(description = "사용자 ID", required = true) @PathVariable("id") id: Long,
     ): ResponseEntity<Void> {
         service.initPassword(id)
-        return ResponseEntity.noContent().build<Void>()
+        return ResponseEntity.noContent().build()
     }
 }

@@ -6,19 +6,19 @@ import jakarta.validation.constraints.NotNull
 data class FacilityPathSaveRequest(
     @field:Schema(description = "이름", example = "이름", requiredMode = Schema.RequiredMode.REQUIRED)
     @field:NotNull
-    val name: String,
+    var name: String,
     @field:Schema(
         description = "타입(SUBWAY: 지하철, WAY: 길찾기, PATROL: 순찰)",
         allowableValues = ["SUBWAY", "WAY", "PATROL"],
         requiredMode = Schema.RequiredMode.REQUIRED,
     )
     @field:NotNull
-    val type: String,
+    var type: String,
     @field:Schema(
         description = "경로정보",
         example = "[{\"id\"...}]",
         requiredMode = Schema.RequiredMode.REQUIRED,
     )
     @field:NotNull
-    val path: String,
+    var path: String,
 )

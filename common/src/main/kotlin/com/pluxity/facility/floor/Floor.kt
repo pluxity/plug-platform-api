@@ -28,8 +28,4 @@ class Floor(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
-
-    fun assignParent(facility: Facility) {
-        this.facility = facility
-    }
 }

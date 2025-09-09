@@ -22,8 +22,4 @@ class RolePermission(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_group_id")
     var permissionGroup: PermissionGroup,
-) {
-    fun changeRole(role: Role) {
-        this.role = role
-    }
-}
+)

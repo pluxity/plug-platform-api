@@ -42,10 +42,10 @@ class Asset(
         const val ASSETS_PATH: String = "assets"
 
         fun create(request: AssetCreateRequest): Asset {
-            require(!request.name.isNullOrBlank()) {
+            require(request.name.isNotBlank()) {
                 "Asset name cannot be null or blank"
             }
-            require(!request.code.isNullOrBlank()) {
+            require(request.code.isNotBlank()) {
                 "Asset code cannot be null or blank"
             }
 
@@ -74,10 +74,10 @@ class Asset(
     }
 
     private fun validateUpdateRequest(request: AssetUpdateRequest) {
-        require(!request.name.isNullOrBlank()) {
+        require(request.name.isNotBlank()) {
             "Asset name cannot be null or blank"
         }
-        require(!request.code.isNullOrBlank()) {
+        require(request.code.isNotBlank()) {
             "Asset code cannot be null or blank"
         }
     }
@@ -119,6 +119,4 @@ class Asset(
         this.category?.removeAsset(this)
         this.category = null
     }
-
-    fun isValid(): Boolean = !name.isNullOrBlank() && !code.isNullOrBlank()
 }

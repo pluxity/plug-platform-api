@@ -24,7 +24,7 @@ class BuildingService(
 ) {
     @Transactional
     fun save(request: BuildingCreateRequest): Long {
-        val building: Building = Building(request.facility.name, request.facility.description)
+        val building = Building(request.facility.name, request.facility.description)
 
         val saved = facilityService.save(building, request.facility)
 

@@ -39,7 +39,7 @@ class JwtProvider(
     private var refreshExpiration: Long = 0
 
     @PostConstruct
-    protected fun init() {
+    private fun init() {
         accessSecretKey = Base64.getEncoder().encodeToString(accessSecretKey.toByteArray())
         refreshSecretKey = Base64.getEncoder().encodeToString(refreshSecretKey.toByteArray())
     }
