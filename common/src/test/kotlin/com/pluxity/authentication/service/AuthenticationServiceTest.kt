@@ -29,141 +29,143 @@ import org.springframework.transaction.annotation.Transactional
 @SpringBootTest
 @Import(MockBeansConfig::class)
 @Transactional
-class AuthenticationServiceTest(
-    @Autowired private val authenticationService: AuthenticationService,
-    @Autowired private val userRepository: UserRepository,
-    @Autowired private val refreshTokenRepository: RefreshTokenRepository,
-    @Autowired private val passwordEncoder: PasswordEncoder,
-    @Autowired private val jwtProvider: JwtProvider,
-    @Autowired private val em: EntityManager,
-    @Autowired private val jwtProperties: JwtProperties,
-) {
-    private lateinit var testUser: User
+class AuthenticationServiceTest
+    @Autowired
+    constructor(
+        private val authenticationService: AuthenticationService,
+        private val userRepository: UserRepository,
+        private val refreshTokenRepository: RefreshTokenRepository,
+        private val passwordEncoder: PasswordEncoder,
+        private val jwtProvider: JwtProvider,
+        private val em: EntityManager,
+        private val jwtProperties: JwtProperties,
+    ) {
+        private lateinit var testUser: User
 
-    @BeforeEach
-    fun setUp() {
-        testUser =
-            User(
-                null,
-                "testuser",
-                passwordEncoder.encode("password"),
-                "Test User",
-                "U001",
-                null,
-                null,
-            )
-        userRepository.save(testUser)
-        em.flush()
-        em.clear()
-    }
-
-    @Test
-    @DisplayName("성공: 유효한 정보로 회원가입 시 사용자가 생성되고 비밀번호가 암호화된다")
-    fun signUp_withValidRequest_shouldCreateAndEncryptUser() {
-        val request = SignUpRequest("newUser", "password123", "New User", "U002")
-        val userId = authenticationService.signUp(request)
-        em.flush()
-        em.clear()
-        val foundUser = userRepository.findWithGraphById(userId)
-        Assertions.assertThat(foundUser!!.username).isEqualTo("newUser")
-        Assertions.assertThat(passwordEncoder.matches("password123", foundUser.password)).isTrue()
-    }
-
-    @Test
-    @DisplayName("실패: 중복된 아이디로 회원가입 시 예외가 발생한다")
-    fun signUp_withDuplicateUsername_shouldThrowException() {
-        val request = SignUpRequest("testuser", "password123", "Another User", "U003")
-        assertThrows<CustomException> { authenticationService.signUp(request) }
-    }
-
-    @Test
-    @DisplayName("성공: 올바른 자격증명으로 로그인 시 토큰이 담긴 쿠키가 발급된다")
-    fun signIn_withValidCredentials_shouldPublishTokenCookies() {
-        val signInRequest = SignInRequest("testuser", "password")
-        val servletRequest = MockHttpServletRequest()
-        val servletResponse = MockHttpServletResponse()
-        authenticationService.signIn(signInRequest, servletRequest, servletResponse)
-        val setCookieHeaders = servletResponse.getHeaders(HttpHeaders.SET_COOKIE)
-        Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("${jwtProperties.accessToken.name}=") }
-        Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("${jwtProperties.refreshToken.name}=") }
-        val refreshTokenValue = requireNotNull(extractTokenValueFromCookie(setCookieHeaders, jwtProperties.refreshToken.name))
-        Assertions.assertThat(refreshTokenRepository.findByToken(refreshTokenValue)).isNotNull
-    }
-
-    @Test
-    @DisplayName("성공: 유효한 리프레시 토큰으로 로그아웃 시 DB에서 토큰이 삭제되고 쿠키가 만료된다")
-    fun signOut_withValidRefreshToken_shouldDeleteTokenAndExpireCookies() {
-        val refreshTokenValue = jwtProvider.generateRefreshToken(testUser.username)
-        val refreshToken = RefreshToken(testUser.username, refreshTokenValue, 3600)
-        refreshTokenRepository.save(refreshToken)
-        em.flush()
-        em.clear()
-
-        val servletRequest = MockHttpServletRequest()
-        val refreshTokenCookie = Cookie(jwtProperties.refreshToken.name, refreshTokenValue)
-        val expiryCookie = Cookie("expiry", System.currentTimeMillis().toString())
-        servletRequest.setCookies(refreshTokenCookie, expiryCookie)
-        val servletResponse = MockHttpServletResponse()
-
-        authenticationService.signOut(servletRequest, servletResponse)
-
-        Assertions.assertThat(refreshTokenRepository.findByToken(refreshTokenValue)).isNull()
-        val deletedCookies = servletResponse.getHeaders(HttpHeaders.SET_COOKIE)
-        Assertions
-            .assertThat(deletedCookies)
-            .hasSize(2)
-            .anyMatch { it.startsWith("${jwtProperties.refreshToken.name}=") && it.contains("Max-Age=0") }
-            .anyMatch { it.startsWith("expiry=") && it.contains("Max-Age=0") }
-        Assertions.assertThat(deletedCookies).noneMatch { it.startsWith("${jwtProperties.accessToken.name}=") }
-    }
-
-    @Test
-    @DisplayName("실패: 존재하지 않는 사용자로 로그인 시 예외가 발생한다")
-    fun signIn_withNonExistentUser_shouldThrowException() {
-        val request = SignInRequest("nonexistent", "password")
-        assertThrows<CustomException> {
-            authenticationService.signIn(request, MockHttpServletRequest(), MockHttpServletResponse())
+        @BeforeEach
+        fun setUp() {
+            testUser =
+                User(
+                    null,
+                    "testuser",
+                    passwordEncoder.encode("password"),
+                    "Test User",
+                    "U001",
+                    null,
+                    null,
+                )
+            userRepository.save(testUser)
+            em.flush()
+            em.clear()
         }
-    }
 
-    @Test
-    @DisplayName("성공: 유효한 리프레시 토큰으로 요청 시 새로운 토큰들을 발급한다")
-    fun refreshToken_withValidToken_shouldPublishNewTokens() {
-        val originalRefreshToken = jwtProvider.generateRefreshToken("testuser")
-        refreshTokenRepository.save(RefreshToken("testuser", originalRefreshToken, 3600))
-        val servletRequest = MockHttpServletRequest()
-        servletRequest.setCookies(Cookie(jwtProperties.refreshToken.name, originalRefreshToken))
-        val servletResponse = MockHttpServletResponse()
-        authenticationService.refreshToken(servletRequest, servletResponse)
-        em.flush()
-        em.clear()
-        val cookies = servletResponse.getHeaders(HttpHeaders.SET_COOKIE)
-        Assertions.assertThat(cookies).anyMatch { it.startsWith("${jwtProperties.accessToken.name}=") }
-        Assertions.assertThat(cookies).anyMatch { it.startsWith("${jwtProperties.refreshToken.name}=") }
-        val newRefreshTokenValue = requireNotNull(extractTokenValueFromCookie(cookies, jwtProperties.refreshToken.name))
-        Assertions.assertThat(refreshTokenRepository.findByToken(newRefreshTokenValue)).isNotNull
-    }
-
-    @Test
-    @DisplayName("실패: 만료된 리프레시 토큰으로 요청 시 예외가 발생한다")
-    fun refreshToken_withExpiredToken_shouldThrowException() {
-        val expiredToken =
-            "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImlhdCI6MTY3MjUyODQwMCwiZXhwIjoxNjcyNTI4NDAwfQ.fake_expired_signature"
-        val servletRequest = MockHttpServletRequest()
-        servletRequest.setCookies(Cookie(jwtProperties.refreshToken.name, expiredToken))
-        assertThrows<CustomException> {
-            authenticationService.refreshToken(servletRequest, MockHttpServletResponse())
+        @Test
+        @DisplayName("성공: 유효한 정보로 회원가입 시 사용자가 생성되고 비밀번호가 암호화된다")
+        fun signUp_withValidRequest_shouldCreateAndEncryptUser() {
+            val request = SignUpRequest("newUser", "password123", "New User", "U002")
+            val userId = authenticationService.signUp(request)
+            em.flush()
+            em.clear()
+            val foundUser = userRepository.findWithGraphById(userId)
+            Assertions.assertThat(foundUser!!.username).isEqualTo("newUser")
+            Assertions.assertThat(passwordEncoder.matches("password123", foundUser.password)).isTrue()
         }
-    }
 
-    private fun extractTokenValueFromCookie(
-        cookies: List<String>,
-        cookieName: String,
-    ): String? =
-        cookies
-            .firstOrNull { it.startsWith("$cookieName=") }
-            ?.split(";")
-            ?.firstOrNull()
-            ?.split("=")
-            ?.getOrNull(1)
-}
+        @Test
+        @DisplayName("실패: 중복된 아이디로 회원가입 시 예외가 발생한다")
+        fun signUp_withDuplicateUsername_shouldThrowException() {
+            val request = SignUpRequest("testuser", "password123", "Another User", "U003")
+            assertThrows<CustomException> { authenticationService.signUp(request) }
+        }
+
+        @Test
+        @DisplayName("성공: 올바른 자격증명으로 로그인 시 토큰이 담긴 쿠키가 발급된다")
+        fun signIn_withValidCredentials_shouldPublishTokenCookies() {
+            val signInRequest = SignInRequest("testuser", "password")
+            val servletRequest = MockHttpServletRequest()
+            val servletResponse = MockHttpServletResponse()
+            authenticationService.signIn(signInRequest, servletRequest, servletResponse)
+            val setCookieHeaders = servletResponse.getHeaders(HttpHeaders.SET_COOKIE)
+            Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("${jwtProperties.accessToken.name}=") }
+            Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("${jwtProperties.refreshToken.name}=") }
+            val refreshTokenValue = requireNotNull(extractTokenValueFromCookie(setCookieHeaders, jwtProperties.refreshToken.name))
+            Assertions.assertThat(refreshTokenRepository.findByToken(refreshTokenValue)).isNotNull
+        }
+
+        @Test
+        @DisplayName("성공: 유효한 리프레시 토큰으로 로그아웃 시 DB에서 토큰이 삭제되고 쿠키가 만료된다")
+        fun signOut_withValidRefreshToken_shouldDeleteTokenAndExpireCookies() {
+            val refreshTokenValue = jwtProvider.generateRefreshToken(testUser.username)
+            val refreshToken = RefreshToken(testUser.username, refreshTokenValue, 3600)
+            refreshTokenRepository.save(refreshToken)
+            em.flush()
+            em.clear()
+
+            val servletRequest = MockHttpServletRequest()
+            val refreshTokenCookie = Cookie(jwtProperties.refreshToken.name, refreshTokenValue)
+            val expiryCookie = Cookie("expiry", System.currentTimeMillis().toString())
+            servletRequest.setCookies(refreshTokenCookie, expiryCookie)
+            val servletResponse = MockHttpServletResponse()
+
+            authenticationService.signOut(servletRequest, servletResponse)
+
+            Assertions.assertThat(refreshTokenRepository.findByToken(refreshTokenValue)).isNull()
+            val deletedCookies = servletResponse.getHeaders(HttpHeaders.SET_COOKIE)
+            Assertions
+                .assertThat(deletedCookies)
+                .hasSize(2)
+                .anyMatch { it.startsWith("${jwtProperties.refreshToken.name}=") && it.contains("Max-Age=0") }
+                .anyMatch { it.startsWith("expiry=") && it.contains("Max-Age=0") }
+            Assertions.assertThat(deletedCookies).noneMatch { it.startsWith("${jwtProperties.accessToken.name}=") }
+        }
+
+        @Test
+        @DisplayName("실패: 존재하지 않는 사용자로 로그인 시 예외가 발생한다")
+        fun signIn_withNonExistentUser_shouldThrowException() {
+            val request = SignInRequest("nonexistent", "password")
+            assertThrows<CustomException> {
+                authenticationService.signIn(request, MockHttpServletRequest(), MockHttpServletResponse())
+            }
+        }
+
+        @Test
+        @DisplayName("성공: 유효한 리프레시 토큰으로 요청 시 새로운 토큰들을 발급한다")
+        fun refreshToken_withValidToken_shouldPublishNewTokens() {
+            val originalRefreshToken = jwtProvider.generateRefreshToken("testuser")
+            refreshTokenRepository.save(RefreshToken("testuser", originalRefreshToken, 3600))
+            val servletRequest = MockHttpServletRequest()
+            servletRequest.setCookies(Cookie(jwtProperties.refreshToken.name, originalRefreshToken))
+            val servletResponse = MockHttpServletResponse()
+            authenticationService.refreshToken(servletRequest, servletResponse)
+            em.flush()
+            em.clear()
+            val cookies = servletResponse.getHeaders(HttpHeaders.SET_COOKIE)
+            Assertions.assertThat(cookies).anyMatch { it.startsWith("${jwtProperties.accessToken.name}=") }
+            Assertions.assertThat(cookies).anyMatch { it.startsWith("${jwtProperties.refreshToken.name}=") }
+            val newRefreshTokenValue = requireNotNull(extractTokenValueFromCookie(cookies, jwtProperties.refreshToken.name))
+            Assertions.assertThat(refreshTokenRepository.findByToken(newRefreshTokenValue)).isNotNull
+        }
+
+        @Test
+        @DisplayName("실패: 만료된 리프레시 토큰으로 요청 시 예외가 발생한다")
+        fun refreshToken_withExpiredToken_shouldThrowException() {
+            val expiredToken =
+                "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImlhdCI6MTY3MjUyODQwMCwiZXhwIjoxNjcyNTI4NDAwfQ.fake_expired_signature"
+            val servletRequest = MockHttpServletRequest()
+            servletRequest.setCookies(Cookie(jwtProperties.refreshToken.name, expiredToken))
+            assertThrows<CustomException> {
+                authenticationService.refreshToken(servletRequest, MockHttpServletResponse())
+            }
+        }
+
+        private fun extractTokenValueFromCookie(
+            cookies: List<String>,
+            cookieName: String,
+        ): String? =
+            cookies
+                .firstOrNull { it.startsWith("$cookieName=") }
+                ?.split(";")
+                ?.firstOrNull()
+                ?.split("=")
+                ?.getOrNull(1)
+    }
