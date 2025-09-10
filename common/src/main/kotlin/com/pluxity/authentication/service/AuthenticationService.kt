@@ -141,7 +141,7 @@ class AuthenticationService(
         )
         createExpiryCookie(request, response)
 
-        refreshTokenRepository.save(RefreshToken.of(user.username, newRefreshToken, jwtProperties.refreshToken.expiration.toInt()))
+        refreshTokenRepository.save(RefreshToken(user.username, newRefreshToken, jwtProperties.refreshToken.expiration.toInt()))
     }
 
     private fun createAuthCookie(

@@ -27,4 +27,4 @@ fun dummyRefreshToken(
     username: String = "username",
     token: String = "token",
     timeToLive: Int = 30,
-): RefreshToken = RefreshToken.of(username, token, timeToLive)
+): RefreshToken = RefreshToken(username, token, timeToLive)

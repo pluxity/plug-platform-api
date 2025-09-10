@@ -232,7 +232,7 @@ class UserServiceTest
 
             // 로그인한 사용자의 리프레시 토큰 저장
             refreshTokenRepository.save(
-                RefreshToken.of(loggedInUser.username, "some-token-value", 60),
+                RefreshToken(loggedInUser.username, "some-token-value", 60),
             )
 
             // when

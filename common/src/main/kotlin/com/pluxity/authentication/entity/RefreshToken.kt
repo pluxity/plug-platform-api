@@ -11,13 +11,5 @@ data class RefreshToken(
     @Indexed val token: String,
     @TimeToLive val timeToLive: Int,
 ) {
-    companion object {
-        fun of(
-            username: String,
-            token: String,
-            timeToLive: Int,
-        ): RefreshToken = RefreshToken(username, token, timeToLive)
-    }
-
     fun isValidToken(): Boolean = token.isNotBlank()
 }

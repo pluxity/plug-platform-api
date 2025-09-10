@@ -94,7 +94,7 @@ class AuthenticationServiceTest(
     @DisplayName("성공: 유효한 리프레시 토큰으로 로그아웃 시 DB에서 토큰이 삭제되고 쿠키가 만료된다")
     fun signOut_withValidRefreshToken_shouldDeleteTokenAndExpireCookies() {
         val refreshTokenValue = jwtProvider.generateRefreshToken(testUser.username)
-        val refreshToken = RefreshToken.of(testUser.username, refreshTokenValue, 3600)
+        val refreshToken = RefreshToken(testUser.username, refreshTokenValue, 3600)
         refreshTokenRepository.save(refreshToken)
         em.flush()
         em.clear()
@@ -130,7 +130,7 @@ class AuthenticationServiceTest(
     @DisplayName("성공: 유효한 리프레시 토큰으로 요청 시 새로운 토큰들을 발급한다")
     fun refreshToken_withValidToken_shouldPublishNewTokens() {
         val originalRefreshToken = jwtProvider.generateRefreshToken("testuser")
-        refreshTokenRepository.save(RefreshToken.of("testuser", originalRefreshToken, 3600))
+        refreshTokenRepository.save(RefreshToken("testuser", originalRefreshToken, 3600))
         val servletRequest = MockHttpServletRequest()
         servletRequest.setCookies(Cookie(jwtProperties.refreshToken.name, originalRefreshToken))
         val servletResponse = MockHttpServletResponse()
