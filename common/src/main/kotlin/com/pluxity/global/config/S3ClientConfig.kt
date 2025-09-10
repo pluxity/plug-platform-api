@@ -1,5 +1,6 @@
 package com.pluxity.global.config
 
+import com.pluxity.global.properties.S3Properties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
@@ -15,17 +16,17 @@ import java.net.URI
 
 @Configuration
 class S3ClientConfig(
-    private val s3Config: S3Config,
+    private val s3Properties: S3Properties,
 ) {
     @Bean
     fun s3Client(): S3Client =
         S3Client
             .builder()
-            .region(Region.of(s3Config.region))
-            .endpointOverride(URI.create(s3Config.endpointUrl))
+            .region(Region.of(s3Properties.region))
+            .endpointOverride(URI.create(s3Properties.endpointUrl))
             .credentialsProvider(
                 StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(s3Config.accessKey, s3Config.secretKey),
+                    AwsBasicCredentials.create(s3Properties.accessKey, s3Properties.secretKey),
                 ),
             ).forcePathStyle(true)
             .overrideConfiguration(
@@ -37,12 +38,21 @@ class S3ClientConfig(
 }
 
 private class PinpointHeaderRemoveInterceptor : ExecutionInterceptor {
+    companion object {
+        private const val PINPOINT_HEADER_PREFIX = "Pinpoint-"
+    }
+
     override fun modifyHttpRequest(
         context: Context.ModifyHttpRequest,
         executionAttributes: ExecutionAttributes,
     ): SdkHttpRequest {
         val request = context.httpRequest()
-        val headers = request.headers().filterKeys { !it.toString().startsWith("Pinpoint-") }
-        return request.toBuilder().headers(headers).build()
+        val filteredHeaders =
+            request
+                .headers()
+                .filter { (key, _) -> !key.startsWith(PINPOINT_HEADER_PREFIX) }
+                .toMap()
+
+        return request.toBuilder().headers(filteredHeaders).build()
     }
 }

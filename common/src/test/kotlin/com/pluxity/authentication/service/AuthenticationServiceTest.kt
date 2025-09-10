@@ -7,6 +7,7 @@ import com.pluxity.authentication.repository.RefreshTokenRepository
 import com.pluxity.authentication.security.JwtProvider
 import com.pluxity.config.MockBeansConfig
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.properties.JwtProperties
 import com.pluxity.user.entity.User
 import com.pluxity.user.repository.UserRepository
 import jakarta.persistence.EntityManager
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
@@ -36,8 +36,7 @@ class AuthenticationServiceTest(
     @Autowired private val passwordEncoder: PasswordEncoder,
     @Autowired private val jwtProvider: JwtProvider,
     @Autowired private val em: EntityManager,
-    @Value("\${jwt.refresh-token.name}") private val REFRESH_TOKEN_NAME: String,
-    @Value("\${jwt.access-token.name}") private val ACCESS_TOKEN_NAME: String,
+    @Autowired private val jwtProperties: JwtProperties,
 ) {
     private lateinit var testUser: User
 
@@ -85,9 +84,9 @@ class AuthenticationServiceTest(
         val servletResponse = MockHttpServletResponse()
         authenticationService.signIn(signInRequest, servletRequest, servletResponse)
         val setCookieHeaders = servletResponse.getHeaders(HttpHeaders.SET_COOKIE)
-        Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("$ACCESS_TOKEN_NAME=") }
-        Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("$REFRESH_TOKEN_NAME=") }
-        val refreshTokenValue = requireNotNull(extractTokenValueFromCookie(setCookieHeaders, REFRESH_TOKEN_NAME))
+        Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("${jwtProperties.accessToken.name}=") }
+        Assertions.assertThat(setCookieHeaders).anyMatch { it.startsWith("${jwtProperties.refreshToken.name}=") }
+        val refreshTokenValue = requireNotNull(extractTokenValueFromCookie(setCookieHeaders, jwtProperties.refreshToken.name))
         Assertions.assertThat(refreshTokenRepository.findByToken(refreshTokenValue)).isNotNull
     }
 
@@ -101,7 +100,7 @@ class AuthenticationServiceTest(
         em.clear()
 
         val servletRequest = MockHttpServletRequest()
-        val refreshTokenCookie = Cookie(REFRESH_TOKEN_NAME, refreshTokenValue)
+        val refreshTokenCookie = Cookie(jwtProperties.refreshToken.name, refreshTokenValue)
         val expiryCookie = Cookie("expiry", System.currentTimeMillis().toString())
         servletRequest.setCookies(refreshTokenCookie, expiryCookie)
         val servletResponse = MockHttpServletResponse()
@@ -113,9 +112,9 @@ class AuthenticationServiceTest(
         Assertions
             .assertThat(deletedCookies)
             .hasSize(2)
-            .anyMatch { it.startsWith("$REFRESH_TOKEN_NAME=") && it.contains("Max-Age=0") }
+            .anyMatch { it.startsWith("${jwtProperties.refreshToken.name}=") && it.contains("Max-Age=0") }
             .anyMatch { it.startsWith("expiry=") && it.contains("Max-Age=0") }
-        Assertions.assertThat(deletedCookies).noneMatch { it.startsWith("$ACCESS_TOKEN_NAME=") }
+        Assertions.assertThat(deletedCookies).noneMatch { it.startsWith("${jwtProperties.accessToken.name}=") }
     }
 
     @Test
@@ -133,15 +132,15 @@ class AuthenticationServiceTest(
         val originalRefreshToken = jwtProvider.generateRefreshToken("testuser")
         refreshTokenRepository.save(RefreshToken.of("testuser", originalRefreshToken, 3600))
         val servletRequest = MockHttpServletRequest()
-        servletRequest.setCookies(Cookie(REFRESH_TOKEN_NAME, originalRefreshToken))
+        servletRequest.setCookies(Cookie(jwtProperties.refreshToken.name, originalRefreshToken))
         val servletResponse = MockHttpServletResponse()
         authenticationService.refreshToken(servletRequest, servletResponse)
         em.flush()
         em.clear()
         val cookies = servletResponse.getHeaders(HttpHeaders.SET_COOKIE)
-        Assertions.assertThat(cookies).anyMatch { it.startsWith("$ACCESS_TOKEN_NAME=") }
-        Assertions.assertThat(cookies).anyMatch { it.startsWith("$REFRESH_TOKEN_NAME=") }
-        val newRefreshTokenValue = requireNotNull(extractTokenValueFromCookie(cookies, REFRESH_TOKEN_NAME))
+        Assertions.assertThat(cookies).anyMatch { it.startsWith("${jwtProperties.accessToken.name}=") }
+        Assertions.assertThat(cookies).anyMatch { it.startsWith("${jwtProperties.refreshToken.name}=") }
+        val newRefreshTokenValue = requireNotNull(extractTokenValueFromCookie(cookies, jwtProperties.refreshToken.name))
         Assertions.assertThat(refreshTokenRepository.findByToken(newRefreshTokenValue)).isNotNull
     }
 
@@ -151,7 +150,7 @@ class AuthenticationServiceTest(
         val expiredToken =
             "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImlhdCI6MTY3MjUyODQwMCwiZXhwIjoxNjcyNTI4NDAwfQ.fake_expired_signature"
         val servletRequest = MockHttpServletRequest()
-        servletRequest.setCookies(Cookie(REFRESH_TOKEN_NAME, expiredToken))
+        servletRequest.setCookies(Cookie(jwtProperties.refreshToken.name, expiredToken))
         assertThrows<CustomException> {
             authenticationService.refreshToken(servletRequest, MockHttpServletResponse())
         }

@@ -3,18 +3,16 @@ package com.pluxity.authentication.security
 import com.pluxity.authentication.repository.RefreshTokenRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.properties.JwtProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
-import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.util.WebUtils
-import java.util.Base64
 import java.util.Date
 import java.util.function.Function
 import javax.crypto.SecretKey
@@ -22,28 +20,8 @@ import javax.crypto.SecretKey
 @Service
 class JwtProvider(
     private val refreshTokenRepository: RefreshTokenRepository,
+    private val jwtProperties: JwtProperties,
 ) {
-    @Value("\${jwt.access-token.name}")
-    private lateinit var accessTokenName: String
-
-    @Value("\${jwt.access-token.secret}")
-    private lateinit var accessSecretKey: String
-
-    @Value("\${jwt.access-token.expiration}")
-    private var accessExpiration: Long = 0
-
-    @Value("\${jwt.refresh-token.secret}")
-    private lateinit var refreshSecretKey: String
-
-    @Value("\${jwt.refresh-token.expiration}")
-    private var refreshExpiration: Long = 0
-
-    @PostConstruct
-    private fun init() {
-        accessSecretKey = Base64.getEncoder().encodeToString(accessSecretKey.toByteArray())
-        refreshSecretKey = Base64.getEncoder().encodeToString(refreshSecretKey.toByteArray())
-    }
-
     fun extractUsername(
         token: String,
         isRefreshToken: Boolean = false,
@@ -69,9 +47,9 @@ class JwtProvider(
     fun generateAccessToken(
         username: String,
         extraClaims: Map<String, Any> = emptyMap(),
-    ): String = buildToken(extraClaims, username, accessExpiration, false)
+    ): String = buildToken(extraClaims, username, jwtProperties.accessToken.expiration, false)
 
-    fun generateRefreshToken(username: String): String = buildToken(emptyMap(), username, refreshExpiration, true)
+    fun generateRefreshToken(username: String): String = buildToken(emptyMap(), username, jwtProperties.refreshToken.expiration, true)
 
     private fun buildToken(
         extraClaims: Map<String, Any>,
@@ -139,11 +117,14 @@ class JwtProvider(
     }
 
     private fun getSecretKey(isRefreshToken: Boolean): SecretKey {
-        val keyBytes = Decoders.BASE64.decode(if (isRefreshToken) refreshSecretKey else accessSecretKey)
+        val keyBytes =
+            Decoders.BASE64.decode(
+                if (isRefreshToken) jwtProperties.refreshToken.secretKey else jwtProperties.accessToken.secretKey,
+            )
         return Keys.hmacShaKeyFor(keyBytes)
     }
 
-    fun getAccessTokenFromRequest(request: HttpServletRequest): String? = getJwtFromRequest(accessTokenName, request)
+    fun getAccessTokenFromRequest(request: HttpServletRequest): String? = getJwtFromRequest(jwtProperties.accessToken.name, request)
 
     fun getJwtFromRequest(
         name: String,

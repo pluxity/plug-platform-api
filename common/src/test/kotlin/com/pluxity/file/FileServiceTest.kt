@@ -9,6 +9,8 @@ import com.pluxity.file.service.FileService
 import com.pluxity.file.strategy.storage.StorageStrategy
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.properties.FileProperties
+import com.pluxity.global.properties.S3Properties
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -43,6 +45,12 @@ internal class FileServiceTest {
 
     private lateinit var testFile: MockMultipartFile
     private lateinit var tempFilePath: String
+
+    @Autowired
+    private lateinit var fileProperties: FileProperties
+
+    @Autowired
+    private lateinit var s3Properties: S3Properties
 
     @BeforeEach
     fun setUp() {
@@ -237,8 +245,8 @@ internal class FileServiceTest {
     fun getFileResponse_withLocalStrategy_returnsCorrectUrl() {
         // GIVEN: 로컬 전략을 사용하도록 서비스 필드 값을 강제로 변경하여 테스트
         ReflectionTestUtils.setField(
-            fileService,
-            "storageStrategyType",
+            fileProperties,
+            "storageStrategy",
             "local",
         )
         val file = createAndSaveTempFileEntity()
@@ -255,18 +263,18 @@ internal class FileServiceTest {
     @Test
     @DisplayName("S3 저장 전략일 때 올바른 URL 형식의 FileResponse를 반환한다")
     fun getFileResponse_withS3Strategy_returnsCorrectUrl() {
-        // GIVEN: S3 전략을 사용하도록 서비스 필드 값을 강제로 변경하여 테스트
+        // GIVEN: S3 전략을 사용하도록 값을 강제로 변경하여 테스트
         ReflectionTestUtils.setField(
-            fileService,
-            "storageStrategyType",
+            fileProperties,
+            "storageStrategy",
             "s3",
         )
         ReflectionTestUtils.setField(
-            fileService,
+            s3Properties,
             "publicUrl",
             "https://my-cdn.com",
         )
-        ReflectionTestUtils.setField(fileService, "bucket", "my-bucket")
+        ReflectionTestUtils.setField(s3Properties, "bucket", "my-bucket")
         val file = createAndSaveTempFileEntity()
 
         // WHEN

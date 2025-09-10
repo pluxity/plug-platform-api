@@ -1,8 +1,8 @@
 package com.pluxity.file.strategy.storage
 
-import com.pluxity.global.config.S3Config
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.properties.S3Properties
 import com.pluxity.global.utils.FileUtils
 import com.pluxity.global.utils.UUIDUtils
 import com.pluxity.global.utils.ZipUtils
@@ -22,7 +22,7 @@ import java.util.UUID
 private val log = KotlinLogging.logger {}
 
 class S3StorageStrategy(
-    private val s3Config: S3Config,
+    private val s3Properties: S3Properties,
     private val s3Client: S3Client,
 ) : StorageStrategy {
     override fun save(context: FileProcessingContext): String {
@@ -32,7 +32,7 @@ class S3StorageStrategy(
         val putObjectRequest =
             PutObjectRequest
                 .builder()
-                .bucket(s3Config.bucketName)
+                .bucket(s3Properties.bucket)
                 .key(s3Key)
                 .contentType(context.contentType)
                 .build()
@@ -49,9 +49,9 @@ class S3StorageStrategy(
         val copyRequest =
             CopyObjectRequest
                 .builder()
-                .sourceBucket(s3Config.bucketName)
+                .sourceBucket(s3Properties.bucket)
                 .sourceKey(oldKey)
-                .destinationBucket(s3Config.bucketName)
+                .destinationBucket(s3Properties.bucket)
                 .destinationKey(persistKey)
                 .build()
         s3Client.copyObject(copyRequest)
@@ -63,7 +63,7 @@ class S3StorageStrategy(
         val deleteRequest =
             DeleteObjectRequest
                 .builder()
-                .bucket(s3Config.bucketName)
+                .bucket(s3Properties.bucket)
                 .key(oldKey)
                 .build()
 
@@ -81,7 +81,7 @@ class S3StorageStrategy(
             val getObjectRequest =
                 GetObjectRequest
                     .builder()
-                    .bucket(s3Config.bucketName)
+                    .bucket(s3Properties.bucket)
                     .key(persistKey)
                     .build()
 
@@ -145,7 +145,7 @@ class S3StorageStrategy(
                             val putObjectRequest =
                                 PutObjectRequest
                                     .builder()
-                                    .bucket(s3Config.bucketName)
+                                    .bucket(s3Properties.bucket)
                                     .key(key)
                                     .build()
                             s3Client.putObject(putObjectRequest, RequestBody.fromFile(path.toFile()))

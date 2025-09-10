@@ -3,6 +3,7 @@ package com.pluxity.user.service
 import com.pluxity.authentication.repository.RefreshTokenRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.properties.UserProperties
 import com.pluxity.user.dto.dummyUserCreateRequest
 import com.pluxity.user.dto.dummyUserPasswordUpdateRequest
 import com.pluxity.user.dto.dummyUserRoleAssignRequest
@@ -32,6 +33,7 @@ class UserServiceKoTest :
         val passwordEncoder: PasswordEncoder = mockk()
         val refreshTokenRepository: RefreshTokenRepository = mockk()
         val userRoleRepository: UserRoleRepository = mockk()
+        val userProperties: UserProperties = mockk(relaxed = true)
         val userService =
             UserService(
                 userRepository,
@@ -39,6 +41,7 @@ class UserServiceKoTest :
                 passwordEncoder,
                 refreshTokenRepository,
                 userRoleRepository,
+                userProperties,
             )
 
         Given("사용자 상세 조회를 진행할 때") {

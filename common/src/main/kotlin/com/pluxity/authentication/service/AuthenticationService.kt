@@ -7,11 +7,11 @@ import com.pluxity.authentication.repository.RefreshTokenRepository
 import com.pluxity.authentication.security.JwtProvider
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.properties.JwtProperties
 import com.pluxity.user.entity.User
 import com.pluxity.user.repository.UserRepository
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseCookie
 import org.springframework.security.authentication.AuthenticationManager
@@ -28,19 +28,8 @@ class AuthenticationService(
     private val jwtProvider: JwtProvider,
     private val authenticationManager: AuthenticationManager,
     private val passwordEncoder: PasswordEncoder,
+    private val jwtProperties: JwtProperties,
 ) {
-    @Value("\${jwt.refresh-token.expiration}")
-    private var refreshExpiration: Int = 0
-
-    @Value("\${jwt.access-token.expiration}")
-    private var accessExpiration: Int = 0
-
-    @Value("\${jwt.access-token.name}")
-    private lateinit var accessTokenName: String
-
-    @Value("\${jwt.refresh-token.name}")
-    private lateinit var refreshTokenName: String
-
     @Transactional
     fun signUp(signUpRequest: SignUpRequest): Long {
         validateUserDoesNotExist(signUpRequest.username)
@@ -73,7 +62,7 @@ class AuthenticationService(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        val refreshToken = jwtProvider.getJwtFromRequest(refreshTokenName, request)
+        val refreshToken = jwtProvider.getJwtFromRequest(jwtProperties.refreshToken.name, request)
         refreshToken?.let {
             refreshTokenRepository
                 .findByToken(it)
@@ -87,7 +76,7 @@ class AuthenticationService(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        val refreshToken = jwtProvider.getJwtFromRequest(refreshTokenName, request)
+        val refreshToken = jwtProvider.getJwtFromRequest(jwtProperties.refreshToken.name, request)
 
         if (!jwtProvider.isRefreshTokenValid(refreshToken)) {
             throw CustomException(ErrorCode.INVALID_REFRESH_TOKEN)
@@ -123,8 +112,8 @@ class AuthenticationService(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        deleteAuthCookie(accessTokenName, request.contextPath, request, response)
-        deleteAuthCookie(refreshTokenName, "${request.contextPath}/", request, response)
+        deleteAuthCookie(jwtProperties.accessToken.name, request.contextPath, request, response)
+        deleteAuthCookie(jwtProperties.refreshToken.name, "${request.contextPath}/", request, response)
         deleteExpiryCookie(request, response)
     }
 
@@ -136,17 +125,29 @@ class AuthenticationService(
         val newAccessToken = jwtProvider.generateAccessToken(user.username)
         val newRefreshToken = jwtProvider.generateRefreshToken(user.username)
 
-        createAuthCookie(accessTokenName, newAccessToken, accessExpiration, request.contextPath, response)
-        createAuthCookie(refreshTokenName, newRefreshToken, refreshExpiration, "${request.contextPath}/", response)
+        createAuthCookie(
+            jwtProperties.accessToken.name,
+            newAccessToken,
+            jwtProperties.accessToken.expiration,
+            request.contextPath,
+            response,
+        )
+        createAuthCookie(
+            jwtProperties.refreshToken.name,
+            newRefreshToken,
+            jwtProperties.refreshToken.expiration,
+            "${request.contextPath}/",
+            response,
+        )
         createExpiryCookie(request, response)
 
-        refreshTokenRepository.save(RefreshToken.of(user.username, newRefreshToken, refreshExpiration))
+        refreshTokenRepository.save(RefreshToken.of(user.username, newRefreshToken, jwtProperties.refreshToken.expiration.toInt()))
     }
 
     private fun createAuthCookie(
         name: String,
         value: String,
-        expiry: Int,
+        expiry: Long,
         path: String,
         response: HttpServletResponse,
     ) {
@@ -156,7 +157,7 @@ class AuthenticationService(
                 .secure(false)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .maxAge(expiry.toLong())
+                .maxAge(expiry)
                 .path(path.takeIf { it.isNotBlank() } ?: "/")
                 .build()
                 .toString()
@@ -182,7 +183,7 @@ class AuthenticationService(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) {
-        val expiryTimeMillis = System.currentTimeMillis() + (refreshExpiration * 1000L)
+        val expiryTimeMillis = System.currentTimeMillis() + (jwtProperties.refreshToken.expiration * 1000L)
         val path = request.contextPath.takeIf { it.isNotEmpty() } ?: "/"
 
         val cookie =

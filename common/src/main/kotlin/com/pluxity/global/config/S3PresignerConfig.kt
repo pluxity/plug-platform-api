@@ -1,5 +1,6 @@
 package com.pluxity.global.config
 
+import com.pluxity.global.properties.S3Properties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
@@ -10,17 +11,17 @@ import java.net.URI
 
 @Configuration
 class S3PresignerConfig(
-    private val s3Config: S3Config,
+    private val s3Properties: S3Properties,
 ) {
     @Bean
     fun s3Presigner(): S3Presigner =
         S3Presigner
             .builder()
-            .region(Region.of(s3Config.region))
-            .endpointOverride(URI.create(s3Config.endpointUrl))
+            .region(Region.of(s3Properties.region))
+            .endpointOverride(URI.create(s3Properties.endpointUrl))
             .credentialsProvider(
                 StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(s3Config.accessKey, s3Config.secretKey),
+                    AwsBasicCredentials.create(s3Properties.accessKey, s3Properties.secretKey),
                 ),
             ).build()
 }

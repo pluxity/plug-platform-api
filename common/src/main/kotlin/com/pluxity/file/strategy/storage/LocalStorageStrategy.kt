@@ -2,11 +2,11 @@ package com.pluxity.file.strategy.storage
 
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.properties.FileProperties
 import com.pluxity.global.utils.FileUtils
 import com.pluxity.global.utils.UUIDUtils
 import com.pluxity.global.utils.ZipUtils
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.beans.factory.annotation.Value
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -15,10 +15,9 @@ import java.nio.file.StandardCopyOption
 
 private val log = KotlinLogging.logger {}
 
-class LocalStorageStrategy : StorageStrategy {
-    @Value("\${file.local.path}")
-    private lateinit var uploadPath: String
-
+class LocalStorageStrategy(
+    private val fileProperties: FileProperties,
+) : StorageStrategy {
     override fun save(context: FileProcessingContext): String {
         try {
             val uniqueFileName = UUIDUtils.generateUUID()
@@ -26,7 +25,7 @@ class LocalStorageStrategy : StorageStrategy {
             val fileName = uniqueFileName + fileExtension
 
             // 임시저장을 위한 temp 디렉토리 경로 (uploadPath/temp)
-            val tempDir = Paths.get(uploadPath, "temp")
+            val tempDir = Paths.get(fileProperties.local.path, "temp")
             Files.createDirectories(tempDir)
             val filePath = tempDir.resolve(fileName)
 
@@ -41,8 +40,8 @@ class LocalStorageStrategy : StorageStrategy {
 
     override fun persist(context: FilePersistenceContext): String {
         try {
-            val sourcePath = Paths.get(uploadPath, context.filePath)
-            val targetDir = Paths.get(uploadPath, context.newPath)
+            val sourcePath = Paths.get(fileProperties.local.path, context.filePath)
+            val targetDir = Paths.get(fileProperties.local.path, context.newPath)
 
             val fileName = UUIDUtils.generateShortUUID()
             val extension = FileUtils.getFileExtension(context.originalFileName)

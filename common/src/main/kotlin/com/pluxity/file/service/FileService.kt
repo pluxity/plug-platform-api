@@ -8,12 +8,12 @@ import com.pluxity.file.repository.FileRepository
 import com.pluxity.file.strategy.storage.FilePersistenceContext
 import com.pluxity.file.strategy.storage.FileProcessingContext
 import com.pluxity.file.strategy.storage.StorageStrategy
-import com.pluxity.global.config.S3Config
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.properties.FileProperties
+import com.pluxity.global.properties.S3Properties
 import com.pluxity.global.utils.FileUtils
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -29,32 +29,24 @@ private val log = KotlinLogging.logger {}
 @Service
 class FileService(
     private val s3Presigner: S3Presigner,
-    private val s3Config: S3Config,
+    private val s3Properties: S3Properties,
     private val storageStrategy: StorageStrategy,
     private val repository: FileRepository,
+    private val fileProperties: FileProperties,
 ) {
-    @Value("\${file.storage-strategy}")
-    lateinit var storageStrategyType: String
-
-    @Value("\${file.s3.bucket}")
-    lateinit var bucket: String
-
-    @Value("\${file.s3.public-url}")
-    lateinit var publicUrl: String
-
     // TODO: PreSigned URL 생성 시 추가 로직 필요 (예: Drawing / ID 등)
     fun generatePreSignedUrl(s3Key: String): String {
         val getObjectRequest =
             GetObjectRequest
                 .builder()
-                .bucket(s3Config.bucketName)
+                .bucket(s3Properties.bucket)
                 .key(s3Key)
                 .build()
 
         val presignRequest =
             GetObjectPresignRequest
                 .builder()
-                .signatureDuration(Duration.ofSeconds(s3Config.preSignedUrlExpiration.toLong()))
+                .signatureDuration(Duration.ofSeconds(s3Properties.preSignedUrlExpiration.toLong()))
                 .getObjectRequest(getObjectRequest)
                 .build()
 
@@ -154,10 +146,10 @@ class FileService(
     fun getFileResponse(fileEntity: FileEntity?): FileResponse? =
         fileEntity?.let { file ->
             val url =
-                if ("local" == storageStrategyType) {
+                if ("local" == fileProperties.storageStrategy) {
                     "/files/${file.filePath}"
                 } else {
-                    "$publicUrl/$bucket/${file.filePath}"
+                    "${s3Properties.publicUrl}/${s3Properties.bucket}/${file.filePath}"
                 }
             file.toFileResponse(url)
         }

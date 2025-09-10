@@ -1,6 +1,6 @@
 package com.pluxity.global.config
 
-import org.springframework.beans.factory.annotation.Value
+import com.pluxity.global.properties.RedisProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.RedisConnectionFactory
@@ -13,16 +13,12 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 
 @Configuration
 @EnableRedisRepositories(basePackages = ["com.pluxity"])
-class CommonRedisConfig {
-    @Value("\${spring.data.redis.host}")
-    private lateinit var host: String
-
-    @Value("\${spring.data.redis.port}")
-    private val port = 0
-
+class CommonRedisConfig(
+    private val redisProperties: RedisProperties,
+) {
     @Bean
     fun redisConnectionFactory(): RedisConnectionFactory {
-        val redisConfig = RedisStandaloneConfiguration(host, port)
+        val redisConfig = RedisStandaloneConfiguration(redisProperties.host, redisProperties.port)
         return LettuceConnectionFactory(redisConfig)
     }
 

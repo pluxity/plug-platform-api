@@ -3,6 +3,7 @@ package com.pluxity.user.service
 import com.pluxity.authentication.repository.RefreshTokenRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.properties.UserProperties
 import com.pluxity.global.utils.SortUtils
 import com.pluxity.user.dto.UserCreateRequest
 import com.pluxity.user.dto.UserLoggedInResponse
@@ -18,7 +19,6 @@ import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.repository.UserRepository
 import com.pluxity.user.repository.UserRoleRepository
 import jakarta.persistence.EntityNotFoundException
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -31,10 +31,8 @@ class UserService(
     private val passwordEncoder: PasswordEncoder,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val userRoleRepository: UserRoleRepository,
+    private val userProperties: UserProperties,
 ) {
-    @Value("\${user.init-password}")
-    private var initPassword: String? = null
-
     @Transactional(readOnly = true)
     fun findById(id: Long): UserResponse = findUserById(id).toUserResponse()
 
@@ -186,7 +184,7 @@ class UserService(
     @Transactional
     fun initPassword(id: Long) {
         val user = findUserById(id)
-        user.initPassword(passwordEncoder.encode(initPassword))
+        user.initPassword(passwordEncoder.encode(userProperties.initPassword))
     }
 
     @Transactional
