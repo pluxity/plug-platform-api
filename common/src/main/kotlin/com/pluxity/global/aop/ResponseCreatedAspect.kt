@@ -12,19 +12,12 @@ import java.net.URI
 @Component
 class ResponseCreatedAspect {
     @Around("@annotation(responseCreated)")
-    fun <ID> handleResponseCreated(
+    fun handleResponseCreated(
         joinPoint: ProceedingJoinPoint,
         responseCreated: ResponseCreated,
-    ): ResponseEntity<ID> {
+    ): ResponseEntity<Void> {
         val result = joinPoint.proceed() as ResponseEntity<*>
         val id = result.getBody()
-
-        if (id == null) {
-            val location = URI.create(responseCreated.path)
-            return ResponseEntity.created(location).build<ID>()
-        }
-
-        val location = URI.create(responseCreated.path.replace("{id}", id.toString()))
-        return ResponseEntity.created(location).build<ID>()
+        return ResponseEntity.created(URI.create(responseCreated.path.replace("{id}", id?.toString() ?: ""))).build()
     }
 }
