@@ -1,5 +1,6 @@
 package com.pluxity.permission
 
+import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.DataResponseBody
 import com.pluxity.global.response.ErrorResponseBody
 import com.pluxity.permission.dto.PermissionGroupCreateRequest
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 
 @RestController
 @RequestMapping("/permissions")
@@ -45,18 +45,10 @@ class PermissionGroupController(
         ],
     )
     @PostMapping
+    @ResponseCreated(path = "/permissions/{id}")
     fun createPermissionGroup(
         @Parameter(description = "권한 생성 정보", required = true) @RequestBody request: @Valid PermissionGroupCreateRequest,
-    ): ResponseEntity<Void> {
-        val groupId = permissionGroupService.create(request)
-        val location =
-            ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(groupId)
-                .toUri()
-        return ResponseEntity.created(location).build()
-    }
+    ): ResponseEntity<Long> = ResponseEntity.ok(permissionGroupService.create(request))
 
     @GetMapping
     @ApiResponses(
