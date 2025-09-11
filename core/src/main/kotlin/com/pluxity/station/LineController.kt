@@ -58,7 +58,7 @@ class LineController(
         ],
     )
     @PostMapping
-    @ResponseCreated
+    @ResponseCreated(path = "/lines/{id}")
     fun create(
         @Parameter(description = "호선 생성 정보", required = true) @RequestBody request: @Valid LineCreateRequest,
     ): ResponseEntity<Long> = ResponseEntity.ok(service.save(request))

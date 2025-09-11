@@ -70,7 +70,8 @@ internal class Label3DServiceTest
                 )
 
             // WHEN: 서비스 메서드 호출
-            val response = label3DService.createLabel3D(request)
+            val id = label3DService.createLabel3D(request)
+            val response = label3DService.getLabel3DById(id)
 
             // THEN
             // 1. 응답 DTO 검증

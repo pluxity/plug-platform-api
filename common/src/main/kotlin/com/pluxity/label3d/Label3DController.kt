@@ -1,5 +1,6 @@
 package com.pluxity.label3d
 
+import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.DataResponseBody
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -26,22 +27,19 @@ class Label3DController(
     private val label3DService: Label3DService,
 ) {
     @PostMapping
+    @ResponseCreated("/label-3d/{id}")
     @Operation(summary = "Label3D 생성", description = "새로운 Label3D를 생성합니다.")
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "200",
+                responseCode = "201",
                 description = "Label3D 생성 성공",
-                content = [Content(schema = Schema(implementation = Label3DResponse::class))],
             ), ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
         ],
     )
     fun create(
         @RequestBody @Valid request: Label3DCreateRequest,
-    ): ResponseEntity<DataResponseBody<Label3DResponse>> {
-        val response = label3DService.createLabel3D(request)
-        return ResponseEntity.ok(DataResponseBody(response))
-    }
+    ): ResponseEntity<String> = ResponseEntity.ok(label3DService.createLabel3D(request))
 
     @GetMapping
     @Operation(summary = "모든 Label3D 조회", description = "모든 Label3D를 조회합니다.")

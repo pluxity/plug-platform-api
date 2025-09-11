@@ -67,15 +67,7 @@ class Label3DServiceKoTest :
                 Then("성공") {
                     val result = label3DService.createLabel3D(createRequest)
 
-                    result shouldBe
-                        Label3DResponse(
-                            id = createRequest.id,
-                            displayText = createRequest.displayText!!,
-                            floorId = createRequest.floorId,
-                            position = createRequest.position,
-                            rotation = createRequest.rotation,
-                            scale = createRequest.scale,
-                        )
+                    result shouldBe createRequest.id
                 }
             }
         }
@@ -194,13 +186,13 @@ class Label3DServiceKoTest :
 
                 every { label3DRepository.findByIdOrNull(id) } returns label3D
                 every { featureService.deleteFeature(any()) } just runs
-                every { label3DRepository.delete(label3D) } just runs
+                every { label3DRepository.deleteById(id) } just runs
 
                 Then("성공") {
                     label3DService.deleteLabel3D(id)
 
                     verify(exactly = 1) { featureService.deleteFeature(any()) }
-                    verify(exactly = 1) { label3DRepository.delete(label3D) }
+                    verify(exactly = 1) { label3DRepository.deleteById(id) }
                 }
             }
 
