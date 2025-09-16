@@ -6,7 +6,6 @@ RUN apk add --no-cache dos2unix
 # Add Pinpoint
 RUN wget https://repo1.maven.org/maven2/com/navercorp/pinpoint/pinpoint-agent/3.0.3/pinpoint-agent-3.0.3.tar.gz -O - | tar -xz -C /usr/local && \
     sed -i 's/profiler.transport.grpc.collector.ip=127.0.0.1/profiler.transport.grpc.collector.ip=192.168.4.8/g' /usr/local/pinpoint-agent-3.0.3/pinpoint-root.config && \
-    sed -i 's/profiler.collector.ip=127.0.0.1/profiler.collector.ip=192.168.4.8/g' /usr/local/pinpoint-agent-3.0.3/pinpoint-root.config && \
     sed -i 's#profiler.server.excludeurl=#profiler.server.excludeurl=/actuator,/actuator/**,/swagger-ui/**,/api-docs/**#g' /usr/local/pinpoint-agent-3.0.3/pinpoint-root.config
 
 # Set the working directory inside the container
