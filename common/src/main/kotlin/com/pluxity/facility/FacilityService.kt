@@ -20,7 +20,7 @@ import com.pluxity.global.constant.ErrorCode.DUPLICATE_FACILITY_CODE
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CODE
 import com.pluxity.global.exception.CustomException
-import com.pluxity.user.entity.ExecutionPhase
+import com.pluxity.user.entity.PermissionCheckType
 import com.pluxity.user.entity.PermissionType
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -88,7 +88,7 @@ class FacilityService(
             .findByIdOrNull(id)
             ?: throw CustomException(NOT_FOUND_FACILITY, id)
 
-    @CheckPermission(type = PermissionType.ID, phase = ExecutionPhase.FILTER)
+    @CheckPermission(type = PermissionType.ID, phase = PermissionCheckType.ITEM_LIST)
     @Transactional(readOnly = true)
     fun findAll(): List<Facility> = facilityRepository.findAll()
 

@@ -2,11 +2,12 @@ package com.pluxity.global.aop
 
 import com.pluxity.global.annotation.CheckPermission
 import com.pluxity.global.constant.ErrorCode
+import com.pluxity.global.constant.SecurityConstants
 import com.pluxity.global.exception.CustomException
-import com.pluxity.user.entity.ExecutionPhase
+import com.pluxity.user.entity.PermissionCheckType
 import com.pluxity.user.entity.PermissionStrategyResolver
 import com.pluxity.user.entity.ResourceAllPermissible
-import com.pluxity.user.entity.Role
+import com.pluxity.user.entity.RoleType
 import com.pluxity.user.entity.User
 import com.pluxity.user.service.UserService
 import org.aspectj.lang.ProceedingJoinPoint
@@ -33,21 +34,23 @@ class PermissionCheckAspect(
         val returnObject = joinPoint.proceed()
 
         return when (checkPermission.phase) {
-            ExecutionPhase.AFTER -> {
+            PermissionCheckType.SINGLE_ITEM -> {
                 if (!strategy.check(user, returnObject)) {
                     throw CustomException(ErrorCode.PERMISSION_DENIED)
                 }
                 returnObject
             }
 
-            ExecutionPhase.FILTER -> {
-                if (returnObject is MutableCollection<*>) {
-                    returnObject.removeIf { item: Any? -> !strategy.check(user, item!!) }
+            PermissionCheckType.ITEM_LIST -> {
+                when (returnObject) {
+                    is MutableCollection<*> -> {
+                        returnObject.removeIf { item: Any? -> item == null || !strategy.check(user, item) }
+                    }
                 }
                 returnObject
             }
 
-            ExecutionPhase.BLOCK_ALL -> {
+            PermissionCheckType.FULL_ACCESS -> {
                 if (!strategy.check(user, ResourceAllPermissible(checkPermission.resourceType))) {
                     when (returnObject) {
                         is MutableCollection<*> -> returnObject.clear()
@@ -62,15 +65,14 @@ class PermissionCheckAspect(
     private fun getCurrentUserIfApplicable(): User? {
         val authentication =
             SecurityContextHolder.getContext().authentication
-        if (authentication == null || !authentication.isAuthenticated || "anonymousUser" == authentication.principal) {
+                ?: throw CustomException(ErrorCode.PERMISSION_DENIED)
+
+        if (!authentication.isAuthenticated || SecurityConstants.ANONYMOUS_USER == authentication.principal) {
             throw CustomException(ErrorCode.PERMISSION_DENIED)
         }
 
         val user = userService.findUserByUsername(authentication.name)
 
-        if (user.getRoles().stream().anyMatch { role: Role? -> "ADMIN" == role?.name }) {
-            return null
-        }
-        return user
+        return if (user.getRoles().any { it.name == RoleType.ADMIN.roleName }) null else user
     }
 }

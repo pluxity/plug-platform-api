@@ -41,15 +41,12 @@ class User(
     fun addRoles(roles: List<Role>) {
         val duplicateRoles = roles.filter { this.hasRole(it) }
 
-        if (!duplicateRoles.isEmpty()) {
+        if (duplicateRoles.isNotEmpty()) {
             val duplicateNames = duplicateRoles.joinToString(", ") { it.name }
-
             throw IllegalStateException("Some roles already exist for this user: $duplicateNames")
         }
 
-        for (role in roles) {
-            addRole(role)
-        }
+        roles.forEach { addRole(it) }
     }
 
     fun addRole(role: Role) {
@@ -68,14 +65,14 @@ class User(
     }
 
     fun updateRoles(newRoles: List<Role>) {
-        val newRoleIds = newRoles.map { it.id }.toSet()
+        val newRoleIds = newRoles.mapNotNull { it.id }.toSet()
 
         this.userRoles.removeIf { it.role.id !in newRoleIds }
 
-        val currentRoleIds = this.userRoles.map { it.role.id }.toSet()
+        val currentRoleIds = this.userRoles.mapNotNull { it.role.id }.toSet()
 
         newRoles
-            .filter { !currentRoleIds.contains(it.id) }
+            .filterNot { currentRoleIds.contains(it.id) }
             .forEach { addRole(it) }
     }
 
@@ -102,14 +99,9 @@ class User(
     fun canAccess(
         resourceName: String,
         resourceId: String,
-    ): Boolean {
-        if (userRoles.any { "ADMIN".equals(it.role.name, ignoreCase = true) }
-        ) {
-            return true
-        }
-
-        return userRoles.any { it.role.hasPermissionFor(resourceName, resourceId) }
-    }
+    ): Boolean =
+        userRoles.any { it.role.name == RoleType.ADMIN.roleName } ||
+                userRoles.any { it.role.hasPermissionFor(resourceName, resourceId) }
 
     fun isPasswordChangeRequired(): Boolean =
         lastPasswordChangeDate.isBefore(
