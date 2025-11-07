@@ -45,14 +45,6 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
-logbook:
-  obfuscate: # 민감 정보 마스킹 가능
-    headers:
-      - Cookie
-      - Set-Cookie
-    json-body-fields:
-      - password
-
 user:
   init-password: qwer1234
 tcp:

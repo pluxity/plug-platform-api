@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration
 import org.zalando.logbook.HttpRequest
 import org.zalando.logbook.Logbook
 import org.zalando.logbook.core.Conditions
+import org.zalando.logbook.core.HeaderFilters
+import org.zalando.logbook.json.JacksonJsonFieldBodyFilter
 import java.util.function.Predicate
 import kotlin.text.contains
 
@@ -25,6 +27,19 @@ class LogbookConfig {
         return Logbook
             .builder()
             .condition(condition)
-            .build()
+            .headerFilter(
+                HeaderFilters.replaceHeaders(
+                    { name, _ ->
+                        name.equals("Cookie", ignoreCase = true) ||
+                            name.equals("Set-Cookie", ignoreCase = true)
+                    },
+                    "<obfuscated>",
+                ),
+            ).bodyFilter(
+                JacksonJsonFieldBodyFilter(
+                    listOf("password"),
+                    "<obfuscated>",
+                ),
+            ).build()
     }
 }
