@@ -4,6 +4,7 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.response.ErrorResponseBody
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.persistence.EntityNotFoundException
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -63,17 +64,23 @@ class CustomExceptionHandler {
             ).also { log.error(e) { "EntityNotFoundException" } }
 
     @ExceptionHandler(NoResourceFoundException::class)
-    fun handleNoResourceFoundException(e: NoResourceFoundException) =
-        ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(
-                ErrorResponseBody(
-                    status = HttpStatus.NOT_FOUND,
-                    message = "해당 경로를 찾지 못했습니다. url 을 확인해주세요",
-                    code = HttpStatus.NOT_FOUND.value().toString(),
-                    error = HttpStatus.NOT_FOUND.name,
-                ),
-            ).also { log.error(e) { "NoResourceFoundException" } }
+    fun handleNoResourceFoundException(
+        e: NoResourceFoundException,
+        request: HttpServletRequest?,
+    ) = ResponseEntity
+        .status(HttpStatus.NOT_FOUND)
+        .body(
+            ErrorResponseBody(
+                status = HttpStatus.NOT_FOUND,
+                message = "해당 경로를 찾지 못했습니다. url 을 확인해주세요",
+                code = HttpStatus.NOT_FOUND.value().toString(),
+                error = HttpStatus.NOT_FOUND.name,
+            ),
+        ).also {
+            if (request?.requestURI?.contains("stomp/publish") == false) {
+                log.error(e) { "NoResourceFoundException" }
+            }
+        }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleMethodArgumentNotValid(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponseBody> {

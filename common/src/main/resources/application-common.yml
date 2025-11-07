@@ -52,12 +52,6 @@ logbook:
       - Set-Cookie
     json-body-fields:
       - password
-  predicate:
-    exclude:
-      - path: /actuator/**
-      - path: /swagger-ui/**
-      - path: /api-docs/**
-      - path: /.well-known/**
 
 user:
   init-password: qwer1234
