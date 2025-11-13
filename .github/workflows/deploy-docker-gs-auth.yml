@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t plug-platform-api:latest .
+        run: docker build gs/Dockerfile.pinpoint -t plug-platform-api:latest .
 
       - name: Save Docker image to tar
         run: |
