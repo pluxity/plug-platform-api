@@ -7,7 +7,7 @@ RUN apk add --no-cache dos2unix
 WORKDIR /app
 
 # Copy the entire project to the container
-COPY ../ .
+COPY . .
 
 RUN dos2unix ./gradlew
 
