@@ -1,0 +1,48 @@
+name: Deploy GS_AUTH API (Docker)
+
+on:
+  push:
+    branches: [ "project/gs/main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t plug-platform-api:latest .
+
+      - name: Save Docker image to tar
+        run: |
+          pwd
+          ls -al
+          docker save plug-platform-api:latest -o plug-platform-api.tar
+          chmod 644 plug-platform-api.tar
+          echo "==== after docker save ===="
+          ls -al
+          ls -al plug-platform-api.tar
+
+      - name: Upload Docker image tar to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "plug-platform-api.tar"          # 여기서는 깔끔하게 상대 경로
+          target: ${{ secrets.SERVER_PATH }}
+
+      - name: Deploy on server with docker compose
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            cd ${{ secrets.SERVER_PATH }}
+            chmod +x deploy.sh
+            ./deploy.sh
