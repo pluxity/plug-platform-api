@@ -18,7 +18,7 @@ class OnboardingService(
 ) {
 
     @Transactional
-    fun createAdminUser(request: AdminUserCreateRequest): Long? {
+    fun createAdminUser(request: AdminUserCreateRequest): Long {
         val user =
             User(
                 username = request.username,
@@ -32,8 +32,6 @@ class OnboardingService(
 
         user.addRole(role)
 
-        val createUser: User = userRepository.save(user)
-
-        return createUser.id
+        return userRepository.save(user).id!!
     }
 }
