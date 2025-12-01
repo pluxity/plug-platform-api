@@ -27,7 +27,7 @@ class OnboardingService(
                 code = null
             )
 
-        val role = roleRepository.findByName(RoleType.USER.roleName)
+        val role = roleRepository.findByName(RoleType.ADMIN.roleName)
             ?: roleRepository.save(Role(name = RoleType.ADMIN.roleName, description = "test role desc"))
 
         user.addRole(role)
