@@ -18,4 +18,6 @@ interface RoleRepository : JpaRepository<Role, Long> {
         ],
     )
     fun findByAuthIsNotOrderByCreatedAtDesc(auth: String): List<Role>
+
+    fun findByName(name: String): Role?
 }
