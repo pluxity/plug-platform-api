@@ -20,7 +20,7 @@ class Role(
     var name: String,
     @Column(name = "description", length = 100)
     var description: String?,
-    var auth: String? = "USER",
+    var auth: String? = RoleType.USER.name,
 ) : BaseEntity() {
     @OneToMany(mappedBy = "role")
     var userRoles: MutableList<UserRole> = mutableListOf()

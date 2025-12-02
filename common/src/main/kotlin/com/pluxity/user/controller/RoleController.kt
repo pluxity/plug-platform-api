@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -150,8 +151,9 @@ class RoleController(
     @PostMapping
     @ResponseCreated(path = "/roles/{id}")
     fun createRole(
+        authentication: Authentication,
         @Parameter(description = "역할 생성 정보", required = true) @RequestBody @Valid request: RoleCreateRequest,
-    ): ResponseEntity<Long> = ResponseEntity.ok(roleService.save(request))
+    ): ResponseEntity<Long> = ResponseEntity.ok(roleService.save(request, authentication))
 
     @Operation(summary = "역할 수정", description = "기존 역할의 정보를 수정합니다")
     @ApiResponses(

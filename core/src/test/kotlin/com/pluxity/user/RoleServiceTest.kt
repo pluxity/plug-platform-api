@@ -25,6 +25,7 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 
@@ -92,7 +93,8 @@ internal class RoleServiceTest
                 RoleCreateRequest("Test Role", "A role for testing", initialGroupIds)
 
             // WHEN
-            val roleId = roleService.save(createRequest)
+            val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)
+            val roleId = roleService.save(createRequest, authentication)
             em.flush()
             em.clear()
 
@@ -122,7 +124,8 @@ internal class RoleServiceTest
             val initialGroupIds = listOf(permissionGroupIds[0], permissionGroupIds[1])
             val createRequest =
                 RoleCreateRequest("Test Role", "For findById test", initialGroupIds)
-            val roleId = roleService.save(createRequest)
+            val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)
+            val roleId = roleService.save(createRequest, authentication)
             em.flush()
             em.clear()
 
@@ -152,6 +155,7 @@ internal class RoleServiceTest
         @DisplayName("Role 업데이트 후, 서비스를 통해 조회하여 변경사항과 권한 그룹 동기화를 검증한다")
         fun update_andVerifyWithService() {
             // GIVEN: 1, 2번 건물 권한 그룹을 가진 Role을 먼저 생성
+            val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)
             val roleId =
                 roleService.save(
                     RoleCreateRequest(
@@ -159,6 +163,7 @@ internal class RoleServiceTest
                         "Desc",
                         listOf(permissionGroupIds[0], permissionGroupIds[1]),
                     ),
+                    authentication,
                 )
             em.flush()
             em.clear()

@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.transaction.annotation.Transactional
 
@@ -52,7 +53,8 @@ class UserRoleTest
                         description = "Desc $i",
                         permissionGroupIds = mutableListOf(),
                     )
-                roleIds.add(roleService.save(request))
+                val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)
+                roleIds.add(roleService.save(request, authentication))
             }
             em.flush()
             em.clear()

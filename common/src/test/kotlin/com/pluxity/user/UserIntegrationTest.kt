@@ -30,6 +30,7 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.transaction.annotation.Transactional
 import kotlin.properties.Delegates
 
@@ -125,6 +126,7 @@ internal class UserIntegrationTest
                         description = "관리자",
                         permissionGroupIds = listOf(userManageGroupId, facilityReadGroupId, facilityEditGroupId),
                     ),
+                    UsernamePasswordAuthenticationToken("testUser", null, null),
                 )
             operatorRoleId =
                 roleService.save(
@@ -133,6 +135,7 @@ internal class UserIntegrationTest
                         description = "운영자",
                         permissionGroupIds = listOf(facilityReadGroupId, facilityEditGroupId),
                     ),
+                    UsernamePasswordAuthenticationToken("testUser", null, null),
                 )
             viewerRoleId =
                 roleService.save(
@@ -141,6 +144,7 @@ internal class UserIntegrationTest
                         description = "조회자",
                         permissionGroupIds = listOf(facilityReadGroupId),
                     ),
+                    UsernamePasswordAuthenticationToken("testUser", null, null),
                 )
 
             // 3. User 생성 및 Role 할당

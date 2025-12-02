@@ -137,7 +137,8 @@ internal class UserRolePermissionIntegrationTest
             // 3. [수정] "시설 관리자" 역할을 생성하면서 위에서 생성한 PermissionGroup들의 ID 목록을 전달합니다.
             val createRoleRequest =
                 RoleCreateRequest("시설 관리자", "1, 3번 시설 접근 가능", permittedGroupIds)
-            val newRoleId = roleService.save(createRoleRequest)
+            val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)
+            val newRoleId = roleService.save(createRoleRequest, authentication)
 
             // 4. 생성된 "시설 관리자" 역할을 '편집자' 사용자에게 할당합니다.
             userService.updateUserRoles(

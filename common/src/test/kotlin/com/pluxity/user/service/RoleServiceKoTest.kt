@@ -21,6 +21,7 @@ import io.mockk.runs
 import io.mockk.verify
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 
 class RoleServiceKoTest :
     BehaviorSpec({
@@ -67,7 +68,7 @@ class RoleServiceKoTest :
                 every { rolePermissionRepository.saveAll(any<List<RolePermission>>()) } returns listOf()
 
                 Then("성공") {
-                    val result = roleService.save(createRequest)
+                    val result = roleService.save(createRequest, UsernamePasswordAuthenticationToken("testUser", null, null))
                     result shouldBe 1L
                 }
             }
@@ -89,7 +90,7 @@ class RoleServiceKoTest :
                 every { roleRepository.save(any()) } returns savedRole
 
                 Then("성공") {
-                    val result = roleService.save(createRequest)
+                    val result = roleService.save(createRequest, UsernamePasswordAuthenticationToken("testUser", null, null))
                     result shouldBe 2L
                 }
             }

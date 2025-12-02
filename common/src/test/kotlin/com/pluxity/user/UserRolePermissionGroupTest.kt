@@ -10,6 +10,7 @@ import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleUpdateRequest
 import com.pluxity.user.dto.UserCreateRequest
 import com.pluxity.user.dto.UserUpdateRequest
+import com.pluxity.user.entity.RoleType
 import com.pluxity.user.repository.RolePermissionRepository
 import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.repository.UserRepository
@@ -26,6 +27,8 @@ import org.mockito.kotlin.description
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.transaction.annotation.Transactional
 import kotlin.properties.Delegates
 
@@ -92,8 +95,9 @@ internal class UserRolePermissionGroupTest
                         name = "ADMIN",
                         description = "관리자",
                         permissionGroupIds = listOf(mainFacilityGroupId, subFacilityGroupId, deviceCategoryGroupId),
-                        auth = "ADMIN",
+                        auth = RoleType.ADMIN,
                     ),
+                    UsernamePasswordAuthenticationToken("testUser", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN"))),
                 )
             operatorRoleId =
                 roleService.save(
@@ -102,6 +106,7 @@ internal class UserRolePermissionGroupTest
                         description = "운영자",
                         permissionGroupIds = listOf(mainFacilityGroupId),
                     ),
+                    UsernamePasswordAuthenticationToken("testUser", null, null),
                 ) // 운영자는 주요 시설(1, 2)만 관리
             viewerRoleId =
                 roleService.save(
@@ -110,6 +115,7 @@ internal class UserRolePermissionGroupTest
                         description = "조회자",
                         permissionGroupIds = listOf(deviceCategoryGroupId),
                     ),
+                    UsernamePasswordAuthenticationToken("testUser", null, null),
                 ) // 조회자는 장비 분류(1, 2)만 조회
 
             // 3. Users 생성 및 Roles 할당
