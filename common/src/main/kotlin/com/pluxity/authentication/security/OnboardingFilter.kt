@@ -16,7 +16,7 @@ class OnboardingFilter: OncePerRequestFilter() {
     ) {
         // 헤더 체크
         val headers = request.getHeaders("X-ONBOARDING-KEY")
-        if(headers.toList().isNotEmpty()){
+        if(headers.hasMoreElements()){
             log.info { "Hello Onboarding" }
         }
 
