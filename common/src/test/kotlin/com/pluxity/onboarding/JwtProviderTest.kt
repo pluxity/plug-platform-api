@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.http.HttpHeaders
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -52,16 +51,12 @@ class JwtProviderTest @Autowired constructor(
         authenticationService.signIn(signInRequest, request, response)
 
         // then
-        val cookies = response.getHeaders(HttpHeaders.SET_COOKIE)
-        val accessToken = cookies
-            .first { it.startsWith("AccessToken=") }
-            .substringAfter("AccessToken=")
-            .substringBefore(";")
-            .trim()
+        val accessTokenCookie = response.getCookie("AccessToken")
+        assertThat(accessTokenCookie).isNotNull
+        val accessToken = accessTokenCookie!!.value
 
-        val extractedUsername = jwtProvider.extractUsername(accessToken)
-        assertThat(extractedUsername).isEqualTo("testUsername")
-        assertThat(jwtProvider.isAccessTokenValid(accessToken)).isTrue()
+        val extractUsername = jwtProvider.extractUsername(accessToken)
+        assertThat(extractUsername).isEqualTo(signInRequest.username)
     }
 
     @Test

@@ -2,16 +2,12 @@ package com.pluxity.onboarding
 
 import com.pluxity.authentication.security.JwtProvider
 import com.pluxity.global.exception.CustomException
-import com.pluxity.user.entity.User
-import com.pluxity.user.repository.UserRepository
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.TestPropertySource
 
 @SpringBootTest
@@ -19,23 +15,7 @@ import org.springframework.test.context.TestPropertySource
 @Transactional
 class JwtExpirationTest @Autowired constructor(
     private val jwtProvider: JwtProvider,
-    private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
 ) {
-
-    private var user: User? = null
-
-    @BeforeEach
-    fun setUp() {
-        user = userRepository.save(
-            User(
-                username = "testUsername",
-                password = passwordEncoder.encode("password"),
-                name = "name",
-                code = "code"
-            )
-        )
-    }
 
     @Test
     @DisplayName("실패: 만료된 AccessToken 검증 시 CustomException이 발생한다")
