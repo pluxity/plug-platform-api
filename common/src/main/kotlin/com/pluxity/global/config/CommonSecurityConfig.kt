@@ -3,6 +3,7 @@ package com.pluxity.global.config
 import com.pluxity.authentication.security.CustomUserDetails
 import com.pluxity.authentication.security.JwtAuthenticationFilter
 import com.pluxity.authentication.security.JwtProvider
+import com.pluxity.authentication.security.OnboardingFilter
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.user.repository.UserRepository
@@ -58,6 +59,7 @@ class CommonSecurityConfig(
                     .anyRequest()
                     .authenticated()
             } // 나머지 모든 (GET이 아닌) 요청은 인증 필요
+            .addFilterBefore(onboardingFilter(), UsernamePasswordAuthenticationFilter::class.java)
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
             .sessionManagement { sessionManagement: SessionManagementConfigurer<HttpSecurity> ->
                 sessionManagement.sessionCreationPolicy(
@@ -82,6 +84,9 @@ class CommonSecurityConfig(
 
     @Bean
     fun jwtAuthenticationFilter(): JwtAuthenticationFilter = JwtAuthenticationFilter(jwtProvider, userDetailsService())
+
+    @Bean
+    fun onboardingFilter(): OnboardingFilter = OnboardingFilter()
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
