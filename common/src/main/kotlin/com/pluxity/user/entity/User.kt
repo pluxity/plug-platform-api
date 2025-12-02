@@ -100,7 +100,7 @@ class User(
         resourceName: String,
         resourceId: String,
     ): Boolean =
-        userRoles.any { it.role.name == RoleType.ADMIN.roleName } ||
+        userRoles.any { it.role.auth == RoleType.ADMIN.roleName } ||
             userRoles.any { it.role.hasPermissionFor(resourceName, resourceId) }
 
     fun isPasswordChangeRequired(): Boolean =

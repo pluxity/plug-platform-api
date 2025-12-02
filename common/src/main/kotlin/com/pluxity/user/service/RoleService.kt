@@ -30,6 +30,7 @@ class RoleService(
                 Role(
                     name = request.name,
                     description = request.description,
+                    auth = request.auth,
                 ),
             )
 

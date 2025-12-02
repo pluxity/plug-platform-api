@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.description
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -88,25 +89,26 @@ internal class UserRolePermissionGroupTest
             adminRoleId =
                 roleService.save(
                     RoleCreateRequest(
-                        "ADMIN",
-                        "관리자",
-                        listOf(mainFacilityGroupId, subFacilityGroupId, deviceCategoryGroupId),
+                        name = "ADMIN",
+                        description = "관리자",
+                        permissionGroupIds = listOf(mainFacilityGroupId, subFacilityGroupId, deviceCategoryGroupId),
+                        auth = "ADMIN",
                     ),
                 )
             operatorRoleId =
                 roleService.save(
                     RoleCreateRequest(
-                        "OPERATOR",
-                        "운영자",
-                        listOf(mainFacilityGroupId),
+                        name = "OPERATOR",
+                        description = "운영자",
+                        permissionGroupIds = listOf(mainFacilityGroupId),
                     ),
                 ) // 운영자는 주요 시설(1, 2)만 관리
             viewerRoleId =
                 roleService.save(
                     RoleCreateRequest(
-                        "VIEWER",
-                        "조회자",
-                        listOf(deviceCategoryGroupId),
+                        name = "VIEWER",
+                        description = "조회자",
+                        permissionGroupIds = listOf(deviceCategoryGroupId),
                     ),
                 ) // 조회자는 장비 분류(1, 2)만 조회
 

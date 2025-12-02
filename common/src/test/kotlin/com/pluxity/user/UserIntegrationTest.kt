@@ -121,21 +121,27 @@ internal class UserIntegrationTest
             adminRoleId =
                 roleService.save(
                     RoleCreateRequest(
-                        "ADMIN",
-                        "관리자",
-                        listOf(userManageGroupId, facilityReadGroupId, facilityEditGroupId),
+                        name = "ADMIN",
+                        description = "관리자",
+                        permissionGroupIds = listOf(userManageGroupId, facilityReadGroupId, facilityEditGroupId),
                     ),
                 )
             operatorRoleId =
                 roleService.save(
                     RoleCreateRequest(
-                        "OPERATOR",
-                        "운영자",
-                        listOf(facilityReadGroupId, facilityEditGroupId),
+                        name = "OPERATOR",
+                        description = "운영자",
+                        permissionGroupIds = listOf(facilityReadGroupId, facilityEditGroupId),
                     ),
                 )
             viewerRoleId =
-                roleService.save(RoleCreateRequest("VIEWER", "조회자", listOf(facilityReadGroupId)))
+                roleService.save(
+                    RoleCreateRequest(
+                        name = "VIEWER",
+                        description = "조회자",
+                        permissionGroupIds = listOf(facilityReadGroupId),
+                    ),
+                )
 
             // 3. User 생성 및 Role 할당
             adminUserId =

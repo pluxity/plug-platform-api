@@ -7,4 +7,5 @@ data class RoleCreateRequest(
     val name: String,
     val description: String?,
     val permissionGroupIds: List<Long> = emptyList(),
+    val auth: String? = "USER",
 )

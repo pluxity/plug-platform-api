@@ -46,7 +46,12 @@ class UserRoleTest
             // 테스트에 사용할 Role 미리 생성
             roleIds.clear()
             (1..3).forEach { i ->
-                val request = RoleCreateRequest("Test Role $i", "Desc $i", mutableListOf())
+                val request =
+                    RoleCreateRequest(
+                        name = "Test Role $i",
+                        description = "Desc $i",
+                        permissionGroupIds = mutableListOf(),
+                    )
                 roleIds.add(roleService.save(request))
             }
             em.flush()

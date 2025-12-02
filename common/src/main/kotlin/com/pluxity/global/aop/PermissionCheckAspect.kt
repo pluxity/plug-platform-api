@@ -73,6 +73,6 @@ class PermissionCheckAspect(
 
         val user = userService.findUserByUsername(authentication.name)
 
-        return if (user.getRoles().any { it.name == RoleType.ADMIN.roleName }) null else user
+        return if (user.getRoles().any { it.auth == RoleType.ADMIN.roleName }) null else user
     }
 }
