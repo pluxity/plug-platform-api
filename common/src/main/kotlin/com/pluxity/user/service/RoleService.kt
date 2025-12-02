@@ -32,7 +32,7 @@ class RoleService(
         request: RoleCreateRequest,
         authentication: Authentication,
     ): Long {
-        if (request.auth == RoleType.ADMIN && authentication.authorities.none { it.authority == "ROLE_${RoleType.ADMIN.name}" }) {
+        if (request.authority == RoleType.ADMIN && authentication.authorities.none { it.authority == "ROLE_${RoleType.ADMIN.name}" }) {
             throw CustomException(ErrorCode.PERMISSION_DENIED)
         }
         val role =
@@ -40,7 +40,7 @@ class RoleService(
                 Role(
                     name = request.name,
                     description = request.description,
-                    auth = request.auth.name,
+                    auth = request.authority.name,
                 ),
             )
 

@@ -95,7 +95,7 @@ internal class UserRolePermissionGroupTest
                         name = "ADMIN",
                         description = "관리자",
                         permissionGroupIds = listOf(mainFacilityGroupId, subFacilityGroupId, deviceCategoryGroupId),
-                        auth = RoleType.ADMIN,
+                        authority = RoleType.ADMIN,
                     ),
                     UsernamePasswordAuthenticationToken("testUser", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN"))),
                 )
