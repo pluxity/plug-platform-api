@@ -4,19 +4,12 @@ import com.pluxity.category.entity.Category
 import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.Permissible
 import jakarta.persistence.Column
-import jakarta.persistence.DiscriminatorColumn
-import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
-import jakarta.persistence.Inheritance
-import jakarta.persistence.InheritanceType
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
 @Entity
 @Table(name = "device_category")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "CATEGORY_TYPE")
-@DiscriminatorValue("DEVICE_BASE")
 class DeviceCategory(
     var categoryName: String = "",
     @Column(name = "icon_file_id")
