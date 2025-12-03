@@ -29,16 +29,17 @@ class DeviceService(
     @Transactional
     fun save(request: DeviceCreateRequest): String {
         val category = request.categoryId?.let { deviceCategoryService.findById(request.categoryId) }
-        return deviceRepository
-            .save(
-                Device(
-                    id = request.id,
-                    name = request.name,
-                    category = category,
-                    deviceType = request.deviceType,
-                    companyType = request.companyType,
-                ),
-            ).id
+
+        val device = Device(
+            id = request.id,
+            name = request.name,
+            category = null,
+            deviceType = request.deviceType,
+            companyType = request.companyType,
+        )
+
+        device.changeCategory(category)
+        return deviceRepository.save(device).id
     }
 
     @Transactional(readOnly = true)
