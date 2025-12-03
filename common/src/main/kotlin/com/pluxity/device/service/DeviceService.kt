@@ -37,9 +37,10 @@ class DeviceService(
             deviceType = request.deviceType,
             companyType = request.companyType,
         )
+        val savedDevice = deviceRepository.save(device)
+        savedDevice.changeCategory(category)
 
-        device.changeCategory(category)
-        return deviceRepository.save(device).id
+        return savedDevice.id
     }
 
     @Transactional(readOnly = true)

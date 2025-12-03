@@ -28,7 +28,7 @@ class DeviceCategory(
     }
 
     fun removeDevice(device: Device?) {
-        device?.let { devices.remove(it) }
+        device?.let { devices.removeIf { it.id == device.id } }
     }
 
     fun assignToRootPreservingEntity() {
