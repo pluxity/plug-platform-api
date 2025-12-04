@@ -58,6 +58,16 @@ class LocalStorageStrategy(
         }
     }
 
+    override fun delete(filePath: String) {
+        try {
+            val fullPath = Paths.get(fileProperties.local.path, filePath)
+            Files.deleteIfExists(fullPath)
+        } catch (e: Exception) {
+            log.error { "Failed to delete file: ${e.message}" }
+            throw CustomException(ErrorCode.FAILED_TO_DELETE_FILE)
+        }
+    }
+
     private fun decompressAndMove(
         zipFilePath: Path,
         baseDirPath: Path,

@@ -22,6 +22,7 @@ enum class ErrorCode(
     FAILED_TO_ZIP_FILE(HttpStatus.BAD_REQUEST, "파일 압축에 실패했습니다."),
     FAILED_TO_UPLOAD_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
     FAILED_TO_PROCESS_SBM_FILE(HttpStatus.BAD_REQUEST, "SBM 파일 처리에 실패했습니다."),
+    FAILED_TO_DELETE_FILE(HttpStatus.INTERNAL_SERVER_ERROR, "파일 삭제에 실패했습니다."),
 
     DUPLICATE_RESOURCE_ID(HttpStatus.BAD_REQUEST, "중복된 리소스 ID가 포함되어 있습니다."),
 

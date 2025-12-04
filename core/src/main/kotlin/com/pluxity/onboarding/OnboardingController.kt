@@ -18,6 +18,8 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -157,5 +159,56 @@ class OnboardingController(
         @Parameter(description = "건물 생성 요청 정보", required = true)
         @RequestBody @Valid request: OnboardingFacilityRequest
     ): ResponseEntity<Long> = ResponseEntity.ok(buildingService.save(request))
+
+    @Operation(
+        summary = "임시 파일 삭제",
+        description = "업로드했지만 사용하지 않는 임시 파일을 삭제합니다. TEMP 상태의 파일만 삭제 가능합니다."
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "204",
+                description = "파일 삭제 성공"
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "파일을 찾을 수 없음",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ]
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "TEMP 상태가 아닌 파일은 삭제 불가",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ]
+            )
+        ]
+    )
+    @DeleteMapping("/files/{id}")
+    fun deleteTempFile(
+        @Parameter(description = "삭제할 파일 ID", required = true, example = "123")
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
+        fileService.deleteTempFile(id)
+        return ResponseEntity.noContent().build()
+    }
 
 }

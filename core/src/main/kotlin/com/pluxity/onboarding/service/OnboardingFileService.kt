@@ -119,4 +119,42 @@ class OnboardingFileService @Autowired constructor(
         // FileEntity 상태를 COMPLETE로 변경하고 새 경로 업데이트
         file.makeComplete(path)
     }
+
+    /**
+     * TEMP 상태의 임시 파일을 삭제
+     *
+     * TEMP 상태의 파일만 삭제 가능하고, COMPLETE 상태의 파일은 삭제할 수 없음
+     *
+     * 과정:
+     * 1. fileId로 FileEntity 조회
+     * 2. TEMP 상태 검증
+     * 3. StorageStrategy를 통해 실제 파일 삭제
+     * 4. DB에서 FileEntity 삭제
+     *
+     * 사용 예)
+     * - 사용자가 파일 업로드 후 취소한 경우
+     * - 파일 업로드 후 엔티티 생성 실패한 경우
+     *
+     * @param fileId 삭제할 파일 ID
+     * @throws CustomException NOT_FOUND_FILE - 파일을 찾을 수 없음
+     * @throws CustomException INVALID_FILE_STATUS - TEMP 상태가 아닌 파일은 삭제 불가
+     * @throws CustomException FAILED_TO_DELETE_FILE - 파일 삭제 실패
+     */
+    @Transactional
+    fun deleteTempFile(fileId: Long) {
+        // id로 파일 찾기
+        val file = (fileRepository.findByIdOrNull(fileId)
+            ?: throw CustomException(ErrorCode.NOT_FOUND_FILE, fileId))
+
+        // TEMP 상태 검증
+        require(file.fileStatus == FileStatus.TEMP) {
+            throw CustomException(ErrorCode.INVALID_FILE_STATUS, "임시 파일이 아닌 경우에는 삭제할 수 없습니다")
+        }
+
+        // 스토리지에서 실제 파일 삭제 (Local 또는 S3)
+        storage.delete(file.filePath)
+
+        // DB에서 FileEntity 삭제
+        fileRepository.delete(file)
+    }
 }

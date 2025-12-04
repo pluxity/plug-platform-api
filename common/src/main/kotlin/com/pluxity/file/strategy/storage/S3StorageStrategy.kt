@@ -72,6 +72,19 @@ class S3StorageStrategy(
         return persistKey
     }
 
+    override fun delete(filePath: String) {
+        try {
+            val deleteRequest = DeleteObjectRequest.builder()
+                .bucket(s3Properties.bucket)
+                .key(filePath)
+                .build()
+            s3Client.deleteObject(deleteRequest)
+        } catch (e: Exception) {
+            log.error { "Failed to delete S3 file: ${e.message}" }
+            throw CustomException(ErrorCode.FAILED_TO_DELETE_FILE)
+        }
+    }
+
     private fun decompressAndUpload(persistKey: String) {
         var tempZipFilePath: Path? = null
         var tempDir: Path? = null
