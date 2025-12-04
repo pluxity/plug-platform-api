@@ -3,7 +3,9 @@ package com.pluxity.onboarding
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.ErrorResponseBody
 import com.pluxity.onboarding.dto.AdminUserCreateRequest
+import com.pluxity.onboarding.dto.OnboardingFacilityRequest
 import com.pluxity.onboarding.dto.OnboardingFileResponse
+import com.pluxity.onboarding.service.OnboardingBuildingService
 import com.pluxity.onboarding.service.OnboardingFileService
 import com.pluxity.onboarding.service.OnboardingUserService
 import io.swagger.v3.oas.annotations.Operation
@@ -29,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile
 class OnboardingController(
     private val userService: OnboardingUserService,
     private val fileService: OnboardingFileService,
+    private val buildingService: OnboardingBuildingService
 ) {
     @Operation(summary = "관리자 사용자 생성", description = "새로운 관리자 계정을 생성합니다")
     @ApiResponses(
@@ -109,4 +112,50 @@ class OnboardingController(
         @Parameter(description = "업로드할 파일", required = true)
         @RequestParam("file") file: MultipartFile
     ): ResponseEntity<OnboardingFileResponse> = ResponseEntity.ok(fileService.uploadFile(file))
+    @Operation(
+        summary = "건물 생성",
+        description = "새로운 건물과 층 정보를 생성합니다."
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "201",
+                description = "건물 생성 성공",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = Long::class)
+                    )
+                ]
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청 (validation 실패)",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ]
+            )
+        ]
+    )
+
+    @PostMapping("/buildings")
+    @ResponseCreated(path = "/api/v1/onboarding/buildings/{id}")
+    fun createBuilding(
+        @Parameter(description = "건물 생성 요청 정보", required = true)
+        @RequestBody @Valid request: OnboardingFacilityRequest
+    ): ResponseEntity<Long> = ResponseEntity.ok(buildingService.save(request))
+
 }

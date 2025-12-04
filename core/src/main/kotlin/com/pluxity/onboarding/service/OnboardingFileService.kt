@@ -1,7 +1,9 @@
 package com.pluxity.onboarding.service
 
+import com.pluxity.file.constant.FileStatus
 import com.pluxity.file.entity.FileEntity
 import com.pluxity.file.repository.FileRepository
+import com.pluxity.file.strategy.storage.FilePersistenceContext
 import com.pluxity.file.strategy.storage.FileProcessingContext
 import com.pluxity.file.strategy.storage.StorageStrategy
 import com.pluxity.global.constant.ErrorCode
@@ -9,6 +11,7 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.FileUtils
 import com.pluxity.onboarding.dto.OnboardingFileResponse
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -70,5 +73,50 @@ class OnboardingFileService @Autowired constructor(
         } catch (e: Exception) {
             throw CustomException(ErrorCode.FAILED_TO_UPLOAD_FILE, e.message)
         }
+    }
+
+    /**
+     * 임시 파일을 영구 저장소로 이동하고 COMPLETE 상태로 변경
+     *
+     * uploadFile()로 업로드된 TEMP 상태의 파일을
+     * 실제 엔티티(Asset, Building 등)의 최종 경로로 이동시킴
+     *
+     * 과정:
+     * 1. fileId로 FileEntity 조회
+     * 2. TEMP 상태 검증
+     * 3. StorageStrategy를 통해 파일 이동
+     *    - Local: temp/file.jpg → assets/123/file.jpg
+     *    - S3: bucket/temp/file.jpg → bucket/assets/123/file.jpg
+     * 4. FileEntity 상태를 COMPLETE로 변경 및 경로 업데이트
+     *
+     * @param fileId 영구 저장할 파일 ID
+     * @param newPath 새로운 파일 경로 (예: "assets/123/", "buildings/456/")
+     * @throws CustomException NOT_FOUND_FILE - 파일을 찾을 수 없음
+     * @throws CustomException INVALID_FILE_STATUS - TEMP 상태가 아님
+     * @throws CustomException FAILED_TO_UPLOAD_FILE - 파일 이동 실패
+     */
+    @Transactional
+    fun persistFile(fileId: Long, newPath: String) {
+        // 영구저장할 파일 조회
+        val file = fileRepository.findByIdOrNull(fileId)
+            ?: throw CustomException(ErrorCode.NOT_FOUND_FILE, fileId)
+
+        // TEMP 상태 검증
+        require(file.fileStatus == FileStatus.TEMP) {
+            throw CustomException(ErrorCode.INVALID_FILE_STATUS, "임시 파일이 아닌 경우에는 영구 저장할 수 없습니다")
+        }
+
+        // 임시 저장된 파일을 newPath로 이동
+        val path = storage.persist(
+            FilePersistenceContext(
+                filePath = file.filePath,           // 기존 파일 경로 (temp/)
+                newPath = newPath,                   // 새로운 경로 (assets/123/)
+                contentType = file.contentType,
+                originalFileName = file.originalFileName
+            )
+        )
+
+        // FileEntity 상태를 COMPLETE로 변경하고 새 경로 업데이트
+        file.makeComplete(path)
     }
 }
