@@ -34,6 +34,11 @@ class Device(
     var companyType: DeviceCompanyType,
 ) : BaseEntity(),
     Permissible {
+
+    init {
+        category?.addDevice(this)
+    }
+
     fun changeFeature(feature: Feature?) {
         this.feature = feature
     }
