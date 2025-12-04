@@ -16,6 +16,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -132,7 +133,7 @@ class OnboardingStep4DeviceFacilityTest @Autowired constructor(
         deviceRepository.flush()
 
         // 초기 상태 확인
-        val device = deviceRepository.findById(deviceId).orElse(null)!!
+        val device = deviceRepository.findByIdOrNull(deviceId)!!
         val oldCategory = device.category!!
         val categoryB = deviceCategoryService.findById(categoryBId)
 
@@ -177,7 +178,7 @@ class OnboardingStep4DeviceFacilityTest @Autowired constructor(
 
 
         // when
-        val device = deviceRepository.findByIdOrNullCustom(deviceId)!!
+        val device = deviceRepository.findByIdOrNull(deviceId)!!
         device.changeCategory(null)
         deviceRepository.flush()
 
