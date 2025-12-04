@@ -1,4 +1,4 @@
-package com.pluxity.onboarding
+package com.pluxity.onboarding.service
 
 import com.pluxity.onboarding.dto.AdminUserCreateRequest
 import com.pluxity.user.entity.Role
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class OnboardingService(
+class OnboardingUserService(
     private val roleRepository: RoleRepository,
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder
