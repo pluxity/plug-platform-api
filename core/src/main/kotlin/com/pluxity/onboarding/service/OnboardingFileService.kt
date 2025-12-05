@@ -41,8 +41,11 @@ class OnboardingFileService @Autowired constructor(
     @Transactional
     fun uploadFile(file: MultipartFile): OnboardingFileResponse {
         try {
+            val originalFileName = file.originalFilename
+                ?: throw CustomException(ErrorCode.INVALID_FILE_STATUS, "파일 원본 이름이 없습니다.")
+
             // 운영체제의 임시폴더에 파일 저장
-            val createTempFile = FileUtils.createTempFile(file.originalFilename!!)
+            val createTempFile = FileUtils.createTempFile(originalFileName)
             file.transferTo(createTempFile)
 
             // 스토리지에 저장 (Local/S3)
@@ -50,7 +53,7 @@ class OnboardingFileService @Autowired constructor(
                 FileProcessingContext(
                     contentType = FileUtils.getContentType(file),
                     tempPath = createTempFile,
-                    originalFileName = file.originalFilename!!
+                    originalFileName = originalFileName
                 )
             )
 
@@ -58,7 +61,7 @@ class OnboardingFileService @Autowired constructor(
             val savedFile = fileRepository.save(
                 FileEntity(
                     filePath = filePath,
-                    originalFileName = file.originalFilename!!,
+                    originalFileName = originalFileName,
                     contentType = FileUtils.getContentType(file)
                 )
             )
