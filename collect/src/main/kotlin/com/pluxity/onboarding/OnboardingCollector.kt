@@ -79,7 +79,7 @@ class OnboardingCollector(
             fetcher(id)
         } catch (e: Exception) {
             if (attempt < maxRetry) {
-                val delayTime = (attempt + 1) * 1000L
+                val delayTime = (1L shl attempt) * 1000L
                 println("[$id] 실패, $delayTime ms 후 재시도")
                 delay(delayTime)
                 fetchWithRetry(id, maxRetry, attempt + 1, fetcher)
