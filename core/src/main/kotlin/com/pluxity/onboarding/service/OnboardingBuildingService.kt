@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class OnboardingBuildingService @Autowired constructor(
+class OnboardingBuildingService(
     private val facilityService: OnboardingFacilityService
 ) {
     fun save(request: OnboardingFacilityRequest): Long {

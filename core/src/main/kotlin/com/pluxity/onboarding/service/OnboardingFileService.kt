@@ -105,7 +105,7 @@ class OnboardingFileService @Autowired constructor(
             ?: throw CustomException(ErrorCode.NOT_FOUND_FILE, fileId)
 
         // TEMP 상태 검증
-        require(file.fileStatus == FileStatus.TEMP) {
+        if(file.fileStatus != FileStatus.TEMP) {
             throw CustomException(ErrorCode.INVALID_FILE_STATUS, "임시 파일이 아닌 경우에는 영구 저장할 수 없습니다")
         }
 
@@ -150,7 +150,7 @@ class OnboardingFileService @Autowired constructor(
             ?: throw CustomException(ErrorCode.NOT_FOUND_FILE, fileId))
 
         // TEMP 상태 검증
-        require(file.fileStatus == FileStatus.TEMP) {
+        if(file.fileStatus != FileStatus.TEMP) {
             throw CustomException(ErrorCode.INVALID_FILE_STATUS, "임시 파일이 아닌 경우에는 삭제할 수 없습니다")
         }
 
