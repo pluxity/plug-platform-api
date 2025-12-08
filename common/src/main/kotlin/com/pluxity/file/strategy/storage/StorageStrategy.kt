@@ -4,4 +4,6 @@ interface StorageStrategy {
     fun save(context: FileProcessingContext): String
 
     fun persist(context: FilePersistenceContext): String
+
+    fun delete(filePath: String)
 }
