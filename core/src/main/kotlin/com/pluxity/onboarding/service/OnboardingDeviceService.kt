@@ -27,7 +27,7 @@ class OnboardingDeviceService(
             ?: throw CustomException(ErrorCode.NOT_FOUND_USER, userId)
 
         // 장비 조회
-        val device = deviceRepository.findByIdOrNull(deviceId)
+        val device = deviceRepository.findByIdWithCategory(deviceId)
             ?: throw CustomException(ErrorCode.NOT_FOUND_DEVICE, deviceId)
 
         // 권한 확인

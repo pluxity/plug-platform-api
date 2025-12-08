@@ -18,6 +18,7 @@ import com.pluxity.user.dto.UserCreateRequest
 import com.pluxity.user.entity.RoleType
 import com.pluxity.user.service.RoleService
 import com.pluxity.user.service.UserService
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -39,7 +40,8 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
     private val categoryService: DeviceCategoryService,
     private val permissionGroupService: PermissionGroupService,
     private val roleService: RoleService,
-    private val userService: UserService
+    private val userService: UserService,
+    private val em: EntityManager
     ) {
     private lateinit var sensorId: String
     private lateinit var cctvId: String
@@ -48,6 +50,12 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
     private var cctvPermission: Long = 0L
     private var adminRoleId: Long = 0L
     private var userRoleId: Long = 0L
+
+
+    private fun flushAndClear() {
+        em.flush()
+        em.clear()
+    }
 
     @BeforeEach
     fun setUp() {
@@ -104,6 +112,8 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
             description = "test-role-desc",
             permissionGroupIds = listOf(cctvPermission)
         ))
+
+        flushAndClear()
     }
 
     @Test
@@ -116,6 +126,8 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
             name = "관리자",
             roleIds = listOf(adminRoleId)
         ))
+
+        flushAndClear()
 
         // when & then - 센서 제어 가능
         Assertions.assertThatCode {
@@ -137,6 +149,7 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
     @Test
     @DisplayName("특정 카테고리 권한을 가진 유저는 해당 카테고리 장비만 제어 가능")
     fun userWithCategoryPermission_controlAuthorizedDevice_success() {
+
         // given: CCTV 권한만 있는 유저
         val cctvUser = userService.save(UserCreateRequest(
             username = "cctv-user",
@@ -144,6 +157,8 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
             name = "CCTV 관리자",
             roleIds = listOf(userRoleId)  // cctvPermission 포함
         ))
+
+        flushAndClear()
 
         // when & then: CCTV 제어 성공
         Assertions.assertThatCode {
@@ -164,6 +179,8 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
             name = "CCTV 전용",
             roleIds = listOf(userRoleId)
         ))
+
+        flushAndClear()
 
         // when & then: 센서 제어 시 예외
         val exception = assertThrows<CustomException> {

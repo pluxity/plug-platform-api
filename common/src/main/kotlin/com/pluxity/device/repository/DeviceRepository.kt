@@ -6,6 +6,7 @@ import com.pluxity.device.entity.DeviceCompanyType
 import com.pluxity.device.entity.DeviceType
 import com.pluxity.facility.Facility
 import com.pluxity.feature.entity.Feature
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -29,4 +30,8 @@ interface DeviceRepository :
         companyType: DeviceCompanyType,
         deviceType: DeviceType,
     ): List<Device>
+
+    @EntityGraph(attributePaths = ["category"])
+    @Query("SELECT d FROM Device d WHERE d.id = :id")
+    fun findByIdWithCategory(id: String): Device?
 }
