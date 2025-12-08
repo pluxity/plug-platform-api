@@ -23,7 +23,7 @@ class OnboardingDeviceService(
     @Transactional(readOnly = true)
     fun controlDevice(userId: Long, deviceId: String) {
         // 사용자 조회
-        val user = userRepository.findByIdOrNull(userId)
+        val user = userRepository.findWithGraphById(userId)
             ?: throw CustomException(ErrorCode.NOT_FOUND_USER, userId)
 
         // 장비 조회

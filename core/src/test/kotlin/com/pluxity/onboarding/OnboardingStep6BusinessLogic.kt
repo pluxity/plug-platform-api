@@ -41,15 +41,13 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
     private val roleService: RoleService,
     private val userService: UserService
     ) {
-    var sensorCategoryId: Long? = null
-    var cctvCategoryId: Long? = null
-    var sensorId : String? = null
-    var cctvId : String? = null
-    var allPermission: Long? = null
-    var cctvPermission: Long? = null
-    var sensorPermission: Long? = null
-    var adminRoleId: Long? = null
-    var userRoleId: Long? = null
+    private lateinit var sensorId: String
+    private lateinit var cctvId: String
+    private var sensorCategoryId: Long = 0L
+    private var cctvCategoryId: Long = 0L
+    private var cctvPermission: Long = 0L
+    private var adminRoleId: Long = 0L
+    private var userRoleId: Long = 0L
 
     @BeforeEach
     fun setUp() {
@@ -71,7 +69,7 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
         sensorId = deviceService.save(DeviceCreateRequest(
             id = "sensor-001",
             name = "센서",
-            categoryId = sensorCategoryId !!,
+            categoryId = sensorCategoryId,
             companyType = DeviceCompanyType.DAWONDNS,
             deviceType = DeviceType.TEMP_HUM
         ))
@@ -79,22 +77,9 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
         cctvId = deviceService.save(DeviceCreateRequest(
             id = "cctv-001",
             name = "CCTV",
-            categoryId = cctvCategoryId!!,
+            categoryId = cctvCategoryId,
             companyType = DeviceCompanyType.DAWONDNS,
             deviceType = DeviceType.TEMP_HUM
-        ))
-
-
-        // 2. permission-group 생성+permission 생성
-        allPermission = permissionGroupService.create(PermissionGroupCreateRequest(
-            name = "allPermission",
-            description = "모든 권한 그룹(cctv, sensor)",
-            permissions = listOf(
-                PermissionRequest(
-                    ResourceType.DEVICE_CATEGORY.name,
-                    listOf(sensorCategoryId.toString(), cctvCategoryId.toString())
-                )
-            )
         ))
 
         cctvPermission = permissionGroupService.create(PermissionGroupCreateRequest(
@@ -108,17 +93,6 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
             )
         ))
 
-        sensorPermission = permissionGroupService.create(PermissionGroupCreateRequest(
-            name = "sensorPermission",
-            description = "sensor 권한 그룹",
-            permissions = listOf(
-                PermissionRequest(
-                    ResourceType.DEVICE_CATEGORY.name,
-                    listOf(sensorCategoryId.toString())
-                )
-            )
-        ))
-
         adminRoleId = roleService.save(RoleCreateRequest(
             name = RoleType.ADMIN.name,
             description = "test-role-desc",
@@ -128,7 +102,7 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
         userRoleId = roleService.save(RoleCreateRequest(
             name = RoleType.USER.name,
             description = "test-role-desc",
-            permissionGroupIds = listOf(cctvPermission!!)
+            permissionGroupIds = listOf(cctvPermission)
         ))
     }
 
@@ -140,14 +114,14 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
             username = "admin-user",
             password = "password123",
             name = "관리자",
-            roleIds = listOf(adminRoleId!!)
+            roleIds = listOf(adminRoleId)
         ))
 
         // when & then - 센서 제어 가능
         Assertions.assertThatCode {
             deviceControlledService.controlDevice(
                 userId = admin.id,
-                deviceId = sensorId!!
+                deviceId = sensorId
             )
         }.doesNotThrowAnyException()
 
@@ -155,7 +129,7 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
         Assertions.assertThatCode {
             deviceControlledService.controlDevice(
                 userId = admin.id,
-                deviceId = cctvId!!
+                deviceId = cctvId
             )
         }.doesNotThrowAnyException()
     }
@@ -168,14 +142,14 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
             username = "cctv-user",
             password = "password123",
             name = "CCTV 관리자",
-            roleIds = listOf(userRoleId!!)  // cctvPermission 포함
+            roleIds = listOf(userRoleId)  // cctvPermission 포함
         ))
 
         // when & then: CCTV 제어 성공
         Assertions.assertThatCode {
             deviceControlledService.controlDevice(
                 userId = cctvUser.id,
-                deviceId = cctvId!!
+                deviceId = cctvId
             )
         }.doesNotThrowAnyException()
     }
@@ -188,14 +162,14 @@ class OnboardingStep6BusinessLogic @Autowired constructor(
             username = "cctv-only-user",
             password = "password123",
             name = "CCTV 전용",
-            roleIds = listOf(userRoleId!!)
+            roleIds = listOf(userRoleId)
         ))
 
         // when & then: 센서 제어 시 예외
         val exception = assertThrows<CustomException> {
             deviceControlledService.controlDevice(
                 userId = cctvUser.id,
-                deviceId = sensorId!!  // 권한 없는 센서
+                deviceId = sensorId  // 권한 없는 센서
             )
         }
 
