@@ -74,10 +74,12 @@ class S3StorageStrategy(
 
     override fun delete(filePath: String) {
         try {
-            val deleteRequest = DeleteObjectRequest.builder()
-                .bucket(s3Properties.bucket)
-                .key(filePath)
-                .build()
+            val deleteRequest =
+                DeleteObjectRequest
+                    .builder()
+                    .bucket(s3Properties.bucket)
+                    .key(filePath)
+                    .build()
             s3Client.deleteObject(deleteRequest)
         } catch (e: Exception) {
             log.error { "Failed to delete S3 file: ${e.message}" }

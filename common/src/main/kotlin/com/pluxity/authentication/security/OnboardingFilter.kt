@@ -8,20 +8,18 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 private val log = KotlinLogging.logger {}
 
-class OnboardingFilter: OncePerRequestFilter() {
+class OnboardingFilter : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        filterChain: FilterChain
+        filterChain: FilterChain,
     ) {
         // 헤더 체크
         val headers = request.getHeaders("X-ONBOARDING-KEY")
-        if(headers.hasMoreElements()){
+        if (headers.hasMoreElements()) {
             log.info { "Hello Onboarding" }
         }
 
         filterChain.doFilter(request, response)
     }
-
-
 }

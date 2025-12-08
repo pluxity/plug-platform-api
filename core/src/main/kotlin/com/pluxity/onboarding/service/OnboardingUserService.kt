@@ -14,9 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 class OnboardingUserService(
     private val roleRepository: RoleRepository,
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
 ) {
-
     @Transactional
     fun createAdminUser(request: AdminUserCreateRequest): Long {
         val user =
@@ -24,11 +23,12 @@ class OnboardingUserService(
                 username = request.username,
                 password = passwordEncoder.encode(request.password),
                 name = request.name,
-                code = null
+                code = null,
             )
 
-        val role = roleRepository.findByName(RoleType.ADMIN.roleName)
-            ?: roleRepository.save(Role(name = RoleType.ADMIN.roleName, description = "test role desc"))
+        val role =
+            roleRepository.findByName(RoleType.ADMIN.roleName)
+                ?: roleRepository.save(Role(name = RoleType.ADMIN.roleName, description = "test role desc"))
 
         user.addRole(role)
 
