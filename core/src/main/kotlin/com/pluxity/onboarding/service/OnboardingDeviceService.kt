@@ -5,7 +5,6 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.user.repository.UserRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -17,18 +16,22 @@ private val log = KotlinLogging.logger {}
 @Service
 class OnboardingDeviceService(
     private val userRepository: UserRepository,
-    private val deviceRepository: DeviceRepository
+    private val deviceRepository: DeviceRepository,
 ) {
-
     @Transactional(readOnly = true)
-    fun controlDevice(userId: Long, deviceId: String) {
+    fun controlDevice(
+        userId: Long,
+        deviceId: String,
+    ) {
         // 사용자 조회
-        val user = userRepository.findWithGraphById(userId)
-            ?: throw CustomException(ErrorCode.NOT_FOUND_USER, userId)
+        val user =
+            userRepository.findWithGraphById(userId)
+                ?: throw CustomException(ErrorCode.NOT_FOUND_USER, userId)
 
         // 장비 조회
-        val device = deviceRepository.findByIdWithCategory(deviceId)
-            ?: throw CustomException(ErrorCode.NOT_FOUND_DEVICE, deviceId)
+        val device =
+            deviceRepository.findByIdWithCategory(deviceId)
+                ?: throw CustomException(ErrorCode.NOT_FOUND_DEVICE, deviceId)
 
         // 권한 확인
         if (!user.canAccess(device.resourceType.name, device.resourceId)) {
@@ -36,6 +39,6 @@ class OnboardingDeviceService(
         }
 
         // 제어 성공 로그
-        log.info {"Device Controlled"}
+        log.info { "Device Controlled" }
     }
 }

@@ -30,13 +30,14 @@ class DeviceService(
     fun save(request: DeviceCreateRequest): String {
         val category = request.categoryId?.let { deviceCategoryService.findById(request.categoryId) }
 
-        val device = Device(
-            id = request.id,
-            name = request.name,
-            category = null,
-            deviceType = request.deviceType,
-            companyType = request.companyType,
-        )
+        val device =
+            Device(
+                id = request.id,
+                name = request.name,
+                category = null,
+                deviceType = request.deviceType,
+                companyType = request.companyType,
+            )
         val savedDevice = deviceRepository.save(device)
         savedDevice.changeCategory(category)
 

@@ -8,29 +8,29 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class OnboardingFacilityService @Autowired constructor(
-    private val facilityRepository: FacilityRepository,
-    private val fileService: OnboardingFileService
-){
-    private val prefix = "onboarding/"
+class OnboardingFacilityService
+    @Autowired
+    constructor(
+        private val facilityRepository: FacilityRepository,
+        private val fileService: OnboardingFileService,
+    ) {
+        private val prefix = "onboarding/"
 
-    @Transactional
-    fun save(
-        facility: Facility,
-        request: OnboardingFacilityRequest
-    ): Facility {
-        // facility를 저장
-        val savedFacility = facilityRepository.save(facility)
+        @Transactional
+        fun save(
+            facility: Facility,
+            request: OnboardingFacilityRequest,
+        ): Facility {
+            // facility를 저장
+            val savedFacility = facilityRepository.save(facility)
 
-        request.thumbnailId?.let { thumbnailId ->
-            val filePath = "$prefix${savedFacility.id!!}/"
+            request.thumbnailId?.let { thumbnailId ->
+                val filePath = "$prefix${savedFacility.id!!}/"
 
-            fileService.persistFile(thumbnailId, filePath)
+                fileService.persistFile(thumbnailId, filePath)
 
-            savedFacility.updateThumbnailFileId(thumbnailId)
+                savedFacility.updateThumbnailFileId(thumbnailId)
+            }
+            return savedFacility
         }
-        return savedFacility
     }
-
-
-}

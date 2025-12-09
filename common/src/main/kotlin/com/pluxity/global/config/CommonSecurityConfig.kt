@@ -52,7 +52,7 @@ class CommonSecurityConfig(
                         "/api-docs/**",
                         "/swagger-config/**",
                         "/docs/**",
-                        "/api/v1/onboarding/**"
+                        "/api/v1/onboarding/**",
                     ).permitAll() // .requestMatchers("/admin/**").hasRole("ADMIN") // TODO: 구현 완료 시 적용
                     .requestMatchers("/auth/**")
                     .permitAll() // GET 외의 /auth/** 경로도 허용
