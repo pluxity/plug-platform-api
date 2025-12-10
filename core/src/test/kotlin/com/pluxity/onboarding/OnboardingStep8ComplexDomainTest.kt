@@ -58,7 +58,7 @@ class OnboardingStep8ComplexDomainTest
 
             // then
             assertThat(result).isEqualTo(station1.id)
-            assertThat(stationLineRepository.findByStation(station1)).isNotNull
+            assertThat(stationLineRepository.findByStation(station1)).hasSize(2)
         }
 
         @Test
@@ -122,18 +122,6 @@ class OnboardingStep8ComplexDomainTest
         @Test
         @DisplayName("존재하지 않는 역 ID로 노선 삭제 시 예외가 발생한다")
         fun deleteStationLine_WithNonExistingStationId_ThrowsCustomException() {
-            val nonexistingLineId = 9999L
-
-            val exception =
-                assertThrows<CustomException> {
-                    onboardingLineService.deleteStationLine(station1.id!!, nonexistingLineId)
-                }
-            assertThat(exception.errorCode.name).isEqualTo("NOT_FOUND_LINE")
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 노선 ID로 삭제 시 예외가 발생한다")
-        fun deleteStationLine_WithNonExistingLineId_ThrowsCustomException() {
             val nonExistingStationId = 9999L
 
             val exception =
@@ -142,6 +130,18 @@ class OnboardingStep8ComplexDomainTest
                 }
 
             assertThat(exception.errorCode.name).isEqualTo("NOT_FOUND_STATION")
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 노선 ID로 삭제 시 예외가 발생한다")
+        fun deleteStationLine_WithNonExistingLineId_ThrowsCustomException() {
+            val nonexistingLineId = 9999L
+
+            val exception =
+                assertThrows<CustomException> {
+                    onboardingLineService.deleteStationLine(station1.id!!, nonexistingLineId)
+                }
+            assertThat(exception.errorCode.name).isEqualTo("NOT_FOUND_LINE")
         }
 
         @Test
