@@ -103,6 +103,8 @@ enum class ErrorCode(
     NOT_FOUND_ASSIGN_DEVICE_CATEGORY(HttpStatus.NOT_FOUND, "ID가 %s인 디바이스에 할당된 카테고리를 찾을 수 없습니다."),
 
     INVALID_RESOURCE_IDS_INCLUDED(HttpStatus.BAD_REQUEST, "요청한 리소스 ID %s 는 유효하지 않습니다."),
+
+    ALREADY_CONNECTED_LINE(HttpStatus.BAD_REQUEST, "이미 연결된 노선있습니다."),
     ;
 
     override fun getHttpStatus(): HttpStatus = httpStatus
