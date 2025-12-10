@@ -50,4 +50,6 @@ interface StationLineRepository : JpaRepository<StationLine, Long> {
         station: Station,
         line: Line,
     ): Int
+
+    fun findByStation(station: Station): List<StationLine>
 }
