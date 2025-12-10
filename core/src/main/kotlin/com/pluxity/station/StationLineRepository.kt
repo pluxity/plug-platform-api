@@ -34,9 +34,7 @@ interface StationLineRepository : JpaRepository<StationLine, Long> {
         """
         select sl
         from StationLine sl
-        join fetch sl.station s
-        join fetch sl.line l
-        where s in :stations
+        where sl.station in :stations
     """,
     )
     fun findByStationInWithLines(stations: List<Station>): List<StationLine>

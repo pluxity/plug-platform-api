@@ -104,7 +104,7 @@ enum class ErrorCode(
 
     INVALID_RESOURCE_IDS_INCLUDED(HttpStatus.BAD_REQUEST, "요청한 리소스 ID %s 는 유효하지 않습니다."),
 
-    ALREADY_CONNECTED_LINE(HttpStatus.BAD_REQUEST, "이미 연결된 노선있습니다."),
+    ALREADY_CONNECTED_LINE(HttpStatus.BAD_REQUEST, "ID가 %s 인 역에 이미 연결된 노선이 있습니다."),
     ;
 
     override fun getHttpStatus(): HttpStatus = httpStatus

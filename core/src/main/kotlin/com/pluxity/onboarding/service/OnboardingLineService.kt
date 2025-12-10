@@ -30,23 +30,23 @@ class OnboardingLineService(
 
         val foundLines = lineRepository.findAllById(lineIds)
         if (foundLines.size != lineIds.size) {
-            throw CustomException(ErrorCode.NOT_FOUND_LINE)
+            val foundLineIds = foundLines.mapNotNull { it.id }.toSet()
+            val notFoundIds = lineIds.filterNot { foundLineIds.contains(it) }
+            throw CustomException(ErrorCode.NOT_FOUND_LINE, notFoundIds.joinToString())
         }
 
         if (stationLineRepository.existsByStationAndLineIn(foundStation, foundLines)) {
-            throw CustomException(ErrorCode.ALREADY_CONNECTED_LINE, "이미 연결된 노선있습니다.")
+            throw CustomException(ErrorCode.ALREADY_CONNECTED_LINE, foundStation.id)
         }
 
         foundLines.forEach { line ->
-            stationLineRepository
-                .save(
-                    StationLine(
-                        station = foundStation,
-                        line = line,
-                    ),
-                ).let {
-                    line.addStationLine(it)
-                }
+            val stationLine =
+                StationLine(
+                    station = foundStation,
+                    line = line,
+                )
+            stationLineRepository.save(stationLine)
+            line.addStationLine(stationLine)
         }
 
         return stationId
@@ -75,22 +75,20 @@ class OnboardingLineService(
     // 환승역 조회
     @Transactional(readOnly = true)
     fun findStationTwoLine(): List<OnboardingStationResponse> {
-        val result = mutableListOf<OnboardingStationResponse>()
-
         val stations = stationLineRepository.findStationIdsWithMultipleLines()
+        if (stations.isEmpty()) {
+            return emptyList()
+        }
+
         val stationLines = stationLineRepository.findByStationInWithLines(stations)
 
-        stationLines
-            .groupBy { it.station.id }
-            .map { (stationId, lines) ->
-                val station = lines.first().station
-                result.add(
-                    OnboardingStationResponse(
-                        name = station.name,
-                        lines = lines.map { OnboardingLineResponse(it.line.name!!) },
-                    ),
+        return stationLines
+            .groupBy { it.station }
+            .map { (station, lines) ->
+                OnboardingStationResponse(
+                    name = station.name,
+                    lines = lines.map { OnboardingLineResponse(it.line.name!!) },
                 )
             }
-        return result
     }
 }

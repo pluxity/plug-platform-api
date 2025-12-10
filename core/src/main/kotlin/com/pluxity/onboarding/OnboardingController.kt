@@ -332,12 +332,12 @@ class OnboardingController(
             ),
         ],
     )
-    @DeleteMapping("station/{id}/lines")
+    @DeleteMapping("stations/{id}/{lineId}")
     fun deleteStationLine(
         @Parameter(description = "역 ID", required = true, example = "1")
         @PathVariable id: Long,
         @Parameter(description = "삭제할 노선 ID", required = true, example = "169")
-        @RequestBody lineId: Long,
+        @PathVariable lineId: Long,
     ): ResponseEntity<Void?> {
         lineService.deleteStationLine(id, lineId)
         return ResponseEntity.noContent().build<Void?>()
@@ -350,7 +350,7 @@ class OnboardingController(
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "200",
+                responseCode = "204",
                 description = "환승역 조회 성공",
                 content = [
                     Content(
@@ -371,6 +371,6 @@ class OnboardingController(
             ),
         ],
     )
-    @GetMapping("/station/two-line")
+    @GetMapping("/stations/transfer")
     fun findStationTwoLine(): ResponseEntity<List<OnboardingStationResponse>> = ResponseEntity.ok(lineService.findStationTwoLine())
 }
