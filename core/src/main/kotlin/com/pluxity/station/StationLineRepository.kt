@@ -51,5 +51,24 @@ interface StationLineRepository : JpaRepository<StationLine, Long> {
         line: Line,
     ): Int
 
+    /**
+     *  test용
+     */
     fun findByStation(station: Station): List<StationLine>
+
+    fun existsByStationId(stationId: Long): Boolean
+
+    fun existsByStation(station: Station): Boolean
+
+    fun findByStationId(stationId: Long): List<StationLine>
+
+    @Query(
+        """
+        select sl
+        from StationLine sl
+        join fetch sl.station s
+        where s.id = :stationId
+    """,
+    )
+    fun findByStationIdWithQuery(stationId: Long): List<StationLine>
 }
