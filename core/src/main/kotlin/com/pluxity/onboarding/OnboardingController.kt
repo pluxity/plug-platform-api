@@ -5,8 +5,10 @@ import com.pluxity.global.response.ErrorResponseBody
 import com.pluxity.onboarding.dto.AdminUserCreateRequest
 import com.pluxity.onboarding.dto.OnboardingFacilityRequest
 import com.pluxity.onboarding.dto.OnboardingFileResponse
+import com.pluxity.onboarding.dto.OnboardingStationResponse
 import com.pluxity.onboarding.service.OnboardingBuildingService
 import com.pluxity.onboarding.service.OnboardingFileService
+import com.pluxity.onboarding.service.OnboardingLineService
 import com.pluxity.onboarding.service.OnboardingUserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -35,6 +37,7 @@ class OnboardingController(
     private val userService: OnboardingUserService,
     private val fileService: OnboardingFileService,
     private val buildingService: OnboardingBuildingService,
+    private val lineService: OnboardingLineService,
     private val collector: OnboardingCollector,
 ) {
     @Operation(summary = "관리자 사용자 생성", description = "새로운 관리자 계정을 생성합니다")
@@ -245,4 +248,129 @@ class OnboardingController(
     )
     @GetMapping("/collect")
     suspend fun collectData(): ResponseEntity<List<MockData>> = ResponseEntity.ok(collector.collectData())
+
+    @Operation(
+        summary = "역에 노선 추가",
+        description = "특정 역에 여러 노선을 연결합니다. 이미 연결된 노선이 있으면 예외가 발생합니다.",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "201",
+                description = "노선 연결 성공",
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "역 또는 노선을 찾을 수 없음",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "이미 연결된 노선이 있음",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ],
+            ),
+        ],
+    )
+    @PostMapping("/stations/{id}/lines")
+    @ResponseCreated(path = "/api/v1/onboarding/stations/{id}/lines")
+    fun putStationLine(
+        @Parameter(description = "역 ID", required = true, example = "1")
+        @PathVariable id: Long,
+        @Parameter(description = "연결할 노선 ID 목록", required = true)
+        @RequestBody lineIds: List<Long>,
+    ): ResponseEntity<Long> = ResponseEntity.ok(lineService.putStationLine(stationId = id, lineIds))
+
+    @Operation(
+        summary = "역에서 노선 삭제",
+        description = "특정 역에서 노선 연결을 제거합니다.",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "노선 연결 삭제 성공",
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "역, 노선 또는 연결 정보를 찾을 수 없음",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ],
+            ),
+        ],
+    )
+    @DeleteMapping("stations/{id}/{lineId}")
+    fun deleteStationLine(
+        @Parameter(description = "역 ID", required = true, example = "1")
+        @PathVariable id: Long,
+        @Parameter(description = "삭제할 노선 ID", required = true, example = "169")
+        @PathVariable lineId: Long,
+    ): ResponseEntity<Void?> {
+        lineService.deleteStationLine(id, lineId)
+        return ResponseEntity.noContent().build<Void?>()
+    }
+
+    @Operation(
+        summary = "환승역 조회",
+        description = "2개 이상의 노선이 지나가는 역(환승역) 목록을 조회합니다.",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "204",
+                description = "환승역 조회 성공",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = OnboardingStationResponse::class),
+                    ),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(implementation = ErrorResponseBody::class),
+                    ),
+                ],
+            ),
+        ],
+    )
+    @GetMapping("/stations/transfer")
+    fun findStationTwoLine(): ResponseEntity<List<OnboardingStationResponse>> = ResponseEntity.ok(lineService.findStationTwoLine())
 }
