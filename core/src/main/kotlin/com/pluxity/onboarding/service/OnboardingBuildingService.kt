@@ -1,7 +1,7 @@
 package com.pluxity.onboarding.service
 
-import com.pluxity.building.Building
 import com.pluxity.onboarding.dto.OnboardingFacilityRequest
+import com.pluxity.station.Station
 import org.springframework.stereotype.Service
 
 @Service
@@ -10,7 +10,7 @@ class OnboardingBuildingService(
 ) {
     fun save(request: OnboardingFacilityRequest): Long {
         val building =
-            Building(
+            Station(
                 name = request.name,
                 description = request.description,
             )
