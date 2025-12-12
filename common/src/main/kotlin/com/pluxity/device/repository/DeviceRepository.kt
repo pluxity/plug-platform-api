@@ -34,4 +34,8 @@ interface DeviceRepository :
     @EntityGraph(attributePaths = ["category"])
     @Query("SELECT d FROM Device d WHERE d.id = :id")
     fun findByIdWithCategory(id: String): Device?
+
+    @EntityGraph(attributePaths = ["feature", "feature.facility"])
+    @Query("SELECT d FROM Device d WHERE d.id in :ids")
+    fun findByIdInWithFeatureAndFacility(ids: List<String>): List<Device>?
 }
