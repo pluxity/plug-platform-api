@@ -1,10 +1,7 @@
 package com.pluxity.onboarding
 
+import com.pluxity.climate.ClimateData
 import com.pluxity.config.WebClientFactory
-import com.pluxity.device.entity.Device
-import com.pluxity.device.repository.DeviceRepository
-import jakarta.transaction.Transactional
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -25,14 +22,11 @@ import org.springframework.web.reactive.function.client.awaitBody
 @Component
 class OnboardingCollector(
     clientFactory: WebClientFactory,
-    private val deviceRepository: DeviceRepository,
 ) {
     private val client = clientFactory.createClient("https://7f32047a-4f04-4221-bcd3-34e6a3534d85.mock.pstmn.io")
 
-    @Transactional
-    suspend fun collectData(): List<MockData> {
+    suspend fun collectData(): List<ClimateData> {
         val mockData = getMockData()
-        saveMockData(mockData)
         return mockData
     }
 
@@ -46,19 +40,19 @@ class OnboardingCollector(
      * @return 수집된 MockData 리스트 (최대 5개)
      *
      */
-    suspend fun getMockData(fetcher: suspend (Int) -> MockData = { id -> fetchData(id) }): List<MockData> =
+    suspend fun getMockData(fetcher: suspend (Int) -> ClimateData = { id -> fetchData(id) }): List<ClimateData> =
         supervisorScope {
             (1..5)
                 .map { i ->
                     println("[$i] 시작 - ${Thread.currentThread().name}")
-                    async(Dispatchers.IO) { fetchWithRetry(id = i, fetcher = fetcher) } // 여기서 await() 하면 요청하고 바로 응답을 기다리기 떄문에 직렬처리됨
+                    async { fetchWithRetry(id = i, fetcher = fetcher) } // 여기서 await() 하면 요청하고 바로 응답을 기다리기 떄문에 직렬처리됨
                 }.awaitAll()
         }
 
     /**
      *   WebClient를 사용하여 비동기로 HTTP GET 요청을 수행
      */
-    suspend fun fetchData(id: Int): MockData =
+    suspend fun fetchData(id: Int): ClimateData =
         client
             .get()
             .uri("?deviceId=$id")
@@ -72,8 +66,8 @@ class OnboardingCollector(
         id: Int,
         maxRetry: Int = 3,
         attempt: Int = 0,
-        fetcher: suspend (Int) -> MockData,
-    ): MockData =
+        fetcher: suspend (Int) -> ClimateData,
+    ): ClimateData =
         try {
             println("[$id] 시도 ${attempt + 1}/${maxRetry + 1}")
             fetcher(id)
@@ -88,18 +82,4 @@ class OnboardingCollector(
                 throw e
             }
         }
-
-    private fun saveMockData(dataList: List<MockData>) {
-        val deviceList =
-            dataList.map { data ->
-                Device(
-                    id = data.id,
-                    name = data.name,
-                    deviceType = data.deviceType,
-                    companyType = data.companyType,
-                )
-            }
-
-        deviceRepository.saveAll(deviceList)
-    }
 }
