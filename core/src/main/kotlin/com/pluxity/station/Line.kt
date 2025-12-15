@@ -20,7 +20,7 @@ class Line(
         nullable = false,
         length = 50,
     )
-    var name: String?,
+    var name: String,
     var color: String?,
 ) : BaseEntity() {
     @OneToMany(mappedBy = "line")

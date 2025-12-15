@@ -11,12 +11,12 @@ class ClimateData(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-    var deviceId: String? = null,
-    var temperature: Double? = null,
-    var humidity: Double? = null,
-    var status: Int? = null,
-    var firmwareVersion: String? = null,
-    var battery: Double? = null,
+    var deviceId: String,
+    var temperature: Double,
+    var humidity: Double,
+    var status: Int,
+    var firmwareVersion: String,
+    var battery: Double,
     var createdAt: LocalDateTime = LocalDateTime.now(),
-    var uploadTime: LocalDateTime? = null,
+    var uploadTime: LocalDateTime,
 )
