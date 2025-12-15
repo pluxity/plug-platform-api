@@ -1,5 +1,6 @@
 package com.pluxity.onboarding
 
+import com.pluxity.climate.ClimateData
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.ErrorResponseBody
 import com.pluxity.onboarding.dto.AdminUserCreateRequest
@@ -247,7 +248,7 @@ class OnboardingController(
         ],
     )
     @GetMapping("/collect")
-    suspend fun collectData(): ResponseEntity<List<MockData>> = ResponseEntity.ok(collector.collectData())
+    suspend fun collectData(): ResponseEntity<List<ClimateData>> = ResponseEntity.ok(collector.collectData())
 
     @Operation(
         summary = "역에 노선 추가",

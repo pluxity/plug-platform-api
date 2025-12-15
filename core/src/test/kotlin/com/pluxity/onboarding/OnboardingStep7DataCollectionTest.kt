@@ -1,7 +1,6 @@
 package com.pluxity.onboarding
 
-import com.pluxity.device.entity.DeviceCompanyType
-import com.pluxity.device.entity.DeviceType
+import com.pluxity.climate.ClimateData
 import io.mockk.mockk
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -13,7 +12,6 @@ class OnboardingStep7DataCollectionTest {
     private val service =
         OnboardingCollector(
             clientFactory = mockk(relaxed = true),
-            deviceRepository = mockk(relaxed = true),
         )
 
     @Test
@@ -24,16 +22,14 @@ class OnboardingStep7DataCollectionTest {
             val callTimestamps = mutableListOf<Pair<Int, Long>>()
 
             // 코루틴의 각 호출의 시작 시간을 기록하여 병렬성 검증
-            val mockFetcher: suspend (Int) -> MockData = { id ->
+            val mockFetcher: suspend (Int) -> ClimateData = { id ->
                 val startTime = System.currentTimeMillis() // 시작 시간
                 callTimestamps.add(id to startTime)
                 println("[$id] 호출 시작: $startTime")
                 delay(1000)
-                MockData(
-                    id = "test-device-id",
-                    name = "test-device-name",
-                    deviceType = DeviceType.TEMP_HUM,
-                    companyType = DeviceCompanyType.DAWONDNS,
+                ClimateData(
+                    deviceId = "test-device-id",
+                    temperature = 20.0,
                 )
             }
 
@@ -59,7 +55,7 @@ class OnboardingStep7DataCollectionTest {
         runBlocking {
             // given
             var callCount = 0
-            val mockFetcher: suspend (Int) -> MockData = { id ->
+            val mockFetcher: suspend (Int) -> ClimateData = { id ->
                 callCount++
                 println("Mock 호출 횟수: $callCount")
 
@@ -67,11 +63,9 @@ class OnboardingStep7DataCollectionTest {
                     1 -> throw RuntimeException("1번 실패")
                     2 -> throw RuntimeException("2번 실패")
                     else ->
-                        MockData(
-                            id = "test-device-id",
-                            name = "test-device-name",
-                            deviceType = DeviceType.TEMP_HUM,
-                            companyType = DeviceCompanyType.DAWONDNS,
+                        ClimateData(
+                            deviceId = "test-device-id",
+                            temperature = 20.0,
                         )
                 }
             }
@@ -80,6 +74,6 @@ class OnboardingStep7DataCollectionTest {
             val result = service.fetchWithRetry(1, fetcher = mockFetcher)
 
             assertEquals(3, callCount)
-            assertEquals("test-device-id", result.id)
+            assertEquals("test-device-id", result.deviceId)
         }
 }
