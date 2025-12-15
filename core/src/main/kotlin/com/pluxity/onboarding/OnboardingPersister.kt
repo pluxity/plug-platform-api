@@ -24,7 +24,7 @@ class OnboardingPersister(
     private fun sendAlert(dataList: List<ClimateData>) {
         val targetDeviceIds =
             dataList
-                .filter { it.temperature!! >= 80 }
+                .filter { it.temperature != null && it.temperature!! >= 80 }
                 .mapNotNull { it.deviceId }
                 .distinct()
 

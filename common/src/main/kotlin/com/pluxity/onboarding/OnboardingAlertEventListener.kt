@@ -18,21 +18,21 @@ class OnboardingAlertEventListener(
     @EventListener
     @Transactional
     fun handleAlert(event: AlertEvent) {
-        val devices = deviceRepository.findByIdInWithFeatureAndFacility(event.targetDeviceIds) ?: return
+        val devices = deviceRepository.findByIdInWithFeatureAndFacility(event.targetDeviceIds)
 
         devices.forEach { device ->
-            val facility = device.feature?.facility ?: return
+            val facility = device.feature?.facility ?: return@forEach
             val users = userRepository.findByPermission(ResourceType.FACILITY.name, facility.id!!)
 
-            users.forEach { user ->
-                alertRepository.save(
+            val alerts =
+                users.map { user ->
                     Alert(
                         user = user,
                         facility = facility,
                         device = device,
-                    ),
-                )
-            }
+                    )
+                }
+            alertRepository.saveAll(alerts)
         }
     }
 }

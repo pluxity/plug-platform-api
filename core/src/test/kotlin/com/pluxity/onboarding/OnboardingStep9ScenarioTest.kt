@@ -32,11 +32,13 @@ import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.util.concurrent.TimeUnit
 
 @SpringBootTest
-class OnboardingStep9Scenario
+@ActiveProfiles("test")
+class OnboardingStep9ScenarioTest
     @Autowired
     constructor(
         private val job: OnboardingJob,

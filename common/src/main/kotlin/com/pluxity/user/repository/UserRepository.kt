@@ -1,11 +1,11 @@
 package com.pluxity.user.repository
 
 import com.pluxity.user.entity.User
-import io.lettuce.core.dynamic.annotation.Param
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 
 interface UserRepository : JpaRepository<User, Long> {
     @EntityGraph(
