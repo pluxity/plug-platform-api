@@ -8,7 +8,7 @@ import com.pluxity.station.Line
 data class LineResponse(
     val id: Long?,
     val color: String?,
-    val name: String?,
+    val name: String,
     val stationIds: List<Long>,
     @field:JsonUnwrapped val baseResponse: BaseResponse,
 )

@@ -24,10 +24,11 @@ class FacilityPath(
     @JoinColumn(name = "facility_id")
     @NotFound(action = NotFoundAction.IGNORE)
     var facility: Facility? = null,
+    @Column(nullable = false)
     var name: String,
     @Enumerated(EnumType.STRING)
     var pathType: PathType,
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text", nullable = false)
     var path: String,
 ) : BaseEntity() {
     @Id
