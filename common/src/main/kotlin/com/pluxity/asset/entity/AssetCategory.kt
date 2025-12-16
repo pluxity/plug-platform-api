@@ -9,8 +9,8 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "asset_category")
 class AssetCategory(
-    @Column(name = "code", unique = true, length = 50)
-    var code: String? = null,
+    @Column(name = "code", unique = true, length = 50, nullable = false)
+    var code: String,
     @Column(name = "icon_file_id")
     var iconFileId: Long? = null,
     var categoryName: String,
@@ -22,20 +22,18 @@ class AssetCategory(
         this.iconFileId = iconFileId
     }
 
-    fun updateCode(code: String?) {
+    fun updateCode(code: String) {
         this.code = code
     }
 
-    fun addAsset(asset: Asset?) {
-        asset?.let {
-            if (!this.assets.contains(it)) {
-                this.assets.add(it)
-            }
+    fun addAsset(asset: Asset) {
+        if (!this.assets.contains(asset)) {
+            this.assets.add(asset)
         }
     }
 
-    fun removeAsset(asset: Asset?) {
-        asset?.let { this.assets.remove(it) }
+    fun removeAsset(asset: Asset) {
+        this.assets.remove(asset)
     }
 
     override val maxDepth: Int

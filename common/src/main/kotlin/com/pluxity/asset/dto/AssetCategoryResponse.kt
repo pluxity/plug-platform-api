@@ -9,7 +9,7 @@ data class AssetCategoryResponse(
     @field:Schema(description = "카테고리 ID", example = "1")
     val id: Long?,
     @field:Schema(description = "카테고리 이름", example = "그래픽 에셋")
-    val name: String?,
+    val name: String,
     @field:Schema(description = "카테고리 코드", example = "GRAPHIC_ASSET")
     val code: String?,
     @field:Schema(description = "부모 카테고리 ID", example = "2")
