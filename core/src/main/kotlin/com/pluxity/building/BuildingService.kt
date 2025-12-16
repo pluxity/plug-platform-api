@@ -29,7 +29,7 @@ class BuildingService(
         val saved = facilityService.save(building, request.facility)
 
         floorService.save(saved, request.floors)
-        return saved.id!!
+        return saved.id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
     }
 
     @Transactional(readOnly = true)

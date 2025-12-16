@@ -22,7 +22,7 @@ abstract class CategoryService<T : Category<T>> {
         repository
             .save(
                 category.apply { assignToParent(parent) },
-            ).id!!
+            ).id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
 
     @Transactional
     open fun update(

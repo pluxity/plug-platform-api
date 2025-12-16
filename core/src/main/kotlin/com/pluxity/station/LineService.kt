@@ -26,7 +26,7 @@ class LineService(
                 name = request.name,
                 color = request.color,
             )
-        return lineRepository.save(line).id!!
+        return lineRepository.save(line).id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
     }
 
     @Transactional(readOnly = true)

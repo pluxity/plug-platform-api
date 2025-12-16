@@ -46,7 +46,7 @@ class PermissionGroupService(
             }
         }
 
-        return permissionGroupRepository.save(permissionGroup).id!!
+        return permissionGroupRepository.save(permissionGroup).id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
     }
 
     @Transactional(readOnly = true)

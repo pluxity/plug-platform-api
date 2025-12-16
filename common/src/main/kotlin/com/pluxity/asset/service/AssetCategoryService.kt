@@ -11,6 +11,7 @@ import com.pluxity.category.dto.CategoryDepthResponse
 import com.pluxity.category.service.CategoryService
 import com.pluxity.file.extensions.getFileMapById
 import com.pluxity.file.service.FileService
+import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.SortUtils
 import org.springframework.data.jpa.repository.JpaRepository
@@ -65,7 +66,7 @@ class AssetCategoryService(
             fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${category.id}")
         }
 
-        return category.id!!
+        return category.id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
     }
 
     @Transactional

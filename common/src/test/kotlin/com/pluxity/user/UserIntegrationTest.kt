@@ -368,7 +368,7 @@ internal class UserIntegrationTest
             em.clear()
 
             // THEN 3
-            assertThrows<EntityNotFoundException> {
+            assertThrows<CustomException> {
                 roleService.findById(operatorRoleId)
             }
             Assertions.assertThat(roleRepository.count()).isEqualTo(2)
