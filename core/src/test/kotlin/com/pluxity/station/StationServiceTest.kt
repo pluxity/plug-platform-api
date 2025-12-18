@@ -42,8 +42,8 @@ internal class StationServiceTest
             // GIVEN: 역 생성에 필요한 모든 데이터 준비 (파일, 층, 노선, 역코드)
             val drawingFileId = testFileUploader.initiateTestFileUpload("station.dwg")
             val thumbnailFileId = testFileUploader.initiateTestFileUpload("thumbnail.png")
-            val line2Id = createAndSaveLine("2호선", "LINE_2").requiredId()
-            val lineSinbundangId = createAndSaveLine("신분당선", "LINE_SIN").requiredId()
+            val line2Id = createAndSaveLine("2호선", "LINE_2").requiredId
+            val lineSinbundangId = createAndSaveLine("신분당선", "LINE_SIN").requiredId
 
             val request =
                 StationCreateRequest(
@@ -161,7 +161,7 @@ internal class StationServiceTest
         @DisplayName("성공: 전체 역 조회 시 상세 정보가 포함된 목록을 반환한다")
         fun findAll_ReturnsListOfDetailedResponses() {
             // GIVEN: 2개의 서로 다른 역 생성
-            val line1Id = createAndSaveLine("1호선", "L1").requiredId()
+            val line1Id = createAndSaveLine("1호선", "L1").requiredId
             stationService.save(
                 StationCreateRequest(
                     FacilityCreateRequest("역A", "STA_A", null, null, null, null, null, null),
@@ -207,8 +207,8 @@ internal class StationServiceTest
         @DisplayName("성공(PUT): 모든 필드를 교체하는 수정 요청 시, null/빈리스트로 보낸 필드는 DB에서 삭제/초기화된다")
         fun putUpdate_FullReplace_ReplacesAllFields() {
             // GIVEN: 원본 데이터 생성
-            val lineAId = createAndSaveLine("A노선", "LA").requiredId()
-            val lineBId = createAndSaveLine("B노선", "LB").requiredId()
+            val lineAId = createAndSaveLine("A노선", "LA").requiredId
+            val lineBId = createAndSaveLine("B노선", "LB").requiredId
             val stationId =
                 stationService.save(
                     StationCreateRequest(
@@ -218,7 +218,7 @@ internal class StationServiceTest
                         mutableListOf("A01"),
                     ),
                 )
-            val lineCId = createAndSaveLine("C노선", "LC").requiredId()
+            val lineCId = createAndSaveLine("C노선", "LC").requiredId
 
             // GIVEN: 원본과 완전히 다른 교체 요청 (층, 노선, 역코드 모두 변경, 설명은 null로)
             val putRequest =
@@ -266,7 +266,7 @@ internal class StationServiceTest
         @DisplayName("성공: 역을 삭제하면 해당 역과 하위 층, 노선/역코드 연결 정보가 모두 DB에서 삭제된다")
         fun delete_RemovesStationAndAllAssociatedRelations() {
             // GIVEN: 층, 노선, 코드가 있는 역 생성
-            val lineId = createAndSaveLine("삭제될노선", "DEL_L").requiredId()
+            val lineId = createAndSaveLine("삭제될노선", "DEL_L").requiredId
             val stationId =
                 stationService.save(
                     StationCreateRequest(
@@ -331,7 +331,7 @@ internal class StationServiceTest
         fun addLineToStation_AddsRelationAndIgnoresDuplicate() {
             // GIVEN
             val stationId = createAndSaveSimpleStation("테스트역", "T_ST")
-            val lineId = createAndSaveLine("테스트노선", "T_L").requiredId()
+            val lineId = createAndSaveLine("테스트노선", "T_L").requiredId
 
             // WHEN: 첫 번째 추가
             stationService.addLineToStation(stationId, lineId)
@@ -360,7 +360,7 @@ internal class StationServiceTest
         @DisplayName("성공: 역에서 노선을 제거한다")
         fun removeLineFromStation_RemovesRelation() {
             // GIVEN: 노선이 연결된 역 생성
-            val lineId = createAndSaveLine("제거될노선", "REM_L").requiredId()
+            val lineId = createAndSaveLine("제거될노선", "REM_L").requiredId
             val stationId =
                 stationService.save(
                     StationCreateRequest(

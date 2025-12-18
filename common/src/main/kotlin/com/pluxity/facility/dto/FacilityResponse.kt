@@ -29,7 +29,7 @@ fun Facility.toResponse(
     val emptyFileResponse = FileResponse(null, null, null, null, null, null)
 
     return FacilityResponse(
-        id = this.requiredId(),
+        id = this.requiredId,
         code = this.code,
         name = this.name,
         description = this.description,

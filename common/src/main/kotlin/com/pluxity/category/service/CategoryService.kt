@@ -22,7 +22,7 @@ abstract class CategoryService<T : Category<T>> {
         repository
             .save(
                 category.apply { assignToParent(parent) },
-            ).requiredId()
+            ).requiredId
 
     @Transactional
     open fun update(

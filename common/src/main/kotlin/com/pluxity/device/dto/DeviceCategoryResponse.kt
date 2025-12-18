@@ -25,7 +25,7 @@ data class DeviceCategoryResponse(
 
 fun DeviceCategory.toDeviceCategoryResponse(iconFile: FileResponse) =
     DeviceCategoryResponse(
-        id = this.requiredId(),
+        id = this.requiredId,
         name = this.name,
         parentId = this.parent?.id,
         children = mutableListOf(),

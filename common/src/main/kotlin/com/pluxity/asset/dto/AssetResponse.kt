@@ -23,7 +23,7 @@ fun Asset.toResponse(
     thumbnailFile: FileResponse? = null,
 ): AssetResponse =
     AssetResponse(
-        id = this.requiredId(),
+        id = this.requiredId,
         name = this.name,
         code = this.code,
         categoryId = this.category?.id,

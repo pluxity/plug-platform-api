@@ -16,7 +16,7 @@ data class FileResponse(
 
 fun FileEntity.toFileResponse(url: String?) =
     FileResponse(
-        id = this.requiredId(),
+        id = this.requiredId,
         url = url ?: this.filePath,
         originalFileName = this.originalFileName,
         contentType = this.contentType,

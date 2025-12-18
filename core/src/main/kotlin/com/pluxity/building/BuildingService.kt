@@ -29,7 +29,7 @@ class BuildingService(
         val saved = facilityService.save(building, request.facility)
 
         floorService.save(saved, request.floors)
-        return saved.requiredId()
+        return saved.requiredId
     }
 
     @Transactional(readOnly = true)

@@ -71,8 +71,8 @@ internal class FeatureServiceTest
                     Spatial(10.0, 20.0, 30.0),
                     Spatial(0.0, 45.0, 0.0),
                     Spatial(1.5, 1.5, 1.5),
-                    testAsset.requiredId(),
-                    testFacility.requiredId(),
+                    testAsset.requiredId,
+                    testFacility.requiredId,
                     "B1",
                 )
 
@@ -113,8 +113,8 @@ internal class FeatureServiceTest
                     null,
                     null,
                     null,
-                    testAsset.requiredId(),
-                    testFacility.requiredId(),
+                    testAsset.requiredId,
+                    testFacility.requiredId,
                     "Lobby",
                 )
 
@@ -148,8 +148,8 @@ internal class FeatureServiceTest
                     null,
                     null,
                     null,
-                    testAsset.requiredId(),
-                    testFacility.requiredId(),
+                    testAsset.requiredId,
+                    testFacility.requiredId,
                     "F1",
                 ),
             )
@@ -161,8 +161,8 @@ internal class FeatureServiceTest
                     null,
                     null,
                     null,
-                    testAsset.requiredId(),
-                    testFacility.requiredId(),
+                    testAsset.requiredId,
+                    testFacility.requiredId,
                     "F2",
                 )
 
@@ -183,7 +183,7 @@ internal class FeatureServiceTest
                     null,
                     null,
                     null,
-                    testAsset.requiredId(),
+                    testAsset.requiredId,
                     invalidFacilityId,
                     "F1",
                 )
@@ -206,7 +206,7 @@ internal class FeatureServiceTest
                     null,
                     null,
                     invalidAssetId,
-                    testFacility.requiredId(),
+                    testFacility.requiredId,
                     "F1",
                 )
 
@@ -228,7 +228,7 @@ internal class FeatureServiceTest
             createAndSaveFeature("F3", otherFacility)
 
             // WHEN
-            val responses = featureService.getFeatures(testFacility.requiredId())
+            val responses = featureService.getFeatures(testFacility.requiredId)
 
             // THEN
             Assertions
@@ -243,7 +243,7 @@ internal class FeatureServiceTest
         fun getFeatures_WithNoFeatures_ReturnsEmptyList() {
             // GIVEN: 피처가 없는 상태
             // WHEN
-            val responses = featureService.getFeatures(testFacility.requiredId())
+            val responses = featureService.getFeatures(testFacility.requiredId)
             // THEN
             Assertions.assertThat(responses).isNotNull().isEmpty()
         }

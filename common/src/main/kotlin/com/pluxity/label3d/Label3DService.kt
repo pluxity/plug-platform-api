@@ -30,7 +30,7 @@ class Label3DService(
                 ),
             )
         val label3D = Label3D(feature = feature, displayText = request.displayText)
-        return label3DRepository.save(label3D).requiredId()
+        return label3DRepository.save(label3D).requiredId
     }
 
     @Transactional(readOnly = true)

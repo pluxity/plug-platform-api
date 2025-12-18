@@ -42,7 +42,7 @@ class AuthenticationService(
                 code = signUpRequest.code,
             )
 
-        return userRepository.save(user).requiredId()
+        return userRepository.save(user).requiredId
     }
 
     @Transactional

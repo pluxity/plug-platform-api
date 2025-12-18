@@ -142,7 +142,7 @@ internal class UserRolePermissionIntegrationTest
 
             // 4. 생성된 "시설 관리자" 역할을 '편집자' 사용자에게 할당합니다.
             userService.updateUserRoles(
-                editorUser.requiredId(),
+                editorUser.requiredId,
                 UserRoleUpdateRequest(listOf(newRoleId)),
             )
 
@@ -163,14 +163,14 @@ internal class UserRolePermissionIntegrationTest
             Assertions.assertThat(accessibleIds).containsExactlyInAnyOrderElementsOf(permittedBuildingIds)
 
             // 추가 검증: 허가된 시설(1번)에 ID로 직접 접근하면 성공해야 합니다.
-            val permittedId = buildings[0].requiredId()
+            val permittedId = buildings[0].requiredId
             // FacilityService가 Building ID로 조회하는 메서드가 있다고 가정
             org.junit.jupiter.api.Assertions.assertDoesNotThrow {
                 facilityService.findById(permittedId)
             }
 
             // 추가 검증: 허가되지 않은 시설(2번)에 ID로 직접 접근하면 예외가 발생해야 합니다.
-            val forbiddenId = buildings[1].requiredId()
+            val forbiddenId = buildings[1].requiredId
             org.junit.jupiter.api.Assertions.assertThrows(
                 CustomException::class.java,
                 { facilityService.findById(forbiddenId) },

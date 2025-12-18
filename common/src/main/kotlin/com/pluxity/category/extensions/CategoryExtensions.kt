@@ -18,7 +18,7 @@ fun <T : Category<T>> Category<T>.toResponse(
         }
 
     return CategoryResponse(
-        id = this.requiredId(),
+        id = this.requiredId,
         name = this.name,
         parentId = this.parent?.id,
         children = childResponse,

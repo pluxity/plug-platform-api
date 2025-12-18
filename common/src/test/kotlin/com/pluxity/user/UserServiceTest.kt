@@ -62,7 +62,6 @@ class UserServiceTest
         ): User {
             val user =
                 User(
-                    id = null,
                     username = username,
                     password = passwordEncoder.encode("password123"),
                     name = name,
@@ -82,7 +81,7 @@ class UserServiceTest
             val savedUser = createUser("testuser", "테스트유저", "T001", listOf(roleUser))
 
             // when
-            val response = userService.findById(savedUser.requiredId())
+            val response = userService.findById(savedUser.requiredId)
 
             // then
             assertThat(response.id).isEqualTo(savedUser.id)
@@ -141,12 +140,12 @@ class UserServiceTest
             val request = UserUpdateRequest(name = "수정이름", department = "수정부서")
 
             // when
-            userService.update(savedUser.requiredId(), request)
+            userService.update(savedUser.requiredId, request)
 
             // then
             val updatedUser =
-                checkNotNull(userRepository.findWithGraphById(savedUser.requiredId())) {
-                    "사용자 저장 이후에 ID(${savedUser.requiredId()})에 해당하는 사용자가 DB에 존재해야합니다."
+                checkNotNull(userRepository.findWithGraphById(savedUser.requiredId)) {
+                    "사용자 저장 이후에 ID(${savedUser.requiredId})에 해당하는 사용자가 DB에 존재해야합니다."
                 }
             assertThat(updatedUser.name).isEqualTo("수정이름")
             assertThat(updatedUser.department).isEqualTo("수정부서")
@@ -158,7 +157,7 @@ class UserServiceTest
         fun delete_Success() {
             // given
             val savedUser = createUser("deleteuser", "삭제유저", "DEL001", listOf())
-            val userId = savedUser.requiredId()
+            val userId = savedUser.requiredId
             assertThat(userRepository.existsById(userId)).isTrue()
 
             // when
@@ -176,12 +175,12 @@ class UserServiceTest
             val request = UserPasswordUpdateRequest("password123", "newPassword")
 
             // when
-            userService.updateUserPassword(savedUser.requiredId(), request)
+            userService.updateUserPassword(savedUser.requiredId, request)
 
             // then
             val updatedUser =
-                checkNotNull(userRepository.findWithGraphById(savedUser.requiredId())) {
-                    "사용자 저장 이후에 ID(${savedUser.requiredId()})에 해당하는 사용자가 DB에 존재해야합니다."
+                checkNotNull(userRepository.findWithGraphById(savedUser.requiredId)) {
+                    "사용자 저장 이후에 ID(${savedUser.requiredId})에 해당하는 사용자가 DB에 존재해야합니다."
                 }
             assertThat(passwordEncoder.matches("newPassword", updatedUser.password)).isTrue()
         }
@@ -195,7 +194,7 @@ class UserServiceTest
 
             // when & then
             assertThatThrownBy {
-                userService.updateUserPassword(savedUser.requiredId(), request)
+                userService.updateUserPassword(savedUser.requiredId, request)
             }.isInstanceOf(CustomException::class.java)
         }
 
@@ -204,15 +203,15 @@ class UserServiceTest
         fun assignRolesToUser_Success() {
             // given
             val savedUser = createUser("testuser", "테스트유저", "T001", listOf())
-            val request = UserRoleUpdateRequest(listOf(roleUser.requiredId(), roleAdmin.requiredId()))
+            val request = UserRoleUpdateRequest(listOf(roleUser.requiredId, roleAdmin.requiredId))
 
             // when
-            userService.updateUserRoles(savedUser.requiredId(), request)
+            userService.updateUserRoles(savedUser.requiredId, request)
 
             // then
             val updatedUser =
-                checkNotNull(userRepository.findWithGraphById(savedUser.requiredId())) {
-                    "사용자 저장 이후에 ID(${savedUser.requiredId()})에 해당하는 사용자가 DB에 존재해야합니다."
+                checkNotNull(userRepository.findWithGraphById(savedUser.requiredId)) {
+                    "사용자 저장 이후에 ID(${savedUser.requiredId})에 해당하는 사용자가 DB에 존재해야합니다."
                 }
             assertThat(updatedUser.getRoles()).hasSize(2)
             assertThat(updatedUser.getRoles().map { it.name })
@@ -224,15 +223,15 @@ class UserServiceTest
         fun updateUserRoles_Success() {
             // given
             val savedUser = createUser("testuser", "테스트유저", "T001", listOf(roleUser))
-            val request = UserRoleUpdateRequest(listOf(roleAdmin.requiredId()))
+            val request = UserRoleUpdateRequest(listOf(roleAdmin.requiredId))
 
             // when
-            userService.updateUserRoles(savedUser.requiredId(), request)
+            userService.updateUserRoles(savedUser.requiredId, request)
 
             // then
             val updatedUser =
-                checkNotNull(userRepository.findWithGraphById(savedUser.requiredId())) {
-                    "사용자 저장 이후에 ID(${savedUser.requiredId()})에 해당하는 사용자가 DB에 존재해야합니다."
+                checkNotNull(userRepository.findWithGraphById(savedUser.requiredId)) {
+                    "사용자 저장 이후에 ID(${savedUser.requiredId})에 해당하는 사용자가 DB에 존재해야합니다."
                 }
             assertThat(updatedUser.getRoles()).hasSize(1)
             assertThat(updatedUser.getRoles().first().name).isEqualTo("ROLE_ADMIN")

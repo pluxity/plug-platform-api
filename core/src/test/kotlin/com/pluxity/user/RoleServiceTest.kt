@@ -212,7 +212,7 @@ internal class RoleServiceTest
             val newRolePermissions = listOf(RolePermission(role = role, permissionGroup = permissionGroup))
             rolePermissionRepository.saveAll(newRolePermissions)
             newRolePermissions.forEach { rolePermission: RolePermission -> role.addRolePermission(rolePermission) }
-            val roleId = role.requiredId()
+            val roleId = role.requiredId
 
             Assertions.assertThat(roleService.findById(roleId)).isNotNull()
 

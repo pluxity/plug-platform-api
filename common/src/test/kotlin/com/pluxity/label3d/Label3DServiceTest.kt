@@ -48,7 +48,7 @@ internal class Label3DServiceTest
             val request =
                 FacilityCreateRequest("테스트 시설", "FAC01", null, null, null, null, null, null)
             val facility = FacilityInstance(name = request.name, code = request.code)
-            return facilityService.save(facility, request).requiredId()
+            return facilityService.save(facility, request).requiredId
         }
 
         @Test
@@ -194,7 +194,7 @@ internal class Label3DServiceTest
             val request =
                 FacilityCreateRequest("테스트 시설", "FAC02", null, null, null, null, null, null)
             val facility = FacilityInstance(request.name, request.code)
-            val facilityId2 = facilityService.save(facility, request).requiredId()
+            val facilityId2 = facilityService.save(facility, request).requiredId
 
             val featureId1 = UUID.randomUUID().toString()
             label3DService.createLabel3D(

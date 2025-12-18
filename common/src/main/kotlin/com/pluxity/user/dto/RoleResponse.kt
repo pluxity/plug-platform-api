@@ -13,7 +13,7 @@ data class RoleResponse(
 
 fun Role.toRoleResponse() =
     RoleResponse(
-        this.requiredId(),
+        this.requiredId,
         this.name,
         this.description,
         this.rolePermissions

@@ -66,7 +66,7 @@ class AssetCategoryService(
             fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${category.id}")
         }
 
-        return category.requiredId()
+        return category.requiredId
     }
 
     @Transactional

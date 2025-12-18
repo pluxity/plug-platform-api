@@ -196,15 +196,15 @@ internal class UserIntegrationTest
             em.flush()
             em.clear()
 
-            val roleToDelete = roleRepository.save(Role(null, "DELETABLE_ROLE", "곧 삭제될 역할"))
-            val roleToKeep = roleRepository.save(Role(null, "KEEPER_ROLE", "유지될 역할"))
+            val roleToDelete = roleRepository.save(Role("DELETABLE_ROLE", "곧 삭제될 역할"))
+            val roleToKeep = roleRepository.save(Role("KEEPER_ROLE", "유지될 역할"))
 
-            val userWithTwoRoles = User(null, "multiRoleUser", "pw", "다중역할사용자", "", null, null)
+            val userWithTwoRoles = User("multiRoleUser", "pw", "다중역할사용자", "", null, null)
             userWithTwoRoles.addRole(roleToDelete)
             userWithTwoRoles.addRole(roleToKeep)
             userRepository.save(userWithTwoRoles)
 
-            val userWithOneRole = User(null, "singleRoleUser", "pw", "단일역할사용자", "", null, null)
+            val userWithOneRole = User("singleRoleUser", "pw", "단일역할사용자", "", null, null)
             userWithOneRole.addRole(roleToDelete)
             userRepository.save(userWithOneRole)
 
@@ -213,13 +213,13 @@ internal class UserIntegrationTest
             Assertions.assertThat(userRoleRepository.count()).isEqualTo(3)
 
             // WHEN
-            roleService.delete(roleToDelete.requiredId())
+            roleService.delete(roleToDelete.requiredId)
             em.flush()
             em.clear()
 
             // THEN
-            Assertions.assertThat(roleRepository.findById(roleToDelete.requiredId())).isEmpty()
-            Assertions.assertThat(roleRepository.findById(roleToKeep.requiredId())).isPresent()
+            Assertions.assertThat(roleRepository.findById(roleToDelete.requiredId)).isEmpty()
+            Assertions.assertThat(roleRepository.findById(roleToKeep.requiredId)).isPresent()
             Assertions.assertThat(userRepository.count()).isEqualTo(2)
             Assertions.assertThat(userRoleRepository.count()).isEqualTo(1)
 

@@ -50,7 +50,7 @@ class FacilityService(
         }
 
         val savedFacility = facilityRepository.save(facility)
-        val facilityId = savedFacility.requiredId()
+        val facilityId = savedFacility.requiredId
         val filePath = "$prefix${savedFacility.id}/"
 
         request.drawingFileId?.let { drawingFileId ->
@@ -188,7 +188,7 @@ class FacilityService(
         val filePath = "$prefix${facility.id}/"
         val drawingFile = fileService.finalizeUpload(request.drawingFileId, filePath)
         facility.updateDrawingFile(drawingFile)
-        facilityHistoryService.save(request.drawingFileId, facility.requiredId(), request.comment ?: "")
+        facilityHistoryService.save(request.drawingFileId, facility.requiredId, request.comment ?: "")
     }
 
     @Transactional

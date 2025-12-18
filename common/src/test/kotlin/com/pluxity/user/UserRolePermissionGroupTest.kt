@@ -311,7 +311,7 @@ internal class UserRolePermissionGroupTest
                 // THEN:
                 // 1. User와 Role의 매핑(UserRole)이 사라졌는지 확인
                 val count =
-                    findUserOrFail(operatorBeforeDelete.requiredId())
+                    findUserOrFail(operatorBeforeDelete.requiredId)
                         .userRoles.size
                         .toLong()
                 Assertions.assertEquals(0, count, "삭제된 Role과 연결된 UserRole 레코드는 없어야 합니다.")

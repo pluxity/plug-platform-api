@@ -89,7 +89,7 @@ class FileService(
 
             // 임시 파일 삭제
             Files.deleteIfExists(tempPath)
-            return savedFile.requiredId()
+            return savedFile.requiredId
         } catch (e: Exception) {
             log.error { "File Upload Exception : ${e.message}" }
             throw CustomException(ErrorCode.FAILED_TO_UPLOAD_FILE, e.message)

@@ -53,7 +53,7 @@ class StationService(
             }
         }
 
-        return saved.requiredId()
+        return saved.requiredId
     }
 
     @Transactional(readOnly = true)
