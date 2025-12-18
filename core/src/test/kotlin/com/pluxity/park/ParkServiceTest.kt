@@ -243,12 +243,12 @@ internal class ParkServiceTest
 
         // --- Helper Methods ---
         private fun createAndSavePark(
-            name: String?,
-            code: String?,
+            name: String,
+            code: String,
         ): Long {
             val request =
                 ParkCreateRequest(
-                    FacilityCreateRequest(name!!, code!!, "설명", null, null, null, null, null),
+                    FacilityCreateRequest(name, code, "설명", null, null, null, null, null),
                     BOUNDARY_JSON_1,
                 )
             return parkService.save(request)

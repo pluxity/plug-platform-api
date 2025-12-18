@@ -275,37 +275,6 @@ internal class BuildingServiceTest
         }
 
         @Test
-        @DisplayName("필드를 null 로 업데이트하여도 유지 (Patch)")
-        fun update_SetFieldToNull() {
-            // given
-            val id = buildingService.save(createRequest)
-
-            val request =
-                BuildingUpdateRequest(
-                    FacilityUpdateRequest(
-                        // name 유지
-                        null,
-                        // code 유지
-                        null,
-                        // description 을 null 로 (이미 null 일 수 있으므로 이후 no-op 과 구분 위해 먼저 값 설정)
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                    ),
-                    emptyList(),
-                )
-
-            // when
-            buildingService.update(id, request)
-
-            // then
-            val updated = facilityService.findById(id)
-            Assertions.assertThat(updated.description).isEqualTo(createRequest.facility.description)
-        }
-
-        @Test
         @DisplayName("No-Op 업데이트: 동일 데이터로 업데이트 시 변경 없음")
         fun update_NoOp_DoesNotChangeData() {
             // given
@@ -418,7 +387,7 @@ internal class BuildingServiceTest
                 BuildingUpdateRequest(
                     FacilityUpdateRequest(
                         // duplicate code
-                        null,
+                        createRequest.facility.name,
                         "AAA",
                         null,
                         null,
@@ -441,7 +410,7 @@ internal class BuildingServiceTest
             val id = buildingService.save(createRequest)
             val clearFloors =
                 BuildingUpdateRequest(
-                    FacilityUpdateRequest(null, null, null, null, null, null, null),
+                    FacilityUpdateRequest(createRequest.facility.name, null, null, null, null, null, null),
                     mutableListOf(),
                 )
 

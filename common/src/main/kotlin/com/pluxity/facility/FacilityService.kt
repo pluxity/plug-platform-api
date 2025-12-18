@@ -135,7 +135,7 @@ class FacilityService(
         }
 
         facility.updateCode(request.code)
-        facility.updateName(request.name!!)
+        facility.updateName(request.name)
         facility.updateDescription(request.description)
 
         if (request.thumbnailFileId != facility.thumbnailFileId) {

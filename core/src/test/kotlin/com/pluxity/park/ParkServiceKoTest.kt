@@ -92,7 +92,7 @@ class ParkServiceKoTest :
         Given("Park 수정을 진행할 때") {
             When("정상 수정 요청") {
                 val updateRequest = dummyUpdateParkRequest("updatedBoundary")
-                val park = dummyPark(name = updateRequest.facility.name!!, boundary = updateRequest.boundary)
+                val park = dummyPark(name = updateRequest.facility.name, boundary = updateRequest.boundary)
                 every {
                     parkRepository.findByIdOrNull(any())
                 } returns park

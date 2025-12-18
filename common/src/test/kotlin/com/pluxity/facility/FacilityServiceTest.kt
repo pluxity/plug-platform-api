@@ -315,7 +315,7 @@ class FacilityServiceTest
                 )
 
             // WHEN & THEN
-            val request = FacilityUpdateRequest(null, "CODE1", null, null, null, null, null)
+            val request = FacilityUpdateRequest("시설2", "CODE1", null, null, null, null, null)
             shouldThrow<CustomException> {
                 facilityService.update(saved2.requiredId(), request)
             }
