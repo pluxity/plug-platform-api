@@ -61,7 +61,7 @@ class RoleService(
             }
         }
 
-        return role.id!!
+        return role.requiredId()
     }
 
     @Transactional(readOnly = true)
@@ -131,7 +131,7 @@ class RoleService(
         userRoleRepository.deleteAllByRole(role)
         em.flush()
         em.clear()
-        roleRepository.deleteById(role.id!!)
+        roleRepository.deleteById(role.requiredId())
     }
 
     fun findRoleById(id: Long): Role =

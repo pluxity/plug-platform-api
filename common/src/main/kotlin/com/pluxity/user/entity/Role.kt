@@ -28,6 +28,8 @@ class Role(
     @OneToMany(mappedBy = "role")
     var rolePermissions: MutableSet<RolePermission> = mutableSetOf()
 
+    fun requiredId(): Long = checkNotNull(this.id) { "Role ID is required" }
+
     fun getAuthority(): String = "ROLE_$auth"
 
     fun changeRoleName(name: String) {

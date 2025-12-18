@@ -25,6 +25,8 @@ class PermissionGroup(
     @OneToMany(mappedBy = "permissionGroup", cascade = [CascadeType.ALL])
     val permissions: MutableSet<Permission> = HashSet()
 
+    fun requiredId(): Long = checkNotNull(this.id) { "PermissionGroup ID is required" }
+
     fun changeName(name: String) {
         this.name = name
     }

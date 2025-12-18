@@ -33,6 +33,8 @@ class User(
     @OneToMany(mappedBy = "user", cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     var userRoles: MutableSet<UserRole> = LinkedHashSet()
 
+    fun requiredId(): Long = checkNotNull(this.id) { "User ID is required" }
+
     fun changePassword(password: String) {
         this.password = password
         this.lastPasswordChangeDate = LocalDateTime.now()

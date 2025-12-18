@@ -42,7 +42,7 @@ class AuthenticationService(
                 code = signUpRequest.code,
             )
 
-        return userRepository.save(user).id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
+        return userRepository.save(user).requiredId()
     }
 
     @Transactional
