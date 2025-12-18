@@ -108,7 +108,7 @@ class UserServiceKoTest :
                 val user =
                     dummyUser(
                         name = createRequest.name,
-                        code = createRequest.code!!,
+                        code = createRequest.code,
                         password = createRequest.password,
                         username = createRequest.username,
                     )
@@ -128,7 +128,7 @@ class UserServiceKoTest :
                 val user =
                     dummyUser(
                         name = createRequest.name,
-                        code = createRequest.code!!,
+                        code = createRequest.code,
                         password = createRequest.password,
                         username = createRequest.username,
                     )

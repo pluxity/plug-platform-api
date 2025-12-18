@@ -8,7 +8,7 @@ fun dummyUser(
     username: String = "username",
     password: String = "password",
     name: String = "name",
-    code: String = "code",
+    code: String? = "code",
     phoneNumber: String? = null,
     department: String? = null,
 ): User = User(id, username, password, name, code, phoneNumber, department)
