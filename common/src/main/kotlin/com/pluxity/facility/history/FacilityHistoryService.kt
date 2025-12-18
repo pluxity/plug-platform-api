@@ -32,7 +32,7 @@ class FacilityHistoryService(
         val histories = facilityHistoryRepository.findByFacilityIdOrderByCreatedAtDesc(facilityId)
         val fileMap = fileService.getFileMapById(histories) { it.fileId }
         return histories.map { history ->
-            history.toHistoryResponse(fileMap[history.fileId]!!)
+            history.toHistoryResponse(fileMap.getValue(history.fileId))
         }
     }
 }
