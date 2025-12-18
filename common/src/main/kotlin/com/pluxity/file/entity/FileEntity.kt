@@ -31,6 +31,8 @@ class FileEntity(
     @Enumerated(EnumType.STRING)
     var fileStatus: FileStatus = FileStatus.TEMP
 
+    fun requiredId(): Long = checkNotNull(this.id) { "FileEntity ID is required" }
+
     fun makeComplete(filePath: String) {
         this.filePath = filePath
         this.fileStatus = FileStatus.COMPLETE
