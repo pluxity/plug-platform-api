@@ -57,8 +57,13 @@ class FileService(
     @Transactional
     fun initiateUpload(file: MultipartFile): Long {
         try {
+            val originalFileName =
+                file.originalFilename
+                    ?.takeIf { it.isNotBlank() }
+                    ?: throw CustomException(ErrorCode.FAILED_TO_UPLOAD_FILE, "originalFilename is missing")
+
             // 임시 파일로 저장
-            val tempPath = FileUtils.createTempFile(file.originalFilename!!)
+            val tempPath = FileUtils.createTempFile(originalFileName)
             file.transferTo(tempPath)
 
             // 파일 컨텍스트 생성
@@ -66,7 +71,7 @@ class FileService(
                 FileProcessingContext(
                     contentType = FileUtils.getContentType(file),
                     tempPath = tempPath,
-                    originalFileName = file.originalFilename!!,
+                    originalFileName = originalFileName,
                 )
 
             // 스토리지에 저장
@@ -76,7 +81,7 @@ class FileService(
             val fileEntity =
                 FileEntity(
                     filePath = filePath,
-                    originalFileName = file.originalFilename!!,
+                    originalFileName = originalFileName,
                     contentType = FileUtils.getContentType(file),
                 )
 
