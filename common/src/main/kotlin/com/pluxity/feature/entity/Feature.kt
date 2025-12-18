@@ -21,7 +21,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 @Table(name = "feature")
 @EntityListeners(AuditingEntityListener::class)
 class Feature(
-    @Id var id: String? = null,
+    @Id var id: String,
     @AttributeOverride(
         name = "z",
         column = Column(name = "position_z"),

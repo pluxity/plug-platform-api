@@ -5,7 +5,7 @@ import com.pluxity.feature.entity.Feature
 import com.pluxity.feature.entity.Spatial
 
 fun dummyFeature(
-    id: String? = "feature_id",
+    id: String = "feature_id",
     position: Spatial? = dummySpatial(),
     rotation: Spatial? = dummySpatial(),
     scale: Spatial? = dummySpatial(),
