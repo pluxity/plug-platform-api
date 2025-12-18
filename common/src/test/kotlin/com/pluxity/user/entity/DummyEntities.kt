@@ -1,7 +1,7 @@
 package com.pluxity.user.entity
 
+import base.entity.withId
 import com.pluxity.authentication.entity.RefreshToken
-import org.springframework.test.util.ReflectionTestUtils
 
 fun dummyUser(
     id: Long? = 1L,
@@ -11,17 +11,13 @@ fun dummyUser(
     code: String? = "code",
     phoneNumber: String? = null,
     department: String? = null,
-): User = User(id, username, password, name, code, phoneNumber, department)
+): User = User(username, password, name, code, phoneNumber, department).withId(id)
 
 fun dummyRole(
     id: Long? = 1L,
     name: String = "name",
     description: String = "description",
-): Role {
-    val retRole = Role(id, name, description)
-    ReflectionTestUtils.setField(retRole, "id", id)
-    return retRole
-}
+): Role = Role(name, description).withId(id)
 
 fun dummyRefreshToken(
     username: String = "username",

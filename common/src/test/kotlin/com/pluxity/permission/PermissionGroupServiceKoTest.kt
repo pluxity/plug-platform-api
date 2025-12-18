@@ -238,7 +238,7 @@ class PermissionGroupServiceKoTest :
         Given("findPermissionGroupById를 진행할 때") {
             When("유효한 ID로 조회 요청") {
                 val permissionGroup =
-                    PermissionGroup(
+                    dummyPermissionGroup(
                         id = 1L,
                         name = "Test Group",
                         description = "Test Description",

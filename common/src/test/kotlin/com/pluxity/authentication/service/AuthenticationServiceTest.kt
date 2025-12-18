@@ -46,7 +46,6 @@ class AuthenticationServiceTest
         fun setUp() {
             testUser =
                 User(
-                    null,
                     "testuser",
                     passwordEncoder.encode("password"),
                     "Test User",

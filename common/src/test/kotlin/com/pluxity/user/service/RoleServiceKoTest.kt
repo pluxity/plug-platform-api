@@ -1,5 +1,6 @@
 package com.pluxity.user.service
 
+import base.entity.withId
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionGroup
 import com.pluxity.permission.PermissionGroupService
@@ -98,8 +99,8 @@ class RoleServiceKoTest :
 
         Given("Role 목록 조회를 진행할 때") {
             When("정상 요청이 오면") {
-                val role1 = Role(id = 1L, name = "Role1", description = "Desc1")
-                val role2 = Role(id = 2L, name = "Role2", description = "Desc2")
+                val role1 = Role(name = "Role1", description = "Desc1").withId(1L)
+                val role2 = Role(name = "Role2", description = "Desc2").withId(2L)
 
                 every { roleRepository.findByAuthIsNotOrderByCreatedAtDesc(any()) } returns listOf(role1, role2)
 
