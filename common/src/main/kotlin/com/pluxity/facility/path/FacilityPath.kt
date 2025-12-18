@@ -35,6 +35,8 @@ class FacilityPath(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
 
+    fun requiredId(): Long = checkNotNull(this.id) { "Facility Path ID is required" }
+
     fun updateName(name: String) {
         this.name = name
     }

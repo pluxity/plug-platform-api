@@ -68,6 +68,8 @@ abstract class Facility(
     @OneToMany(mappedBy = "facility")
     open val paths: MutableList<FacilityPath> = mutableListOf()
 
+    fun requiredId(): Long = checkNotNull(this.id) { "Facility ID is required" }
+
     fun updateCode(code: String?) {
         this.code = code
     }

@@ -18,4 +18,6 @@ class FacilityHistory(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
+
+    fun requiredId(): Long = checkNotNull(this.id) { "FacilityHistory ID is required" }
 }

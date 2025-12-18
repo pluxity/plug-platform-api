@@ -16,7 +16,6 @@ import com.pluxity.facility.strategy.FloorService
 import com.pluxity.file.extensions.getFileMapByIds
 import com.pluxity.file.service.FileService
 import com.pluxity.global.annotation.CheckPermission
-import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.constant.ErrorCode.DUPLICATE_FACILITY_CODE
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CODE
@@ -51,7 +50,7 @@ class FacilityService(
         }
 
         val savedFacility = facilityRepository.save(facility)
-        val facilityId = savedFacility.id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
+        val facilityId = savedFacility.requiredId()
         val filePath = "$prefix${savedFacility.id}/"
 
         request.drawingFileId?.let { drawingFileId ->
@@ -189,7 +188,7 @@ class FacilityService(
         val filePath = "$prefix${facility.id}/"
         val drawingFile = fileService.finalizeUpload(request.drawingFileId, filePath)
         facility.updateDrawingFile(drawingFile)
-        facilityHistoryService.save(request.drawingFileId, facility.id!!, request.comment ?: "")
+        facilityHistoryService.save(request.drawingFileId, facility.requiredId(), request.comment ?: "")
     }
 
     @Transactional

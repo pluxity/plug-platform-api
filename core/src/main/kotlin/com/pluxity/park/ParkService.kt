@@ -24,7 +24,7 @@ class ParkService(
     fun save(request: ParkCreateRequest): Long {
         val park = Park(request.facility.name, request.facility.description, request.boundary)
         val saved = facilityService.save(park, request.facility)
-        return saved.id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
+        return saved.requiredId()
     }
 
     @Transactional(readOnly = true)
