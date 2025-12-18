@@ -103,7 +103,7 @@ class AssetService(
             savedAsset.updateThumbnailFileEntity(thumbnailEntity)
         }
 
-        return savedAsset.id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
+        return savedAsset.requiredId()
     }
 
     @Transactional

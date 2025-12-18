@@ -38,6 +38,8 @@ class Asset(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
 
+    fun requiredId(): Long = checkNotNull(this.id) { "Asset ID is required" }
+
     companion object {
         const val ASSETS_PATH: String = "assets"
 
