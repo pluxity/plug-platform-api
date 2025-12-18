@@ -21,7 +21,7 @@ class StationLineService(
 
     @Transactional(readOnly = true)
     fun findLinesByStation(station: Station): List<Long> =
-        stationLineRepository.findByStationOrderByCreatedAtDesc(station).map { it.line.id!! }
+        stationLineRepository.findByStationOrderByCreatedAtDesc(station).map { it.line.requiredId() }
 
     @Transactional
     fun deleteByStation(station: Station) {
@@ -36,7 +36,7 @@ class StationLineService(
         return stationLineRepository
             .findByStationInOrderByCreatedAtDesc(stations)
             .groupBy { it.station }
-            .mapValues { (_, lines) -> lines.map { it.line.id!! } }
+            .mapValues { (_, lines) -> lines.map { it.line.requiredId() } }
     }
 
     @Transactional(readOnly = true)

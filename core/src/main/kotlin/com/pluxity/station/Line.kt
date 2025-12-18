@@ -26,6 +26,8 @@ class Line(
     @OneToMany(mappedBy = "line")
     val stationLines: MutableList<StationLine> = ArrayList()
 
+    fun requiredId(): Long = checkNotNull(this.id) { "Line ID is required" }
+
     fun getStations(): List<Station> = stationLines.map { it.station }
 
     fun update(
