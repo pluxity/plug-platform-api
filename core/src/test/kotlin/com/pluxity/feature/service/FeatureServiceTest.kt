@@ -71,8 +71,8 @@ internal class FeatureServiceTest
                     Spatial(10.0, 20.0, 30.0),
                     Spatial(0.0, 45.0, 0.0),
                     Spatial(1.5, 1.5, 1.5),
-                    testAsset.id!!,
-                    testFacility.id!!,
+                    testAsset.requiredId(),
+                    testFacility.requiredId(),
                     "B1",
                 )
 
@@ -113,8 +113,8 @@ internal class FeatureServiceTest
                     null,
                     null,
                     null,
-                    testAsset.id!!,
-                    testFacility.id!!,
+                    testAsset.requiredId(),
+                    testFacility.requiredId(),
                     "Lobby",
                 )
 
@@ -148,8 +148,8 @@ internal class FeatureServiceTest
                     null,
                     null,
                     null,
-                    testAsset.id!!,
-                    testFacility.id!!,
+                    testAsset.requiredId(),
+                    testFacility.requiredId(),
                     "F1",
                 ),
             )
@@ -161,8 +161,8 @@ internal class FeatureServiceTest
                     null,
                     null,
                     null,
-                    testAsset.id!!,
-                    testFacility.id!!,
+                    testAsset.requiredId(),
+                    testFacility.requiredId(),
                     "F2",
                 )
 
@@ -183,7 +183,7 @@ internal class FeatureServiceTest
                     null,
                     null,
                     null,
-                    testAsset.id!!,
+                    testAsset.requiredId(),
                     invalidFacilityId,
                     "F1",
                 )
@@ -206,7 +206,7 @@ internal class FeatureServiceTest
                     null,
                     null,
                     invalidAssetId,
-                    testFacility.id!!,
+                    testFacility.requiredId(),
                     "F1",
                 )
 
@@ -228,7 +228,7 @@ internal class FeatureServiceTest
             createAndSaveFeature("F3", otherFacility)
 
             // WHEN
-            val responses = featureService.getFeatures(testFacility.id!!)
+            val responses = featureService.getFeatures(testFacility.requiredId())
 
             // THEN
             Assertions
@@ -243,7 +243,7 @@ internal class FeatureServiceTest
         fun getFeatures_WithNoFeatures_ReturnsEmptyList() {
             // GIVEN: 피처가 없는 상태
             // WHEN
-            val responses = featureService.getFeatures(testFacility.id!!)
+            val responses = featureService.getFeatures(testFacility.requiredId())
             // THEN
             Assertions.assertThat(responses).isNotNull().isEmpty()
         }
@@ -257,7 +257,7 @@ internal class FeatureServiceTest
             val request = FeatureUpdateRequest(newPosition, null, null)
 
             // WHEN
-            val response = featureService.updateFeature(originalFeature.id!!, request)
+            val response = featureService.updateFeature(originalFeature.id, request)
 
             // THEN: 응답 DTO 검증
             Assertions.assertThat(response.id).isEqualTo(originalFeature.id)
@@ -266,7 +266,7 @@ internal class FeatureServiceTest
             Assertions.assertThat(response.scale).isEqualTo(originalFeature.scale) // 유지됨
 
             // THEN: DB 직접 검증
-            val updatedFeature = featureRepository.findById(originalFeature.id!!).orElseThrow()
+            val updatedFeature = featureRepository.findById(originalFeature.id).orElseThrow()
             Assertions.assertThat(updatedFeature.position?.x).isEqualTo(100.0)
             Assertions.assertThat(updatedFeature.rotation?.x).isEqualTo(originalFeature.rotation?.x)
         }
@@ -288,13 +288,13 @@ internal class FeatureServiceTest
         fun deleteFeature_WithExistingId_DeletesFeature() {
             // GIVEN
             val featureToDelete = createAndSaveFeature("F_DELETE", testFacility)
-            Assertions.assertThat(featureRepository.findById(featureToDelete.id!!)).isPresent()
+            Assertions.assertThat(featureRepository.findById(featureToDelete.id)).isPresent()
 
             // WHEN
-            featureService.deleteFeature(featureToDelete.id!!)
+            featureService.deleteFeature(featureToDelete.id)
 
             // THEN
-            Assertions.assertThat(featureRepository.findById(featureToDelete.id!!)).isNotPresent()
+            Assertions.assertThat(featureRepository.findById(featureToDelete.id)).isNotPresent()
         }
 
         @Test
@@ -319,7 +319,7 @@ internal class FeatureServiceTest
 
             // WHEN
             featureService.assignSomethingToFeature(
-                feature.id!!,
+                feature.id,
                 FeatureAssignDto(device.id, FeatureAssignType.DEVICE),
                 false,
             )
@@ -337,7 +337,7 @@ internal class FeatureServiceTest
             val feature = createAndSaveFeature("F_REMOVE_DEV", testFacility)
             val device = createAndSaveDevice()
             featureService.assignSomethingToFeature(
-                feature.id!!,
+                feature.id,
                 FeatureAssignDto(device.id, FeatureAssignType.DEVICE),
                 false,
             )
@@ -346,7 +346,7 @@ internal class FeatureServiceTest
                 .isNotNull()
 
             // WHEN
-            featureService.removeSomethingFromFeature(feature.id!!, FeatureAssignDto(device.id, FeatureAssignType.DEVICE))
+            featureService.removeSomethingFromFeature(feature.id, FeatureAssignDto(device.id, FeatureAssignType.DEVICE))
 
             // THEN: DB 직접 검증
             val updatedDevice = deviceRepository.findById(device.id).orElseThrow()
@@ -361,7 +361,7 @@ internal class FeatureServiceTest
             val assignedDevice = createAndSaveDevice()
             val otherDevice = createAndSaveDevice()
             featureService.assignSomethingToFeature(
-                feature.id!!,
+                feature.id,
                 FeatureAssignDto(assignedDevice.id, FeatureAssignType.DEVICE),
                 false,
             )
@@ -369,7 +369,7 @@ internal class FeatureServiceTest
             // WHEN & THEN: 다른 디바이스 ID로 해제 시도
             assertThrows<CustomException> {
                 featureService.removeSomethingFromFeature(
-                    feature.id!!,
+                    feature.id,
                     FeatureAssignDto(otherDevice.id, FeatureAssignType.DEVICE),
                 )
             }
@@ -402,7 +402,7 @@ internal class FeatureServiceTest
                     position = Spatial(1.0, 2.0, 3.0),
                     rotation = Spatial(0.0, 0.0, 0.0),
                     scale = Spatial(1.0, 1.0, 1.0),
-                    assetId = testAsset.id!!,
+                    assetId = testAsset.id,
                     facility = facility,
                     floorId = "TEST_FLOOR",
                 )

@@ -131,7 +131,7 @@ internal class FileServiceTest
                 ).thenReturn(permanentPath)
 
             // WHEN
-            val finalizedFile = fileService.finalizeUpload(tempFile.id!!, permanentPath)
+            val finalizedFile = fileService.finalizeUpload(tempFile.requiredId(), permanentPath)
 
             // THEN
             // 1. StorageStrategy의 persist 메소드가 1번 호출되었는지 검증
@@ -147,7 +147,7 @@ internal class FileServiceTest
             Assertions.assertThat(finalizedFile.fileStatus).isEqualTo(FileStatus.COMPLETE)
             Assertions.assertThat(finalizedFile.filePath).isEqualTo(permanentPath)
 
-            val updatedFile = fileRepository.findById(tempFile.id!!).orElseThrow()
+            val updatedFile = fileRepository.findById(tempFile.requiredId()).orElseThrow()
             Assertions.assertThat(updatedFile.fileStatus).isEqualTo(FileStatus.COMPLETE)
             Assertions.assertThat(updatedFile.filePath).isEqualTo(permanentPath)
         }
@@ -180,7 +180,7 @@ internal class FileServiceTest
             // WHEN & THEN
             val exception =
                 assertThrows<CustomException> {
-                    fileService.finalizeUpload(completeFile.id!!, "new/path")
+                    fileService.finalizeUpload(completeFile.requiredId(), "new/path")
                 }
 
             Assertions.assertThat(exception.message).contains(ErrorCode.INVALID_FILE_STATUS.getMessage())
@@ -193,7 +193,7 @@ internal class FileServiceTest
             val savedFile = createAndSaveTempFileEntity()
 
             // WHEN
-            val foundFile = fileService.getFile(savedFile.id!!)
+            val foundFile = fileService.getFile(savedFile.requiredId())
 
             // THEN
             Assertions.assertThat(foundFile).isNotNull()
@@ -213,7 +213,7 @@ internal class FileServiceTest
                 )
             val file2 = fileRepository.save(tempFile)
 
-            val ids = listOf(file1.id!!, file2.id!!)
+            val ids = listOf(file1.requiredId(), file2.requiredId())
 
             // WHEN
             val responses = fileService.getFiles(ids)
