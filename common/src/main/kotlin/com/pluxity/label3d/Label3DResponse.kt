@@ -13,7 +13,7 @@ data class Label3DResponse(
 
 fun Label3D.toLabel3DResponse(): Label3DResponse =
     Label3DResponse(
-        id = this.id!!,
+        id = this.requiredId(),
         displayText = this.displayText!!,
         floorId = this.feature.floorId,
         position = this.feature.position,

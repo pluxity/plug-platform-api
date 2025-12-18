@@ -4,8 +4,6 @@ import com.pluxity.facility.FacilityService
 import com.pluxity.feature.dto.FeatureUpdateRequest
 import com.pluxity.feature.entity.Feature
 import com.pluxity.feature.service.FeatureService
-import com.pluxity.global.constant.ErrorCode
-import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.SortUtils
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.repository.findByIdOrNull
@@ -32,7 +30,7 @@ class Label3DService(
                 ),
             )
         val label3D = Label3D(feature = feature, displayText = request.displayText)
-        return label3DRepository.save(label3D).id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
+        return label3DRepository.save(label3D).requiredId()
     }
 
     @Transactional(readOnly = true)
@@ -66,7 +64,7 @@ class Label3DService(
     fun deleteLabel3D(id: String) {
         val label3D = findLabel3DById(id)
         label3DRepository.deleteById(id)
-        featureService.deleteFeature(label3D.feature.id!!)
+        featureService.deleteFeature(label3D.feature.id)
     }
 
     fun findLabel3DById(id: String): Label3D =

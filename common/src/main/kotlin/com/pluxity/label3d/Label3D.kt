@@ -26,4 +26,6 @@ data class Label3D(
     fun update(displayText: String?) {
         displayText?.let { this.displayText = it }
     }
+
+    fun requiredId(): String = checkNotNull(this.id) { "Label ID is required" }
 }

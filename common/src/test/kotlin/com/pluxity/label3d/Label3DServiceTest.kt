@@ -7,7 +7,6 @@ import com.pluxity.facility.dto.FacilityCreateRequest
 import com.pluxity.feature.entity.Spatial
 import com.pluxity.feature.repository.FeatureRepository
 import com.pluxity.feature.service.FeatureAssignment
-import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
@@ -49,7 +48,7 @@ internal class Label3DServiceTest
             val request =
                 FacilityCreateRequest("테스트 시설", "FAC01", null, null, null, null, null, null)
             val facility = FacilityInstance(name = request.name, code = request.code)
-            return facilityService.save(facility, request).id ?: throw IllegalStateException("Saved facility must have an ID")
+            return facilityService.save(facility, request).requiredId()
         }
 
         @Test
@@ -195,7 +194,7 @@ internal class Label3DServiceTest
             val request =
                 FacilityCreateRequest("테스트 시설", "FAC02", null, null, null, null, null, null)
             val facility = FacilityInstance(request.name, request.code)
-            val facilityId2 = facilityService.save(facility, request).id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
+            val facilityId2 = facilityService.save(facility, request).requiredId()
 
             val featureId1 = UUID.randomUUID().toString()
             label3DService.createLabel3D(
