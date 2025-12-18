@@ -1,28 +1,22 @@
 package com.pluxity.permission
 
-import com.pluxity.global.entity.BaseEntity
+import com.pluxity.global.entity.IdentityIdEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 
 @Entity
 @Table(name = "permission")
 class Permission(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null,
     @Column(nullable = false)
     var resourceName: String,
     @Column(nullable = false)
     var resourceId: String,
     @ManyToOne(fetch = FetchType.LAZY)
     var permissionGroup: PermissionGroup? = null,
-) : BaseEntity() {
+) : IdentityIdEntity() {
     fun matches(
         resourceName: String?,
         resourceId: String?,
