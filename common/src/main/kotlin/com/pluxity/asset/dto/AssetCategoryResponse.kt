@@ -33,7 +33,7 @@ fun AssetCategory.toResponse(
     thumbnailFile: FileResponse? = null,
 ): AssetCategoryResponse =
     AssetCategoryResponse(
-        id = this.id!!,
+        id = this.requiredId(),
         name = this.name,
         code = this.code,
         parentId = this.parent?.id,

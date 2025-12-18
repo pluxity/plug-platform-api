@@ -26,7 +26,7 @@ data class FacilityCategoryResponse(
 
 fun FacilityCategory.toResponse(): FacilityCategoryResponse =
     FacilityCategoryResponse(
-        id = this.id!!,
+        id = this.requiredId(),
         name = this.name,
         parentId = this.parent?.id,
         children = mutableListOf(),

@@ -66,7 +66,7 @@ class AssetCategoryService(
             fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${category.id}")
         }
 
-        return category.id ?: throw CustomException(ErrorCode.FAILED_TO_SAVE_ENTITY)
+        return category.requiredId()
     }
 
     @Transactional

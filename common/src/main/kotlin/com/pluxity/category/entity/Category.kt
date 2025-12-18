@@ -33,6 +33,8 @@ abstract class Category<T : Category<T>>(
     val depth: Int
         get() = 1 + (parent?.depth ?: 0)
 
+    fun requiredId(): Long = checkNotNull(this.id) { "Category ID is required" }
+
     fun isRoot(): Boolean = parent == null
 
     fun updateName(name: String) {
