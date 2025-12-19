@@ -1,6 +1,5 @@
 package com.pluxity.device
 
-import base.entity.withId
 import com.pluxity.device.dto.DeviceCategoryRequest
 import com.pluxity.device.dto.DeviceCategoryUpdateRequest
 import com.pluxity.device.entity.Device
@@ -210,10 +209,10 @@ class DeviceCategoryServiceKoTest :
             When("자식이 있는 카테고리 삭제 요청") {
                 val parentCategory = dummyDeviceCategory(id = 1L, name = "부모 카테고리")
                 val childCategory =
-                    dummyDeviceCategory(name = "자식 카테고리")
+                    dummyDeviceCategory(id = 2L, name = "자식 카테고리")
                         .apply {
                             parent = parentCategory
-                        }.withId(2L)
+                        }
                 parentCategory.children.add(childCategory)
 
                 every { jpaRepository.findByIdOrNull(1L) } returns parentCategory

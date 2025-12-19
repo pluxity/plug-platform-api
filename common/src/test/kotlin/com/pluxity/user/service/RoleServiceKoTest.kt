@@ -1,12 +1,10 @@
 package com.pluxity.user.service
 
-import base.entity.withId
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionGroup
 import com.pluxity.permission.PermissionGroupService
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleUpdateRequest
-import com.pluxity.user.entity.Role
 import com.pluxity.user.entity.RolePermission
 import com.pluxity.user.repository.RolePermissionRepository
 import com.pluxity.user.repository.RoleRepository
@@ -99,8 +97,8 @@ class RoleServiceKoTest :
 
         Given("Role 목록 조회를 진행할 때") {
             When("정상 요청이 오면") {
-                val role1 = Role(name = "Role1", description = "Desc1").withId(1L)
-                val role2 = Role(name = "Role2", description = "Desc2").withId(2L)
+                val role1 = dummyRole(name = "Role1", description = "Desc1")
+                val role2 = dummyRole(id = 2L, name = "Role2", description = "Desc2")
 
                 every { roleRepository.findByAuthIsNotOrderByCreatedAtDesc(any()) } returns listOf(role1, role2)
 
