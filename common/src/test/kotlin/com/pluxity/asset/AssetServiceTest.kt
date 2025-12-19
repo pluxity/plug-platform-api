@@ -48,14 +48,14 @@ class AssetServiceTest
             assertThat(response.categoryId).isEqualTo(categoryId)
             assertThat(response.categoryName).isEqualTo("테스트 카테고리")
             assertThat(response.categoryCode).isEqualTo("TCC")
-            assertThat(response.file).isNotNull
-            assertThat(response.file!!.id).isEqualTo(assetFileId)
-            assertThat(response.file!!.originalFileName).isEqualTo("asset_file.glb")
-            assertThat(response.file!!.fileStatus).isEqualTo(FileStatus.COMPLETE.name)
-            assertThat(response.thumbnailFile).isNotNull
-            assertThat(response.thumbnailFile!!.id).isEqualTo(thumbnailFileId)
-            assertThat(response.thumbnailFile!!.originalFileName).isEqualTo("thumbnail_image.png")
-            assertThat(response.thumbnailFile!!.fileStatus).isEqualTo(FileStatus.COMPLETE.name)
+            checkNotNull(response.file)
+            assertThat(response.file.id).isEqualTo(assetFileId)
+            assertThat(response.file.originalFileName).isEqualTo("asset_file.glb")
+            assertThat(response.file.fileStatus).isEqualTo(FileStatus.COMPLETE.name)
+            checkNotNull(response.thumbnailFile)
+            assertThat(response.thumbnailFile.id).isEqualTo(thumbnailFileId)
+            assertThat(response.thumbnailFile.originalFileName).isEqualTo("thumbnail_image.png")
+            assertThat(response.thumbnailFile.fileStatus).isEqualTo(FileStatus.COMPLETE.name)
         }
 
         @Test
@@ -100,8 +100,10 @@ class AssetServiceTest
             assertThat(updatedAsset.code).isEqualTo("UPD_A")
             assertThat(updatedAsset.categoryId).isEqualTo(newCategoryId)
             assertThat(updatedAsset.categoryName).isEqualTo("새 카테고리")
-            assertThat(updatedAsset.file!!.id).isEqualTo(newFileId)
-            assertThat(updatedAsset.thumbnailFile!!.id).isEqualTo(newThumbnailId)
+            checkNotNull(updatedAsset.file)
+            checkNotNull(updatedAsset.thumbnailFile)
+            assertThat(updatedAsset.file.id).isEqualTo(newFileId)
+            assertThat(updatedAsset.thumbnailFile.id).isEqualTo(newThumbnailId)
         }
 
         @Test

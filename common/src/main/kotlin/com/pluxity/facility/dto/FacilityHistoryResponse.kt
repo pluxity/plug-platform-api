@@ -13,7 +13,7 @@ data class FacilityHistoryResponse(
 
 fun FacilityHistory.toHistoryResponse(file: FileResponse): FacilityHistoryResponse =
     FacilityHistoryResponse(
-        id = this.id!!,
+        id = this.requiredId,
         comment = this.comment,
         createdAt = this.createdAt.toString(),
         createdBy = this.createdBy.toString(),

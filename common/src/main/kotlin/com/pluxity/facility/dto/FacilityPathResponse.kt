@@ -11,7 +11,7 @@ data class FacilityPathResponse(
 
 fun FacilityPath.toPathResponse(): FacilityPathResponse =
     FacilityPathResponse(
-        id = this.id!!,
+        id = this.requiredId,
         name = this.name,
         type = this.pathType.name,
         path = this.path,

@@ -80,7 +80,7 @@ class LineServiceKoTest :
                 every { lineRepository.findByIdOrNull(any()) } returns line
 
                 Then("성공") {
-                    val res = lineService.findLineById(line.id!!)
+                    val res = lineService.findLineById(line.requiredId)
                     res.name shouldBe line.name
                     res.id shouldBe line.id
                 }
@@ -106,7 +106,7 @@ class LineServiceKoTest :
                 every { lineRepository.findByIdOrNull(any()) } returns line
 
                 Then("성공") {
-                    val res = lineService.findStationsByLineId(line.id!!)
+                    val res = lineService.findStationsByLineId(line.requiredId)
                     res.size shouldBe 1
                     res.first() shouldBe station.id
                 }
@@ -123,7 +123,7 @@ class LineServiceKoTest :
 
                 Then("예외 발생") {
                     shouldThrowExactly<CustomException> {
-                        lineService.update(line.id!!, updateRequest)
+                        lineService.update(line.requiredId, updateRequest)
                     }.message shouldBe ErrorCode.DUPLICATE_LINE_NAME.getMessage().format(updateRequest.name)
                 }
             }
@@ -132,7 +132,7 @@ class LineServiceKoTest :
                 every { lineRepository.findByNameAndIdNot(any(), any()) } returns null
 
                 Then("성공") {
-                    lineService.update(line.id!!, updateRequest)
+                    lineService.update(line.requiredId, updateRequest)
                 }
             }
         }
@@ -148,7 +148,7 @@ class LineServiceKoTest :
                 every { lineRepository.delete(any()) } just runs
 
                 Then("성공") {
-                    lineService.delete(line.id!!)
+                    lineService.delete(line.requiredId)
                     verify(exactly = 1) { lineRepository.delete(any()) }
                 }
             }

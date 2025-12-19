@@ -46,7 +46,7 @@ class PermissionGroupService(
             }
         }
 
-        return permissionGroupRepository.save(permissionGroup).id!!
+        return permissionGroupRepository.save(permissionGroup).requiredId
     }
 
     @Transactional(readOnly = true)

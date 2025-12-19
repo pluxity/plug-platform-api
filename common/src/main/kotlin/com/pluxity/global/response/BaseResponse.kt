@@ -12,7 +12,7 @@ data class BaseResponse(
 fun BaseEntity.toBaseResponse(): BaseResponse =
     BaseResponse(
         createdAt = this.createdAt.toString(),
-        createdBy = this.createdBy!!,
+        createdBy = requireNotNull(this.createdBy) { "createBy is null (not ready)" },
         updatedAt = this.updatedAt.toString(),
-        updatedBy = this.updatedBy!!,
+        updatedBy = requireNotNull(this.updatedBy) { "updatedBy is null (not ready)" },
     )

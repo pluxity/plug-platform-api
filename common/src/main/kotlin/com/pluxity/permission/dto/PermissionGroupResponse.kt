@@ -23,7 +23,7 @@ data class PermissionGroupResponse(
 
 fun PermissionGroup.toPermissionGroupResponse(): PermissionGroupResponse =
     PermissionGroupResponse(
-        id = this.id!!,
+        id = this.requiredId,
         name = this.name,
         description = this.description,
         permissions =

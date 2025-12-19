@@ -50,12 +50,13 @@ class FacilityService(
         }
 
         val savedFacility = facilityRepository.save(facility)
+        val facilityId = savedFacility.requiredId
         val filePath = "$prefix${savedFacility.id}/"
 
         request.drawingFileId?.let { drawingFileId ->
             val drawingFile = fileService.finalizeUpload(drawingFileId, filePath)
             facility.updateDrawingFile(drawingFile)
-            facilityHistoryService.save(drawingFileId, facility.id!!, "최초등록")
+            facilityHistoryService.save(drawingFileId, facilityId, "최초등록")
         }
 
         request.thumbnailFileId?.let { thumbnailFileId ->
@@ -134,7 +135,7 @@ class FacilityService(
         }
 
         facility.updateCode(request.code)
-        facility.updateName(request.name!!)
+        facility.updateName(request.name)
         facility.updateDescription(request.description)
 
         if (request.thumbnailFileId != facility.thumbnailFileId) {
@@ -187,7 +188,7 @@ class FacilityService(
         val filePath = "$prefix${facility.id}/"
         val drawingFile = fileService.finalizeUpload(request.drawingFileId, filePath)
         facility.updateDrawingFile(drawingFile)
-        facilityHistoryService.save(request.drawingFileId, facility.id!!, request.comment ?: "")
+        facilityHistoryService.save(request.drawingFileId, facility.requiredId, request.comment ?: "")
     }
 
     @Transactional

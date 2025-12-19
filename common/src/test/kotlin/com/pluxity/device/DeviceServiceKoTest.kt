@@ -131,9 +131,9 @@ class DeviceServiceKoTest :
                         "test-file",
                         "test-path",
                     )
-
                 every { deviceRepository.findByIdOrNullCustom(deviceId) } returns device
-                every { fileService.getFileResponse(category.iconFileId!!) } returns fileResponse
+                checkNotNull(category.iconFileId)
+                every { fileService.getFileResponse(category.iconFileId) } returns fileResponse
 
                 Then("파일 정보와 함께 정상 조회") {
                     val result = deviceService.findById(deviceId)

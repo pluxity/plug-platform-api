@@ -45,7 +45,10 @@ class FloorService(
         }
         return repository
             .findAllByFacilities(facilities)
-            .groupBy({ it.facility!! }, { it.toFloorResponse() })
+            .groupBy(
+                { checkNotNull(it.facility) { "Floor(id=${it.id}) must have a facility" } },
+                { it.toFloorResponse() },
+            )
     }
 
     @Transactional

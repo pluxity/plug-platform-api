@@ -5,7 +5,7 @@ import com.pluxity.file.dto.FileResponse
 import io.swagger.v3.oas.annotations.media.Schema
 
 data class DeviceCategoryResponse(
-    val id: Long?,
+    val id: Long,
     val name: String,
     val parentId: Long?,
     @field:Schema(
@@ -25,7 +25,7 @@ data class DeviceCategoryResponse(
 
 fun DeviceCategory.toDeviceCategoryResponse(iconFile: FileResponse) =
     DeviceCategoryResponse(
-        id = this.id,
+        id = this.requiredId,
         name = this.name,
         parentId = this.parent?.id,
         children = mutableListOf(),

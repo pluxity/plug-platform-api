@@ -1,8 +1,8 @@
 package com.pluxity.park.entity
 
 import base.entity.withAudit
+import base.entity.withId
 import com.pluxity.park.Park
-import org.springframework.test.util.ReflectionTestUtils
 
 fun dummyPark(
     name: String = "name",
@@ -15,7 +15,6 @@ fun dummyPark(
             name,
             description,
             boundary,
-        ).withAudit()
-    ReflectionTestUtils.setField(park, "id", id)
+        ).withAudit().withId(id)
     return park
 }

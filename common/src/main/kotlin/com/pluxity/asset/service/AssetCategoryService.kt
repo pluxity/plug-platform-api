@@ -11,6 +11,7 @@ import com.pluxity.category.dto.CategoryDepthResponse
 import com.pluxity.category.service.CategoryService
 import com.pluxity.file.extensions.getFileMapById
 import com.pluxity.file.service.FileService
+import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.SortUtils
 import org.springframework.data.jpa.repository.JpaRepository
@@ -65,7 +66,7 @@ class AssetCategoryService(
             fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${category.id}")
         }
 
-        return category.id!!
+        return category.requiredId
     }
 
     @Transactional
@@ -93,11 +94,11 @@ class AssetCategoryService(
         val category = findById(id)
 
         require(category.assets.isEmpty()) {
-            throw CustomException(com.pluxity.global.constant.ErrorCode.ASSET_CATEGORY_HAS_ASSET)
+            throw CustomException(ErrorCode.ASSET_CATEGORY_HAS_ASSET)
         }
 
         require(category.children.isEmpty()) {
-            throw CustomException(com.pluxity.global.constant.ErrorCode.CATEGORY_HAS_CHILDREN)
+            throw CustomException(ErrorCode.CATEGORY_HAS_CHILDREN)
         }
 
         assetCategoryRepository.delete(category)
@@ -105,7 +106,7 @@ class AssetCategoryService(
 
     private fun validateCodeUniqueness(code: String) {
         if (assetCategoryRepository.existsByCode(code)) {
-            throw CustomException(com.pluxity.global.constant.ErrorCode.DUPLICATE_ASSET_CATEGORY_CODE, code)
+            throw CustomException(ErrorCode.DUPLICATE_ASSET_CATEGORY_CODE, code)
         }
     }
 

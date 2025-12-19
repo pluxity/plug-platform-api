@@ -22,7 +22,7 @@ class Label3DService(
             featureService.saveFeature(
                 Feature(
                     id = request.id,
-                    facility = facilityService.findById(request.facilityId!!),
+                    facility = facilityService.findById(request.facilityId),
                     floorId = request.floorId,
                     position = request.position,
                     rotation = request.rotation,
@@ -30,7 +30,7 @@ class Label3DService(
                 ),
             )
         val label3D = Label3D(feature = feature, displayText = request.displayText)
-        return label3DRepository.save(label3D).id!!
+        return label3DRepository.save(label3D).requiredId
     }
 
     @Transactional(readOnly = true)
@@ -64,7 +64,7 @@ class Label3DService(
     fun deleteLabel3D(id: String) {
         val label3D = findLabel3DById(id)
         label3DRepository.deleteById(id)
-        featureService.deleteFeature(label3D.feature.id!!)
+        featureService.deleteFeature(label3D.feature.id)
     }
 
     fun findLabel3DById(id: String): Label3D =

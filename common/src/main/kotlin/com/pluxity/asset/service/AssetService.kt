@@ -103,7 +103,7 @@ class AssetService(
             savedAsset.updateThumbnailFileEntity(thumbnailEntity)
         }
 
-        return requireNotNull(savedAsset.id)
+        return savedAsset.requiredId
     }
 
     @Transactional

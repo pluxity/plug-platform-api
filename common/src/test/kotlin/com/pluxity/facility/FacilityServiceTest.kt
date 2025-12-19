@@ -116,7 +116,7 @@ class FacilityServiceTest
             savedFacility.position?.lat shouldBe 37.55
             savedFacility.position?.locationMeta shouldBe "{'floor': 5}"
 
-            verify(facilityHistoryService, times(1)).save(drawingFileId, savedFacility.id!!, "최초등록")
+            verify(facilityHistoryService, times(1)).save(drawingFileId, savedFacility.requiredId, "최초등록")
         }
 
         @Test
@@ -158,10 +158,10 @@ class FacilityServiceTest
             val request = FacilityUpdateRequest("수정된 이름", null, null, null, 2.0, null, null)
 
             // WHEN
-            facilityService.update(saved.id!!, request)
+            facilityService.update(saved.requiredId, request)
 
             // THEN
-            val updated = facilityService.findById(saved.id!!)
+            val updated = facilityService.findById(saved.requiredId)
             updated.name shouldBe "수정된 이름"
             updated.position?.lon shouldBe 2.0
             updated.code shouldBe "ORI_CODE"
@@ -181,10 +181,10 @@ class FacilityServiceTest
             val request = FacilityUpdateRequest("수정된 이름", "UPD_CODE", null, null, 2.0, 2.0, "{}")
 
             // WHEN
-            facilityService.putUpdate(saved.id!!, request)
+            facilityService.putUpdate(saved.requiredId, request)
 
             // THEN
-            val updated = facilityService.findById(saved.id!!)
+            val updated = facilityService.findById(saved.requiredId)
             updated.name shouldBe "수정된 이름"
             updated.code shouldBe "UPD_CODE"
             updated.description shouldBe null
@@ -202,11 +202,11 @@ class FacilityServiceTest
                 )
 
             // WHEN
-            facilityService.deleteFacility(saved.id!!)
+            facilityService.deleteFacility(saved.requiredId)
 
             // THEN
             shouldThrow<CustomException> {
-                facilityService.findById(saved.id!!)
+                facilityService.findById(saved.requiredId)
             }
         }
 
@@ -223,13 +223,13 @@ class FacilityServiceTest
             val request = FacilityDrawingUpdateRequest(newDrawingFileId, "도면 교체")
 
             // WHEN
-            facilityService.updateDrawingFile(saved.id!!, request)
+            facilityService.updateDrawingFile(saved.requiredId, request)
 
             // THEN
-            val updated = facilityService.findById(saved.id!!)
+            val updated = facilityService.findById(saved.requiredId)
             updated.drawingFileId shouldBe newDrawingFileId
 
-            verify(facilityHistoryService, times(1)).save(newDrawingFileId, saved.id!!, "도면 교체")
+            verify(facilityHistoryService, times(1)).save(newDrawingFileId, saved.requiredId, "도면 교체")
         }
 
         @Test
@@ -244,7 +244,7 @@ class FacilityServiceTest
             val request = FacilityPathSaveRequest("주 경로", "MAIN", "{}")
 
             // WHEN
-            facilityService.savePath(saved.id!!, request)
+            facilityService.savePath(saved.requiredId, request)
 
             // THEN
             verify(facilityPathService, times(1))
@@ -263,7 +263,7 @@ class FacilityServiceTest
             val request = FacilityFloorUpdateRequest(emptyList())
 
             // WHEN
-            facilityService.updateFloor(saved.id!!, request)
+            facilityService.updateFloor(saved.requiredId, request)
 
             // THEN
             verify(floorService, times(1)).update(any<Facility>(), any())
@@ -315,9 +315,9 @@ class FacilityServiceTest
                 )
 
             // WHEN & THEN
-            val request = FacilityUpdateRequest(null, "CODE1", null, null, null, null, null)
+            val request = FacilityUpdateRequest("시설2", "CODE1", null, null, null, null, null)
             shouldThrow<CustomException> {
-                facilityService.update(saved2.id!!, request)
+                facilityService.update(saved2.requiredId, request)
             }
         }
 
@@ -393,7 +393,7 @@ class FacilityServiceTest
             val request = FacilityPathUpdateRequest("수정된 경로", "SUB", "{}")
 
             // WHEN
-            facilityService.updatePath(saved.id!!, 1L, request)
+            facilityService.updatePath(saved.requiredId, 1L, request)
 
             // THEN
             verify(facilityPathService, times(1)).update(1L, "수정된 경로", "SUB", "{}")
@@ -410,7 +410,7 @@ class FacilityServiceTest
                 )
 
             // WHEN
-            facilityService.deletePath(saved.id!!, 1L)
+            facilityService.deletePath(saved.requiredId, 1L)
 
             // THEN
             verify(facilityPathService, times(1)).delete(1L)
@@ -428,10 +428,10 @@ class FacilityServiceTest
             val request = FacilityLocationUpdateRequest(127.5, 37.5, "{'new_meta': true}")
 
             // WHEN
-            facilityService.updateLocation(saved.id!!, request)
+            facilityService.updateLocation(saved.requiredId, request)
 
             // THEN
-            val updated = facilityService.findById(saved.id!!)
+            val updated = facilityService.findById(saved.requiredId)
             updated.position?.lon shouldBe 127.5
             updated.position?.lat shouldBe 37.5
             updated.position?.locationMeta shouldBe "{'new_meta': true}"

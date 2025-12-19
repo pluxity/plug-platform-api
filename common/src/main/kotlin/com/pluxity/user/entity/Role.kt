@@ -1,27 +1,20 @@
 package com.pluxity.user.entity
 
-import com.pluxity.global.entity.BaseEntity
+import com.pluxity.global.entity.IdentityIdEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
 @Entity
 @Table(name = "roles")
 class Role(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    var id: Long? = null,
     @Column(name = "name", nullable = false, unique = true)
     var name: String,
     @Column(name = "description", length = 100)
     var description: String?,
     var auth: String? = RoleType.USER.name,
-) : BaseEntity() {
+) : IdentityIdEntity() {
     @OneToMany(mappedBy = "role")
     var userRoles: MutableList<UserRole> = mutableListOf()
 

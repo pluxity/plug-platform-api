@@ -15,7 +15,7 @@ data class UserResponse(
 
 fun User.toUserResponse(): UserResponse =
     UserResponse(
-        id = this.id!!,
+        id = this.requiredId,
         username = this.username,
         name = this.name,
         code = this.code,

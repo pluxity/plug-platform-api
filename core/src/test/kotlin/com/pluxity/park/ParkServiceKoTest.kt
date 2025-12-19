@@ -71,7 +71,7 @@ class ParkServiceKoTest :
                 } returns dummyFileResponse()
 
                 Then("정상 조회") {
-                    val res = parkService.findById(park.id!!)
+                    val res = parkService.findById(park.requiredId)
                     res.facility.name shouldBe park.name
                 }
             }
@@ -92,7 +92,7 @@ class ParkServiceKoTest :
         Given("Park 수정을 진행할 때") {
             When("정상 수정 요청") {
                 val updateRequest = dummyUpdateParkRequest("updatedBoundary")
-                val park = dummyPark(name = updateRequest.facility.name!!, boundary = updateRequest.boundary)
+                val park = dummyPark(name = updateRequest.facility.name, boundary = updateRequest.boundary)
                 every {
                     parkRepository.findByIdOrNull(any())
                 } returns park
@@ -102,7 +102,7 @@ class ParkServiceKoTest :
                 } just runs
 
                 Then("정상 수정") {
-                    parkService.update(park.id!!, updateRequest)
+                    parkService.update(park.requiredId, updateRequest)
                     park.name shouldBe updateRequest.facility.name
                     park.boundary shouldBe updateRequest.boundary
                 }
@@ -121,7 +121,7 @@ class ParkServiceKoTest :
                 } just runs
 
                 Then("정상 삭제") {
-                    parkService.delete(park.id!!)
+                    parkService.delete(park.requiredId)
                     verify(exactly = 1) { facilityService.deleteFacility(any()) }
                     slot.captured shouldBe park.id
                 }

@@ -105,8 +105,8 @@ internal class LineServiceTest
             val station1 = stationRepository.save(Station(name = "서울역"))
             val station2 = stationRepository.save(Station(name = "시청역"))
 
-            stationService.addLineToStation(station1.id!!, lineId)
-            stationService.addLineToStation(station2.id!!, lineId)
+            stationService.addLineToStation(station1.requiredId, lineId)
+            stationService.addLineToStation(station2.requiredId, lineId)
 
             // when
             val response = lineService.findById(lineId)
@@ -261,7 +261,7 @@ internal class LineServiceTest
             // given
             val lineId = lineService.save(lineCreateRequest)
             val station = stationRepository.save(Station(name = "테스트역"))
-            stationService.addLineToStation(station.id!!, lineId)
+            stationService.addLineToStation(station.requiredId, lineId)
 
             // 관계 설정 확인
             val linesByStation = stationLineService.findLinesByStation(station)
@@ -275,7 +275,7 @@ internal class LineServiceTest
             assertThrows<CustomException> { lineService.findById(lineId) }
 
             // 역은 여전히 존재하지만 라인 관계는 제거되어야 함
-            val stillExistingStation = stationRepository.findById(station.id!!).orElseThrow()
+            val stillExistingStation = stationRepository.findById(station.requiredId).orElseThrow()
             val linesAfterDelete = stationLineService.findLinesByStation(stillExistingStation)
             Assertions.assertThat(linesAfterDelete).isEmpty()
         }

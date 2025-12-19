@@ -15,7 +15,7 @@ data class UserLoggedInResponse(
 
 fun User.toUserLoggedInResponse(isLoggedIn: Boolean): UserLoggedInResponse =
     UserLoggedInResponse(
-        id = this.id!!,
+        id = this.requiredId,
         username = this.username,
         name = this.name,
         code = this.code,

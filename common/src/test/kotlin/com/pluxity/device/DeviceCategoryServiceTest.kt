@@ -269,9 +269,9 @@ internal class DeviceCategoryServiceTest
 
             // THEN
             val response = deviceCategoryService.getDeviceCategory(createdId)
-            Assertions.assertThat<DeviceCategoryResponse?>(response).isNotNull()
+            Assertions.assertThat(response).isNotNull()
             Assertions.assertThat(response.name).isEqualTo("아이콘 없는 카테고리")
-            Assertions.assertThat<FileResponse>(response.thumbnailFile).isNotNull()
+            Assertions.assertThat(response.thumbnailFile).isNotNull()
             Assertions.assertThat(response.thumbnailFile.id).isNull()
         }
 

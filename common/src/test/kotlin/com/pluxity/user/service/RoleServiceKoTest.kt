@@ -1,5 +1,7 @@
 package com.pluxity.user.service
 
+import base.entity.withId
+import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionGroup
 import com.pluxity.permission.PermissionGroupService
 import com.pluxity.user.dto.RoleCreateRequest
@@ -20,7 +22,6 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import jakarta.persistence.EntityManager
-import jakarta.persistence.EntityNotFoundException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 
 class RoleServiceKoTest :
@@ -98,8 +99,8 @@ class RoleServiceKoTest :
 
         Given("Role 목록 조회를 진행할 때") {
             When("정상 요청이 오면") {
-                val role1 = Role(id = 1L, name = "Role1", description = "Desc1")
-                val role2 = Role(id = 2L, name = "Role2", description = "Desc2")
+                val role1 = Role(name = "Role1", description = "Desc1").withId(1L)
+                val role2 = Role(name = "Role2", description = "Desc2").withId(2L)
 
                 every { roleRepository.findByAuthIsNotOrderByCreatedAtDesc(any()) } returns listOf(role1, role2)
 
@@ -138,10 +139,10 @@ class RoleServiceKoTest :
             When("없는 아이디로 조회 요청") {
                 every { roleRepository.findWithInfoById(999L) } returns null
 
-                Then("EntityNotFoundException 예외 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                Then("CustomException 예외 발생") {
+                    shouldThrowExactly<CustomException> {
                         roleService.findById(999L)
-                    }.message shouldBe "Role not found with id: 999"
+                    }.message shouldBe "ID가 999인 Role을 찾을 수 없습니다."
                 }
             }
         }
@@ -200,10 +201,10 @@ class RoleServiceKoTest :
 
                 every { roleRepository.findWithInfoById(999L) } returns null
 
-                Then("EntityNotFoundException 예외 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                Then("CustomException 예외 발생") {
+                    shouldThrowExactly<CustomException> {
                         roleService.update(999L, updateRequest)
-                    }.message shouldBe "Role not found with id: 999"
+                    }.message shouldBe "ID가 999인 Role을 찾을 수 없습니다."
                 }
             }
         }
@@ -230,10 +231,10 @@ class RoleServiceKoTest :
             When("없는 아이디로 삭제 요청") {
                 every { roleRepository.findWithInfoById(999L) } returns null
 
-                Then("EntityNotFoundException 예외 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                Then("CustomException 예외 발생") {
+                    shouldThrowExactly<CustomException> {
                         roleService.delete(999L)
-                    }.message shouldBe "Role not found with id: 999"
+                    }.message shouldBe "ID가 999인 Role을 찾을 수 없습니다."
                 }
             }
         }
@@ -253,10 +254,10 @@ class RoleServiceKoTest :
             When("없는 ID로 호출") {
                 every { roleRepository.findWithInfoById(999L) } returns null
 
-                Then("EntityNotFoundException 예외 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                Then("CustomException 예외 발생") {
+                    shouldThrowExactly<CustomException> {
                         roleService.findRoleById(999L)
-                    }.message shouldBe "Role not found with id: 999"
+                    }.message shouldBe "ID가 999인 Role을 찾을 수 없습니다."
                 }
             }
         }

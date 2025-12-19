@@ -1,20 +1,14 @@
 package com.pluxity.station
 
-import com.pluxity.global.entity.BaseEntity
+import com.pluxity.global.entity.IdentityIdEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
 @Entity
 @Table(name = "line")
 class Line(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
     @Column(
         unique = true,
         nullable = false,
@@ -22,7 +16,7 @@ class Line(
     )
     var name: String,
     var color: String?,
-) : BaseEntity() {
+) : IdentityIdEntity() {
     @OneToMany(mappedBy = "line")
     val stationLines: MutableList<StationLine> = ArrayList()
 

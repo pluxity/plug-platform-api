@@ -179,6 +179,11 @@ internal class UserIntegrationTest
             em.clear()
         }
 
+        private fun findUserOrFail(userId: Long): User =
+            checkNotNull(userRepository.findWithGraphById(userId)) {
+                "setUp() 이후에 ID($userId)에 해당하는 사용자가 DB에 존재해야 합니다."
+            }
+
         @Test
         @DisplayName("[연쇄 삭제 검증 1] 특정 Role 삭제 시, 해당 Role을 가진 User는 유지되지만 UserRole 연결은 끊어져야 한다")
         fun deleteRole_shouldOnlyRemoveRoleAndUserRoleLink_notUser() {
@@ -191,15 +196,15 @@ internal class UserIntegrationTest
             em.flush()
             em.clear()
 
-            val roleToDelete = roleRepository.save(Role(null, "DELETABLE_ROLE", "곧 삭제될 역할"))
-            val roleToKeep = roleRepository.save(Role(null, "KEEPER_ROLE", "유지될 역할"))
+            val roleToDelete = roleRepository.save(Role("DELETABLE_ROLE", "곧 삭제될 역할"))
+            val roleToKeep = roleRepository.save(Role("KEEPER_ROLE", "유지될 역할"))
 
-            val userWithTwoRoles = User(null, "multiRoleUser", "pw", "다중역할사용자", "", null, null)
+            val userWithTwoRoles = User("multiRoleUser", "pw", "다중역할사용자", "", null, null)
             userWithTwoRoles.addRole(roleToDelete)
             userWithTwoRoles.addRole(roleToKeep)
             userRepository.save(userWithTwoRoles)
 
-            val userWithOneRole = User(null, "singleRoleUser", "pw", "단일역할사용자", "", null, null)
+            val userWithOneRole = User("singleRoleUser", "pw", "단일역할사용자", "", null, null)
             userWithOneRole.addRole(roleToDelete)
             userRepository.save(userWithOneRole)
 
@@ -208,18 +213,24 @@ internal class UserIntegrationTest
             Assertions.assertThat(userRoleRepository.count()).isEqualTo(3)
 
             // WHEN
-            roleService.delete(roleToDelete.id!!)
+            roleService.delete(roleToDelete.requiredId)
             em.flush()
             em.clear()
 
             // THEN
-            Assertions.assertThat(roleRepository.findById(roleToDelete.id!!)).isEmpty()
-            Assertions.assertThat(roleRepository.findById(roleToKeep.id!!)).isPresent()
+            Assertions.assertThat(roleRepository.findById(roleToDelete.requiredId)).isEmpty()
+            Assertions.assertThat(roleRepository.findById(roleToKeep.requiredId)).isPresent()
             Assertions.assertThat(userRepository.count()).isEqualTo(2)
             Assertions.assertThat(userRoleRepository.count()).isEqualTo(1)
 
-            val survivingUser1 = userRepository.findByUsername("multiRoleUser")!!
-            val survivingUser2 = userRepository.findByUsername("singleRoleUser")!!
+            val survivingUser1 =
+                checkNotNull(userRepository.findByUsername("multiRoleUser")) {
+                    "저장 이후에 Username(multiRoleUser) 이름을 가진 사용자가 DB에 존재해야 합니다."
+                }
+            val survivingUser2 =
+                checkNotNull(userRepository.findByUsername("singleRoleUser")) {
+                    "저장 이후에 Username(singleRoleUser) 이름을 가진 사용자가 DB에 존재해야 합니다."
+                }
             Assertions.assertThat(survivingUser1.getRoles()).hasSize(1)
             Assertions.assertThat(survivingUser1.getRoles().first().id).isEqualTo(roleToKeep.id)
             Assertions.assertThat(survivingUser2.getRoles()).isEmpty()
@@ -281,7 +292,7 @@ internal class UserIntegrationTest
         fun updateUserRole_fromOneToAnother() {
             // 이 테스트는 Permission 모델 변경과 관련 없으므로 그대로 유효
             // GIVEN
-            val user = userRepository.findWithGraphById(operatorUserId)!!
+            val user = findUserOrFail(operatorUserId)
             Assertions.assertThat(user.getRoles()[0].id).isEqualTo(operatorRoleId)
 
             // WHEN
@@ -292,7 +303,7 @@ internal class UserIntegrationTest
             em.clear()
 
             // THEN
-            val updatedUser = userRepository.findWithGraphById(operatorUserId)!!
+            val updatedUser = findUserOrFail(operatorUserId)
             Assertions.assertThat(updatedUser.getRoles()).hasSize(1)
             Assertions.assertThat(updatedUser.getRoles()[0].id).isEqualTo(viewerRoleId)
         }
@@ -301,7 +312,7 @@ internal class UserIntegrationTest
         @DisplayName("[복합 업데이트 2] Role의 PermissionGroup 목록을 변경하면 User의 접근 권한이 즉시 변경되어야 한다")
         fun updateRolePermissions_shouldReflectOnAllUsersWithThatRole() {
             // GIVEN
-            val operator = userRepository.findWithGraphById(operatorUserId)!!
+            val operator = findUserOrFail(operatorUserId)
             // canAccess 메서드를 사용하여 권한 확인
             org.junit.jupiter.api.Assertions
                 .assertTrue(operator.canAccess("FACILITY", "EDIT"))
@@ -319,7 +330,7 @@ internal class UserIntegrationTest
             em.clear()
 
             // THEN
-            val updatedOperator = userRepository.findWithGraphById(operatorUserId)!!
+            val updatedOperator = findUserOrFail(operatorUserId)
             org.junit.jupiter.api.Assertions
                 .assertFalse(updatedOperator.canAccess("FACILITY", "EDIT")) // 수정 권한 없어짐
             org.junit.jupiter.api.Assertions
@@ -340,7 +351,7 @@ internal class UserIntegrationTest
             // THEN 1
             val operatorRole1 = roleRepository.findById(operatorRoleId).get()
             Assertions.assertThat(operatorRole1.rolePermissions).hasSize(1)
-            val operator1 = userRepository.findWithGraphById(operatorUserId)!!
+            val operator1 = findUserOrFail(operatorUserId)
             // canAccess 메서드를 사용하여 권한 확인
             org.junit.jupiter.api.Assertions
                 .assertFalse(operator1.canAccess("FACILITY", "EDIT"))
@@ -354,7 +365,7 @@ internal class UserIntegrationTest
             em.clear()
 
             // THEN 2
-            val operator2 = userRepository.findWithGraphById(operatorUserId)!!
+            val operator2 = findUserOrFail(operatorUserId)
             Assertions.assertThat(operator2.getRoles()[0].name).isEqualTo("VIEWER")
             // canAccess 메서드를 사용하여 권한 확인
             org.junit.jupiter.api.Assertions
@@ -368,7 +379,7 @@ internal class UserIntegrationTest
             em.clear()
 
             // THEN 3
-            assertThrows<EntityNotFoundException> {
+            assertThrows<CustomException> {
                 roleService.findById(operatorRoleId)
             }
             Assertions.assertThat(roleRepository.count()).isEqualTo(2)

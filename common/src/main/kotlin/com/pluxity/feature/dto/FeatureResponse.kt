@@ -14,7 +14,7 @@ data class FeatureResponse(
 
 fun Feature.toFeatureResponse() =
     FeatureResponse(
-        id = this.id!!,
+        id = this.id,
         position = this.position,
         rotation = this.rotation,
         scale = this.scale,

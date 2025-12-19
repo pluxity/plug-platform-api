@@ -1,16 +1,13 @@
 package com.pluxity.facility.path
 
 import com.pluxity.facility.Facility
-import com.pluxity.global.entity.BaseEntity
+import com.pluxity.global.entity.IdentityIdEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import org.hibernate.annotations.NotFound
@@ -24,16 +21,13 @@ class FacilityPath(
     @JoinColumn(name = "facility_id")
     @NotFound(action = NotFoundAction.IGNORE)
     var facility: Facility? = null,
+    @Column(nullable = false)
     var name: String,
     @Enumerated(EnumType.STRING)
     var pathType: PathType,
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text", nullable = false)
     var path: String,
-) : BaseEntity() {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null
-
+) : IdentityIdEntity() {
     fun updateName(name: String) {
         this.name = name
     }

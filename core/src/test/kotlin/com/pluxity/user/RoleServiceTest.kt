@@ -3,6 +3,7 @@ package com.pluxity.user
 import com.pluxity.building.Building
 import com.pluxity.building.BuildingRepository
 import com.pluxity.config.MockBeansConfig
+import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionGroupRepository
 import com.pluxity.permission.PermissionGroupService
 import com.pluxity.permission.ResourceType
@@ -16,7 +17,6 @@ import com.pluxity.user.repository.RolePermissionRepository
 import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.service.RoleService
 import jakarta.persistence.EntityManager
-import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -212,7 +212,7 @@ internal class RoleServiceTest
             val newRolePermissions = listOf(RolePermission(role = role, permissionGroup = permissionGroup))
             rolePermissionRepository.saveAll(newRolePermissions)
             newRolePermissions.forEach { rolePermission: RolePermission -> role.addRolePermission(rolePermission) }
-            val roleId = role.id!!
+            val roleId = role.requiredId
 
             Assertions.assertThat(roleService.findById(roleId)).isNotNull()
 
@@ -224,7 +224,7 @@ internal class RoleServiceTest
             em.clear()
 
             // THEN
-            assertThrows<EntityNotFoundException> { roleService.findById(roleId) }
+            assertThrows<CustomException> { roleService.findById(roleId) }
 
             // [중요] PermissionGroup 엔티티 자체는 삭제되지 않고 그대로 남아있어야 함을 검증
             Assertions.assertThat(permissionGroupRepository.count()).isEqualTo(initialGroupCount)
@@ -237,6 +237,6 @@ internal class RoleServiceTest
             val nonExistentId = 9999L
 
             // WHEN & THEN
-            assertThrows<EntityNotFoundException> { roleService.findById(nonExistentId) }
+            assertThrows<CustomException> { roleService.findById(nonExistentId) }
         }
     }

@@ -4,7 +4,7 @@ import com.pluxity.facility.category.FacilityCategory
 import com.pluxity.facility.path.FacilityPath
 import com.pluxity.feature.entity.Feature
 import com.pluxity.file.entity.FileEntity
-import com.pluxity.global.entity.BaseEntity
+import com.pluxity.global.entity.IdentityIdEntity
 import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.Permissible
 import jakarta.persistence.Column
@@ -15,9 +15,6 @@ import jakarta.persistence.EntityListeners
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.Inheritance
 import jakarta.persistence.InheritanceType
 import jakarta.persistence.JoinColumn
@@ -48,12 +45,8 @@ abstract class Facility(
     open var thumbnailFileId: Long? = null,
     @Embedded
     open var position: FacilityPosition? = null,
-) : BaseEntity(),
+) : IdentityIdEntity(),
     Permissible {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    open val id: Long? = null
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     open var category: FacilityCategory? = null

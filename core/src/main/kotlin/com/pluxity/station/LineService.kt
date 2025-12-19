@@ -26,7 +26,7 @@ class LineService(
                 name = request.name,
                 color = request.color,
             )
-        return lineRepository.save(line).id!!
+        return lineRepository.save(line).requiredId
     }
 
     @Transactional(readOnly = true)
@@ -39,7 +39,7 @@ class LineService(
     fun findLineById(id: Long): Line = lineRepository.findByIdOrNull(id) ?: throw notFoundException(id)
 
     @Transactional(readOnly = true)
-    fun findStationsByLineId(lineId: Long): List<Long> = findLineById(lineId).getStations().map { it.id!! }
+    fun findStationsByLineId(lineId: Long): List<Long> = findLineById(lineId).getStations().map { it.requiredId }
 
     @Transactional
     fun update(

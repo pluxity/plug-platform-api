@@ -1,6 +1,7 @@
 package base.entity
 
 import com.pluxity.global.entity.BaseEntity
+import com.pluxity.global.entity.IdentityIdEntity
 import org.springframework.test.util.ReflectionTestUtils
 import java.time.LocalDateTime
 
@@ -15,3 +16,8 @@ fun <T : BaseEntity> T.withAudit(
     ReflectionTestUtils.setField(this, "createdBy", createdBy)
     ReflectionTestUtils.setField(this, "updatedBy", updatedBy)
 }
+
+fun <T : IdentityIdEntity> T.withId(id: Long?): T =
+    apply {
+        ReflectionTestUtils.setField(this, "id", id ?: 1L)
+    }

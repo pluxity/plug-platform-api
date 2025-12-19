@@ -1,5 +1,6 @@
 package com.pluxity.device
 
+import base.entity.withId
 import com.pluxity.device.dto.DeviceCategoryRequest
 import com.pluxity.device.dto.DeviceCategoryUpdateRequest
 import com.pluxity.device.entity.Device
@@ -56,9 +57,7 @@ class DeviceCategoryServiceKoTest :
                         thumbnailFileId = 1L,
                     )
                 val savedCategory =
-                    dummyDeviceCategory(name = createRequest.name).apply {
-                        id = 1L
-                    }
+                    dummyDeviceCategory(id = 1L, name = createRequest.name)
 
                 every { jpaRepository.findByIdOrNull(any()) } returns null
                 every { jpaRepository.save(any()) } returns savedCategory
@@ -71,9 +70,8 @@ class DeviceCategoryServiceKoTest :
 
             When("부모 카테고리가 있는 요청으로 카테고리 생성 요청") {
                 val parentCategory =
-                    dummyDeviceCategory(name = "부모 카테고리").apply {
-                        id = 10L
-                    }
+                    dummyDeviceCategory(id = 10L, name = "부모 카테고리")
+
                 val createRequest =
                     DeviceCategoryRequest(
                         name = "자식 카테고리",
@@ -81,8 +79,7 @@ class DeviceCategoryServiceKoTest :
                         thumbnailFileId = null,
                     )
                 val savedCategory =
-                    dummyDeviceCategory(name = createRequest.name).apply {
-                        id = 2L
+                    dummyDeviceCategory(id = 2L, name = createRequest.name).apply {
                         parent = parentCategory
                     }
 
@@ -99,9 +96,7 @@ class DeviceCategoryServiceKoTest :
         Given("디바이스 카테고리 조회를 진행할 때") {
             When("유효한 ID로 카테고리 조회 요청") {
                 val category =
-                    dummyDeviceCategory(name = "테스트 카테고리").apply {
-                        id = 1L
-                    }
+                    dummyDeviceCategory(id = 1L, name = "테스트 카테고리")
 
                 every { deviceCategoryRepository.findAllBy(any<Sort>()) } returns listOf(category)
 
@@ -115,9 +110,7 @@ class DeviceCategoryServiceKoTest :
 
             When("존재하지 않는 ID로 카테고리 조회 요청") {
                 val category =
-                    dummyDeviceCategory(name = "테스트 카테고리").apply {
-                        id = 2L
-                    }
+                    dummyDeviceCategory(id = 2L, name = "테스트 카테고리")
 
                 every { deviceCategoryRepository.findAllBy(any<Sort>()) } returns listOf(category)
 
@@ -131,8 +124,8 @@ class DeviceCategoryServiceKoTest :
 
         Given("디바이스 카테고리 목록 조회를 진행할 때") {
             When("정상 요청이 오면") {
-                val category1 = dummyDeviceCategory(name = "카테고리1").apply { id = 1L }
-                val category2 = dummyDeviceCategory(name = "카테고리2").apply { id = 2L }
+                val category1 = dummyDeviceCategory(id = 1L, name = "카테고리1")
+                val category2 = dummyDeviceCategory(id = 2L, name = "카테고리2")
 
                 every { deviceCategoryRepository.findAllBy(any<Sort>()) } returns listOf(category1, category2)
 
@@ -145,10 +138,9 @@ class DeviceCategoryServiceKoTest :
 
         Given("자식 디바이스 카테고리 조회를 진행할 때") {
             When("유효한 부모 ID로 자식 카테고리 조회 요청") {
-                val parentCategory = dummyDeviceCategory(name = "부모 카테고리").apply { id = 1L }
+                val parentCategory = dummyDeviceCategory(id = 1L, name = "부모 카테고리")
                 val childCategory =
-                    dummyDeviceCategory(name = "자식 카테고리").apply {
-                        id = 2L
+                    dummyDeviceCategory(id = 2L, name = "자식 카테고리").apply {
                         parent = parentCategory
                     }
 
@@ -165,9 +157,7 @@ class DeviceCategoryServiceKoTest :
         Given("디바이스 카테고리 수정을 진행할 때") {
             When("유효한 요청으로 카테고리 수정 요청") {
                 val existingCategory =
-                    dummyDeviceCategory(name = "기존 카테고리").apply {
-                        id = 1L
-                    }
+                    dummyDeviceCategory(id = 1L, name = "기존 카테고리")
                 val updateRequest =
                     DeviceCategoryUpdateRequest(
                         name = "수정된 카테고리",
@@ -206,9 +196,7 @@ class DeviceCategoryServiceKoTest :
         Given("디바이스 카테고리 삭제를 진행할 때") {
             When("자식이 없고 디바이스가 없는 카테고리 삭제 요청") {
                 val category =
-                    dummyDeviceCategory(name = "삭제할 카테고리").apply {
-                        id = 1L
-                    }
+                    dummyDeviceCategory(id = 1L, name = "삭제할 카테고리")
 
                 every { jpaRepository.findByIdOrNull(1L) } returns category
                 every { deviceCategoryRepository.delete(any()) } just runs
@@ -220,12 +208,12 @@ class DeviceCategoryServiceKoTest :
             }
 
             When("자식이 있는 카테고리 삭제 요청") {
-                val parentCategory = dummyDeviceCategory(name = "부모 카테고리").apply { id = 1L }
+                val parentCategory = dummyDeviceCategory(id = 1L, name = "부모 카테고리")
                 val childCategory =
-                    dummyDeviceCategory(name = "자식 카테고리").apply {
-                        id = 2L
-                        parent = parentCategory
-                    }
+                    dummyDeviceCategory(name = "자식 카테고리")
+                        .apply {
+                            parent = parentCategory
+                        }.withId(2L)
                 parentCategory.children.add(childCategory)
 
                 every { jpaRepository.findByIdOrNull(1L) } returns parentCategory
@@ -238,7 +226,7 @@ class DeviceCategoryServiceKoTest :
             }
 
             When("디바이스가 있는 카테고리 삭제 요청") {
-                val category = dummyDeviceCategory(name = "카테고리").apply { id = 1L }
+                val category = dummyDeviceCategory(id = 1L, name = "카테고리")
                 val device: Device = mockk(relaxed = true)
                 category.devices.add(device)
 
@@ -254,7 +242,7 @@ class DeviceCategoryServiceKoTest :
 
         Given("카테고리별 디바이스 조회를 진행할 때") {
             When("유효한 카테고리 ID와 시설 ID로 조회 요청") {
-                val category = dummyDeviceCategory(name = "카테고리", iconFileId = 1L).apply { id = 1L }
+                val category = dummyDeviceCategory(id = 1L, name = "카테고리", iconFileId = 1L)
                 val facility: Facility = mockk(relaxed = true)
                 val device: Device = dummyDevice(id = "device-001", category = category)
 

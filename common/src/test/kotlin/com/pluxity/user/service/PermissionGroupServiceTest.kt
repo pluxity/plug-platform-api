@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import kotlin.properties.Delegates
 
 @SpringBootTest
 @Import(MockBeansConfig::class)
@@ -132,7 +133,7 @@ internal class PermissionGroupServiceTest
         @Nested
         @DisplayName("권한 그룹 조회 (Read)")
         internal inner class ReadPermissionGroup {
-            private var groupId: Long? = null
+            private var groupId: Long by Delegates.notNull()
 
             @BeforeEach
             fun setUp() {
@@ -143,7 +144,7 @@ internal class PermissionGroupServiceTest
             @DisplayName("성공: 존재하는 ID로 조회 시 그룹 정보와 하위 권한들이 DTO로 반환된다")
             fun findById_withExistingId_shouldReturnResponse() {
                 // when
-                val response = permissionGroupService.findById(groupId!!)
+                val response = permissionGroupService.findById(groupId)
 
                 // then
                 assertThat(response).isNotNull()
@@ -178,7 +179,7 @@ internal class PermissionGroupServiceTest
         @Nested
         @DisplayName("권한 그룹 수정 (Update - PATCH 방식)")
         internal inner class UpdatePermissionGroup {
-            private var groupId: Long? = null
+            private var groupId: Long by Delegates.notNull()
 
             @BeforeEach
             fun setUp() {
@@ -220,10 +221,10 @@ internal class PermissionGroupServiceTest
                     )
 
                 // when
-                permissionGroupService.update(groupId!!, updateRequest)
+                permissionGroupService.update(groupId, updateRequest)
 
                 // then
-                val updatedGroup = permissionGroupRepository.findById(groupId!!).orElseThrow()
+                val updatedGroup = permissionGroupRepository.findById(groupId).orElseThrow()
                 assertThat(updatedGroup.name).isEqualTo("수정된 고급 그룹")
                 assertThat(updatedGroup.description).isEqualTo("수정된 설명입니다.")
 
@@ -280,7 +281,7 @@ internal class PermissionGroupServiceTest
 
                 // when and then
                 assertThrows<CustomException> {
-                    permissionGroupService.update(groupId!!, updateRequest)
+                    permissionGroupService.update(groupId, updateRequest)
                 }
             }
         }
@@ -288,7 +289,7 @@ internal class PermissionGroupServiceTest
         @Nested
         @DisplayName("권한 그룹 삭제 (Delete)")
         internal inner class DeletePermissionGroup {
-            private var groupId: Long? = null
+            private var groupId: Long by Delegates.notNull()
 
             @BeforeEach
             fun setUp() {
@@ -300,13 +301,13 @@ internal class PermissionGroupServiceTest
             fun withExistingId_shouldDeleteGroupAndPermissions() {
                 // given
                 val initialPermissionCount = permissionRepository.count()
-                assertThat(permissionGroupRepository.existsById(groupId!!)).isTrue()
+                assertThat(permissionGroupRepository.existsById(groupId)).isTrue()
 
                 // when
-                permissionGroupService.delete(groupId!!)
+                permissionGroupService.delete(groupId)
 
                 // then
-                assertThat(permissionGroupRepository.existsById(groupId!!)).isFalse()
+                assertThat(permissionGroupRepository.existsById(groupId)).isFalse()
                 // 그룹에 속해있던 3개의 권한이 삭제되었는지 확인
                 assertThat(permissionRepository.count()).isEqualTo(initialPermissionCount - 3)
             }

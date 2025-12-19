@@ -8,7 +8,7 @@ import com.pluxity.global.response.BaseResponse
 import com.pluxity.global.response.toBaseResponse
 
 data class FacilityResponse(
-    val id: Long?,
+    val id: Long,
     val code: String?,
     val name: String,
     val description: String?,
@@ -29,7 +29,7 @@ fun Facility.toResponse(
     val emptyFileResponse = FileResponse(null, null, null, null, null, null)
 
     return FacilityResponse(
-        id = this.id,
+        id = this.requiredId,
         code = this.code,
         name = this.name,
         description = this.description,

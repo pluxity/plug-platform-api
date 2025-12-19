@@ -13,8 +13,8 @@ data class Label3DResponse(
 
 fun Label3D.toLabel3DResponse(): Label3DResponse =
     Label3DResponse(
-        id = this.id!!,
-        displayText = this.displayText!!,
+        id = this.requiredId,
+        displayText = requireNotNull(this.displayText) { "displayText is null (not ready)" },
         floorId = this.feature.floorId,
         position = this.feature.position,
         rotation = this.feature.rotation,

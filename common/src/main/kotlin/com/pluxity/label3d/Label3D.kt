@@ -26,4 +26,7 @@ data class Label3D(
     fun update(displayText: String?) {
         displayText?.let { this.displayText = it }
     }
+
+    val requiredId: String get() =
+        checkNotNull(id) { "Label3D is not persisted yet" }
 }

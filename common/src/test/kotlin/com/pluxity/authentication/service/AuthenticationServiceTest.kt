@@ -46,7 +46,6 @@ class AuthenticationServiceTest
         fun setUp() {
             testUser =
                 User(
-                    null,
                     "testuser",
                     passwordEncoder.encode("password"),
                     "Test User",
@@ -66,8 +65,11 @@ class AuthenticationServiceTest
             val userId = authenticationService.signUp(request)
             em.flush()
             em.clear()
-            val foundUser = userRepository.findWithGraphById(userId)
-            Assertions.assertThat(foundUser!!.username).isEqualTo("newUser")
+            val foundUser =
+                checkNotNull(userRepository.findWithGraphById(userId)) {
+                    "signUp() 이후에 ID($userId)에 해당하는 사용자가 DB에 존재해야 합니다."
+                }
+            Assertions.assertThat(foundUser.username).isEqualTo("newUser")
             Assertions.assertThat(passwordEncoder.matches("password123", foundUser.password)).isTrue()
         }
 

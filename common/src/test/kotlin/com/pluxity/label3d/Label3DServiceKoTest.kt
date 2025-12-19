@@ -60,7 +60,7 @@ class Label3DServiceKoTest :
                         displayText = createRequest.displayText,
                     )
 
-                every { facilityService.findById(createRequest.facilityId!!) } returns facility
+                every { facilityService.findById(createRequest.facilityId) } returns facility
                 every { featureService.saveFeature(any()) } returns feature
                 every { label3DRepository.save(any()) } returns label3D
 

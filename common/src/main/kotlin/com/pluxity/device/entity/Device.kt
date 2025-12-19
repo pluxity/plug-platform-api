@@ -34,7 +34,6 @@ class Device(
     var companyType: DeviceCompanyType,
 ) : BaseEntity(),
     Permissible {
-
     init {
         category?.addDevice(this)
     }

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size
 data class FacilityUpdateRequest(
     @field:Schema(description = "시설 이름", example = "서울역", requiredMode = Schema.RequiredMode.REQUIRED)
     @field:Size(max = 50, message = "이름은 최대 50자까지 입력 가능합니다.")
-    val name: String?,
+    val name: String,
     @field:Schema(
         description = "시설 코드",
         example = "SEOUL_STATION",

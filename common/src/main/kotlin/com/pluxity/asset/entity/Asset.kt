@@ -4,15 +4,12 @@ import com.pluxity.asset.dto.AssetCreateRequest
 import com.pluxity.asset.dto.AssetUpdateRequest
 import com.pluxity.file.entity.FileEntity
 import com.pluxity.global.constant.ErrorCode
-import com.pluxity.global.entity.BaseEntity
+import com.pluxity.global.entity.IdentityIdEntity
 import com.pluxity.global.exception.CustomException
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
 import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -33,11 +30,7 @@ class Asset(
     var fileId: Long? = null,
     @Column(name = "thumbnail_file_id")
     var thumbnailFileId: Long? = null,
-) : BaseEntity() {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
-
+) : IdentityIdEntity() {
     companion object {
         const val ASSETS_PATH: String = "assets"
 

@@ -1,8 +1,8 @@
 package com.pluxity.building.entity
 
 import base.entity.withAudit
+import base.entity.withId
 import com.pluxity.building.Building
-import org.springframework.test.util.ReflectionTestUtils
 
 fun dummyBuilding(
     name: String = "name",
@@ -13,7 +13,6 @@ fun dummyBuilding(
         Building(
             name,
             description,
-        ).withAudit()
-    ReflectionTestUtils.setField(retBuilding, "id", id)
+        ).withAudit().withId(id)
     return retBuilding
 }

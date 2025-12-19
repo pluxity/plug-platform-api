@@ -7,9 +7,9 @@ import com.pluxity.global.response.BaseResponse
 import com.pluxity.global.response.toBaseResponse
 
 data class AssetResponse(
-    val id: Long?,
-    val name: String?,
-    val code: String?,
+    val id: Long,
+    val name: String,
+    val code: String,
     val categoryId: Long?,
     val categoryName: String?,
     val categoryCode: String?,
@@ -23,7 +23,7 @@ fun Asset.toResponse(
     thumbnailFile: FileResponse? = null,
 ): AssetResponse =
     AssetResponse(
-        id = this.id,
+        id = this.requiredId,
         name = this.name,
         code = this.code,
         categoryId = this.category?.id,
