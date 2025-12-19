@@ -1,5 +1,6 @@
 package com.pluxity.device
 
+import base.entity.withId
 import com.pluxity.device.dto.DeviceCategoryRequest
 import com.pluxity.device.dto.DeviceCategoryUpdateRequest
 import com.pluxity.device.entity.Device
@@ -27,7 +28,6 @@ import io.mockk.verify
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.test.util.ReflectionTestUtils
 
 class DeviceCategoryServiceKoTest :
     BehaviorSpec({
@@ -210,10 +210,10 @@ class DeviceCategoryServiceKoTest :
             When("자식이 있는 카테고리 삭제 요청") {
                 val parentCategory = dummyDeviceCategory(id = 1L, name = "부모 카테고리")
                 val childCategory =
-                    dummyDeviceCategory(name = "자식 카테고리").apply {
-                        parent = parentCategory
-                    }
-                ReflectionTestUtils.setField(childCategory, "id", 2L)
+                    dummyDeviceCategory(name = "자식 카테고리")
+                        .apply {
+                            parent = parentCategory
+                        }.withId(2L)
                 parentCategory.children.add(childCategory)
 
                 every { jpaRepository.findByIdOrNull(1L) } returns parentCategory
