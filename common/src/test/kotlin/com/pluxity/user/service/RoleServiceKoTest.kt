@@ -6,10 +6,10 @@ import com.pluxity.permission.PermissionGroupService
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleUpdateRequest
 import com.pluxity.user.entity.RolePermission
+import com.pluxity.user.entity.dummyRole
 import com.pluxity.user.repository.RolePermissionRepository
 import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.repository.UserRoleRepository
-import com.pluxity.user.service.entity.dummyRole
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec

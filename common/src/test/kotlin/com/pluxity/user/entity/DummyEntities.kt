@@ -16,7 +16,7 @@ fun dummyUser(
 fun dummyRole(
     id: Long? = 1L,
     name: String = "name",
-    description: String = "description",
+    description: String? = "description",
 ): Role = Role(name, description).withId(id)
 
 fun dummyRefreshToken(
