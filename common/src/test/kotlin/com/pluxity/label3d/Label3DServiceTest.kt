@@ -10,7 +10,6 @@ import com.pluxity.feature.service.FeatureAssignment
 import com.pluxity.global.exception.CustomException
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
-import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -168,7 +167,7 @@ internal class Label3DServiceTest
             val request = Label3DUpdateRequest(Spatial(1.0, 1.0, 1.0), null, null)
 
             // WHEN & THEN
-            assertThrows<EntityNotFoundException> {
+            assertThrows<CustomException> {
                 label3DService.updateLabel3D("NON_EXISTING_ID", request)
             }
         }
@@ -264,7 +263,7 @@ internal class Label3DServiceTest
         @DisplayName("실패: 존재하지 않는 ID로 라벨 삭제 요청 시 예외가 발생한다")
         fun deleteLabel3D_withNonExistingId_throwsException() {
             // WHEN & THEN
-            assertThrows<EntityNotFoundException> {
+            assertThrows<CustomException> {
                 label3DService.deleteLabel3D("NON_EXISTING_ID")
             }
         }

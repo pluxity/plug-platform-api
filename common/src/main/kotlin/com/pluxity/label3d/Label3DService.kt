@@ -4,8 +4,9 @@ import com.pluxity.facility.FacilityService
 import com.pluxity.feature.dto.FeatureUpdateRequest
 import com.pluxity.feature.entity.Feature
 import com.pluxity.feature.service.FeatureService
+import com.pluxity.global.constant.ErrorCode
+import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.SortUtils
-import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -70,5 +71,5 @@ class Label3DService(
     fun findLabel3DById(id: String): Label3D =
         label3DRepository
             .findByIdOrNull(id)
-            ?: throw EntityNotFoundException("Label3D not found with id: $id")
+            ?: throw CustomException(ErrorCode.NOT_FOUND_LABEL_3D, id)
 }
