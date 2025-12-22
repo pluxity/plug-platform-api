@@ -61,7 +61,7 @@ class UserServiceKoTest :
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         userService.findById(id)
-                    }.message shouldBe "id: $id 을 가진 회원이 존재하지 않습니다."
+                    }.message shouldBe "$id 을(를) 가진 회원을 찾을 수 없습니다."
                 }
             }
         }
@@ -96,7 +96,7 @@ class UserServiceKoTest :
                     val userName = "targetUser"
                     shouldThrowExactly<CustomException> {
                         userService.findByUsername(userName)
-                    }.message shouldBe "username: $userName 을 가진 회원이 존재하지 않습니다."
+                    }.message shouldBe "$userName 을(를) 가진 회원을 찾을 수 없습니다."
                 }
             }
         }
@@ -206,7 +206,7 @@ class UserServiceKoTest :
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         userService.findById(id)
-                    }.message shouldBe "id: $id 을 가진 회원이 존재하지 않습니다."
+                    }.message shouldBe "$id 을(를) 가진 회원을 찾을 수 없습니다."
                 }
             }
         }
@@ -308,10 +308,10 @@ class UserServiceKoTest :
             When("없는 아이디로 조회 요청") {
                 val id = 999L
                 every { userRepository.findWithGraphById(any()) } returns null
-                Then("NOT_FOUND_DEVICE 예외 발생") {
+                Then("NOT_FOUND_USER_BY_ID 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         userService.initPassword(id)
-                    }.message shouldBe "id: $id 을 가진 회원이 존재하지 않습니다."
+                    }.message shouldBe "$id 을(를) 가진 회원을 찾을 수 없습니다."
                 }
             }
         }

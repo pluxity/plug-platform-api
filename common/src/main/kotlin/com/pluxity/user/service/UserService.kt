@@ -117,7 +117,7 @@ class UserService(
 
     private fun findUserById(id: Long): User =
         userRepository.findWithGraphById(id)
-            ?: throw CustomException(ErrorCode.NOT_FOUND_USER, "id: $id")
+            ?: throw CustomException(ErrorCode.NOT_FOUND_USER, id)
 
     private fun findRoleById(id: Long): Role =
         roleRepository
@@ -127,7 +127,7 @@ class UserService(
     fun findUserByUsername(username: String): User =
         userRepository
             .findByUsername(username)
-            ?: throw CustomException(ErrorCode.NOT_FOUND_USER, "username: $username")
+            ?: throw CustomException(ErrorCode.NOT_FOUND_USER, username)
 
     @Transactional
     fun updateUserPassword(

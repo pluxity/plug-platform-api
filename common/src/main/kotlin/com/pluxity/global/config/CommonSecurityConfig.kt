@@ -76,7 +76,7 @@ class CommonSecurityConfig(
             repository
                 .findByUsername(username)
                 ?.let { CustomUserDetails(it) }
-                ?: throw CustomException(ErrorCode.NOT_FOUND_USER)
+                ?: throw CustomException(ErrorCode.NOT_FOUND_USER, username)
         }
 
     @Bean

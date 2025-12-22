@@ -107,7 +107,7 @@ class AuthenticationService(
     private fun findUserByUsername(username: String): User =
         userRepository
             .findByUsername(username)
-            ?: throw CustomException(ErrorCode.NOT_FOUND_USER)
+            ?: throw CustomException(ErrorCode.NOT_FOUND_USER, username)
 
     private fun clearAllCookies(
         request: HttpServletRequest,
