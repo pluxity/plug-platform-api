@@ -31,8 +31,10 @@ class FacilityHistoryService(
     fun findByFacilityId(facilityId: Long): List<FacilityHistoryResponse> {
         val histories = facilityHistoryRepository.findByFacilityIdOrderByCreatedAtDesc(facilityId)
         val fileMap = fileService.getFileMapById(histories) { it.fileId }
-        return histories.map { history ->
-            history.toHistoryResponse(fileMap.getValue(history.fileId))
+        return histories.mapNotNull { history ->
+            fileMap[history.fileId]?.let { file ->
+                history.toHistoryResponse(file)
+            }
         }
     }
 }
