@@ -25,7 +25,7 @@ enum class ErrorCode(
 
     DUPLICATE_RESOURCE_ID(HttpStatus.BAD_REQUEST, "중복된 리소스 ID가 포함되어 있습니다."),
 
-    NOT_FOUND_USER(HttpStatus.BAD_REQUEST, "해당 회원이 존재하지 않습니다."),
+    NOT_FOUND_USER(HttpStatus.NOT_FOUND, "%s 을(를) 가진 회원을 찾을 수 없습니다."),
     NOT_FOUND_DATA(HttpStatus.BAD_REQUEST, "데이터가 존재하지 않습니다."),
     NOT_AUTHORIZED(HttpStatus.UNAUTHORIZED, "권한이 없습니다."),
     PERMISSION_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
@@ -100,6 +100,7 @@ enum class ErrorCode(
     NOT_FOUND_CCTV(HttpStatus.NOT_FOUND, "ID가 %s인 CCTV를 찾을 수 없습니다."),
     NOT_FOUND_CCTV_BY_FEATURE(HttpStatus.NOT_FOUND, "Feature ID가 %s인 CCTV를 찾을 수 없습니다."),
     NOT_FOUND_ASSIGN_DEVICE_CATEGORY(HttpStatus.NOT_FOUND, "ID가 %s인 디바이스에 할당된 카테고리를 찾을 수 없습니다."),
+    NOT_FOUND_LABEL_3D(HttpStatus.NOT_FOUND, "ID가 %s인 3D 라벨을 찾을 수 없습니다."),
 
     INVALID_RESOURCE_IDS_INCLUDED(HttpStatus.BAD_REQUEST, "요청한 리소스 ID %s 는 유효하지 않습니다."),
     FAILED_TO_SAVE_ENTITY(HttpStatus.INTERNAL_SERVER_ERROR, "엔티티 저장에 실패했습니다."),

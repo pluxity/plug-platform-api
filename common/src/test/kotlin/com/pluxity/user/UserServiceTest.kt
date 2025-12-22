@@ -13,7 +13,6 @@ import com.pluxity.user.entity.User
 import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.repository.UserRepository
 import com.pluxity.user.service.UserService
-import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -103,7 +102,7 @@ class UserServiceTest
             // when & then
             assertThatThrownBy {
                 userService.findById(9999L)
-            }.isInstanceOf(EntityNotFoundException::class.java)
+            }.isInstanceOf(CustomException::class.java)
         }
 
         @Test

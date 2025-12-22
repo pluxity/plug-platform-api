@@ -4,6 +4,8 @@ import com.pluxity.facility.Facility
 import com.pluxity.facility.FacilityService
 import com.pluxity.feature.entity.Spatial
 import com.pluxity.feature.service.FeatureService
+import com.pluxity.global.constant.ErrorCode
+import com.pluxity.global.exception.CustomException
 import com.pluxity.global.utils.SortUtils
 import com.pluxity.label3d.entity.dummyLabel3d
 import entity.dummyFeature
@@ -17,7 +19,6 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.verify
-import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 
@@ -94,10 +95,10 @@ class Label3DServiceKoTest :
 
                 every { label3DRepository.findByIdOrNull(id) } returns null
 
-                Then("EntityNotFoundException 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                Then("CustomException(NOT_FOUND_LABEL_3D) 발생") {
+                    shouldThrowExactly<CustomException> {
                         label3DService.getLabel3DById(id)
-                    }.message shouldBe "Label3D not found with id: $id"
+                    }.message shouldBe ErrorCode.NOT_FOUND_LABEL_3D.getMessage().format(id)
                 }
             }
         }
@@ -170,10 +171,10 @@ class Label3DServiceKoTest :
 
                 every { label3DRepository.findByIdOrNull(id) } returns null
 
-                Then("EntityNotFoundException 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                Then("CustomException(NOT_FOUND_LABEL_3D) 발생") {
+                    shouldThrowExactly<CustomException> {
                         label3DService.updateLabel3D(id, updateRequest)
-                    }.message shouldBe "Label3D not found with id: $id"
+                    }.message shouldBe ErrorCode.NOT_FOUND_LABEL_3D.getMessage().format(id)
                 }
             }
         }
@@ -201,10 +202,10 @@ class Label3DServiceKoTest :
 
                 every { label3DRepository.findByIdOrNull(id) } returns null
 
-                Then("EntityNotFoundException 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                Then("CustomException(NOT_FOUND_LABEL_3D) 발생") {
+                    shouldThrowExactly<CustomException> {
                         label3DService.deleteLabel3D(id)
-                    }.message shouldBe "Label3D not found with id: $id"
+                    }.message shouldBe ErrorCode.NOT_FOUND_LABEL_3D.getMessage().format(id)
                 }
             }
         }
@@ -229,10 +230,10 @@ class Label3DServiceKoTest :
 
                 every { label3DRepository.findByIdOrNull(id) } returns null
 
-                Then("EntityNotFoundException 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                Then("CustomException(NOT_FOUND_LABEL_3D) 발생") {
+                    shouldThrowExactly<CustomException> {
                         label3DService.findLabel3DById(id)
-                    }.message shouldBe "Label3D not found with id: $id"
+                    }.message shouldBe ErrorCode.NOT_FOUND_LABEL_3D.getMessage().format(id)
                 }
             }
         }

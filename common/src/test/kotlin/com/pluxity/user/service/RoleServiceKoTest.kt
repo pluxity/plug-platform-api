@@ -1,5 +1,6 @@
 package com.pluxity.user.service
 
+import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionGroup
 import com.pluxity.permission.PermissionGroupService
@@ -140,7 +141,7 @@ class RoleServiceKoTest :
                 Then("CustomException 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         roleService.findById(999L)
-                    }.message shouldBe "ID가 999인 Role을 찾을 수 없습니다."
+                    }.message shouldBe ErrorCode.NOT_FOUND_ROLE.getMessage().format(999L)
                 }
             }
         }
@@ -202,7 +203,7 @@ class RoleServiceKoTest :
                 Then("CustomException 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         roleService.update(999L, updateRequest)
-                    }.message shouldBe "ID가 999인 Role을 찾을 수 없습니다."
+                    }.message shouldBe ErrorCode.NOT_FOUND_ROLE.getMessage().format(999L)
                 }
             }
         }
@@ -232,7 +233,7 @@ class RoleServiceKoTest :
                 Then("CustomException 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         roleService.delete(999L)
-                    }.message shouldBe "ID가 999인 Role을 찾을 수 없습니다."
+                    }.message shouldBe ErrorCode.NOT_FOUND_ROLE.getMessage().format(999L)
                 }
             }
         }
@@ -255,7 +256,7 @@ class RoleServiceKoTest :
                 Then("CustomException 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         roleService.findRoleById(999L)
-                    }.message shouldBe "ID가 999인 Role을 찾을 수 없습니다."
+                    }.message shouldBe ErrorCode.NOT_FOUND_ROLE.getMessage().format(999L)
                 }
             }
         }
