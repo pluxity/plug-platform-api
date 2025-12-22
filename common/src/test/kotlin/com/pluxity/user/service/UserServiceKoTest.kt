@@ -22,7 +22,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
-import jakarta.persistence.EntityNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 
@@ -60,9 +59,9 @@ class UserServiceKoTest :
                 val id = 999L
                 every { userRepository.findWithGraphById(any()) } returns null
                 Then("NOT_FOUND_DEVICE 예외 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                    shouldThrowExactly<CustomException> {
                         userService.findById(id)
-                    }.message shouldBe "User not found with id: $id"
+                    }.message shouldBe "id: $id 을 가진 회원이 존재하지 않습니다."
                 }
             }
         }
@@ -95,9 +94,9 @@ class UserServiceKoTest :
                 every { userRepository.findByUsername(any()) } returns null
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     val userName = "targetUser"
-                    shouldThrowExactly<EntityNotFoundException> {
+                    shouldThrowExactly<CustomException> {
                         userService.findByUsername(userName)
-                    }.message shouldBe "User not found with username: $userName"
+                    }.message shouldBe "username: $userName 을 가진 회원이 존재하지 않습니다."
                 }
             }
         }
@@ -205,9 +204,9 @@ class UserServiceKoTest :
                 val id = 999L
                 every { userRepository.findWithGraphById(any()) } returns null
                 Then("NOT_FOUND_DEVICE 예외 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                    shouldThrowExactly<CustomException> {
                         userService.findById(id)
-                    }.message shouldBe "User not found with id: $id"
+                    }.message shouldBe "id: $id 을 가진 회원이 존재하지 않습니다."
                 }
             }
         }
@@ -310,9 +309,9 @@ class UserServiceKoTest :
                 val id = 999L
                 every { userRepository.findWithGraphById(any()) } returns null
                 Then("NOT_FOUND_DEVICE 예외 발생") {
-                    shouldThrowExactly<EntityNotFoundException> {
+                    shouldThrowExactly<CustomException> {
                         userService.initPassword(id)
-                    }.message shouldBe "User not found with id: $id"
+                    }.message shouldBe "id: $id 을 가진 회원이 존재하지 않습니다."
                 }
             }
         }

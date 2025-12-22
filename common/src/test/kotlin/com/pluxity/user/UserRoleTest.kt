@@ -13,7 +13,6 @@ import com.pluxity.user.repository.UserRepository
 import com.pluxity.user.service.RoleService
 import com.pluxity.user.service.UserService
 import jakarta.persistence.EntityManager
-import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -182,7 +181,7 @@ class UserRoleTest
 
             // THEN
             // 1. User는 삭제되어야 함
-            assertThrows<EntityNotFoundException> {
+            assertThrows<CustomException> {
                 userService.findById(userId)
             }
 

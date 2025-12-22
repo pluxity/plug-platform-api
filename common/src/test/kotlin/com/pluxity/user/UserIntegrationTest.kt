@@ -21,7 +21,6 @@ import com.pluxity.user.repository.UserRoleRepository
 import com.pluxity.user.service.RoleService
 import com.pluxity.user.service.UserService
 import jakarta.persistence.EntityManager
-import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -280,7 +279,7 @@ internal class UserIntegrationTest
             em.clear()
 
             // THEN
-            assertThrows<EntityNotFoundException> {
+            assertThrows<CustomException> {
                 userService.findById(operatorUserId)
             }
             Assertions.assertThat(userRoleRepository.count()).isEqualTo(initialUserRoleCount - 1)
@@ -390,7 +389,7 @@ internal class UserIntegrationTest
             em.clear()
 
             // THEN 4
-            assertThrows<EntityNotFoundException> {
+            assertThrows<CustomException> {
                 userService.findById(operatorUserId)
             }
             Assertions.assertThat(userRepository.count()).isEqualTo(1)

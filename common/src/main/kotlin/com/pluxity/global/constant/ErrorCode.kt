@@ -25,7 +25,7 @@ enum class ErrorCode(
 
     DUPLICATE_RESOURCE_ID(HttpStatus.BAD_REQUEST, "중복된 리소스 ID가 포함되어 있습니다."),
 
-    NOT_FOUND_USER(HttpStatus.BAD_REQUEST, "해당 회원이 존재하지 않습니다."),
+    NOT_FOUND_USER(HttpStatus.BAD_REQUEST, "%s 을 가진 회원이 존재하지 않습니다."),
     NOT_FOUND_DATA(HttpStatus.BAD_REQUEST, "데이터가 존재하지 않습니다."),
     NOT_AUTHORIZED(HttpStatus.UNAUTHORIZED, "권한이 없습니다."),
     PERMISSION_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
