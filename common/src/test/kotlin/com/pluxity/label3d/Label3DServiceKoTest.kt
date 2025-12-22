@@ -10,7 +10,6 @@ import com.pluxity.global.utils.SortUtils
 import com.pluxity.label3d.entity.dummyLabel3d
 import entity.dummyFeature
 import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -24,8 +23,6 @@ import org.springframework.data.repository.findByIdOrNull
 
 class Label3DServiceKoTest :
     BehaviorSpec({
-        isolationMode = IsolationMode.InstancePerLeaf
-
         val label3DRepository: Label3DRepository = mockk()
         val featureService: FeatureService = mockk()
         val facilityService: FacilityService = mockk()

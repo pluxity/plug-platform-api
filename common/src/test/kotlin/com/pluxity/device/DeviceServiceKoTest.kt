@@ -14,7 +14,6 @@ import device.dummyDevice
 import device.dummyDeviceCategory
 import file.dummyFileResponse
 import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -25,8 +24,6 @@ import io.mockk.verify
 
 class DeviceServiceKoTest :
     BehaviorSpec({
-        isolationMode = IsolationMode.InstancePerLeaf
-
         val deviceRepository: DeviceRepository = mockk()
         val fileService: FileService = mockk(relaxed = true)
         val deviceCategoryService: DeviceCategoryService = mockk()

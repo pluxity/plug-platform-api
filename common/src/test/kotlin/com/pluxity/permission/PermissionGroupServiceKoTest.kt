@@ -8,7 +8,6 @@ import com.pluxity.permission.dto.PermissionRequest
 import com.pluxity.permission.entity.dummyPermissionGroup
 import com.pluxity.user.repository.RolePermissionRepository
 import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -20,7 +19,6 @@ import org.springframework.data.repository.findByIdOrNull
 
 class PermissionGroupServiceKoTest :
     BehaviorSpec({
-        isolationMode = IsolationMode.InstancePerLeaf
 
         val permissionGroupRepository: PermissionGroupRepository = mockk()
         val permissionRepository: PermissionRepository = mockk()

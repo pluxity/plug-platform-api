@@ -17,6 +17,7 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("com.h2database:h2")
     testFixturesImplementation("org.springframework.boot:spring-boot-starter-test")
+    testFixturesImplementation("io.kotest:kotest-runner-junit5:5.9.1")
     testFixturesImplementation(kotlin("stdlib"))
 
 }

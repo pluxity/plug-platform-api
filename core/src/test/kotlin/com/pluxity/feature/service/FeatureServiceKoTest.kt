@@ -17,7 +17,6 @@ import device.dummyDevice
 import entity.dummyFeature
 import entity.dummySpatial
 import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -30,8 +29,6 @@ import org.springframework.data.repository.findByIdOrNull
 
 class FeatureServiceKoTest :
     BehaviorSpec({
-        isolationMode = IsolationMode.InstancePerLeaf
-
         val featureRepository: FeatureRepository = mockk()
         val facilityService: FacilityService = mockk()
         val assetValidator: AssetValidator = mockk()

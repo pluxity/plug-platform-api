@@ -12,7 +12,6 @@ import com.pluxity.user.repository.RolePermissionRepository
 import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.repository.UserRoleRepository
 import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -25,8 +24,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 class RoleServiceKoTest :
     BehaviorSpec({
-        isolationMode = IsolationMode.InstancePerLeaf
-
         val roleRepository: RoleRepository = mockk()
         val rolePermissionRepository: RolePermissionRepository = mockk()
         val userRoleRepository: UserRoleRepository = mockk()

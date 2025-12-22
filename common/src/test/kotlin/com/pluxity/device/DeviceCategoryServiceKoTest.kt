@@ -15,7 +15,6 @@ import com.pluxity.global.exception.CustomException
 import device.dummyDevice
 import device.dummyDeviceCategory
 import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -30,8 +29,6 @@ import org.springframework.data.repository.findByIdOrNull
 
 class DeviceCategoryServiceKoTest :
     BehaviorSpec({
-        isolationMode = IsolationMode.InstancePerLeaf
-
         val deviceCategoryRepository: DeviceCategoryRepository = mockk()
         val deviceRepository: DeviceRepository = mockk()
         val fileService: FileService = mockk(relaxed = true)

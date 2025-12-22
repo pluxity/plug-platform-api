@@ -14,7 +14,6 @@ import com.pluxity.station.entity.dummyStation
 import facility.floor.dummyFloorResponse
 import file.dummyFileResponse
 import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -29,7 +28,6 @@ import org.springframework.data.repository.findByIdOrNull
 
 class StationServiceKoTest :
     BehaviorSpec({
-        isolationMode = IsolationMode.InstancePerLeaf // 추가
         val fileService: FileService = mockk()
         val facilityService: FacilityService = mockk()
         val floorService: FloorService = mockk()
