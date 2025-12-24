@@ -24,6 +24,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
@@ -120,6 +121,45 @@ class FacilityServiceTest
         }
 
         @Test
+        @DisplayName("도면 파일 없이 시설 생성 요청 시 히스토리가 등록되지 않는다.")
+        fun `save without drawingFile request save facility`() {
+            val drawingFileId = null
+            val thumbnailFileId = testFileUploader.initiateTestFileUpload("thumb.png")
+            val request =
+                FacilityCreateRequest(
+                    name = "서울역",
+                    code = "SEOUL_ST",
+                    description = "대한민국 수도의 관문",
+                    drawingFileId = drawingFileId,
+                    thumbnailFileId = thumbnailFileId,
+                    lon = 126.97,
+                    lat = 37.55,
+                    locationMeta = "{'floor': 5}",
+                )
+            val facility =
+                FacilityInstance(
+                    name = request.name,
+                    code = request.code,
+                    description = request.description,
+                    drawingFileId = request.drawingFileId,
+                    thumbnailFileId = request.thumbnailFileId,
+                )
+
+            // when
+            val savedFacility = facilityService.save(facility, request)
+
+            // then
+            verify(facilityHistoryService, never()).save(
+                fileId = any(),
+                facilityId = any(),
+                comment = any(),
+            )
+
+            savedFacility.shouldNotBeNull()
+            savedFacility.name shouldBe "서울역"
+        }
+
+        @Test
         @DisplayName("실패: 중복된 코드로 시설 생성 시 예외가 발생한다")
         fun `save with duplicate code throws CustomException`() {
             // GIVEN
@@ -189,6 +229,25 @@ class FacilityServiceTest
             updated.code shouldBe "UPD_CODE"
             updated.description shouldBe null
             updated.position?.lat shouldBe 2.0
+        }
+
+        @Test
+        @DisplayName("성공: update 요청 시 code가 같을때는 중복 체크를 하지 않는다.")
+        fun `update with same code does not check for duplicate`() {
+            // Given
+            val saved =
+                facilityService.save(
+                    FacilityInstance("원본 이름", "ORI_CODE", "원본 설명", null, null),
+                    FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null),
+                )
+
+            val request = FacilityUpdateRequest("수정된 이름", "ORI_CODE", null, null, 2.0, null, null)
+
+            facilityService.update(saved.requiredId, request)
+
+            val updated = facilityService.findById(saved.requiredId)
+            updated.code shouldBe "ORI_CODE"
+            updated.name shouldBe "수정된 이름"
         }
 
         @Test
