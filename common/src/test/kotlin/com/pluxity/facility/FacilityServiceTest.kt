@@ -251,6 +251,26 @@ class FacilityServiceTest
         }
 
         @Test
+        @DisplayName("성공: update 요청 시 thumbnailFileId가 같을 때는 업로드 하지 않는다.")
+        fun `update with same thumbnailFileId does not upload thumbnail`() {
+            // Given
+            val thumbnailFileId = testFileUploader.initiateTestFileUpload("thumb.png")
+            val savedFacility =
+                facilityService.save(
+                    FacilityInstance("시설", "CODE", null, null),
+                    FacilityCreateRequest("시설", "CODE", null, null, thumbnailFileId, null, null, null),
+                )
+
+            // When & Then
+            val request = FacilityUpdateRequest("수정된 이름", null, null, thumbnailFileId, null, null, null)
+            facilityService.update(savedFacility.requiredId, request)
+
+            val updated = facilityService.findById(savedFacility.requiredId)
+            updated.thumbnailFileId shouldBe thumbnailFileId
+            updated.name shouldBe "수정된 이름"
+        }
+
+        @Test
         @DisplayName("성공: 시설 삭제 시 DB에서 소프트 삭제된다")
         fun `deleteFacility with existing id soft deletes facility`() {
             // GIVEN
@@ -494,5 +514,40 @@ class FacilityServiceTest
             updated.position?.lon shouldBe 127.5
             updated.position?.lat shouldBe 37.5
             updated.position?.locationMeta shouldBe "{'new_meta': true}"
+        }
+
+        @Test
+        @DisplayName("성공: findAllFacilities 호출 시 파일 정보가 포함된 시설 목록을 반환한다")
+        fun `findAllFacilities when facilities exist returns list with file info`() {
+            // GIVEN
+            val drawingFileId = testFileUploader.initiateTestFileUpload("drawing1.dwg")
+            val thumbnailFileId = testFileUploader.initiateTestFileUpload("thumb1.png")
+
+            val facility1 =
+                facilityService.save(
+                    FacilityInstance("시설1", "CODE1", null, null, null),
+                    FacilityCreateRequest("시설1", "CODE1", null, drawingFileId, thumbnailFileId, null, null, null),
+                )
+            val facility2 =
+                facilityService.save(
+                    FacilityInstance("시설2", "CODE2", null, null, null),
+                    FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null),
+                )
+
+            // WHEN
+            val facilities = facilityService.findAllFacilities()
+            println(facilities)
+
+            // THEN
+            val facility1Response = facilities.find { it.id == facility1.requiredId }!!
+            val facility2Response = facilities.find { it.id == facility2.requiredId }!!
+
+            facility1Response.name shouldBe "시설1"
+            facility1Response.thumbnail.originalFileName shouldBe "thumb1.png"
+            facility1Response.drawing.originalFileName shouldBe "drawing1.dwg"
+
+            facility2Response.name shouldBe "시설2"
+            facility2Response.thumbnail.originalFileName shouldBe null
+            facility2Response.drawing.originalFileName shouldBe null
         }
     }
