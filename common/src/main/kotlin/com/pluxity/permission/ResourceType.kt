@@ -16,6 +16,6 @@ enum class ResourceType(
     companion object {
         fun fromString(resourceName: String): ResourceType =
             entries.firstOrNull { it != NONE && it.name.equals(resourceName, ignoreCase = true) }
-                ?: throw CustomException(ErrorCode.INVALID_RESOURCE_TYPE, "Resource type: $resourceName")
+                ?: throw CustomException(ErrorCode.INVALID_RESOURCE_TYPE, resourceName)
     }
 }
