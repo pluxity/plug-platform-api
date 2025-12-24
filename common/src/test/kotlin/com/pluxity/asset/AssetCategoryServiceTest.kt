@@ -92,6 +92,13 @@ class AssetCategoryServiceTest
         }
 
         @Test
+        @DisplayName("성공: 전체 카테고리 조회 시 없으면 빈 리스트를 반환한다.")
+        fun getAllCategories_whenNoCategoriesExist_returnsEmptyList() {
+            val rootCategories: List<AssetCategoryResponse> = assetCategoryService.getAllCategories()
+            assertThat(rootCategories).isEmpty()
+        }
+
+        @Test
         @DisplayName("성공: 카테고리의 이름, 코드, 썸네일 정보를 정상적으로 수정한다 (부모 ID는 null)")
         fun updateAssetCategory_withoutParentChange_updatesSuccessfully() {
             val categoryId = createAndSaveCategory("원본", "ORI", null, null)
@@ -116,6 +123,32 @@ class AssetCategoryServiceTest
             val request = AssetCategoryUpdateRequest("이름변경", "CAT_UPDATED", newParentId, null)
 
             assertThrows<CustomException> { assetCategoryService.updateAssetCategory(categoryId, request) }
+        }
+
+        @Test
+        @DisplayName("성공: 카테고리 수정 시 코드가 같을 때는 중복 체크를 하지 않는다")
+        fun updateAssetCategory_withSameCode_doesNotCheckDuplicate() {
+            val categoryId = createAndSaveCategory("카테고리", "CODE", null)
+            val request = AssetCategoryUpdateRequest("새 이름", "CODE", null, null)
+
+            assetCategoryService.updateAssetCategory(categoryId, request)
+
+            val updated = assetCategoryRepository.findById(categoryId).orElseThrow()
+            assertThat(updated.name).isEqualTo("새 이름")
+            assertThat(updated.code).isEqualTo("CODE")
+        }
+
+        @Test
+        @DisplayName("성공: 썸네일을 null로 변경할 수 있다")
+        fun updateAssetCategory_withNullThumbnail_removesThumbnail() {
+            val thumbnailId = testFileUploader.initiateTestFileUpload("icon.png")
+            val categoryId = createAndSaveCategory("카테고리", "CAT", null, thumbnailId)
+            val request = AssetCategoryUpdateRequest("이름", "CAT", null, null)
+
+            assetCategoryService.updateAssetCategory(categoryId, request)
+
+            val updated = assetCategoryRepository.findById(categoryId).orElseThrow()
+            assertThat(updated.iconFileId).isNull()
         }
 
         @Test
