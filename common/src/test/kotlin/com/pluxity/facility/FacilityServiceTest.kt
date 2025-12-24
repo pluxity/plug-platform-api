@@ -536,7 +536,6 @@ class FacilityServiceTest
 
             // WHEN
             val facilities = facilityService.findAllFacilities()
-            println(facilities)
 
             // THEN
             val facility1Response = facilities.find { it.id == facility1.requiredId }!!
