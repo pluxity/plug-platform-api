@@ -158,7 +158,7 @@ internal class PermissionGroupServiceTest
                         .first()
                         .resourceType.javaClass,
                 ).isEqualTo(String::class.java)
-                assertThat(response.permissions.first().resourceIds).isNotNull().isNotEmpty()
+                assertThat(response.permissions.first().permissions).isNotNull().isNotEmpty()
             }
 
             @Test

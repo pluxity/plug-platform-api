@@ -4,10 +4,14 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionGroup
 import com.pluxity.permission.PermissionGroupService
+import com.pluxity.permission.ResourceType
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleUpdateRequest
+import com.pluxity.user.entity.RoleGlobalPolicy
 import com.pluxity.user.entity.RolePermission
 import com.pluxity.user.entity.dummyRole
+import com.pluxity.user.entity.dummyRoleGlobalPolicy
+import com.pluxity.user.repository.RoleGlobalPolicyRepository
 import com.pluxity.user.repository.RolePermissionRepository
 import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.repository.UserRoleRepository
@@ -28,6 +32,7 @@ class RoleServiceKoTest :
         val rolePermissionRepository: RolePermissionRepository = mockk()
         val userRoleRepository: UserRoleRepository = mockk()
         val permissionGroupService: PermissionGroupService = mockk()
+        val roleGlobalPolicyRepository: RoleGlobalPolicyRepository = mockk()
         val em: EntityManager = mockk()
 
         val roleService =
@@ -36,6 +41,7 @@ class RoleServiceKoTest :
                 rolePermissionRepository,
                 userRoleRepository,
                 permissionGroupService,
+                roleGlobalPolicyRepository,
                 em,
             )
 
@@ -89,6 +95,31 @@ class RoleServiceKoTest :
                 Then("성공") {
                     val result = roleService.save(createRequest, UsernamePasswordAuthenticationToken("testUser", null, null))
                     result shouldBe 2L
+                }
+            }
+
+            When("Global Policy Types가 포함된 Role 생성 요청") {
+                val createRequest =
+                    RoleCreateRequest(
+                        name = "Policy Role",
+                        description = "Policy Description",
+                        permissionGroupIds = emptyList(),
+                        globalPolicyTypes = listOf(ResourceType.FACILITY, ResourceType.CCTV),
+                    )
+                val savedRole =
+                    dummyRole(
+                        id = 3L,
+                        name = "Policy Role",
+                        description = "Policy Description",
+                    )
+
+                every { roleRepository.save(any()) } returns savedRole
+                every { roleGlobalPolicyRepository.saveAll(any<List<RoleGlobalPolicy>>()) } returns listOf()
+
+                Then("Global Policy 저장") {
+                    val result = roleService.save(createRequest, UsernamePasswordAuthenticationToken("testUser", null, null))
+                    result shouldBe 3L
+                    verify(exactly = 1) { roleGlobalPolicyRepository.saveAll(any<List<RoleGlobalPolicy>>()) }
                 }
             }
         }
@@ -151,6 +182,7 @@ class RoleServiceKoTest :
                         name = "New Name",
                         description = "New Description",
                         permissionGroupIds = null,
+                        globalPolicyTypes = null,
                     )
 
                 every { roleRepository.findWithInfoById(1L) } returns role
@@ -170,6 +202,7 @@ class RoleServiceKoTest :
                         name = "updateRole",
                         description = "update description",
                         permissionGroupIds = listOf(1L, 2L),
+                        globalPolicyTypes = null,
                     )
                 val permissionGroup1 = PermissionGroup(name = "Group 1", description = "Group 1 Description")
                 val permissionGroup2 = PermissionGroup(name = "Group 2", description = "Group 2 Description")
@@ -187,12 +220,40 @@ class RoleServiceKoTest :
                 }
             }
 
+            When("Global Policy Types를 변경하는 요청") {
+                val role = dummyRole(id = 1L, name = "Test Role", description = "Test Description")
+                val updateRequest =
+                    RoleUpdateRequest(
+                        name = null,
+                        description = null,
+                        permissionGroupIds = null,
+                        globalPolicyTypes = listOf(ResourceType.CCTV),
+                    )
+                val existingPolicies =
+                    mutableListOf(
+                        dummyRoleGlobalPolicy(role = role, resourceType = ResourceType.FACILITY),
+                        dummyRoleGlobalPolicy(role = role, resourceType = ResourceType.DEVICE_CATEGORY),
+                    )
+
+                every { roleRepository.findWithInfoById(1L) } returns role
+                every { roleGlobalPolicyRepository.findAllByRoleId(role.requiredId) } returns existingPolicies
+                every { roleGlobalPolicyRepository.deleteAllInBatch(any()) } just runs
+                every { roleGlobalPolicyRepository.saveAll(any<List<RoleGlobalPolicy>>()) } returns listOf()
+
+                Then("Global Policy 동기화") {
+                    roleService.update(1L, updateRequest)
+                    verify(exactly = 1) { roleGlobalPolicyRepository.deleteAllInBatch(any()) }
+                    verify(exactly = 1) { roleGlobalPolicyRepository.saveAll(any<List<RoleGlobalPolicy>>()) }
+                }
+            }
+
             When("없는 Role ID로 업데이트 요청") {
                 val updateRequest =
                     RoleUpdateRequest(
                         name = "New Name",
                         description = "New Description",
                         permissionGroupIds = null,
+                        globalPolicyTypes = null,
                     )
 
                 every { roleRepository.findWithInfoById(999L) } returns null
@@ -208,10 +269,13 @@ class RoleServiceKoTest :
         Given("Role 삭제를 진행할 때") {
             When("유효한 아이디로 삭제 요청") {
                 val role = dummyRole(id = 1L, name = "Test Role", description = "Test Description")
+                val globalPolicy = mutableListOf(dummyRoleGlobalPolicy(role = role))
 
                 every { roleRepository.findWithInfoById(1L) } returns role
+                every { roleGlobalPolicyRepository.findAllByRoleId(role.requiredId) } returns globalPolicy
                 every { rolePermissionRepository.deleteAllByRole(role) } just runs
                 every { userRoleRepository.deleteAllByRole(role) } just runs
+                every { roleGlobalPolicyRepository.deleteAllInBatch(globalPolicy) } just runs
                 every { em.flush() } just runs
                 every { em.clear() } just runs
                 every { roleRepository.deleteById(1L) } just runs
@@ -221,6 +285,7 @@ class RoleServiceKoTest :
                     verify(exactly = 1) { rolePermissionRepository.deleteAllByRole(role) }
                     verify(exactly = 1) { userRoleRepository.deleteAllByRole(role) }
                     verify(exactly = 1) { roleRepository.deleteById(1L) }
+                    verify(exactly = 1) { roleGlobalPolicyRepository.deleteAllInBatch(globalPolicy) }
                 }
             }
 

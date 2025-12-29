@@ -189,7 +189,7 @@ internal class UserRolePermissionGroupTest
                 // WHEN: OPERATOR 역할에 '장비 분류 조회 그룹'을 추가
                 roleService.update(
                     operatorRoleId,
-                    RoleUpdateRequest("운영자+", null, listOf(mainFacilityGroupId, deviceCategoryGroupId)),
+                    RoleUpdateRequest("운영자+", null, listOf(mainFacilityGroupId, deviceCategoryGroupId), null),
                 )
                 em.flush()
                 em.clear()
@@ -381,7 +381,7 @@ internal class UserRolePermissionGroupTest
                 Assertions.assertTrue(findUserOrFail(operatorUserId).canAccess("FACILITY", "1"))
 
                 // WHEN: Role 업데이트 시 빈 PermissionGroup ID 리스트를 전달
-                roleService.update(operatorRoleId, RoleUpdateRequest("OPERATOR", null, mutableListOf()))
+                roleService.update(operatorRoleId, RoleUpdateRequest("OPERATOR", null, mutableListOf(), null))
                 em.flush()
                 em.clear()
 
@@ -470,7 +470,7 @@ internal class UserRolePermissionGroupTest
                 // OPERATOR 역할에 이 그룹을 추가 (기존 '주요 시설 관리 그룹'과 "FACILITY:2"가 겹침)
                 roleService.update(
                     operatorRoleId,
-                    RoleUpdateRequest(null, null, listOf(mainFacilityGroupId, overlappingGroupId)),
+                    RoleUpdateRequest(null, null, listOf(mainFacilityGroupId, overlappingGroupId), null),
                 )
                 em.flush()
                 em.clear()

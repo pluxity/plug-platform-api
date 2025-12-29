@@ -123,7 +123,12 @@ internal class RoleServiceTest
             // GIVEN
             val initialGroupIds = listOf(permissionGroupIds[0], permissionGroupIds[1])
             val createRequest =
-                RoleCreateRequest("Test Role", "For findById test", initialGroupIds)
+                RoleCreateRequest(
+                    "Test Role",
+                    "For findById test",
+                    initialGroupIds,
+                    listOf(ResourceType.FACILITY, ResourceType.DEVICE_CATEGORY),
+                )
             val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)
             val roleId = roleService.save(createRequest, authentication)
             em.flush()
@@ -137,11 +142,14 @@ internal class RoleServiceTest
             Assertions.assertThat(response.permissions).isNotNull()
             // 각 그룹에 Permission이 1개씩 있으므로, 총 2개의 Permission이 조회되어야 함
             Assertions.assertThat(response.permissions).hasSize(2)
+            Assertions
+                .assertThat(response.globalPolicyTypes)
+                .containsExactlyInAnyOrder(ResourceType.FACILITY, ResourceType.DEVICE_CATEGORY)
 
             val responseResourceIds =
                 response.permissions
                     .flatMap { group -> group.permissions }
-                    .flatMap { perm -> perm.resourceIds }
+                    .flatMap { perm -> perm.permissions.map { it.resourceId } }
 
             Assertions
                 .assertThat(responseResourceIds)
@@ -162,6 +170,7 @@ internal class RoleServiceTest
                         "Initial Role",
                         "Desc",
                         listOf(permissionGroupIds[0], permissionGroupIds[1]),
+                        listOf(ResourceType.FACILITY, ResourceType.DEVICE_CATEGORY),
                     ),
                     authentication,
                 )
@@ -171,7 +180,12 @@ internal class RoleServiceTest
             // 업데이트 요청: 1번은 삭제, 2번은 유지, 3번은 새로 추가 -> 최종 권한 그룹은 2, 3번
             val updatedGroupIdList = listOf(permissionGroupIds[1], permissionGroupIds[2])
             val updateRequest =
-                RoleUpdateRequest("Updated Role", "Updated Description", updatedGroupIdList)
+                RoleUpdateRequest(
+                    "Updated Role",
+                    "Updated Description",
+                    updatedGroupIdList,
+                    listOf(ResourceType.CCTV),
+                )
 
             // WHEN
             roleService.update(roleId, updateRequest)
@@ -186,10 +200,13 @@ internal class RoleServiceTest
 
             // 최종 권한이 올바르게 동기화되었는지 검증 (Permission 2개 확인)
             Assertions.assertThat(response.permissions).hasSize(2)
+            Assertions
+                .assertThat(response.globalPolicyTypes)
+                .containsExactly(ResourceType.CCTV)
             val finalResourceIds =
                 response.permissions
                     .flatMap { group -> group.permissions }
-                    .flatMap { perm -> perm.resourceIds }
+                    .flatMap { perm -> perm.permissions.map { it.resourceId } }
 
             Assertions
                 .assertThat(finalResourceIds)
