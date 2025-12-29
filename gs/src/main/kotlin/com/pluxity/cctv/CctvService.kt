@@ -9,8 +9,12 @@ import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.feature.entity.Feature
 import com.pluxity.feature.service.FeatureAssignment
+import com.pluxity.global.annotation.CheckPermission
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.permission.PermissionLevel
+import com.pluxity.permission.ResourceType
+import com.pluxity.user.entity.PermissionAction
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,6 +25,7 @@ class CctvService(
     private val deviceCctvRepository: DeviceCctvRepository,
 ) : FeatureAssignment {
     @Transactional
+    @CheckPermission(action = PermissionAction.CREATE, resourceType = ResourceType.CCTV, level = PermissionLevel.WRITE)
     fun create(request: CctvCreateRequest): String = cctvRepository.save(Cctv(id = request.id, name = request.name, url = request.url)).id
 
     @Transactional(readOnly = true)
@@ -33,12 +38,14 @@ class CctvService(
     fun getById(id: String): CctvResponse = findById(id).toCctvResponse()
 
     @Transactional
+    @CheckPermission(action = PermissionAction.UPDATE, resourceType = ResourceType.CCTV, level = PermissionLevel.WRITE)
     fun update(
         id: String,
         request: CctvUpdateRequest,
     ) = findById(id).updateCctv(request)
 
     @Transactional
+    @CheckPermission(action = PermissionAction.DELETE, resourceType = ResourceType.CCTV, level = PermissionLevel.WRITE)
     fun delete(id: String) {
         val cctv = findById(id)
         deviceCctvRepository.deleteByCctvIdIn(listOf(cctv.id))

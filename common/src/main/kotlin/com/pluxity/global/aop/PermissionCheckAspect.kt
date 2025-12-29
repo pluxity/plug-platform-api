@@ -66,7 +66,7 @@ class PermissionCheckAspect(
     fun execute(
         joinPoint: ProceedingJoinPoint,
         checkPermission: CheckPermission,
-    ): Any {
+    ): Any? {
         val user = getCurrentUserIfApplicable() ?: return joinPoint.proceed()
         if (checkPermission.action != PermissionAction.READ) {
             return joinPoint.proceed()
@@ -137,9 +137,9 @@ class PermissionCheckAspect(
 
         when (checkPermission.action) {
             PermissionAction.CREATE ->
-                userResourcePermissionService.register(userId, checkPermission.resourceType, resourceId)
+                userResourcePermissionService.create(userId, checkPermission.resourceType, resourceId)
             PermissionAction.DELETE ->
-                userResourcePermissionService.revoke(userId, checkPermission.resourceType, resourceId)
+                userResourcePermissionService.delete(userId, checkPermission.resourceType, resourceId)
             else -> Unit
         }
     }

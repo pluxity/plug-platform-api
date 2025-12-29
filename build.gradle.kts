@@ -68,7 +68,9 @@ subprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-api")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
         testImplementation("io.mockk:mockk:1.14.5")
+        testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
         testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
+        testImplementation("com.ninja-squad:springmockk:5.0.1")
     }
 
     configurations {
