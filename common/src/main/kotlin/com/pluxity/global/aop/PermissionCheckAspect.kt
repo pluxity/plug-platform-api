@@ -6,10 +6,10 @@ import com.pluxity.global.constant.SecurityConstants
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionLevel
 import com.pluxity.permission.ResourceType
+import com.pluxity.user.entity.Permissible
 import com.pluxity.user.entity.PermissionAction
 import com.pluxity.user.entity.PermissionCheckType
 import com.pluxity.user.entity.PermissionStrategy
-import com.pluxity.user.entity.Permissible
 import com.pluxity.user.entity.ResourceAllPermissible
 import com.pluxity.user.entity.RoleType
 import com.pluxity.user.entity.User
@@ -45,7 +45,8 @@ class PermissionCheckAspect(
         when (checkPermission.action) {
             PermissionAction.CREATE -> ensureCreatePermission(user, checkPermission)
             PermissionAction.UPDATE,
-            PermissionAction.DELETE -> {
+            PermissionAction.DELETE,
+            -> {
                 val resource = resolveArgumentResource(joinPoint, checkPermission)
                 val requiredLevel =
                     when (checkPermission.action) {

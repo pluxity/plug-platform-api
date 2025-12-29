@@ -1,8 +1,8 @@
 package com.pluxity.user.dto
 
+import com.pluxity.permission.ResourceType
 import com.pluxity.permission.dto.PermissionGroupResponse
 import com.pluxity.permission.dto.toPermissionGroupResponse
-import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.Role
 
 data class RoleResponse(

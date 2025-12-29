@@ -28,8 +28,8 @@ class Permission(
         requiredLevel: PermissionLevel,
     ): Boolean =
         this.resourceName.equals(resourceName, ignoreCase = true) &&
-                this.resourceId == resourceId &&
-                this.level.allows(requiredLevel)
+            this.resourceId == resourceId &&
+            this.level.allows(requiredLevel)
 
     fun changePermissionGroup(permissionGroup: PermissionGroup?) {
         this.permissionGroup?.permissions?.remove(this)
