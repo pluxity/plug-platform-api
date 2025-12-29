@@ -120,7 +120,7 @@ class AdminUserController(
     )
     @GetMapping(value = ["/{id}"])
     fun getUser(
-        @Parameter(description = "사용자 ID", required = true) @PathVariable("id") id: Long,
+        @PathVariable @Parameter(description = "사용자 ID", required = true) id: Long,
     ): ResponseEntity<DataResponseBody<UserResponse>> = ResponseEntity.ok(DataResponseBody(service.findById(id)))
 
     @GetMapping("/with-is-logged-in")
@@ -279,7 +279,7 @@ class AdminUserController(
     )
     @PatchMapping(value = ["/{id}"])
     fun updateUser(
-        @Parameter(description = "사용자 ID", required = true) @PathVariable("id") id: Long,
+        @PathVariable @Parameter(description = "사용자 ID", required = true) id: Long,
         @Parameter(description = "사용자 수정 정보", required = true) @RequestBody @Valid dto: UserUpdateRequest,
     ): ResponseEntity<Void> {
         service.update(id, dto)
@@ -342,7 +342,7 @@ class AdminUserController(
     )
     @PatchMapping(value = ["/{id}/password"])
     fun updatePassword(
-        @Parameter(description = "사용자 ID", required = true) @PathVariable("id") id: Long,
+        @PathVariable @Parameter(description = "사용자 ID", required = true) id: Long,
         @Parameter(description = "비밀번호 변경 정보", required = true) @Valid @RequestBody dto: UserPasswordUpdateRequest,
     ): ResponseEntity<Void> {
         service.updateUserPassword(id, dto)
@@ -405,7 +405,7 @@ class AdminUserController(
     )
     @PatchMapping(value = ["/{id}/roles"])
     fun updateRoles(
-        @Parameter(description = "사용자 ID", required = true) @PathVariable("id") id: Long,
+        @PathVariable @Parameter(description = "사용자 ID", required = true) id: Long,
         @Parameter(description = "역할 수정 정보", required = true) @Valid @RequestBody dto: UserRoleUpdateRequest,
     ): ResponseEntity<Void> {
         service.updateUserRoles(id, dto)
@@ -459,7 +459,7 @@ class AdminUserController(
     )
     @DeleteMapping(value = ["/{id}"])
     fun deleteUser(
-        @Parameter(description = "사용자 ID", required = true) @PathVariable("id") id: Long,
+        @PathVariable @Parameter(description = "사용자 ID", required = true) id: Long,
     ): ResponseEntity<Void> {
         service.delete(id)
         return ResponseEntity.noContent().build()
@@ -512,8 +512,8 @@ class AdminUserController(
     )
     @DeleteMapping("/{userId}/roles/{roleId}")
     fun removeRoleFromUser(
-        @Parameter(description = "사용자 ID", required = true) @PathVariable("userId") userId: Long,
-        @Parameter(description = "역할 ID", required = true) @PathVariable("roleId") roleId: Long,
+        @PathVariable @Parameter(description = "사용자 ID", required = true) userId: Long,
+        @PathVariable @Parameter(description = "역할 ID", required = true) roleId: Long,
     ): ResponseEntity<Void> {
         service.removeRoleFromUser(userId, roleId)
         return ResponseEntity.noContent().build()
@@ -575,7 +575,7 @@ class AdminUserController(
     )
     @PatchMapping(value = ["/{id}/password-init"])
     fun initPassword(
-        @Parameter(description = "사용자 ID", required = true) @PathVariable("id") id: Long,
+        @PathVariable @Parameter(description = "사용자 ID", required = true) id: Long,
     ): ResponseEntity<Void> {
         service.initPassword(id)
         return ResponseEntity.noContent().build()

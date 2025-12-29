@@ -70,7 +70,7 @@ class RoleController(
     )
     @GetMapping("/{id}")
     fun getRole(
-        @Parameter(description = "역할 ID", required = true) @PathVariable(name = "id") id: Long,
+        @PathVariable @Parameter(description = "역할 ID", required = true) id: Long,
     ): ResponseEntity<DataResponseBody<RoleResponse>> = ResponseEntity.ok(DataResponseBody(roleService.findById(id)))
 
     @GetMapping
@@ -211,7 +211,7 @@ class RoleController(
     )
     @PatchMapping("/{id}")
     fun updateRole(
-        @Parameter(description = "역할 ID", required = true) @PathVariable(name = "id") id: Long,
+        @PathVariable @Parameter(description = "역할 ID", required = true) id: Long,
         @Parameter(description = "역할 수정 정보", required = true) @RequestBody @Valid request: RoleUpdateRequest,
     ): ResponseEntity<Void> {
         roleService.update(id, request)
@@ -265,7 +265,7 @@ class RoleController(
     )
     @DeleteMapping("/{id}")
     fun deleteRole(
-        @Parameter(description = "역할 ID", required = true) @PathVariable(name = "id") id: Long,
+        @PathVariable @Parameter(description = "역할 ID", required = true) id: Long,
     ): ResponseEntity<Void> {
         roleService.delete(id)
         return ResponseEntity.noContent().build()

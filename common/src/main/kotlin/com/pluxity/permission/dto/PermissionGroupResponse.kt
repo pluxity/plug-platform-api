@@ -5,8 +5,6 @@ import com.pluxity.global.response.BaseResponse
 import com.pluxity.global.response.toBaseResponse
 import com.pluxity.permission.PermissionGroup
 import io.swagger.v3.oas.annotations.media.Schema
-import kotlin.collections.component1
-import kotlin.collections.component2
 
 data class PermissionGroupResponse(
     @field:Schema(description = "권한 그룹 ID")
@@ -30,7 +28,13 @@ fun PermissionGroup.toPermissionGroupResponse(): PermissionGroupResponse =
             this.permissions.groupBy { it.resourceName }.map { (resourceType, permissions) ->
                 PermissionResponse(
                     resourceType = resourceType,
-                    resourceIds = permissions.map { it.resourceId },
+                    permissions =
+                        permissions.map { permission ->
+                            PermissionItemResponse(
+                                resourceId = permission.resourceId,
+                                level = permission.level,
+                            )
+                        },
                 )
             },
         baseResponse = this.toBaseResponse(),

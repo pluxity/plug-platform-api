@@ -24,22 +24,26 @@ class PermissionGroupService(
         }
 
         val permissionGroup = PermissionGroup(name = request.name, description = request.description)
+        val requestedPermissionKeys = mutableSetOf<String>()
         request.permissions.forEach { permissionRequest ->
             val resourceType = ResourceType.fromString(permissionRequest.resourceType)
             val resourceName = resourceType.name
             val resourceIds = permissionRequest.resourceIds
+            val level = permissionRequest.level
 
-            if (resourceIds.size != resourceIds.toSet().size) {
-                throw CustomException(
-                    ErrorCode.DUPLICATE_RESOURCE_ID,
-                    "리소스 타입 '$resourceName'에 중복된 ID가 포함되어 있습니다.",
-                )
-            }
             resourceIds.forEach { id ->
+                val key = "$resourceName:$id:$level"
+                if (!requestedPermissionKeys.add(key)) {
+                    throw CustomException(
+                        ErrorCode.DUPLICATE_RESOURCE_ID,
+                        "리소스 타입 '$resourceName'에 중복된 ID가 포함되어 있습니다.",
+                    )
+                }
                 val permission =
                     Permission(
                         resourceName = resourceName,
                         resourceId = id,
+                        level = level,
                         permissionGroup = null,
                     )
                 permissionGroup.addPermission(permission)
@@ -71,17 +75,18 @@ class PermissionGroupService(
 
         request.description?.let { permissionGroup.changeDescription(it) }
 
-        // 현재 권한을 "ResourceType:ResourceId" 형태의 키를 가진 Map으로 변환
+        // 현재 권한을 "ResourceType:ResourceId:Level" 형태의 키를 가진 Map으로 변환
         val existingPermissionsMap =
             permissionGroup.permissions
-                .associateBy { "${it.resourceName}:${it.resourceId}" }
+                .associateBy { "${it.resourceName}:${it.resourceId}:${it.level}" }
 
-        // 요청된 권한을 "ResourceType:ResourceId" 형태의 키를 가진 Set으로 변환
+        // 요청된 권한을 "ResourceType:ResourceId:Level" 형태의 키를 가진 Set으로 변환
         val requestedPermissionKeys = mutableSetOf<String>()
         request.permissions.forEach { permissionRequest ->
             val resourceName = ResourceType.fromString(permissionRequest.resourceType).name
+            val level = permissionRequest.level
             permissionRequest.resourceIds.forEach { resourceId ->
-                requestedPermissionKeys.add("$resourceName:$resourceId")
+                requestedPermissionKeys.add("$resourceName:$resourceId:$level")
             }
         }
 
@@ -97,11 +102,12 @@ class PermissionGroupService(
         // 추가할 권한을 찾아 생성 및 추가
         request.permissions.forEach { permissionRequest ->
             val resourceName = ResourceType.fromString(permissionRequest.resourceType).name
+            val level = permissionRequest.level
             permissionRequest.resourceIds
                 .filterNot { resourceId ->
-                    "$resourceName:$resourceId" in existingPermissionsMap
+                    "$resourceName:$resourceId:$level" in existingPermissionsMap
                 }.forEach { resourceId ->
-                    val newPermission = Permission(resourceName = resourceName, resourceId = resourceId)
+                    val newPermission = Permission(resourceName = resourceName, resourceId = resourceId, level = level)
                     permissionGroup.addPermission(newPermission)
                 }
         }

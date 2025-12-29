@@ -1,6 +1,7 @@
 package com.pluxity.user.entity
 
 import com.pluxity.global.entity.IdentityIdEntity
+import com.pluxity.permission.PermissionLevel
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -93,9 +94,15 @@ class User(
     fun canAccess(
         resourceName: String,
         resourceId: String,
+    ): Boolean = canAccess(resourceName, resourceId, PermissionLevel.READ)
+
+    fun canAccess(
+        resourceName: String,
+        resourceId: String,
+        requiredLevel: PermissionLevel,
     ): Boolean =
         userRoles.any { it.role.auth == RoleType.ADMIN.roleName } ||
-            userRoles.any { it.role.hasPermissionFor(resourceName, resourceId) }
+            userRoles.any { it.role.hasPermissionFor(resourceName, resourceId, requiredLevel) }
 
     fun isPasswordChangeRequired(): Boolean =
         lastPasswordChangeDate.isBefore(

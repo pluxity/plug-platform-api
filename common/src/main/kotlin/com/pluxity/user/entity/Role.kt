@@ -1,6 +1,7 @@
 package com.pluxity.user.entity
 
 import com.pluxity.global.entity.IdentityIdEntity
+import com.pluxity.permission.PermissionLevel
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.OneToMany
@@ -21,6 +22,9 @@ class Role(
     @OneToMany(mappedBy = "role")
     var rolePermissions: MutableSet<RolePermission> = mutableSetOf()
 
+    @OneToMany(mappedBy = "role")
+    var roleGlobalPolicies: MutableSet<RoleGlobalPolicy> = mutableSetOf()
+
     fun getAuthority(): String = "ROLE_$auth"
 
     fun changeRoleName(name: String) {
@@ -34,12 +38,13 @@ class Role(
     fun hasPermissionFor(
         resourceName: String,
         resourceId: String,
+        requiredLevel: PermissionLevel,
     ): Boolean =
         rolePermissions
             .asSequence()
             .map { it.permissionGroup }
             .flatMap { it.permissions.asSequence() }
-            .any { it.matches(resourceName, resourceId) }
+            .any { it.allows(resourceName, resourceId, requiredLevel) }
 
     fun addRolePermission(rolePermission: RolePermission) {
         rolePermissions.add(rolePermission)

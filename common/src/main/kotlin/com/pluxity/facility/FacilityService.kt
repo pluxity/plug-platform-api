@@ -21,7 +21,6 @@ import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CODE
 import com.pluxity.global.exception.CustomException
 import com.pluxity.user.entity.PermissionCheckType
-import com.pluxity.user.entity.PermissionType
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -75,21 +74,21 @@ class FacilityService(
         }
     }
 
-    @CheckPermission(type = PermissionType.ID)
+    @CheckPermission
     @Transactional(readOnly = true)
     fun findByCode(code: String): Facility =
         facilityRepository
             .findByCode(code)
             ?: throw CustomException(NOT_FOUND_FACILITY_CODE, code)
 
-    @CheckPermission(type = PermissionType.ID)
+    @CheckPermission
     @Transactional(readOnly = true)
     fun findById(id: Long): Facility =
         facilityRepository
             .findByIdOrNull(id)
             ?: throw CustomException(NOT_FOUND_FACILITY, id)
 
-    @CheckPermission(type = PermissionType.ID, phase = PermissionCheckType.ITEM_LIST)
+    @CheckPermission(phase = PermissionCheckType.ITEM_LIST)
     @Transactional(readOnly = true)
     fun findAll(): List<Facility> = facilityRepository.findAll()
 

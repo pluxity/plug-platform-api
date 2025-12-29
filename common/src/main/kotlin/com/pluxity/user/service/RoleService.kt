@@ -3,13 +3,16 @@ package com.pluxity.user.service
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionGroupService
+import com.pluxity.permission.ResourceType
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleResponse
 import com.pluxity.user.dto.RoleUpdateRequest
 import com.pluxity.user.dto.toRoleResponse
 import com.pluxity.user.entity.Role
+import com.pluxity.user.entity.RoleGlobalPolicy
 import com.pluxity.user.entity.RolePermission
 import com.pluxity.user.entity.RoleType
+import com.pluxity.user.repository.RoleGlobalPolicyRepository
 import com.pluxity.user.repository.RolePermissionRepository
 import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.repository.UserRoleRepository
@@ -24,6 +27,7 @@ class RoleService(
     private val rolePermissionRepository: RolePermissionRepository,
     private val userRoleRepository: UserRoleRepository,
     private val permissionGroupService: PermissionGroupService,
+    private val roleGlobalPolicyRepository: RoleGlobalPolicyRepository,
     private val em: EntityManager,
 ) {
     @Transactional
@@ -61,6 +65,17 @@ class RoleService(
             }
         }
 
+        if (request.globalPolicyTypes.isNotEmpty()) {
+            val policies =
+                request.globalPolicyTypes.map { resourceType ->
+                    RoleGlobalPolicy(
+                        role = role,
+                        resourceType = resourceType,
+                    )
+                }
+            roleGlobalPolicyRepository.saveAll(policies)
+        }
+
         return role.requiredId
     }
 
@@ -86,6 +101,7 @@ class RoleService(
         request.description?.let { role.changeDescription(request.description) }
 
         request.permissionGroupIds?.let { syncPermissionGroups(role, request.permissionGroupIds) }
+        request.globalPolicyTypes?.let { syncGlobalPolicies(role, it) }
     }
 
     private fun syncPermissionGroups(
@@ -124,9 +140,37 @@ class RoleService(
         }
     }
 
+    private fun syncGlobalPolicies(
+        role: Role,
+        resourceTypes: List<ResourceType>,
+    ) {
+        val requestedTypes = resourceTypes.toSet()
+        val existingPolicies = roleGlobalPolicyRepository.findAllByRoleId(role.requiredId)
+        val existingTypes = existingPolicies.map { it.resourceType }.toSet()
+
+        val toRemove =
+            existingPolicies.filter { it.resourceType !in requestedTypes }
+        if (toRemove.isNotEmpty()) {
+            roleGlobalPolicyRepository.deleteAllInBatch(toRemove)
+        }
+
+        val toAdd = requestedTypes.filter { it !in existingTypes }
+        if (toAdd.isNotEmpty()) {
+            val newPolicies =
+                toAdd.map { resourceType ->
+                    RoleGlobalPolicy(
+                        role = role,
+                        resourceType = resourceType,
+                    )
+                }
+            roleGlobalPolicyRepository.saveAll(newPolicies)
+        }
+    }
+
     @Transactional
     fun delete(id: Long) {
         val role = findRoleById(id)
+        roleGlobalPolicyRepository.deleteAllInBatch(roleGlobalPolicyRepository.findAllByRoleId(role.requiredId))
         rolePermissionRepository.deleteAllByRole(role)
         userRoleRepository.deleteAllByRole(role)
         em.flush()
