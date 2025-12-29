@@ -3,10 +3,8 @@ package com.pluxity.feature.service
 import com.pluxity.asset.entity.Asset
 import com.pluxity.asset.repository.AssetRepository
 import com.pluxity.device.entity.Device
-import com.pluxity.device.entity.DeviceCategory
 import com.pluxity.device.entity.DeviceCompanyType
 import com.pluxity.device.entity.DeviceType
-import com.pluxity.device.repository.DeviceCategoryRepository
 import com.pluxity.device.repository.DeviceRepository
 import com.pluxity.facility.Facility
 import com.pluxity.facility.FacilityService
@@ -42,12 +40,10 @@ internal class FeatureServiceTest
         private val assetRepository: AssetRepository,
         private val facilityService: FacilityService,
         private val deviceRepository: DeviceRepository,
-        private val deviceCategoryRepository: DeviceCategoryRepository,
         private val testFileUploader: TestFileUploader,
     ) {
         lateinit var testAsset: Asset
         lateinit var testFacility: Facility
-        lateinit var testDeviceCategory: DeviceCategory
 
         @MockitoBean
         lateinit var featureAssignment: FeatureAssignment
@@ -56,8 +52,6 @@ internal class FeatureServiceTest
         fun setUp() {
             testAsset = createAndSaveAsset("테스트 에셋", "ASSET_01")
             testFacility = createAndSaveFacility("테스트 시설", "FAC_01")
-            val imageId = testFileUploader.initiateTestFileUpload("image")
-            testDeviceCategory = deviceCategoryRepository.save(DeviceCategory(iconFileId = imageId))
         }
 
         @Test
@@ -415,7 +409,6 @@ internal class FeatureServiceTest
                 Device(
                     id = deviceId,
                     name = "Test Device",
-                    category = testDeviceCategory,
                     deviceType = DeviceType.TEMP_HUM,
                     companyType = DeviceCompanyType.DAWONDNS,
                 )

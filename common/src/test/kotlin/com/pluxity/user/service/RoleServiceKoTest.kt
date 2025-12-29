@@ -232,16 +232,16 @@ class RoleServiceKoTest :
                 val existingPolicies =
                     mutableListOf(
                         dummyRoleGlobalPolicy(role = role, resourceType = ResourceType.FACILITY),
-                        dummyRoleGlobalPolicy(role = role, resourceType = ResourceType.DEVICE_CATEGORY),
+                        dummyRoleGlobalPolicy(role = role, resourceType = ResourceType.THERMO_HYGROMETER),
                     )
 
                 every { roleRepository.findWithInfoById(1L) } returns role
                 every { roleGlobalPolicyRepository.findAllByRoleId(role.requiredId) } returns existingPolicies
                 every { roleGlobalPolicyRepository.deleteAllInBatch(any()) } just runs
                 every { roleGlobalPolicyRepository.saveAll(any<List<RoleGlobalPolicy>>()) } returns listOf()
+                roleService.update(1L, updateRequest)
 
                 Then("Global Policy 동기화") {
-                    roleService.update(1L, updateRequest)
                     verify(exactly = 1) { roleGlobalPolicyRepository.deleteAllInBatch(any()) }
                     verify(exactly = 1) { roleGlobalPolicyRepository.saveAll(any<List<RoleGlobalPolicy>>()) }
                 }

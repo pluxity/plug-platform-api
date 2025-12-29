@@ -44,7 +44,7 @@ internal class PermissionGroupServiceTest
                     permissions =
                         listOf(
                             PermissionRequest(ResourceType.FACILITY.name, listOf("READ", "LIST")),
-                            PermissionRequest(ResourceType.DEVICE_CATEGORY.name, listOf("READ")),
+                            PermissionRequest(ResourceType.CCTV.name, listOf("READ")),
                         ),
                 )
         }
@@ -77,12 +77,12 @@ internal class PermissionGroupServiceTest
                         .map { it.resourceId }
                 assertThat(facilityPermissions).containsExactlyInAnyOrder("READ", "LIST")
 
-                // DEVICE_CATEGORY 권한 검증
-                val deviceCategoryPermissions =
+                // CCTV 권한 검증
+                val cctvPermissions =
                     permissions
-                        .filter { it.resourceName == "DEVICE_CATEGORY" }
+                        .filter { it.resourceName == "CCTV" }
                         .map { it.resourceId }
-                assertThat(deviceCategoryPermissions).containsExactly("READ")
+                assertThat(cctvPermissions).containsExactly("READ")
             }
 
             @Test
@@ -187,13 +187,13 @@ internal class PermissionGroupServiceTest
                 val createRequest =
                     PermissionGroupCreateRequest(
                         "기본 시설 관리 그룹",
-                        "시설 및 장비 분류에 대한 기본 권한",
+                        "시설 및 CCTV에 대한 기본 권한",
                         listOf( // name()을 사용하여 "시설" 문자열을 전달
                             PermissionRequest(
                                 ResourceType.FACILITY.name,
                                 listOf("READ", "LIST"),
-                            ), // name()을 사용하여 "장비 분류" 문자열을 전달
-                            PermissionRequest(ResourceType.DEVICE_CATEGORY.name, listOf("READ")),
+                            ), // name()을 사용하여 "CCTV" 문자열을 전달
+                            PermissionRequest(ResourceType.CCTV.name, listOf("READ")),
                         ),
                     )
                 groupId = permissionGroupService.create(createRequest)
@@ -203,10 +203,10 @@ internal class PermissionGroupServiceTest
             @DisplayName("성공: 권한을 추가, 유지, 삭제하는 복합적인 수정이 정상적으로 반영된다")
             fun withValidRequest_shouldPatchPermissionsCorrectly() {
                 // given
-                // 기존 상태: FACILITY(READ, LIST), DEVICE_CATEGORY(READ)
-                // 목표 상태: FACILITY(EDIT, LIST), DEVICE_CATEGORY(CREATE)
-                // 변경 내역: FACILITY(READ) 삭제, DEVICE_CATEGORY(READ) 삭제, FACILITY(EDIT) 추가,
-                // DEVICE_CATEGORY(CREATE) 추가
+                // 기존 상태: FACILITY(READ, LIST), CCTV(READ)
+                // 목표 상태: FACILITY(EDIT, LIST), CCTV(CREATE)
+                // 변경 내역: FACILITY(READ) 삭제, CCTV(READ) 삭제, FACILITY(EDIT) 추가,
+                // CCTV(CREATE) 추가
                 val updateRequest =
                     PermissionGroupUpdateRequest(
                         "수정된 고급 그룹",
@@ -215,8 +215,8 @@ internal class PermissionGroupServiceTest
                             PermissionRequest(
                                 ResourceType.FACILITY.name,
                                 listOf("EDIT", "LIST"),
-                            ), // "장비 분류" 문자열로 요청
-                            PermissionRequest(ResourceType.DEVICE_CATEGORY.name, listOf("CREATE")),
+                            ), // "CCTV" 문자열로 요청
+                            PermissionRequest(ResourceType.CCTV.name, listOf("CREATE")),
                         ),
                     )
 
@@ -230,7 +230,7 @@ internal class PermissionGroupServiceTest
 
                 val permissions = updatedGroup.permissions
                 assertThat(permissions)
-                    .hasSize(3) // 최종 3개 (FACILITY:EDIT, FACILITY:LIST, DEVICE_CATEGORY:CREATE)
+                    .hasSize(3) // 최종 3개 (FACILITY:EDIT, FACILITY:LIST, CCTV:CREATE)
 
                 val permissionKeys =
                     permissions
@@ -242,14 +242,14 @@ internal class PermissionGroupServiceTest
                     .containsExactlyInAnyOrder(
                         "FACILITY:EDIT", // 추가됨
                         "FACILITY:LIST", // 유지됨
-                        "DEVICE_CATEGORY:CREATE", // 추가됨
+                        "CCTV:CREATE", // 추가됨
                     )
 
                 // 삭제된 권한 검증
                 assertThat(permissionKeys)
                     .doesNotContain(
                         "FACILITY:READ", // 삭제됨
-                        "DEVICE_CATEGORY:READ", // 삭제됨
+                        "CCTV:READ", // 삭제됨
                     )
             }
 

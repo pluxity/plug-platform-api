@@ -55,11 +55,11 @@ internal class UserRolePermissionGroupTest
         private var viewerRoleId: Long by Delegates.notNull()
         private var mainFacilityGroupId: Long by Delegates.notNull()
         private var subFacilityGroupId: Long by Delegates.notNull()
-        private var deviceCategoryGroupId: Long by Delegates.notNull()
+        private var cctvGroupId: Long by Delegates.notNull()
 
         @BeforeEach
         fun setUp() {
-            // === GIVEN: FACILITY와 DEVICE_CATEGORY만 사용하는 복잡한 초기 상태 설정 ===
+            // === GIVEN: FACILITY와 CCTV만 사용하는 복잡한 초기 상태 설정 ===
 
             // 1. Permission Groups 생성 (resourceId는 숫자 형식 사용)
 
@@ -79,12 +79,12 @@ internal class UserRolePermissionGroupTest
                         listOf(PermissionRequest("FACILITY", mutableListOf("3"))),
                     ),
                 )
-            deviceCategoryGroupId =
+            cctvGroupId =
                 permissionGroupService.create(
                     PermissionGroupCreateRequest(
-                        "장비 분류 조회 그룹",
+                        "CCTV 조회 그룹",
                         null,
-                        listOf(PermissionRequest("DEVICE_CATEGORY", mutableListOf("1", "2"))),
+                        listOf(PermissionRequest("CCTV", mutableListOf("1", "2"))),
                     ),
                 )
 
@@ -94,7 +94,7 @@ internal class UserRolePermissionGroupTest
                     RoleCreateRequest(
                         name = "ADMIN",
                         description = "관리자",
-                        permissionGroupIds = listOf(mainFacilityGroupId, subFacilityGroupId, deviceCategoryGroupId),
+                        permissionGroupIds = listOf(mainFacilityGroupId, subFacilityGroupId, cctvGroupId),
                         authority = RoleType.ADMIN,
                     ),
                     UsernamePasswordAuthenticationToken("testUser", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN"))),
@@ -113,10 +113,10 @@ internal class UserRolePermissionGroupTest
                     RoleCreateRequest(
                         name = "VIEWER",
                         description = "조회자",
-                        permissionGroupIds = listOf(deviceCategoryGroupId),
+                        permissionGroupIds = listOf(cctvGroupId),
                     ),
                     UsernamePasswordAuthenticationToken("testUser", null, null),
-                ) // 조회자는 장비 분류(1, 2)만 조회
+                ) // 조회자는 CCTV(1, 2)만 조회
 
             // 3. Users 생성 및 Roles 할당
             adminUserId =
@@ -186,10 +186,10 @@ internal class UserRolePermissionGroupTest
                 Assertions.assertTrue(operatorAfterStep1.canAccess("FACILITY", "3"), "3번 시설 권한이 생겨야 함")
 
                 // === STEP 2: Role에 할당된 PermissionGroup 변경 ===
-                // WHEN: OPERATOR 역할에 '장비 분류 조회 그룹'을 추가
+                // WHEN: OPERATOR 역할에 'CCTV 조회 그룹'을 추가
                 roleService.update(
                     operatorRoleId,
-                    RoleUpdateRequest("운영자+", null, listOf(mainFacilityGroupId, deviceCategoryGroupId), null),
+                    RoleUpdateRequest("운영자+", null, listOf(mainFacilityGroupId, cctvGroupId), null),
                 )
                 em.flush()
                 em.clear()
@@ -197,7 +197,7 @@ internal class UserRolePermissionGroupTest
                 // THEN: operatorUser의 권한이 다시 변경되어야 함
                 val operatorAfterStep2 = findUserOrFail(operatorUserId)
                 Assertions.assertTrue(operatorAfterStep2.canAccess("FACILITY", "3"), "시설 관리 권한은 유지되어야 함")
-                Assertions.assertTrue(operatorAfterStep2.canAccess("DEVICE_CATEGORY", "1"), "장비 분류 조회 권한이 생겨야 함")
+                Assertions.assertTrue(operatorAfterStep2.canAccess("CCTV", "1"), "CCTV 조회 권한이 생겨야 함")
 
                 // === STEP 3: User에게 할당된 Role 변경 ===
                 // WHEN: operatorUser를 운영자(OPERATOR)에서 조회자(VIEWER)로 강등
@@ -211,7 +211,7 @@ internal class UserRolePermissionGroupTest
                 // THEN: operatorUser는 이제 VIEWER의 권한만 가져야 함
                 val operatorAfterStep3 = findUserOrFail(operatorUserId)
                 Assertions.assertFalse(operatorAfterStep3.canAccess("FACILITY", "3"), "시설 관리 권한은 없어져야 함")
-                Assertions.assertTrue(operatorAfterStep3.canAccess("DEVICE_CATEGORY", "1"), "장비 분류 조회 권한만 남아야 함")
+                Assertions.assertTrue(operatorAfterStep3.canAccess("CCTV", "1"), "CCTV 조회 권한만 남아야 함")
             }
         }
 
@@ -245,18 +245,18 @@ internal class UserRolePermissionGroupTest
                 // 1. 관리자(ADMIN)는 모든 권한을 가짐 (canAccess의 특별 로직 검증)
                 Assertions.assertTrue(admin.canAccess("FACILITY", "1"))
                 Assertions.assertTrue(admin.canAccess("FACILITY", "999")) // 존재하지 않는 ID도 통과
-                Assertions.assertTrue(admin.canAccess("DEVICE_CATEGORY", "1"))
+                Assertions.assertTrue(admin.canAccess("CCTV", "1"))
                 Assertions.assertTrue(admin.canAccess("INVALID_RESOURCE", "ACTION")) // 정의되지 않은 리소스도 통과
 
                 // 2. 운영자(OPERATOR)는 '주요 시설 관리 그룹'의 권한만 가짐
                 Assertions.assertTrue(operator.canAccess("FACILITY", "1"))
                 Assertions.assertTrue(operator.canAccess("FACILITY", "2"))
                 Assertions.assertFalse(operator.canAccess("FACILITY", "3"), "보조 시설 권한은 없어야 함")
-                Assertions.assertFalse(operator.canAccess("DEVICE_CATEGORY", "1"), "장비 분류 권한은 없어야 함")
+                Assertions.assertFalse(operator.canAccess("CCTV", "1"), "CCTV 권한은 없어야 함")
 
-                // 3. 조회자(VIEWER)는 '장비 분류 조회 그룹'의 권한만 가짐
-                Assertions.assertTrue(viewer.canAccess("DEVICE_CATEGORY", "1"))
-                Assertions.assertTrue(viewer.canAccess("DEVICE_CATEGORY", "2"))
+                // 3. 조회자(VIEWER)는 'CCTV 조회 그룹'의 권한만 가짐
+                Assertions.assertTrue(viewer.canAccess("CCTV", "1"))
+                Assertions.assertTrue(viewer.canAccess("CCTV", "2"))
                 Assertions.assertFalse(viewer.canAccess("FACILITY", "1"), "시설 권한은 없어야 함")
             }
         }
@@ -414,7 +414,7 @@ internal class UserRolePermissionGroupTest
 
                 // THEN: VIEWER의 권한을 획득해야 함
                 val updatedUser = findUserOrFail(newUserId)
-                Assertions.assertTrue(updatedUser.canAccess("DEVICE_CATEGORY", "1"))
+                Assertions.assertTrue(updatedUser.canAccess("CCTV", "1"))
                 Assertions.assertFalse(updatedUser.canAccess("FACILITY", "1"))
             }
         }
@@ -425,7 +425,7 @@ internal class UserRolePermissionGroupTest
             @Test
             @DisplayName("사용자가 여러 Role을 가질 때, 모든 Role의 권한을 합산하여 가져야 한다")
             fun whenUserHasMultipleRoles_shouldAggregateAllPermissions() {
-                // GIVEN: operator(주요 시설)와 viewer(장비 분류) 역할을 모두 가지는 새로운 사용자 생성
+                // GIVEN: operator(주요 시설)와 viewer(CCTV) 역할을 모두 가지는 새로운 사용자 생성
                 val multiRoleUserId =
                     userService
                         .save(
@@ -448,8 +448,8 @@ internal class UserRolePermissionGroupTest
                 // THEN: 두 역할의 권한을 모두 가져야 함
                 Assertions.assertTrue(multiRoleUser.canAccess("FACILITY", "1"), "OPERATOR 역할의 주요 시설 권한이 있어야 합니다.")
                 Assertions.assertTrue(multiRoleUser.canAccess("FACILITY", "2"), "OPERATOR 역할의 주요 시설 권한이 있어야 합니다.")
-                Assertions.assertTrue(multiRoleUser.canAccess("DEVICE_CATEGORY", "1"), "VIEWER 역할의 장비 분류 권한이 있어야 합니다.")
-                Assertions.assertTrue(multiRoleUser.canAccess("DEVICE_CATEGORY", "2"), "VIEWER 역할의 장비 분류 권한이 있어야 합니다.")
+                Assertions.assertTrue(multiRoleUser.canAccess("CCTV", "1"), "VIEWER 역할의 CCTV 권한이 있어야 합니다.")
+                Assertions.assertTrue(multiRoleUser.canAccess("CCTV", "2"), "VIEWER 역할의 CCTV 권한이 있어야 합니다.")
 
                 // AND: 두 역할에 모두 없는 권한은 없어야 함
                 Assertions.assertFalse(multiRoleUser.canAccess("FACILITY", "3"), "어떤 역할에도 없는 보조 시설 권한은 없어야 합니다.")

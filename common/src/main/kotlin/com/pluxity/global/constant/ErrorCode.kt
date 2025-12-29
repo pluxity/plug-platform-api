@@ -95,11 +95,9 @@ enum class ErrorCode(
     NOT_FOUND_PERMISSIONS(HttpStatus.NOT_FOUND, "%s인 ids로 모든 권한을 찾을 수 없습니다"),
     NOT_FOUND_STATION_LINE(HttpStatus.NOT_FOUND, "ID가 %s인 Station 또는 ID가 %s인 Line을 찾을 수 없습니다."),
     NOT_FOUND_PERMISSION_GROUP(HttpStatus.NOT_FOUND, "ID가 %s인 PermissionGroup을 찾을 수 없습니다."),
-    NOT_FOUND_DEVICE_CATEGORY(HttpStatus.NOT_FOUND, "ID가 %s인 DeviceCategory를 찾을 수 없습니다."),
     NOT_FOUND_CCTV_CATEGORY(HttpStatus.NOT_FOUND, "ID가 %s인 CCTV 카테고리를 찾을 수 없습니다."),
     NOT_FOUND_CCTV(HttpStatus.NOT_FOUND, "ID가 %s인 CCTV를 찾을 수 없습니다."),
     NOT_FOUND_CCTV_BY_FEATURE(HttpStatus.NOT_FOUND, "Feature ID가 %s인 CCTV를 찾을 수 없습니다."),
-    NOT_FOUND_ASSIGN_DEVICE_CATEGORY(HttpStatus.NOT_FOUND, "ID가 %s인 디바이스에 할당된 카테고리를 찾을 수 없습니다."),
     NOT_FOUND_LABEL_3D(HttpStatus.NOT_FOUND, "ID가 %s인 3D 라벨을 찾을 수 없습니다."),
 
     INVALID_RESOURCE_IDS_INCLUDED(HttpStatus.BAD_REQUEST, "요청한 리소스 ID %s 는 유효하지 않습니다."),

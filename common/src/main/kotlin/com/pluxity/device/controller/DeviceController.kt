@@ -19,7 +19,6 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -155,49 +154,6 @@ class DeviceController(
         @Parameter(description = "디바이스 ID", required = true) @PathVariable id: String,
     ): ResponseEntity<Void> {
         deviceService.delete(id)
-        return ResponseEntity.noContent().build()
-    }
-
-    @Operation(summary = "디바이스에 카테고리 할당", description = "특정 디바이스에 카테고리를 할당(연결)합니다.")
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "204",
-                description = "카테고리 할당 성공",
-            ), ApiResponse(
-                responseCode = "404",
-                description = "해당 ID의 디바이스 또는 카테고리를 찾을 수 없음",
-                content = [Content(schema = Schema(implementation = ErrorResponseBody::class))],
-            ),
-        ],
-    )
-    @PatchMapping("/{deviceId}/category/{categoryId}")
-    fun assignCategory(
-        @Parameter(description = "디바이스 ID", required = true) @PathVariable deviceId: String,
-        @Parameter(description = "할당할 카테고리 ID", required = true) @PathVariable categoryId: Long,
-    ): ResponseEntity<Void> {
-        deviceService.assignCategory(deviceId, categoryId)
-        return ResponseEntity.noContent().build()
-    }
-
-    @Operation(summary = "디바이스의 카테고리 제거", description = "특정 디바이스에 할당된 카테고리를 제거(연결 해제)합니다.")
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "204",
-                description = "카테고리 제거 성공",
-            ), ApiResponse(
-                responseCode = "404",
-                description = "해당 ID의 디바이스를 찾을 수 없거나, 디바이스에 할당된 카테고리가 없음",
-                content = [Content(schema = Schema(implementation = ErrorResponseBody::class))],
-            ),
-        ],
-    )
-    @DeleteMapping("/{deviceId}/category")
-    fun removeCategory(
-        @Parameter(description = "디바이스 ID", required = true) @PathVariable deviceId: String,
-    ): ResponseEntity<Void> {
-        deviceService.removeCategory(deviceId)
         return ResponseEntity.noContent().build()
     }
 }

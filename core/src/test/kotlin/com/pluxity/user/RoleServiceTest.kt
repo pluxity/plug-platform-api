@@ -127,7 +127,7 @@ internal class RoleServiceTest
                     "Test Role",
                     "For findById test",
                     initialGroupIds,
-                    listOf(ResourceType.FACILITY, ResourceType.DEVICE_CATEGORY),
+                    listOf(ResourceType.FACILITY, ResourceType.CCTV),
                 )
             val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)
             val roleId = roleService.save(createRequest, authentication)
@@ -144,7 +144,7 @@ internal class RoleServiceTest
             Assertions.assertThat(response.permissions).hasSize(2)
             Assertions
                 .assertThat(response.globalPolicyTypes)
-                .containsExactlyInAnyOrder(ResourceType.FACILITY, ResourceType.DEVICE_CATEGORY)
+                .containsExactlyInAnyOrder(ResourceType.FACILITY, ResourceType.CCTV)
 
             val responseResourceIds =
                 response.permissions
@@ -170,7 +170,7 @@ internal class RoleServiceTest
                         "Initial Role",
                         "Desc",
                         listOf(permissionGroupIds[0], permissionGroupIds[1]),
-                        listOf(ResourceType.FACILITY, ResourceType.DEVICE_CATEGORY),
+                        listOf(ResourceType.FACILITY, ResourceType.CCTV),
                     ),
                     authentication,
                 )

@@ -11,8 +11,6 @@ class DeviceCreateRequest(
     val id: String,
     @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "디바이스 명")
     val name: String,
-    @field:Schema(description = "카테고리 아이디")
-    val categoryId: Long?,
     @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "디바이스 회사")
     val companyType: DeviceCompanyType,
     @field:Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "디바이스 타입")
