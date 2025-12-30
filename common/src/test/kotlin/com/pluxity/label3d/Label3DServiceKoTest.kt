@@ -68,6 +68,31 @@ class Label3DServiceKoTest :
                     result shouldBe createRequest.id
                 }
             }
+
+            When("없는 시설 ID로 Label3D 생성 요청") {
+                val createRequest =
+                    Label3DCreateRequest(
+                        id = "test-id",
+                        displayText = "Test Label",
+                        facilityId = 999L,
+                        floorId = "floor-1",
+                        position = Spatial(1.0, 2.0, 3.0),
+                        rotation = Spatial(0.0, 90.0, 0.0),
+                        scale = Spatial(1.0, 1.0, 1.0),
+                    )
+
+                every {
+                    facilityService.findById(createRequest.facilityId)
+                } throws CustomException(ErrorCode.NOT_FOUND_FACILITY, createRequest.facilityId)
+
+                Then("NOT_FOUND_FACILITY 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        label3DService.createLabel3D(createRequest)
+                    }.message shouldBe ErrorCode.NOT_FOUND_FACILITY.getMessage().format(createRequest.facilityId)
+                    verify(exactly = 0) { featureService.saveFeature(any()) }
+                    verify(exactly = 0) { label3DRepository.save(any()) }
+                }
+            }
         }
 
         Given("Label3D 단건 조회를 진행할 때") {
@@ -189,8 +214,8 @@ class Label3DServiceKoTest :
                 Then("성공") {
                     label3DService.deleteLabel3D(id)
 
-                    verify(exactly = 1) { featureService.deleteFeature(any()) }
                     verify(exactly = 1) { label3DRepository.deleteById(id) }
+                    verify(exactly = 1) { featureService.deleteFeature(feature.id) }
                 }
             }
 

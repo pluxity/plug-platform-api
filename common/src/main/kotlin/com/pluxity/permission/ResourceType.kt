@@ -10,7 +10,7 @@ enum class ResourceType(
     NONE("NONE", ""),
     FACILITY("시설", "facilities"),
     CCTV("CCTV", "cctvs"),
-    THERMO_HYGROMETER("온습도계", "thermo-hygrometers"),
+    THERMO_HYGROMETER("온습도계", "temperature-humidity-devices"),
     ;
 
     companion object {

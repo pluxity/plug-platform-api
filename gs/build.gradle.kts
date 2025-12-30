@@ -12,6 +12,8 @@ sourceSets {
 dependencies {
     implementation(project(":common"))
     implementation(project(":core"))
-    implementation(project(":collect"))
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     testImplementation(testFixtures(project(":common")))
 }

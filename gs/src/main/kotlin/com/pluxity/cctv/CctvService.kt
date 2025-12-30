@@ -8,6 +8,7 @@ import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.feature.entity.Feature
+import com.pluxity.feature.service.FeatureAssignType
 import com.pluxity.feature.service.FeatureAssignment
 import com.pluxity.global.annotation.CheckPermission
 import com.pluxity.global.constant.ErrorCode
@@ -24,6 +25,8 @@ class CctvService(
     private val cctvRepository: CctvRepository,
     private val deviceCctvRepository: DeviceCctvRepository,
 ) : FeatureAssignment {
+    override val type: FeatureAssignType = FeatureAssignType.CCTV
+
     @Transactional
     @CheckPermission(action = PermissionAction.CREATE, resourceType = ResourceType.CCTV, level = PermissionLevel.WRITE)
     fun create(request: CctvCreateRequest): String = cctvRepository.save(Cctv(id = request.id, name = request.name, url = request.url)).id

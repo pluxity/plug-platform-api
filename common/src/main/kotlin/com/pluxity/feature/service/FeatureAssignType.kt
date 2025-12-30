@@ -4,5 +4,5 @@ enum class FeatureAssignType(
     val description: String,
 ) {
     CCTV("cctv"),
-    DEVICE("장비"),
+    THERMO_HYGROMETER("온습도계"),
 }

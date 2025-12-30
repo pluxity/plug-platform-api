@@ -2,7 +2,6 @@
 package com.pluxity.feature.service
 
 import com.pluxity.asset.service.AssetValidator
-import com.pluxity.device.repository.DeviceRepository
 import com.pluxity.facility.Facility
 import com.pluxity.facility.FacilityService
 import com.pluxity.feature.dto.FeatureAssignDto
@@ -13,7 +12,6 @@ import com.pluxity.feature.entity.Spatial
 import com.pluxity.feature.repository.FeatureRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import device.dummyDevice
 import entity.dummyFeature
 import entity.dummySpatial
 import io.kotest.assertions.throwables.shouldThrowExactly
@@ -32,16 +30,26 @@ class FeatureServiceKoTest :
         val featureRepository: FeatureRepository = mockk()
         val facilityService: FacilityService = mockk()
         val assetValidator: AssetValidator = mockk()
-        val deviceRepository: DeviceRepository = mockk()
-        val featureAssignment: FeatureAssignment = mockk(relaxed = true)
+        val temperatureHumidityAssignment: FeatureAssignment =
+            mockk(relaxed = true) {
+                every { type } returns FeatureAssignType.THERMO_HYGROMETER
+            }
+        val cctvAssignment: FeatureAssignment =
+            mockk(relaxed = true) {
+                every { type } returns FeatureAssignType.CCTV
+            }
 
         val featureService =
             FeatureService(
                 featureRepository,
                 facilityService,
                 assetValidator,
-                deviceRepository,
-                featureAssignment,
+                FeatureAssignmentRegistry(
+                    listOf(
+                        temperatureHumidityAssignment,
+                        cctvAssignment,
+                    ),
+                ),
             )
 
         Given("Feature 생성을 진행할 때") {
@@ -221,12 +229,14 @@ class FeatureServiceKoTest :
                 val feature = dummyFeature(id = featureId)
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { deviceRepository.revokeByFeature(feature) } just runs
+                every { temperatureHumidityAssignment.revokeByFeature(feature) } just runs
+                every { cctvAssignment.revokeByFeature(feature) } just runs
                 every { featureRepository.delete(feature) } just runs
 
                 Then("성공") {
                     featureService.deleteFeature(featureId)
-                    verify { deviceRepository.revokeByFeature(feature) }
+                    verify { temperatureHumidityAssignment.revokeByFeature(feature) }
+                    verify { cctvAssignment.revokeByFeature(feature) }
                     verify { featureRepository.delete(feature) }
                 }
             }
@@ -288,47 +298,43 @@ class FeatureServiceKoTest :
         Given("Feature에 Device 할당할 때") {
             When("유효한 요청으로 Device 할당") {
                 val featureId = "test-feature-id"
-                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.DEVICE)
+                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.THERMO_HYGROMETER)
                 val feature = dummyFeature(id = featureId)
-                val device = dummyDevice(id = "device-1")
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { deviceRepository.findByIdOrNull(assignDto.id) } returns device
-                every { deviceRepository.existsByFeature(feature) } returns false
-                every { deviceRepository.revokeByFeature(any()) } just runs
+                every { temperatureHumidityAssignment.isAssigned(assignDto.id) } returns false
+                every { temperatureHumidityAssignment.existsByFeature(feature) } returns false
+                every { temperatureHumidityAssignment.revokeByFeature(any()) } just runs
+                every { temperatureHumidityAssignment.assignFeature(assignDto.id, feature) } just runs
 
                 Then("성공") {
                     featureService.assignSomethingToFeature(featureId, assignDto, false)
-                    device.feature shouldBe feature
+                    verify { temperatureHumidityAssignment.assignFeature(assignDto.id, feature) }
                 }
             }
 
             When("이미 할당된 Device가 있는 Feature에 강제 할당") {
                 val featureId = "test-feature-id"
-                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.DEVICE)
+                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.THERMO_HYGROMETER)
                 val feature = dummyFeature(id = featureId)
-                val device = dummyDevice(id = "device-1", feature = dummyFeature("exist-feature"))
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { deviceRepository.findByIdOrNull(assignDto.id) } returns device
-                every { deviceRepository.existsByFeature(feature) } returns true
-                every { deviceRepository.revokeByFeature(any()) } just runs
+                every { temperatureHumidityAssignment.revokeByFeature(any()) } just runs
+                every { temperatureHumidityAssignment.assignFeature(assignDto.id, feature) } just runs
 
                 Then("성공") {
                     featureService.assignSomethingToFeature(featureId, assignDto, true)
-                    device.feature shouldBe feature
+                    verify { temperatureHumidityAssignment.assignFeature(assignDto.id, feature) }
                 }
             }
 
             When("이미 할당된 Device가 있는 Feature에 강제하지 않고 할당") {
                 val featureId = "test-feature-id"
-                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.DEVICE)
+                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.THERMO_HYGROMETER)
                 val feature = dummyFeature(id = featureId)
-                val device = dummyDevice(id = "device-1")
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { deviceRepository.findByIdOrNull(assignDto.id) } returns device
-                every { deviceRepository.existsByFeature(feature) } returns true
+                every { temperatureHumidityAssignment.existsByFeature(feature) } returns true
 
                 Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -339,13 +345,12 @@ class FeatureServiceKoTest :
 
             When("이미 다른 Feature에 할당된 Device 할당 시도") {
                 val featureId = "test-feature-id"
-                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.DEVICE)
+                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.THERMO_HYGROMETER)
                 val feature = dummyFeature(id = featureId)
-                val device = dummyDevice(id = "device-1", feature = dummyFeature("exist-feature"))
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { deviceRepository.findByIdOrNull(assignDto.id) } returns device
-                every { deviceRepository.existsByFeature(feature) } returns false
+                every { temperatureHumidityAssignment.isAssigned(assignDto.id) } returns true
+                every { temperatureHumidityAssignment.existsByFeature(feature) } returns false
 
                 Then("DUPLICATE_DEVICE_OTHER_FEATURE 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -354,13 +359,30 @@ class FeatureServiceKoTest :
                 }
             }
 
-            When("존재하지 않는 Device 할당 시도") {
+            When("CCTV가 이미 할당된 Feature에 Device 할당 시도") {
                 val featureId = "test-feature-id"
-                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.DEVICE)
+                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.THERMO_HYGROMETER)
                 val feature = dummyFeature(id = featureId)
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { deviceRepository.findByIdOrNull(assignDto.id) } returns null
+                every { cctvAssignment.existsByFeature(feature) } returns true
+                every { temperatureHumidityAssignment.isAssigned(assignDto.id) } returns false
+
+                Then("DUPLICATE_FEATURE_OTHER_CCTV 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        featureService.assignSomethingToFeature(featureId, assignDto, false)
+                    }.message shouldBe ErrorCode.DUPLICATE_FEATURE_OTHER_CCTV.getMessage().format(featureId)
+                }
+            }
+
+            When("존재하지 않는 Device 할당 시도") {
+                val featureId = "test-feature-id"
+                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.THERMO_HYGROMETER)
+                val feature = dummyFeature(id = featureId)
+
+                every { featureRepository.findByIdOrNull(featureId) } returns feature
+                every { temperatureHumidityAssignment.isAssigned(assignDto.id) } throws
+                    CustomException(ErrorCode.NOT_FOUND_DEVICE, assignDto.id)
 
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -373,26 +395,27 @@ class FeatureServiceKoTest :
         Given("Feature에서 Device 제거할 때") {
             When("유효한 요청으로 Device 제거") {
                 val featureId = "test-feature-id"
-                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.DEVICE)
+                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.THERMO_HYGROMETER)
                 val feature = dummyFeature(id = featureId)
-                val device = dummyDevice(id = "device-1", feature = feature)
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { deviceRepository.findByIdOrNull(assignDto.id) } returns device
+                every { temperatureHumidityAssignment.validateRevoke(assignDto.id, featureId) } just runs
+                every { temperatureHumidityAssignment.clearFeatureFromTarget(assignDto.id) } just runs
 
                 Then("성공") {
                     featureService.removeSomethingFromFeature(featureId, assignDto)
-                    device.feature shouldBe null
+                    verify { temperatureHumidityAssignment.clearFeatureFromTarget(assignDto.id) }
                 }
             }
 
             When("존재하지 않는 Device 제거 시도") {
                 val featureId = "test-feature-id"
-                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.DEVICE)
+                val assignDto = FeatureAssignDto(id = "device-1", type = FeatureAssignType.THERMO_HYGROMETER)
                 val feature = dummyFeature(id = featureId)
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { deviceRepository.findByIdOrNull(assignDto.id) } returns null
+                every { temperatureHumidityAssignment.validateRevoke(assignDto.id, featureId) } throws
+                    CustomException(ErrorCode.NOT_FOUND_DEVICE, assignDto.id)
 
                 Then("NOT_FOUND_DEVICE 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -425,13 +448,28 @@ class FeatureServiceKoTest :
                 val slot = slot<String>()
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { deviceRepository.existsByFeature(feature) } returns false
-                every { deviceRepository.revokeByFeature(any()) } just runs
-                every { featureAssignment.assignFeature(capture(slot), any()) } just runs
+                every { temperatureHumidityAssignment.existsByFeature(feature) } returns false
+                every { temperatureHumidityAssignment.revokeByFeature(any()) } just runs
+                every { cctvAssignment.assignFeature(capture(slot), any()) } just runs
 
                 Then("성공") {
                     featureService.assignSomethingToFeature(featureId, assignDto, false)
                     slot.captured shouldBe assignDto.id
+                }
+            }
+
+            When("Device가 이미 할당된 Feature에 CCTV 할당 시도") {
+                val featureId = "test-feature-id"
+                val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
+                val feature = dummyFeature(id = featureId)
+
+                every { featureRepository.findByIdOrNull(featureId) } returns feature
+                every { temperatureHumidityAssignment.existsByFeature(feature) } returns true
+
+                Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        featureService.assignSomethingToFeature(featureId, assignDto, false)
+                    }.message shouldBe ErrorCode.ALREADY_FEATURE_ASSIGNED.getMessage().format(featureId)
                 }
             }
 
@@ -441,7 +479,7 @@ class FeatureServiceKoTest :
                 val feature = dummyFeature(id = featureId)
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { featureAssignment.existsByFeature(feature) } returns true
+                every { cctvAssignment.existsByFeature(feature) } returns true
 
                 Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -456,7 +494,7 @@ class FeatureServiceKoTest :
                 val feature = dummyFeature(id = featureId)
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
-                every { featureAssignment.isAssigned(assignDto.id) } returns true
+                every { cctvAssignment.isAssigned(assignDto.id) } returns true
 
                 Then("ALREADY_ASSIGNED_TARGET 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -473,8 +511,22 @@ class FeatureServiceKoTest :
 
                 Then("성공") {
                     featureService.removeSomethingFromFeature(featureId, assignDto)
-                    verify(exactly = 1) { featureAssignment.validateRevoke(assignDto.id, featureId) }
-                    verify(exactly = 1) { featureAssignment.clearFeatureFromTarget(assignDto.id) }
+                    verify(exactly = 1) { cctvAssignment.validateRevoke(assignDto.id, featureId) }
+                    verify(exactly = 1) { cctvAssignment.clearFeatureFromTarget(assignDto.id) }
+                }
+            }
+
+            When("유효하지 않은 요청으로 Cctv 제거") {
+                val featureId = "test-feature-id"
+                val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
+
+                every { cctvAssignment.validateRevoke(assignDto.id, featureId) } throws
+                    CustomException(ErrorCode.CCTV_MISMATCH)
+
+                Then("CCTV_MISMATCH 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        featureService.removeSomethingFromFeature(featureId, assignDto)
+                    }.message shouldBe ErrorCode.CCTV_MISMATCH.getMessage()
                 }
             }
         }

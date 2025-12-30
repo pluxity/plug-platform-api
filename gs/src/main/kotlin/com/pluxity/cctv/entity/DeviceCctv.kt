@@ -1,6 +1,6 @@
 package com.pluxity.cctv.entity
 
-import com.pluxity.device.entity.Device
+import com.pluxity.temperaturehumidity.entity.TemperatureHumidity
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -14,9 +14,9 @@ class DeviceCctv(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-    @JoinColumn(name = "device_id")
+    @JoinColumn(name = "temperature_humidity_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    var device: Device,
+    var temperatureHumidity: TemperatureHumidity,
     @JoinColumn(name = "cctv_id")
     @ManyToOne(fetch = FetchType.LAZY)
     var cctv: Cctv,

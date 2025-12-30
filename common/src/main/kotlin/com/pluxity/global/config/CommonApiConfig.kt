@@ -86,11 +86,11 @@ class CommonApiConfig {
             .build()
 
     @Bean
-    fun deviceApiByPath(): GroupedOpenApi =
+    fun temperatureHumidityApiByPath(): GroupedOpenApi =
         GroupedOpenApi
             .builder()
             .group("8. Device 관리 API")
-            .pathsToMatch("/devices/**", "/device-categories/**")
+            .pathsToMatch("/temperature-humidity-devices/**")
             .build()
 
     @Bean
