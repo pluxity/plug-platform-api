@@ -31,7 +31,7 @@ class Feature(
     ) @AttributeOverride(
         name = "x",
         column = Column(name = "position_x"),
-    ) @Embedded var position: Spatial? = null,
+    ) @Embedded var position: Spatial? = Spatial(0.0, 0.0, 0.0),
     @AttributeOverride(
         name = "z",
         column = Column(name = "rotation_z"),
@@ -41,7 +41,7 @@ class Feature(
     ) @AttributeOverride(
         name = "x",
         column = Column(name = "rotation_x"),
-    ) @Embedded var rotation: Spatial? = null,
+    ) @Embedded var rotation: Spatial? = Spatial(0.0, 0.0, 0.0),
     @AttributeOverride(
         name = "z",
         column = Column(name = "scale_z"),
@@ -51,7 +51,7 @@ class Feature(
     ) @AttributeOverride(
         name = "x",
         column = Column(name = "scale_x"),
-    ) @Embedded var scale: Spatial? = null,
+    ) @Embedded var scale: Spatial? = Spatial(1.0, 1.0, 1.0),
     var assetId: Long? = null,
     @NotFound(action = NotFoundAction.IGNORE) @JoinColumn(name = "facility_id") @ManyToOne(
         fetch = FetchType.LAZY,

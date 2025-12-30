@@ -8,7 +8,6 @@ import com.pluxity.feature.dto.FeatureResponse
 import com.pluxity.feature.dto.FeatureUpdateRequest
 import com.pluxity.feature.dto.toFeatureResponse
 import com.pluxity.feature.entity.Feature
-import com.pluxity.feature.entity.Spatial
 import com.pluxity.feature.repository.FeatureRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
@@ -45,9 +44,9 @@ class FeatureService(
             featureRepository.save(
                 Feature(
                     id = featureId,
-                    position = request.position ?: Spatial(0.0, 0.0, 0.0),
-                    rotation = request.rotation ?: Spatial(0.0, 0.0, 0.0),
-                    scale = request.scale ?: Spatial(1.0, 1.0, 1.0),
+                    position = request.position,
+                    rotation = request.rotation,
+                    scale = request.scale,
                     assetId = request.assetId,
                     floorId = request.floorId,
                     facility = facility,
