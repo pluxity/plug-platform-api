@@ -1,6 +1,5 @@
 package com.pluxity.cctv
 
-import base.entity.withId
 import com.ninjasquad.springmockk.MockkBean
 import com.pluxity.GsApplication
 import com.pluxity.cctv.dto.CctvCreateRequest
@@ -10,13 +9,9 @@ import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.permission.Permission
-import com.pluxity.permission.PermissionGroup
 import com.pluxity.permission.PermissionLevel
 import com.pluxity.permission.ResourceType
-import com.pluxity.user.entity.Role
-import com.pluxity.user.entity.RolePermission
-import com.pluxity.user.entity.User
+import com.pluxity.user.entity.RoleGlobalPermissionType
 import com.pluxity.user.repository.RoleGlobalPolicyRepository
 import com.pluxity.user.service.UserResourcePermissionService
 import com.pluxity.user.service.UserService
@@ -31,8 +26,6 @@ import io.mockk.runs
 import io.mockk.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.repository.findByIdOrNull
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.ActiveProfiles
 
@@ -54,30 +47,8 @@ class CctvPermissionTest : BehaviorSpec() {
     init {
         extension(SpringExtension)
 
-        fun setUserWithPermission(level: PermissionLevel) {
-            val role = Role(name = "ROLE_USER", description = "role").withId(1L)
-            val permissionGroup = PermissionGroup("CCTV 권한 그룹", null)
-            permissionGroup.addPermission(
-                Permission(
-                    resourceName = ResourceType.CCTV.name,
-                    resourceId = "c1",
-                    level = level,
-                ),
-            )
-            role.addRolePermission(RolePermission(role = role, permissionGroup = permissionGroup))
-
-            val updatedUser = User("tester", "pw", "name", null).withId(10L).apply { addRole(role) }
-            every { userService.findUserByUsername("tester") } returns updatedUser
-        }
-
         beforeTest {
-            val role = Role(name = "ROLE_USER", description = "role").withId(1L)
-            val user = User("tester", "pw", "name", null).withId(10L).apply { addRole(role) }
-
-            SecurityContextHolder.getContext().authentication =
-                UsernamePasswordAuthenticationToken("tester", null, emptyList())
-
-            every { userService.findUserByUsername("tester") } returns user
+            initAuthUser(userService, roleGlobalPolicyRepository)
         }
 
         afterTest {
@@ -141,7 +112,7 @@ class CctvPermissionTest : BehaviorSpec() {
             }
 
             When("수정 권한이 READ인 경우") {
-                setUserWithPermission(PermissionLevel.READ)
+                setUserWithPermission(userService, PermissionLevel.READ)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
@@ -154,10 +125,10 @@ class CctvPermissionTest : BehaviorSpec() {
             }
 
             When("수정 권한이 WRITE인 경우") {
-                setUserWithPermission(PermissionLevel.WRITE)
+                setUserWithPermission(userService, PermissionLevel.WRITE)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNull("c1") } returns cctv
+                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
                 Then("정상 수정된다") {
                     cctv.name shouldBe "new-name"
@@ -166,10 +137,10 @@ class CctvPermissionTest : BehaviorSpec() {
             }
 
             When("수정 권한이 ADMIN인 경우") {
-                setUserWithPermission(PermissionLevel.ADMIN)
+                setUserWithPermission(userService, PermissionLevel.ADMIN)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNull("c1") } returns cctv
+                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
                 Then("정상 수정된다") {
                     cctv.name shouldBe "new-name"
@@ -179,10 +150,27 @@ class CctvPermissionTest : BehaviorSpec() {
 
             When("소유주면 수정이 정상 동작") {
                 val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNull("c1") } returns cctv
+                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 every { userResourcePermissionService.exists(10L, ResourceType.CCTV, "c1") } returns true
                 cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
                 Then("CCTV가 업데이트된다") {
+                    cctv.name shouldBe "new-name"
+                    cctv.url shouldBe "new-url"
+                }
+            }
+
+            When("글로벌 WRITE_ALL 권한이면 수정이 허용된다") {
+                val cctv = Cctv("c1", "name", "url")
+                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
+                every {
+                    roleGlobalPolicyRepository.existsByRoleIdInAndResourceTypeAndPermissionTypeIn(
+                        listOf(1L),
+                        ResourceType.CCTV,
+                        listOf(RoleGlobalPermissionType.WRITE_ALL, RoleGlobalPermissionType.ADMIN),
+                    )
+                } returns true
+                cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
+                Then("정상 수정된다") {
                     cctv.name shouldBe "new-name"
                     cctv.url shouldBe "new-url"
                 }
@@ -201,7 +189,7 @@ class CctvPermissionTest : BehaviorSpec() {
             }
 
             When("삭제 권한이 READ인 경우") {
-                setUserWithPermission(PermissionLevel.READ)
+                setUserWithPermission(userService, PermissionLevel.READ)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
@@ -214,7 +202,7 @@ class CctvPermissionTest : BehaviorSpec() {
             }
 
             When("삭제 권한이 WRITE인 경우") {
-                setUserWithPermission(PermissionLevel.WRITE)
+                setUserWithPermission(userService, PermissionLevel.WRITE)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
@@ -227,11 +215,11 @@ class CctvPermissionTest : BehaviorSpec() {
             }
 
             When("삭제 권한이 ADMIN인 경우") {
-                setUserWithPermission(PermissionLevel.ADMIN)
+                setUserWithPermission(userService, PermissionLevel.ADMIN)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 every { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") } just runs
                 val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNull("c1") } returns cctv
+                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
                 every { cctvRepository.deleteById(any()) } just runs
                 cctvService.delete("c1")
@@ -242,9 +230,30 @@ class CctvPermissionTest : BehaviorSpec() {
                 }
             }
 
+            When("글로벌 ADMIN 권한이면 삭제가 허용된다") {
+                val cctv = Cctv("c1", "name", "url")
+                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
+                every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
+                every { cctvRepository.deleteById(any()) } just runs
+                every { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") } just runs
+                every {
+                    roleGlobalPolicyRepository.existsByRoleIdInAndResourceTypeAndPermissionTypeIn(
+                        listOf(1L),
+                        ResourceType.CCTV,
+                        listOf(RoleGlobalPermissionType.ADMIN),
+                    )
+                } returns true
+                cctvService.delete("c1")
+                Then("정상 삭제된다") {
+                    verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
+                    verify(exactly = 1) { cctvRepository.deleteById("c1") }
+                    verify(exactly = 1) { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") }
+                }
+            }
+
             When("소유주면 삭제 후 소유권이 해제") {
                 val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNull("c1") } returns cctv
+                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 every { userResourcePermissionService.exists(10L, ResourceType.CCTV, "c1") } returns true
                 every { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") } just runs
                 every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs

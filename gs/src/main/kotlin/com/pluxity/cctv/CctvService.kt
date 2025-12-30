@@ -48,7 +48,7 @@ class CctvService(
     ) = findById(id).updateCctv(request)
 
     @Transactional
-    @CheckPermission(action = PermissionAction.DELETE, resourceType = ResourceType.CCTV, level = PermissionLevel.WRITE)
+    @CheckPermission(action = PermissionAction.DELETE, resourceType = ResourceType.CCTV, level = PermissionLevel.ADMIN)
     fun delete(id: String) {
         val cctv = findById(id)
         deviceCctvRepository.deleteByCctvIdIn(listOf(cctv.id))
@@ -56,7 +56,7 @@ class CctvService(
     }
 
     fun findById(id: String): Cctv =
-        cctvRepository.findByIdOrNull(id)
+        cctvRepository.findByIdOrNullCustom(id)
             ?: throw CustomException(ErrorCode.NOT_FOUND_CCTV, id)
 
     override fun isAssigned(id: String): Boolean = findById(id).feature != null

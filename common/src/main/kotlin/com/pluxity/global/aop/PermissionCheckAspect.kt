@@ -10,7 +10,6 @@ import com.pluxity.user.entity.Permissible
 import com.pluxity.user.entity.PermissionAction
 import com.pluxity.user.entity.PermissionCheckType
 import com.pluxity.user.entity.PermissionStrategy
-import com.pluxity.user.entity.ResourceAllPermissible
 import com.pluxity.user.entity.RoleType
 import com.pluxity.user.entity.User
 import com.pluxity.user.repository.RoleGlobalPolicyRepository
@@ -88,21 +87,6 @@ class PermissionCheckAspect(
                         returnObject.removeIf { item: Any? ->
                             item == null || !permissionStrategy.check(user, item, checkPermission.level)
                         }
-                    }
-                }
-                returnObject
-            }
-
-            PermissionCheckType.FULL_ACCESS -> {
-                if (!permissionStrategy.check(
-                        user,
-                        ResourceAllPermissible(checkPermission.resourceType),
-                        checkPermission.level,
-                    )
-                ) {
-                    when (returnObject) {
-                        is MutableCollection<*> -> returnObject.clear()
-                        else -> throw CustomException(ErrorCode.PERMISSION_DENIED)
                     }
                 }
                 returnObject

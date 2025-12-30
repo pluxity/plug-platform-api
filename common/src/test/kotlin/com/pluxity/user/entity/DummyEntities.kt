@@ -30,7 +30,9 @@ fun dummyRoleGlobalPolicy(
     id: Long? = 1L,
     role: Role,
     resourceType: ResourceType = ResourceType.FACILITY,
+    permissionType: RoleGlobalPermissionType = RoleGlobalPermissionType.READ_ALL,
 ) = RoleGlobalPolicy(
     role = role,
     resourceType = resourceType,
+    permissionType = permissionType,
 ).withId(id)

@@ -6,7 +6,9 @@ import com.pluxity.permission.PermissionGroup
 import com.pluxity.permission.PermissionGroupService
 import com.pluxity.permission.ResourceType
 import com.pluxity.user.dto.RoleCreateRequest
+import com.pluxity.user.dto.RoleGlobalPolicyRequest
 import com.pluxity.user.dto.RoleUpdateRequest
+import com.pluxity.user.entity.RoleGlobalPermissionType
 import com.pluxity.user.entity.RoleGlobalPolicy
 import com.pluxity.user.entity.RolePermission
 import com.pluxity.user.entity.dummyRole
@@ -22,6 +24,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.verify
 import jakarta.persistence.EntityManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -104,7 +107,11 @@ class RoleServiceKoTest :
                         name = "Policy Role",
                         description = "Policy Description",
                         permissionGroupIds = emptyList(),
-                        globalPolicyTypes = listOf(ResourceType.FACILITY, ResourceType.CCTV),
+                        globalPolicies =
+                            listOf(
+                                RoleGlobalPolicyRequest(ResourceType.FACILITY, RoleGlobalPermissionType.READ_ALL),
+                                RoleGlobalPolicyRequest(ResourceType.CCTV, RoleGlobalPermissionType.WRITE_ALL),
+                            ),
                     )
                 val savedRole =
                     dummyRole(
@@ -182,7 +189,7 @@ class RoleServiceKoTest :
                         name = "New Name",
                         description = "New Description",
                         permissionGroupIds = null,
-                        globalPolicyTypes = null,
+                        globalPolicies = null,
                     )
 
                 every { roleRepository.findWithInfoById(1L) } returns role
@@ -202,7 +209,7 @@ class RoleServiceKoTest :
                         name = "updateRole",
                         description = "update description",
                         permissionGroupIds = listOf(1L, 2L),
-                        globalPolicyTypes = null,
+                        globalPolicies = null,
                     )
                 val permissionGroup1 = PermissionGroup(name = "Group 1", description = "Group 1 Description")
                 val permissionGroup2 = PermissionGroup(name = "Group 2", description = "Group 2 Description")
@@ -227,7 +234,10 @@ class RoleServiceKoTest :
                         name = null,
                         description = null,
                         permissionGroupIds = null,
-                        globalPolicyTypes = listOf(ResourceType.CCTV),
+                        globalPolicies =
+                            listOf(
+                                RoleGlobalPolicyRequest(ResourceType.CCTV, RoleGlobalPermissionType.ADMIN),
+                            ),
                     )
                 val existingPolicies =
                     mutableListOf(
@@ -253,7 +263,7 @@ class RoleServiceKoTest :
                         name = "New Name",
                         description = "New Description",
                         permissionGroupIds = null,
-                        globalPolicyTypes = null,
+                        globalPolicies = null,
                     )
 
                 every { roleRepository.findWithInfoById(999L) } returns null
@@ -262,6 +272,51 @@ class RoleServiceKoTest :
                     shouldThrowExactly<CustomException> {
                         roleService.update(999L, updateRequest)
                     }.message shouldBe ErrorCode.NOT_FOUND_ROLE.getMessage().format(999L)
+                }
+            }
+
+            When("Global Policy의 permissionType을 변경하는 요청") {
+                val role = dummyRole(id = 1L, name = "Test Role", description = "Test Description")
+                val updateRequest =
+                    RoleUpdateRequest(
+                        name = "updateRole",
+                        description = "update description",
+                        permissionGroupIds = null,
+                        globalPolicies =
+                            listOf(
+                                RoleGlobalPolicyRequest(ResourceType.CCTV, RoleGlobalPermissionType.ADMIN),
+                            ),
+                    )
+                val existingPolicy =
+                    dummyRoleGlobalPolicy(
+                        id = 10L,
+                        role = role,
+                        resourceType = ResourceType.CCTV,
+                        permissionType = RoleGlobalPermissionType.WRITE_ALL,
+                    )
+                val deleteSlot = slot<Iterable<RoleGlobalPolicy>>()
+                val saveSlot = slot<Iterable<RoleGlobalPolicy>>()
+                every { roleRepository.findWithInfoById(1L) } returns role
+                every { roleGlobalPolicyRepository.findAllByRoleId(1L) } returns listOf(existingPolicy)
+                every { roleGlobalPolicyRepository.deleteAllInBatch(capture(deleteSlot)) } just runs
+                every { roleGlobalPolicyRepository.saveAll(capture(saveSlot)) } returns listOf()
+
+                roleService.update(1L, updateRequest)
+                Then("기존 정책이 제거되고 새 정책이 추가된다") {
+                    verify(exactly = 1) { roleGlobalPolicyRepository.deleteAllInBatch(any<Iterable<RoleGlobalPolicy>>()) }
+                    verify(exactly = 1) { roleGlobalPolicyRepository.saveAll(any<Iterable<RoleGlobalPolicy>>()) }
+
+                    val deleted = deleteSlot.captured.toList()
+                    deleted.size shouldBe 1
+                    deleted.single() shouldBe existingPolicy
+
+                    val saved = saveSlot.captured.toList()
+                    saved.size shouldBe 1
+
+                    val savedPolicy = saved.single()
+                    savedPolicy.role shouldBe role
+                    savedPolicy.resourceType shouldBe ResourceType.CCTV
+                    savedPolicy.permissionType shouldBe RoleGlobalPermissionType.ADMIN
                 }
             }
         }

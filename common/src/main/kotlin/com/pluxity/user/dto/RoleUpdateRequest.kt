@@ -1,6 +1,5 @@
 package com.pluxity.user.dto
 
-import com.pluxity.permission.ResourceType
 import io.swagger.v3.oas.annotations.media.Schema
 
 data class RoleUpdateRequest(
@@ -10,6 +9,6 @@ data class RoleUpdateRequest(
     val description: String?,
     @field:Schema(description = "권한 아이디")
     val permissionGroupIds: List<Long>?,
-    @field:Schema(description = "등록 권한 리소스 타입 목록")
-    val globalPolicyTypes: List<ResourceType>?,
+    @field:Schema(description = "등록 권한 정책 목록")
+    val globalPolicies: List<RoleGlobalPolicyRequest>?,
 )

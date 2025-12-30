@@ -3,9 +3,7 @@ package com.pluxity.asset.repository
 import com.pluxity.asset.entity.Asset
 import com.pluxity.asset.entity.AssetCategory
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 
-@Repository
 interface AssetRepository : JpaRepository<Asset, Long> {
     fun findByCategory(category: AssetCategory): List<Asset>
 

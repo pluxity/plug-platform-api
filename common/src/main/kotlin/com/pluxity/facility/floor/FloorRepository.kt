@@ -5,9 +5,7 @@ import org.hibernate.annotations.BatchSize
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
-import org.springframework.stereotype.Repository
 
-@Repository
 interface FloorRepository : JpaRepository<Floor, Long> {
     @BatchSize(size = 2)
     fun findAllByFacility(facility: Facility): List<Floor>

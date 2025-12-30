@@ -1,6 +1,5 @@
 package com.pluxity.user.dto
 
-import com.pluxity.permission.ResourceType
 import com.pluxity.permission.dto.PermissionGroupResponse
 import com.pluxity.permission.dto.toPermissionGroupResponse
 import com.pluxity.user.entity.Role
@@ -10,7 +9,7 @@ data class RoleResponse(
     val name: String,
     val description: String?,
     val permissions: List<PermissionGroupResponse>,
-    val globalPolicyTypes: List<ResourceType>,
+    val globalPolicies: List<RoleGlobalPolicyResponse>,
 )
 
 fun Role.toRoleResponse() =
@@ -23,6 +22,6 @@ fun Role.toRoleResponse() =
             .map { it.toPermissionGroupResponse() }
             .toList(),
         this.roleGlobalPolicies
-            .map { it.resourceType }
+            .map { it.toRoleGlobalPolicyResponse() }
             .distinct(),
     )

@@ -14,7 +14,16 @@ import org.springframework.stereotype.Repository
 class CctvCustomRepositoryImpl(
     private val kotlinJdslJpqlExecutor: KotlinJdslJpqlExecutor,
 ) : CctvCustomRepository {
-    @CheckPermission(phase = PermissionCheckType.FULL_ACCESS, resourceType = ResourceType.CCTV)
+    @CheckPermission(resourceType = ResourceType.CCTV)
+    override fun findByIdOrNullCustom(id: String): Cctv? =
+        kotlinJdslJpqlExecutor
+            .findAll(limit = 1) {
+                select(entity(Cctv::class))
+                    .from(entity(Cctv::class))
+                    .where(path(Cctv::id).equal(id))
+            }.firstOrNull()
+
+    @CheckPermission(resourceType = ResourceType.CCTV, phase = PermissionCheckType.ITEM_LIST)
     override fun findAllByFacilityIdIfPresent(facilityId: Long?): List<Cctv> =
         kotlinJdslJpqlExecutor
             .findAll {

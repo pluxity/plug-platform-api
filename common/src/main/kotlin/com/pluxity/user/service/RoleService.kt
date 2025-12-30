@@ -3,8 +3,8 @@ package com.pluxity.user.service
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionGroupService
-import com.pluxity.permission.ResourceType
 import com.pluxity.user.dto.RoleCreateRequest
+import com.pluxity.user.dto.RoleGlobalPolicyRequest
 import com.pluxity.user.dto.RoleResponse
 import com.pluxity.user.dto.RoleUpdateRequest
 import com.pluxity.user.dto.toRoleResponse
@@ -65,12 +65,13 @@ class RoleService(
             }
         }
 
-        if (request.globalPolicyTypes.isNotEmpty()) {
+        if (request.globalPolicies.isNotEmpty()) {
             val policies =
-                request.globalPolicyTypes.map { resourceType ->
+                request.globalPolicies.map { policy ->
                     RoleGlobalPolicy(
                         role = role,
-                        resourceType = resourceType,
+                        resourceType = policy.resourceType,
+                        permissionType = policy.permissionType,
                     )
                 }
             roleGlobalPolicyRepository.saveAll(policies)
@@ -101,7 +102,7 @@ class RoleService(
         request.description?.let { role.changeDescription(request.description) }
 
         request.permissionGroupIds?.let { syncPermissionGroups(role, request.permissionGroupIds) }
-        request.globalPolicyTypes?.let { syncGlobalPolicies(role, it) }
+        request.globalPolicies?.let { syncGlobalPolicies(role, it) }
     }
 
     private fun syncPermissionGroups(
@@ -142,25 +143,36 @@ class RoleService(
 
     private fun syncGlobalPolicies(
         role: Role,
-        resourceTypes: List<ResourceType>,
+        requestedPolicies: List<RoleGlobalPolicyRequest>,
     ) {
-        val requestedTypes = resourceTypes.toSet()
+        val requestedKeys =
+            requestedPolicies
+                .map { it.resourceType to it.permissionType }
+                .toSet()
         val existingPolicies = roleGlobalPolicyRepository.findAllByRoleId(role.requiredId)
-        val existingTypes = existingPolicies.map { it.resourceType }.toSet()
 
         val toRemove =
-            existingPolicies.filter { it.resourceType !in requestedTypes }
+            existingPolicies.filter {
+                (it.resourceType to it.permissionType) !in requestedKeys
+            }
         if (toRemove.isNotEmpty()) {
             roleGlobalPolicyRepository.deleteAllInBatch(toRemove)
         }
 
-        val toAdd = requestedTypes.filter { it !in existingTypes }
+        val toAdd =
+            requestedPolicies.filter { requested ->
+                existingPolicies.none {
+                    it.resourceType == requested.resourceType &&
+                        it.permissionType == requested.permissionType
+                }
+            }
         if (toAdd.isNotEmpty()) {
             val newPolicies =
-                toAdd.map { resourceType ->
+                toAdd.map { policy ->
                     RoleGlobalPolicy(
                         role = role,
-                        resourceType = resourceType,
+                        resourceType = policy.resourceType,
+                        permissionType = policy.permissionType,
                     )
                 }
             roleGlobalPolicyRepository.saveAll(newPolicies)

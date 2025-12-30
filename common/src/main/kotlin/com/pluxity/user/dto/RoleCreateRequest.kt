@@ -1,6 +1,5 @@
 package com.pluxity.user.dto
 
-import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.RoleType
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
@@ -13,8 +12,8 @@ data class RoleCreateRequest(
     val description: String?,
     @field:Schema(description = "권한 아이디")
     val permissionGroupIds: List<Long> = emptyList(),
-    @field:Schema(description = "등록 권한 리소스 타입 목록")
-    val globalPolicyTypes: List<ResourceType> = emptyList(),
+    @field:Schema(description = "등록 권한 정책 목록")
+    val globalPolicies: List<RoleGlobalPolicyRequest> = emptyList(),
     @field:Schema(description = "사용자 권한", defaultValue = "USER")
     val authority: RoleType = RoleType.USER,
 )

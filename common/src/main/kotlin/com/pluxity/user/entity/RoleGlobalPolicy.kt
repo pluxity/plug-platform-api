@@ -20,4 +20,7 @@ class RoleGlobalPolicy(
     @Enumerated(EnumType.STRING)
     @Column(name = "resource_type", nullable = false)
     var resourceType: ResourceType,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "permission_type", nullable = false)
+    var permissionType: RoleGlobalPermissionType,
 ) : IdentityIdEntity()

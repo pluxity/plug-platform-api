@@ -10,8 +10,10 @@ import com.pluxity.permission.ResourceType
 import com.pluxity.permission.dto.PermissionGroupCreateRequest
 import com.pluxity.permission.dto.PermissionRequest
 import com.pluxity.user.dto.RoleCreateRequest
+import com.pluxity.user.dto.RoleGlobalPolicyRequest
 import com.pluxity.user.dto.RoleUpdateRequest
 import com.pluxity.user.entity.Role
+import com.pluxity.user.entity.RoleGlobalPermissionType
 import com.pluxity.user.entity.RolePermission
 import com.pluxity.user.repository.RolePermissionRepository
 import com.pluxity.user.repository.RoleRepository
@@ -127,7 +129,10 @@ internal class RoleServiceTest
                     "Test Role",
                     "For findById test",
                     initialGroupIds,
-                    listOf(ResourceType.FACILITY, ResourceType.CCTV),
+                    listOf(
+                        RoleGlobalPolicyRequest(ResourceType.FACILITY, RoleGlobalPermissionType.READ_ALL),
+                        RoleGlobalPolicyRequest(ResourceType.CCTV, RoleGlobalPermissionType.WRITE_ALL),
+                    ),
                 )
             val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)
             val roleId = roleService.save(createRequest, authentication)
@@ -143,7 +148,7 @@ internal class RoleServiceTest
             // 각 그룹에 Permission이 1개씩 있으므로, 총 2개의 Permission이 조회되어야 함
             Assertions.assertThat(response.permissions).hasSize(2)
             Assertions
-                .assertThat(response.globalPolicyTypes)
+                .assertThat(response.globalPolicies.map { it.resourceType })
                 .containsExactlyInAnyOrder(ResourceType.FACILITY, ResourceType.CCTV)
 
             val responseResourceIds =
@@ -170,7 +175,10 @@ internal class RoleServiceTest
                         "Initial Role",
                         "Desc",
                         listOf(permissionGroupIds[0], permissionGroupIds[1]),
-                        listOf(ResourceType.FACILITY, ResourceType.CCTV),
+                        listOf(
+                            RoleGlobalPolicyRequest(ResourceType.FACILITY, RoleGlobalPermissionType.READ_ALL),
+                            RoleGlobalPolicyRequest(ResourceType.CCTV, RoleGlobalPermissionType.WRITE_ALL),
+                        ),
                     ),
                     authentication,
                 )
@@ -184,7 +192,9 @@ internal class RoleServiceTest
                     "Updated Role",
                     "Updated Description",
                     updatedGroupIdList,
-                    listOf(ResourceType.CCTV),
+                    listOf(
+                        RoleGlobalPolicyRequest(ResourceType.CCTV, RoleGlobalPermissionType.ADMIN),
+                    ),
                 )
 
             // WHEN
@@ -201,7 +211,7 @@ internal class RoleServiceTest
             // 최종 권한이 올바르게 동기화되었는지 검증 (Permission 2개 확인)
             Assertions.assertThat(response.permissions).hasSize(2)
             Assertions
-                .assertThat(response.globalPolicyTypes)
+                .assertThat(response.globalPolicies.map { it.resourceType })
                 .containsExactly(ResourceType.CCTV)
             val finalResourceIds =
                 response.permissions

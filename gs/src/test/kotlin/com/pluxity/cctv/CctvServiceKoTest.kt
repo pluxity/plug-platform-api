@@ -17,7 +17,6 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
-import org.springframework.data.repository.findByIdOrNull
 import java.util.UUID
 
 class CctvServiceKoTest :
@@ -62,7 +61,7 @@ class CctvServiceKoTest :
             When("유효한 아이디로 조회 요청") {
                 val cctv = dummyCctv()
                 every {
-                    cctvRepository.findByIdOrNull(any())
+                    cctvRepository.findByIdOrNullCustom(any())
                 } returns cctv
                 Then("정상 조회") {
                     val res = cctvService.findById(cctv.id)
@@ -73,7 +72,7 @@ class CctvServiceKoTest :
 
             When("없는 아이디로 조회 요청") {
                 every {
-                    cctvRepository.findByIdOrNull(any())
+                    cctvRepository.findByIdOrNullCustom(any())
                 } returns null
                 Then("NOT_FOUND_CCTV 예외 발생") {
                     val searchId = UUID.randomUUID().toString()
@@ -88,7 +87,7 @@ class CctvServiceKoTest :
             When("정상 수정 요청") {
                 val cctv = dummyCctv()
                 every {
-                    cctvRepository.findByIdOrNull(any())
+                    cctvRepository.findByIdOrNullCustom(any())
                 } returns cctv
                 Then("정상 수정") {
                     val updateName = "updated Cctv"
@@ -103,7 +102,7 @@ class CctvServiceKoTest :
                 val cctv = dummyCctv()
                 val slot = slot<String>()
                 every {
-                    cctvRepository.findByIdOrNull(any())
+                    cctvRepository.findByIdOrNullCustom(any())
                 } returns cctv
                 every {
                     cctvRepository.deleteById(capture(slot))
