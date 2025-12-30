@@ -79,8 +79,7 @@ class FeatureService(
     @Transactional
     fun deleteFeature(id: String) {
         val feature = findFeatureById(id)
-        featureAssignmentRegistry.get(FeatureAssignType.CCTV)?.revokeByFeature(feature)
-        featureAssignmentRegistry.get(FeatureAssignType.THERMO_HYGROMETER)?.revokeByFeature(feature)
+        clearExistingAssignments(feature)
         featureRepository.delete(feature)
     }
 
@@ -91,7 +90,7 @@ class FeatureService(
     fun saveFeature(feature: Feature): Feature = featureRepository.save(feature)
 
     @Transactional(readOnly = true)
-    fun findFeatureIdsByAssetId(assetId: Long): List<String> = featureRepository.findByAssetId(assetId).mapNotNull { it.id }
+    fun findFeatureIdsByAssetId(assetId: Long): List<String> = featureRepository.findByAssetId(assetId).map { it.id }
 
     @Transactional
     fun assignSomethingToFeature(
@@ -99,30 +98,11 @@ class FeatureService(
         assignDto: FeatureAssignDto,
         force: Boolean,
     ) {
-        when (assignDto.type) {
-            FeatureAssignType.THERMO_HYGROMETER -> assignDeviceToFeature(featureId, assignDto, force)
-            FeatureAssignType.CCTV -> assignCctvToFeature(featureId, assignDto, force)
-        }
-    }
+        log.debug { "피처에 ${assignDto.type.description} 할당: featureId=$featureId, assignDto=$assignDto" }
 
-    @Transactional
-    fun removeSomethingFromFeature(
-        featureId: String,
-        assignDto: FeatureAssignDto,
-    ) {
-        when (assignDto.type) {
-            FeatureAssignType.THERMO_HYGROMETER -> removeDeviceFromFeature(featureId, assignDto)
-            FeatureAssignType.CCTV -> removeCctvFromFeature(featureId, assignDto)
-        }
-    }
-
-    private fun assignCctvToFeature(
-        featureId: String,
-        assignDto: FeatureAssignDto,
-        force: Boolean,
-    ) {
         val feature = findFeatureById(featureId)
-        if (!force && featureAssignmentRegistry.get(FeatureAssignType.CCTV)?.isAssigned(assignDto.id) == true) {
+        // 디바이스 조회 - id로 조회
+        if (!force && featureAssignmentRegistry.get(assignDto.type)?.isAssigned(assignDto.id) == true) {
             throw CustomException(
                 ErrorCode.ALREADY_ASSIGNED_TARGET,
                 assignDto.id,
@@ -131,65 +111,33 @@ class FeatureService(
         }
         validateAssign(featureId, force, feature)
         clearExistingAssignments(feature)
-        featureAssignmentRegistry.get(FeatureAssignType.CCTV)?.assignFeature(assignDto.id, feature)
+        featureAssignmentRegistry.get(assignDto.type)?.assignFeature(assignDto.id, feature)
+
+        log.debug { "${assignDto.type.description}, 피처 관계 설정 완료: deviceId=${assignDto.id}, featureId=$featureId" }
     }
 
-    private fun removeCctvFromFeature(
+    @Transactional
+    fun removeSomethingFromFeature(
         featureId: String,
         assignDto: FeatureAssignDto,
     ) {
-        featureAssignmentRegistry.get(FeatureAssignType.CCTV)?.validateRevoke(assignDto.id, featureId)
-        featureAssignmentRegistry.get(FeatureAssignType.CCTV)?.clearFeatureFromTarget(assignDto.id)
-    }
-
-    private fun assignDeviceToFeature(
-        featureId: String,
-        assignDto: FeatureAssignDto,
-        force: Boolean,
-    ) {
-        log.debug { "피처에 디바이스 할당: featureId=$featureId, assignDto=$assignDto" }
-
         val feature = findFeatureById(featureId)
-
-        // 디바이스 조회 - id로 조회
-        if (!force && featureAssignmentRegistry.get(FeatureAssignType.THERMO_HYGROMETER)?.isAssigned(assignDto.id) == true) {
-            throw CustomException(ErrorCode.DUPLICATE_DEVICE_OTHER_FEATURE, assignDto.id)
-        }
-        validateAssign(featureId, force, feature)
-        clearExistingAssignments(feature)
-        featureAssignmentRegistry.get(FeatureAssignType.THERMO_HYGROMETER)?.assignFeature(assignDto.id, feature)
-
-        log.debug { "온습도계와 피처 관계 설정 완료: deviceId=${assignDto.id}, featureId=$featureId" }
+        featureAssignmentRegistry.get(assignDto.type)?.validateRevoke(assignDto.id, feature.id)
+        featureAssignmentRegistry.get(assignDto.type)?.clearFeatureFromTarget(assignDto.id)
+        log.debug { "피처에서 ${assignDto.type.description} 제거: featureId=$featureId, deviceId=${assignDto.id}" }
     }
 
     private fun clearExistingAssignments(feature: Feature) {
-        featureAssignmentRegistry.get(FeatureAssignType.THERMO_HYGROMETER)?.revokeByFeature(feature)
-        featureAssignmentRegistry.get(FeatureAssignType.CCTV)?.revokeByFeature(feature)
+        featureAssignmentRegistry.forEach { it.revokeByFeature(feature) }
     }
 
     private fun validateAssign(
-        featureId: String?,
+        featureId: String,
         force: Boolean,
         feature: Feature,
     ) {
-        val isAssignCctv = featureAssignmentRegistry.get(FeatureAssignType.CCTV)?.existsByFeature(feature) ?: false
-        if (!force && isAssignCctv) {
-            throw CustomException(ErrorCode.DUPLICATE_FEATURE_OTHER_CCTV, featureId)
-        }
-        val isAssignFeature =
-            featureAssignmentRegistry.get(FeatureAssignType.THERMO_HYGROMETER)?.existsByFeature(feature) ?: false
-        if (!force && isAssignFeature) {
+        if (!force && featureAssignmentRegistry.anyExistsByFeature(feature)) {
             throw CustomException(ErrorCode.ALREADY_FEATURE_ASSIGNED, featureId)
         }
-    }
-
-    private fun removeDeviceFromFeature(
-        featureId: String,
-        assignDto: FeatureAssignDto,
-    ) {
-        val feature = findFeatureById(featureId)
-        featureAssignmentRegistry.get(FeatureAssignType.THERMO_HYGROMETER)?.validateRevoke(assignDto.id, feature.id)
-        featureAssignmentRegistry.get(FeatureAssignType.THERMO_HYGROMETER)?.clearFeatureFromTarget(assignDto.id)
-        log.debug { "피처에서 디바이스 제거: featureId=$featureId, deviceId=${assignDto.id}" }
     }
 }

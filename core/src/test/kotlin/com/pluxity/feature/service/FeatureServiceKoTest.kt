@@ -81,8 +81,8 @@ class FeatureServiceKoTest :
                 every { assetValidator.validateAssetId(createRequest.assetId) } just runs
                 every { featureRepository.save(any<Feature>()) } returns savedFeature
 
+                val response = featureService.createFeature(createRequest)
                 Then("성공") {
-                    val response = featureService.createFeature(createRequest)
                     response.id shouldBe createRequest.id
                 }
             }
@@ -102,10 +102,12 @@ class FeatureServiceKoTest :
 
                 every { featureRepository.findByIdOrNull(createRequest.id) } returns existingFeature
 
-                Then("DUPLICATE_FEATURE_ID 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.createFeature(createRequest)
-                    }.message shouldBe ErrorCode.DUPLICATE_FEATURE_ID.getMessage().format(createRequest.id)
+                    }
+                Then("DUPLICATE_FEATURE_ID 예외 발생") {
+                    exception.message shouldBe ErrorCode.DUPLICATE_FEATURE_ID.getMessage().format(createRequest.id)
                 }
             }
 
@@ -135,8 +137,8 @@ class FeatureServiceKoTest :
                 every { assetValidator.validateAssetId(createRequest.assetId) } just runs
                 every { featureRepository.save(any<Feature>()) } returns savedFeature
 
+                val response = featureService.createFeature(createRequest)
                 Then("기본값으로 성공") {
-                    val response = featureService.createFeature(createRequest)
                     response.id shouldBe createRequest.id
                 }
             }
@@ -155,8 +157,8 @@ class FeatureServiceKoTest :
                 every { facilityService.findById(facilityId) } returns facility
                 every { featureRepository.findByFacilityOrderByCreatedAtDesc(facility) } returns features
 
+                val response = featureService.getFeatures(facilityId)
                 Then("정상 조회") {
-                    val response = featureService.getFeatures(facilityId)
                     response.size shouldBe 2
                     response[0].id shouldBe "feature-1"
                     response[1].id shouldBe "feature-2"
@@ -168,10 +170,12 @@ class FeatureServiceKoTest :
 
                 every { facilityService.findById(facilityId) } throws CustomException(ErrorCode.NOT_FOUND_FACILITY, facilityId)
 
-                Then("NOT_FOUND_FACILITY 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.getFeatures(facilityId)
-                    }.message shouldBe ErrorCode.NOT_FOUND_FACILITY.getMessage().format(facilityId)
+                    }
+                Then("NOT_FOUND_FACILITY 예외 발생") {
+                    exception.message shouldBe ErrorCode.NOT_FOUND_FACILITY.getMessage().format(facilityId)
                 }
             }
         }
@@ -197,8 +201,8 @@ class FeatureServiceKoTest :
                 every { featureRepository.findByIdOrNull(featureId) } returns existingFeature
                 every { featureRepository.save(any<Feature>()) } returns updatedFeature
 
+                val response = featureService.updateFeature(featureId, updateRequest)
                 Then("성공") {
-                    val response = featureService.updateFeature(featureId, updateRequest)
                     response.id shouldBe featureId
                     response.position shouldBe updateRequest.position
                 }
@@ -215,10 +219,12 @@ class FeatureServiceKoTest :
 
                 every { featureRepository.findByIdOrNull(featureId) } returns null
 
-                Then("NOT_FOUND_FEATURE 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.updateFeature(featureId, updateRequest)
-                    }.message shouldBe ErrorCode.NOT_FOUND_FEATURE.getMessage().format(featureId)
+                    }
+                Then("NOT_FOUND_FEATURE 예외 발생") {
+                    exception.message shouldBe ErrorCode.NOT_FOUND_FEATURE.getMessage().format(featureId)
                 }
             }
         }
@@ -233,8 +239,8 @@ class FeatureServiceKoTest :
                 every { cctvAssignment.revokeByFeature(feature) } just runs
                 every { featureRepository.delete(feature) } just runs
 
+                featureService.deleteFeature(featureId)
                 Then("성공") {
-                    featureService.deleteFeature(featureId)
                     verify { temperatureHumidityAssignment.revokeByFeature(feature) }
                     verify { cctvAssignment.revokeByFeature(feature) }
                     verify { featureRepository.delete(feature) }
@@ -246,10 +252,12 @@ class FeatureServiceKoTest :
 
                 every { featureRepository.findByIdOrNull(featureId) } returns null
 
-                Then("NOT_FOUND_FEATURE 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.deleteFeature(featureId)
-                    }.message shouldBe ErrorCode.NOT_FOUND_FEATURE.getMessage().format(featureId)
+                    }
+                Then("NOT_FOUND_FEATURE 예외 발생") {
+                    exception.message shouldBe ErrorCode.NOT_FOUND_FEATURE.getMessage().format(featureId)
                 }
             }
         }
@@ -261,8 +269,8 @@ class FeatureServiceKoTest :
 
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
 
+                val response = featureService.findFeatureById(featureId)
                 Then("성공") {
-                    val response = featureService.findFeatureById(featureId)
                     response.id shouldBe featureId
                 }
             }
@@ -272,10 +280,12 @@ class FeatureServiceKoTest :
 
                 every { featureRepository.findByIdOrNull(featureId) } returns null
 
-                Then("NOT_FOUND_FEATURE 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.findFeatureById(featureId)
-                    }.message shouldBe ErrorCode.NOT_FOUND_FEATURE.getMessage().format(featureId)
+                    }
+                Then("NOT_FOUND_FEATURE 예외 발생") {
+                    exception.message shouldBe ErrorCode.NOT_FOUND_FEATURE.getMessage().format(featureId)
                 }
             }
         }
@@ -287,8 +297,8 @@ class FeatureServiceKoTest :
 
                 every { featureRepository.findByAssetId(assetId) } returns features
 
+                val response = featureService.findFeatureIdsByAssetId(assetId)
                 Then("성공") {
-                    val response = featureService.findFeatureIdsByAssetId(assetId)
                     response[0] shouldBe "feature-1"
                     response[1] shouldBe "feature-2"
                 }
@@ -307,8 +317,8 @@ class FeatureServiceKoTest :
                 every { temperatureHumidityAssignment.revokeByFeature(any()) } just runs
                 every { temperatureHumidityAssignment.assignFeature(assignDto.id, feature) } just runs
 
+                featureService.assignSomethingToFeature(featureId, assignDto, false)
                 Then("성공") {
-                    featureService.assignSomethingToFeature(featureId, assignDto, false)
                     verify { temperatureHumidityAssignment.assignFeature(assignDto.id, feature) }
                 }
             }
@@ -322,8 +332,8 @@ class FeatureServiceKoTest :
                 every { temperatureHumidityAssignment.revokeByFeature(any()) } just runs
                 every { temperatureHumidityAssignment.assignFeature(assignDto.id, feature) } just runs
 
+                featureService.assignSomethingToFeature(featureId, assignDto, true)
                 Then("성공") {
-                    featureService.assignSomethingToFeature(featureId, assignDto, true)
                     verify { temperatureHumidityAssignment.assignFeature(assignDto.id, feature) }
                 }
             }
@@ -336,10 +346,12 @@ class FeatureServiceKoTest :
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
                 every { temperatureHumidityAssignment.existsByFeature(feature) } returns true
 
-                Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.assignSomethingToFeature(featureId, assignDto, false)
-                    }.message shouldBe ErrorCode.ALREADY_FEATURE_ASSIGNED.getMessage().format(featureId)
+                    }
+                Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
+                    exception.message shouldBe ErrorCode.ALREADY_FEATURE_ASSIGNED.getMessage().format(featureId)
                 }
             }
 
@@ -352,10 +364,13 @@ class FeatureServiceKoTest :
                 every { temperatureHumidityAssignment.isAssigned(assignDto.id) } returns true
                 every { temperatureHumidityAssignment.existsByFeature(feature) } returns false
 
-                Then("DUPLICATE_DEVICE_OTHER_FEATURE 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.assignSomethingToFeature(featureId, assignDto, false)
-                    }.message shouldBe ErrorCode.DUPLICATE_DEVICE_OTHER_FEATURE.getMessage().format(assignDto.id)
+                    }
+                Then("DUPLICATE_DEVICE_OTHER_FEATURE 예외 발생") {
+                    exception.message shouldBe
+                        ErrorCode.ALREADY_ASSIGNED_TARGET.getMessage().format(assignDto.id, assignDto.type.description)
                 }
             }
 
@@ -368,10 +383,12 @@ class FeatureServiceKoTest :
                 every { cctvAssignment.existsByFeature(feature) } returns true
                 every { temperatureHumidityAssignment.isAssigned(assignDto.id) } returns false
 
-                Then("DUPLICATE_FEATURE_OTHER_CCTV 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.assignSomethingToFeature(featureId, assignDto, false)
-                    }.message shouldBe ErrorCode.DUPLICATE_FEATURE_OTHER_CCTV.getMessage().format(featureId)
+                    }
+                Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
+                    exception.message shouldBe ErrorCode.ALREADY_FEATURE_ASSIGNED.getMessage().format(featureId)
                 }
             }
 
@@ -384,10 +401,12 @@ class FeatureServiceKoTest :
                 every { temperatureHumidityAssignment.isAssigned(assignDto.id) } throws
                     CustomException(ErrorCode.NOT_FOUND_DEVICE, assignDto.id)
 
-                Then("NOT_FOUND_DEVICE 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.assignSomethingToFeature(featureId, assignDto, false)
-                    }.message shouldBe ErrorCode.NOT_FOUND_DEVICE.getMessage().format(assignDto.id)
+                    }
+                Then("NOT_FOUND_DEVICE 예외 발생") {
+                    exception.message shouldBe ErrorCode.NOT_FOUND_DEVICE.getMessage().format(assignDto.id)
                 }
             }
         }
@@ -402,8 +421,8 @@ class FeatureServiceKoTest :
                 every { temperatureHumidityAssignment.validateRevoke(assignDto.id, featureId) } just runs
                 every { temperatureHumidityAssignment.clearFeatureFromTarget(assignDto.id) } just runs
 
+                featureService.removeSomethingFromFeature(featureId, assignDto)
                 Then("성공") {
-                    featureService.removeSomethingFromFeature(featureId, assignDto)
                     verify { temperatureHumidityAssignment.clearFeatureFromTarget(assignDto.id) }
                 }
             }
@@ -417,10 +436,12 @@ class FeatureServiceKoTest :
                 every { temperatureHumidityAssignment.validateRevoke(assignDto.id, featureId) } throws
                     CustomException(ErrorCode.NOT_FOUND_DEVICE, assignDto.id)
 
-                Then("NOT_FOUND_DEVICE 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.removeSomethingFromFeature(featureId, assignDto)
-                    }.message shouldBe ErrorCode.NOT_FOUND_DEVICE.getMessage().format(assignDto.id)
+                    }
+                Then("NOT_FOUND_DEVICE 예외 발생") {
+                    exception.message shouldBe ErrorCode.NOT_FOUND_DEVICE.getMessage().format(assignDto.id)
                 }
             }
         }
@@ -432,8 +453,8 @@ class FeatureServiceKoTest :
 
                 every { featureRepository.save(feature) } returns savedFeature
 
+                val response = featureService.saveFeature(feature)
                 Then("성공") {
-                    val response = featureService.saveFeature(feature)
                     response shouldBe savedFeature
                     verify { featureRepository.save(feature) }
                 }
@@ -452,8 +473,8 @@ class FeatureServiceKoTest :
                 every { temperatureHumidityAssignment.revokeByFeature(any()) } just runs
                 every { cctvAssignment.assignFeature(capture(slot), any()) } just runs
 
+                featureService.assignSomethingToFeature(featureId, assignDto, false)
                 Then("성공") {
-                    featureService.assignSomethingToFeature(featureId, assignDto, false)
                     slot.captured shouldBe assignDto.id
                 }
             }
@@ -466,10 +487,12 @@ class FeatureServiceKoTest :
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
                 every { temperatureHumidityAssignment.existsByFeature(feature) } returns true
 
-                Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.assignSomethingToFeature(featureId, assignDto, false)
-                    }.message shouldBe ErrorCode.ALREADY_FEATURE_ASSIGNED.getMessage().format(featureId)
+                    }
+                Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
+                    exception.message shouldBe ErrorCode.ALREADY_FEATURE_ASSIGNED.getMessage().format(featureId)
                 }
             }
 
@@ -481,10 +504,12 @@ class FeatureServiceKoTest :
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
                 every { cctvAssignment.existsByFeature(feature) } returns true
 
-                Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.assignSomethingToFeature(featureId, assignDto, false)
-                    }.message shouldBe ErrorCode.DUPLICATE_FEATURE_OTHER_CCTV.getMessage().format(featureId)
+                    }
+                Then("ALREADY_FEATURE_ASSIGNED 예외 발생") {
+                    exception.message shouldBe ErrorCode.ALREADY_FEATURE_ASSIGNED.getMessage().format(featureId)
                 }
             }
 
@@ -496,10 +521,13 @@ class FeatureServiceKoTest :
                 every { featureRepository.findByIdOrNull(featureId) } returns feature
                 every { cctvAssignment.isAssigned(assignDto.id) } returns true
 
-                Then("ALREADY_ASSIGNED_TARGET 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.assignSomethingToFeature(featureId, assignDto, false)
-                    }.message shouldBe ErrorCode.ALREADY_ASSIGNED_TARGET.getMessage().format(assignDto.id, assignDto.type.description)
+                    }
+                Then("ALREADY_ASSIGNED_TARGET 예외 발생") {
+                    exception.message shouldBe
+                        ErrorCode.ALREADY_ASSIGNED_TARGET.getMessage().format(assignDto.id, assignDto.type.description)
                 }
             }
         }
@@ -508,6 +536,10 @@ class FeatureServiceKoTest :
             When("유효한 요청으로 Cctv 제거") {
                 val featureId = "test-feature-id"
                 val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
+                val feature = dummyFeature(id = featureId)
+                every { featureRepository.findByIdOrNull(featureId) } returns feature
+                every { cctvAssignment.validateRevoke(assignDto.id, featureId) } just runs
+                every { cctvAssignment.clearFeatureFromTarget(assignDto.id) } just runs
 
                 Then("성공") {
                     featureService.removeSomethingFromFeature(featureId, assignDto)
@@ -519,14 +551,18 @@ class FeatureServiceKoTest :
             When("유효하지 않은 요청으로 Cctv 제거") {
                 val featureId = "test-feature-id"
                 val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
+                val feature = dummyFeature(id = featureId)
 
+                every { featureRepository.findByIdOrNull(featureId) } returns feature
                 every { cctvAssignment.validateRevoke(assignDto.id, featureId) } throws
                     CustomException(ErrorCode.CCTV_MISMATCH)
 
-                Then("CCTV_MISMATCH 예외 발생") {
+                val exception =
                     shouldThrowExactly<CustomException> {
                         featureService.removeSomethingFromFeature(featureId, assignDto)
-                    }.message shouldBe ErrorCode.CCTV_MISMATCH.getMessage()
+                    }
+                Then("CCTV_MISMATCH 예외 발생") {
+                    exception.message shouldBe ErrorCode.CCTV_MISMATCH.getMessage()
                 }
             }
         }
