@@ -9,6 +9,4 @@ data class RoleUpdateRequest(
     val description: String?,
     @field:Schema(description = "권한 아이디")
     val permissionGroupIds: List<Long>?,
-    @field:Schema(description = "등록 권한 정책 목록")
-    val globalPolicies: List<RoleGlobalPolicyRequest>?,
 )

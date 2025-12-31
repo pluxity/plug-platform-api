@@ -8,7 +8,6 @@ import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.Role
 import com.pluxity.user.entity.RolePermission
 import com.pluxity.user.entity.User
-import com.pluxity.user.repository.RoleGlobalPolicyRepository
 import com.pluxity.user.service.UserService
 import io.mockk.every
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -42,19 +41,17 @@ internal fun setUserWithPermission(
     every { userService.findUserByUsername("tester") } returns user
 }
 
-internal fun initAuthUser(
+internal fun setUserWithPermissions(
     userService: UserService,
-    roleGlobalPolicyRepository: RoleGlobalPolicyRepository,
+    permissions: List<Permission>,
 ) {
+    val user = makeUserWithPermissions(permissions)
+    every { userService.findUserByUsername("tester") } returns user
+}
+
+internal fun initAuthUser(userService: UserService) {
     val user = makeUserWithPermissions(emptyList())
     SecurityContextHolder.getContext().authentication =
         UsernamePasswordAuthenticationToken("tester", null, emptyList())
     every { userService.findUserByUsername("tester") } returns user
-    every {
-        roleGlobalPolicyRepository.existsByRoleIdInAndResourceTypeAndPermissionTypeIn(
-            any(),
-            any(),
-            any(),
-        )
-    } returns false
 }

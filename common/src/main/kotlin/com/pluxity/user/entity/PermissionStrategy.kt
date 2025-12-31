@@ -2,14 +2,12 @@ package com.pluxity.user.entity
 
 import com.pluxity.permission.PermissionLevel
 import com.pluxity.permission.ResourceType
-import com.pluxity.user.repository.RoleGlobalPolicyRepository
 import com.pluxity.user.service.UserResourcePermissionService
 import org.springframework.stereotype.Component
 
 @Component
 class PermissionStrategy(
     private val userResourcePermissionService: UserResourcePermissionService,
-    private val roleGlobalPolicyRepository: RoleGlobalPolicyRepository,
 ) {
     fun check(
         user: User,
@@ -39,35 +37,5 @@ class PermissionStrategy(
         user: User,
         resourceType: ResourceType,
         requiredLevel: PermissionLevel,
-    ): Boolean {
-        val roleIds = user.getRoles().mapNotNull { it.id }
-        if (roleIds.isEmpty()) {
-            return false
-        }
-
-        val permissionTypes =
-            when (requiredLevel) {
-                PermissionLevel.READ ->
-                    listOf(
-                        RoleGlobalPermissionType.READ_ALL,
-                        RoleGlobalPermissionType.WRITE_ALL,
-                        RoleGlobalPermissionType.ADMIN,
-                    )
-                PermissionLevel.WRITE ->
-                    listOf(
-                        RoleGlobalPermissionType.WRITE_ALL,
-                        RoleGlobalPermissionType.ADMIN,
-                    )
-                PermissionLevel.ADMIN ->
-                    listOf(
-                        RoleGlobalPermissionType.ADMIN,
-                    )
-            }
-
-        return roleGlobalPolicyRepository.existsByRoleIdInAndResourceTypeAndPermissionTypeIn(
-            roleIds,
-            resourceType,
-            permissionTypes,
-        )
-    }
+    ): Boolean = user.canAccess(resourceType.name, "ALL", requiredLevel)
 }

@@ -22,9 +22,6 @@ class Role(
     @OneToMany(mappedBy = "role")
     var rolePermissions: MutableSet<RolePermission> = mutableSetOf()
 
-    @OneToMany(mappedBy = "role")
-    var roleGlobalPolicies: MutableSet<RoleGlobalPolicy> = mutableSetOf()
-
     fun getAuthority(): String = "ROLE_$auth"
 
     fun changeRoleName(name: String) {

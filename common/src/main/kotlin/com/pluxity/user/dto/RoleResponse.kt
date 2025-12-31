@@ -9,7 +9,6 @@ data class RoleResponse(
     val name: String,
     val description: String?,
     val permissions: List<PermissionGroupResponse>,
-    val globalPolicies: List<RoleGlobalPolicyResponse>,
 )
 
 fun Role.toRoleResponse() =
@@ -21,7 +20,4 @@ fun Role.toRoleResponse() =
             .map { it.permissionGroup }
             .map { it.toPermissionGroupResponse() }
             .toList(),
-        this.roleGlobalPolicies
-            .map { it.toRoleGlobalPolicyResponse() }
-            .distinct(),
     )

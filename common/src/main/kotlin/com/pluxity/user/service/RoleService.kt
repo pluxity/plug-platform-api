@@ -4,15 +4,12 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionGroupService
 import com.pluxity.user.dto.RoleCreateRequest
-import com.pluxity.user.dto.RoleGlobalPolicyRequest
 import com.pluxity.user.dto.RoleResponse
 import com.pluxity.user.dto.RoleUpdateRequest
 import com.pluxity.user.dto.toRoleResponse
 import com.pluxity.user.entity.Role
-import com.pluxity.user.entity.RoleGlobalPolicy
 import com.pluxity.user.entity.RolePermission
 import com.pluxity.user.entity.RoleType
-import com.pluxity.user.repository.RoleGlobalPolicyRepository
 import com.pluxity.user.repository.RolePermissionRepository
 import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.repository.UserRoleRepository
@@ -27,7 +24,6 @@ class RoleService(
     private val rolePermissionRepository: RolePermissionRepository,
     private val userRoleRepository: UserRoleRepository,
     private val permissionGroupService: PermissionGroupService,
-    private val roleGlobalPolicyRepository: RoleGlobalPolicyRepository,
     private val em: EntityManager,
 ) {
     @Transactional
@@ -65,18 +61,6 @@ class RoleService(
             }
         }
 
-        if (request.globalPolicies.isNotEmpty()) {
-            val policies =
-                request.globalPolicies.map { policy ->
-                    RoleGlobalPolicy(
-                        role = role,
-                        resourceType = policy.resourceType,
-                        permissionType = policy.permissionType,
-                    )
-                }
-            roleGlobalPolicyRepository.saveAll(policies)
-        }
-
         return role.requiredId
     }
 
@@ -102,7 +86,6 @@ class RoleService(
         request.description?.let { role.changeDescription(request.description) }
 
         request.permissionGroupIds?.let { syncPermissionGroups(role, request.permissionGroupIds) }
-        request.globalPolicies?.let { syncGlobalPolicies(role, it) }
     }
 
     private fun syncPermissionGroups(
@@ -141,48 +124,9 @@ class RoleService(
         }
     }
 
-    private fun syncGlobalPolicies(
-        role: Role,
-        requestedPolicies: List<RoleGlobalPolicyRequest>,
-    ) {
-        val requestedKeys =
-            requestedPolicies
-                .map { it.resourceType to it.permissionType }
-                .toSet()
-        val existingPolicies = roleGlobalPolicyRepository.findAllByRoleId(role.requiredId)
-
-        val toRemove =
-            existingPolicies.filter {
-                (it.resourceType to it.permissionType) !in requestedKeys
-            }
-        if (toRemove.isNotEmpty()) {
-            roleGlobalPolicyRepository.deleteAllInBatch(toRemove)
-        }
-
-        val toAdd =
-            requestedPolicies.filter { requested ->
-                existingPolicies.none {
-                    it.resourceType == requested.resourceType &&
-                        it.permissionType == requested.permissionType
-                }
-            }
-        if (toAdd.isNotEmpty()) {
-            val newPolicies =
-                toAdd.map { policy ->
-                    RoleGlobalPolicy(
-                        role = role,
-                        resourceType = policy.resourceType,
-                        permissionType = policy.permissionType,
-                    )
-                }
-            roleGlobalPolicyRepository.saveAll(newPolicies)
-        }
-    }
-
     @Transactional
     fun delete(id: Long) {
         val role = findRoleById(id)
-        roleGlobalPolicyRepository.deleteAllInBatch(roleGlobalPolicyRepository.findAllByRoleId(role.requiredId))
         rolePermissionRepository.deleteAllByRole(role)
         userRoleRepository.deleteAllByRole(role)
         em.flush()

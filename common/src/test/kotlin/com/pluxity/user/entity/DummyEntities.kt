@@ -2,7 +2,6 @@ package com.pluxity.user.entity
 
 import base.entity.withId
 import com.pluxity.authentication.entity.RefreshToken
-import com.pluxity.permission.ResourceType
 
 fun dummyUser(
     id: Long? = 1L,
@@ -25,14 +24,3 @@ fun dummyRefreshToken(
     token: String = "token",
     timeToLive: Int = 30,
 ): RefreshToken = RefreshToken(username, token, timeToLive)
-
-fun dummyRoleGlobalPolicy(
-    id: Long? = 1L,
-    role: Role,
-    resourceType: ResourceType = ResourceType.FACILITY,
-    permissionType: RoleGlobalPermissionType = RoleGlobalPermissionType.READ_ALL,
-) = RoleGlobalPolicy(
-    role = role,
-    resourceType = resourceType,
-    permissionType = permissionType,
-).withId(id)

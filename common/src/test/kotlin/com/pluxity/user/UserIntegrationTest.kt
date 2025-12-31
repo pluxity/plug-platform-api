@@ -323,7 +323,6 @@ internal class UserIntegrationTest
                     "운영자",
                     "권한 변경된 운영자",
                     listOf(facilityReadGroupId, userManageGroupId),
-                    null,
                 ),
             )
             em.flush()

@@ -12,7 +12,6 @@ import com.pluxity.user.entity.PermissionCheckType
 import com.pluxity.user.entity.PermissionStrategy
 import com.pluxity.user.entity.RoleType
 import com.pluxity.user.entity.User
-import com.pluxity.user.repository.RoleGlobalPolicyRepository
 import com.pluxity.user.service.UserResourcePermissionService
 import com.pluxity.user.service.UserService
 import org.aspectj.lang.JoinPoint
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Component
 class PermissionCheckAspect(
     private val userService: UserService,
     private val permissionStrategy: PermissionStrategy,
-    private val roleGlobalPolicyRepository: RoleGlobalPolicyRepository,
     private val userResourcePermissionService: UserResourcePermissionService,
 ) {
     @Before("@annotation(checkPermission)")
@@ -146,10 +144,7 @@ class PermissionCheckAspect(
         checkPermission: CheckPermission,
     ) {
         val resourceType = checkPermission.resourceType
-        val roleIds = user.getRoles().mapNotNull { it.id }
-        if (roleIds.isEmpty() ||
-            !roleGlobalPolicyRepository.existsByRoleIdInAndResourceType(roleIds, resourceType)
-        ) {
+        if (!user.canAccess(resourceType.name, "ALL", PermissionLevel.WRITE)) {
             throw CustomException(ErrorCode.PERMISSION_DENIED)
         }
     }
