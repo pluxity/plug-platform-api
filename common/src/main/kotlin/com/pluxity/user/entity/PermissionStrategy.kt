@@ -20,7 +20,7 @@ class PermissionStrategy(
                     return true
                 }
                 user.canAccess(resourceName, resource.resourceId, requiredLevel) ||
-                    hasOwnerPermission(user, resource, requiredLevel)
+                    hasOwnerPermission(user, resource)
             }
 
             else -> false
@@ -30,14 +30,9 @@ class PermissionStrategy(
     private fun hasOwnerPermission(
         user: User,
         resource: Permissible,
-        requiredLevel: PermissionLevel,
     ): Boolean {
-        if (requiredLevel == PermissionLevel.READ) {
-            return false
-        }
         val userId = user.id ?: return false
         val resourceId = resource.resourceId
-
         return userResourcePermissionService.exists(userId, resource.resourceType, resourceId)
     }
 }

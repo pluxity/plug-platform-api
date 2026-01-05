@@ -234,7 +234,7 @@ class CctvPermissionTest : BehaviorSpec() {
             When("삭제 권한이 ADMIN인 경우") {
                 setUserWithPermission(userService, PermissionLevel.ADMIN)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
-                every { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") } just runs
+                every { userResourcePermissionService.delete(ResourceType.CCTV, "c1") } just runs
                 val cctv = Cctv("c1", "name", "url")
                 every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
@@ -243,7 +243,7 @@ class CctvPermissionTest : BehaviorSpec() {
                 Then("정상 삭제된다") {
                     verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
                     verify(exactly = 1) { cctvRepository.deleteById("c1") }
-                    verify(exactly = 1) { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") }
+                    verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.CCTV, "c1") }
                 }
             }
 
@@ -252,7 +252,7 @@ class CctvPermissionTest : BehaviorSpec() {
                 every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
                 every { cctvRepository.deleteById(any()) } just runs
-                every { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") } just runs
+                every { userResourcePermissionService.delete(ResourceType.CCTV, "c1") } just runs
                 setUserWithPermissions(
                     userService,
                     resourcePermissions =
@@ -275,7 +275,7 @@ class CctvPermissionTest : BehaviorSpec() {
                 Then("정상 삭제된다") {
                     verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
                     verify(exactly = 1) { cctvRepository.deleteById("c1") }
-                    verify(exactly = 1) { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") }
+                    verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.CCTV, "c1") }
                 }
             }
 
@@ -294,14 +294,14 @@ class CctvPermissionTest : BehaviorSpec() {
                 val cctv = Cctv("c1", "name", "url")
                 every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 every { userResourcePermissionService.exists(10L, ResourceType.CCTV, "c1") } returns true
-                every { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") } just runs
+                every { userResourcePermissionService.delete(ResourceType.CCTV, "c1") } just runs
                 every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
                 every { cctvRepository.deleteById(any()) } just runs
                 cctvService.delete("c1")
                 Then("삭제 및 delete가 수행된다") {
                     verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
                     verify(exactly = 1) { cctvRepository.deleteById("c1") }
-                    verify(exactly = 1) { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") }
+                    verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.CCTV, "c1") }
                 }
             }
         }

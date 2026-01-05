@@ -11,8 +11,7 @@ interface UserResourcePermissionRepository : JpaRepository<UserResourcePermissio
         resourceId: String,
     ): Boolean
 
-    fun deleteByUserIdAndResourceTypeAndResourceId(
-        userId: Long,
+    fun deleteByResourceTypeAndResourceId(
         resourceType: ResourceType,
         resourceId: String,
     )

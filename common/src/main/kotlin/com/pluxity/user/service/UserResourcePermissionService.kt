@@ -43,12 +43,10 @@ class UserResourcePermissionService(
 
     @Transactional
     fun delete(
-        userId: Long,
         resourceType: ResourceType,
         resourceId: String,
     ) {
-        userResourcePermissionRepository.deleteByUserIdAndResourceTypeAndResourceId(
-            userId,
+        userResourcePermissionRepository.deleteByResourceTypeAndResourceId(
             resourceType,
             resourceId,
         )

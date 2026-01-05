@@ -126,7 +126,7 @@ class PermissionCheckAspect(
             PermissionAction.CREATE ->
                 userResourcePermissionService.create(userId, checkPermission.resourceType, resourceId)
             PermissionAction.DELETE ->
-                userResourcePermissionService.delete(userId, checkPermission.resourceType, resourceId)
+                userResourcePermissionService.delete(checkPermission.resourceType, resourceId)
             else -> Unit
         }
     }
