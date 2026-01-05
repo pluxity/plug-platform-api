@@ -67,17 +67,6 @@ class BuildingService(
     }
 
     @Transactional
-    fun update(
-        id: Long,
-        request: BuildingUpdateRequest,
-    ) {
-        val building = findBuilding(id)
-
-        facilityService.update(id, request.facility)
-        floorService.update(building, request.floors)
-    }
-
-    @Transactional
     fun putUpdate(
         id: Long,
         request: BuildingUpdateRequest,

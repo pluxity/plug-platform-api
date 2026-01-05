@@ -146,29 +146,6 @@ class FacilityServiceTest
         }
 
         @Test
-        @DisplayName("성공: update 요청 시 일부 필드만 정상적으로 수정된다")
-        fun `update with partial request updates only provided fields`() {
-            // GIVEN
-            val saved =
-                facilityService.save(
-                    FacilityInstance("원본 이름", "ORI_CODE", "원본 설명", null, null),
-                    FacilityCreateRequest("원본 이름", "ORI_CODE", "원본 설명", null, null, 1.0, 1.0, null),
-                )
-
-            val request = FacilityUpdateRequest("수정된 이름", null, null, null, 2.0, null, null)
-
-            // WHEN
-            facilityService.update(saved.requiredId, request)
-
-            // THEN
-            val updated = facilityService.findById(saved.requiredId)
-            updated.name shouldBe "수정된 이름"
-            updated.position?.lon shouldBe 2.0
-            updated.code shouldBe "ORI_CODE"
-            updated.description shouldBe "원본 설명"
-        }
-
-        @Test
         @DisplayName("성공: putUpdate 요청 시 모든 필드가 요청대로 덮어쓰기된다 (null 포함)")
         fun `putUpdate with full request overwrites all fields`() {
             // GIVEN
@@ -298,27 +275,6 @@ class FacilityServiceTest
             savedFacility.description shouldBe null
             savedFacility.drawingFileId shouldBe null
             savedFacility.position shouldBe null
-        }
-
-        @Test
-        @DisplayName("실패: update 시 다른 시설이 사용 중인 코드로 변경하면 예외가 발생한다")
-        fun `update with existing code of another facility throws CustomException`() {
-            // GIVEN
-            facilityService.save(
-                FacilityInstance("시설1", "CODE1", null, null, null),
-                FacilityCreateRequest("시설1", "CODE1", null, null, null, null, null, null),
-            )
-            val saved2 =
-                facilityService.save(
-                    FacilityInstance("시설2", "CODE2", null, null, null),
-                    FacilityCreateRequest("시설2", "CODE2", null, null, null, null, null, null),
-                )
-
-            // WHEN & THEN
-            val request = FacilityUpdateRequest("시설2", "CODE1", null, null, null, null, null)
-            shouldThrow<CustomException> {
-                facilityService.update(saved2.requiredId, request)
-            }
         }
 
         @Test

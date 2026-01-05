@@ -20,7 +20,9 @@ import com.pluxity.global.constant.ErrorCode.DUPLICATE_FACILITY_CODE
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY
 import com.pluxity.global.constant.ErrorCode.NOT_FOUND_FACILITY_CODE
 import com.pluxity.global.exception.CustomException
+import com.pluxity.permission.PermissionLevel
 import com.pluxity.permission.ResourceType
+import com.pluxity.user.entity.PermissionAction
 import com.pluxity.user.entity.PermissionCheckType
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -37,6 +39,7 @@ class FacilityService(
 ) {
     private val prefix = "facilities/"
 
+    @CheckPermission(resourceType = ResourceType.FACILITY, action = PermissionAction.CREATE, level = PermissionLevel.WRITE)
     @Transactional
     fun save(
         facility: Facility,
@@ -94,34 +97,7 @@ class FacilityService(
     fun findAll(): List<Facility> = facilityRepository.findAll()
 
     @Transactional
-    fun update(
-        id: Long,
-        request: FacilityUpdateRequest,
-    ) {
-        val facility = findById(id)
-
-        request.code?.let { newCode ->
-            if (newCode != facility.code) {
-                validateCodeUniqueness(newCode)
-                facility.updateCode(newCode)
-            }
-        }
-
-        request.name?.let { facility.updateName(it) }
-        request.description?.let { facility.updateDescription(it) }
-
-        request.thumbnailFileId?.let { thumbnailFileId ->
-            if (thumbnailFileId != facility.thumbnailFileId) {
-                val filePath = "$prefix${facility.id}/"
-                val thumbnailFile = fileService.finalizeUpload(thumbnailFileId, filePath)
-                facility.updateThumbnailFile(thumbnailFile)
-            }
-        }
-
-        facility.updatePosition(request.lon, request.lat, request.locationMeta)
-    }
-
-    @Transactional
+    @CheckPermission(resourceType = ResourceType.FACILITY, action = PermissionAction.UPDATE, level = PermissionLevel.WRITE)
     fun putUpdate(
         id: Long,
         request: FacilityUpdateRequest,
@@ -149,23 +125,7 @@ class FacilityService(
     }
 
     @Transactional
-    fun update(
-        id: Long,
-        newFacility: Facility,
-    ) {
-        val facility = findById(id)
-
-        newFacility.code?.let { newCode ->
-            if (newCode != facility.code) {
-                validateCodeUniqueness(newCode)
-            }
-        }
-
-        facility.update(newFacility)
-        facilityRepository.save(facility)
-    }
-
-    @Transactional
+    @CheckPermission(resourceType = ResourceType.FACILITY, action = PermissionAction.DELETE, level = PermissionLevel.ADMIN)
     fun deleteFacility(id: Long) {
         val facility = findById(id)
         facilityRepository.delete(facility)

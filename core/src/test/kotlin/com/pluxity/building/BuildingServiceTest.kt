@@ -156,7 +156,7 @@ internal class BuildingServiceTest
                 )
 
             // when
-            buildingService.update(id, updateRequest)
+            buildingService.putUpdate(id, updateRequest)
 
             // then
             val updatedBuilding = facilityService.findById(id)
@@ -237,44 +237,6 @@ internal class BuildingServiceTest
         }
 
         @Test
-        @DisplayName("부분 업데이트: 이름만 변경")
-        fun update_Partial_OnlyName() {
-            // given
-            val id = buildingService.save(createRequest)
-            val originalDescription = buildingService.findById(id).facility.description
-
-            val request =
-                BuildingUpdateRequest(
-                    FacilityUpdateRequest(
-                        // name 변경
-                        "부분업데이트이름",
-                        // code 유지
-                        null,
-                        // description 유지
-                        null,
-                        // thumbnail 유지
-                        null,
-                        // lon 유지
-                        null,
-                        // lat 유지
-                        null,
-                        // locationMeta 유지
-                        null,
-                    ),
-                    // floors 변경 없음
-                    emptyList(),
-                )
-
-            // when
-            buildingService.update(id, request)
-
-            // then
-            val updated = facilityService.findById(id)
-            Assertions.assertThat(updated.name).isEqualTo("부분업데이트이름")
-            Assertions.assertThat(updated.description).isEqualTo(originalDescription)
-        }
-
-        @Test
         @DisplayName("No-Op 업데이트: 동일 데이터로 업데이트 시 변경 없음")
         fun update_NoOp_DoesNotChangeData() {
             // given
@@ -296,7 +258,7 @@ internal class BuildingServiceTest
                 )
 
             // when
-            buildingService.update(id, request)
+            buildingService.putUpdate(id, request)
 
             // then
             val after = facilityService.findById(id)
@@ -399,7 +361,7 @@ internal class BuildingServiceTest
                 )
 
             // when & then
-            assertThrows<CustomException> { buildingService.update(secondId, updateToDup) }
+            assertThrows<CustomException> { buildingService.putUpdate(secondId, updateToDup) }
         }
 
         @Test
@@ -415,7 +377,7 @@ internal class BuildingServiceTest
                 )
 
             // when
-            buildingService.update(id, clearFloors)
+            buildingService.putUpdate(id, clearFloors)
 
             // then
             Assertions.assertThat(buildingService.findById(id).floors).isEmpty()
