@@ -1,4 +1,4 @@
-package com.pluxity.cctv
+package com.pluxity.util
 
 import base.entity.withId
 import com.pluxity.permission.DomainPermission
@@ -14,13 +14,13 @@ import io.mockk.every
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 
-internal fun makeUserWithPermissions(
+fun makeUserWithPermissions(
     resourcePermissions: List<ResourcePermission>,
     domainPermissions: List<DomainPermission> = emptyList(),
 ): User {
     val role = Role(name = "ROLE_USER", description = "role").withId(1L)
     if (resourcePermissions.isNotEmpty() || domainPermissions.isNotEmpty()) {
-        val permission = Permission("CCTV 권한 그룹", null)
+        val permission = Permission("권한 그룹", null)
         resourcePermissions.forEach { permission.addResourcePermission(it) }
         domainPermissions.forEach { permission.addDomainPermission(it) }
         role.addRolePermission(RolePermission(role = role, permission = permission))
@@ -28,45 +28,28 @@ internal fun makeUserWithPermissions(
     return User("tester", "pw", "name", null).withId(10L).apply { addRole(role) }
 }
 
-internal fun setUserWithPermission(
+fun setUserWithPermission(
     userService: UserService,
+    resourceType: ResourceType,
     level: PermissionLevel,
-    resourceId: String = "c1",
-    includeDomain: Boolean = false,
-    includeResource: Boolean = true,
+    resourceId: String,
 ) {
-    val resourcePermissions =
-        if (includeResource) {
-            listOf(
-                ResourcePermission(
-                    resourceName = ResourceType.CCTV.name,
-                    resourceId = resourceId,
-                    level = level,
-                ),
-            )
-        } else {
-            emptyList()
-        }
-    val domainPermissions =
-        if (includeDomain) {
-            listOf(
-                DomainPermission(
-                    resourceName = ResourceType.CCTV.name,
-                    level = level,
-                ),
-            )
-        } else {
-            emptyList()
-        }
     val user =
         makeUserWithPermissions(
-            resourcePermissions = resourcePermissions,
-            domainPermissions = domainPermissions,
+            resourcePermissions =
+                listOf(
+                    ResourcePermission(
+                        resourceName = resourceType.name,
+                        resourceId = resourceId,
+                        level = level,
+                    ),
+                ),
+            domainPermissions = emptyList(),
         )
     every { userService.findUserByUsername("tester") } returns user
 }
 
-internal fun setUserWithPermissions(
+fun setUserWithPermissions(
     userService: UserService,
     resourcePermissions: List<ResourcePermission>,
     domainPermissions: List<DomainPermission> = emptyList(),
@@ -75,7 +58,7 @@ internal fun setUserWithPermissions(
     every { userService.findUserByUsername("tester") } returns user
 }
 
-internal fun initAuthUser(userService: UserService) {
+fun initAuthUser(userService: UserService) {
     val user = makeUserWithPermissions(emptyList(), emptyList())
     SecurityContextHolder.getContext().authentication =
         UsernamePasswordAuthenticationToken("tester", null, emptyList())

@@ -1,18 +1,18 @@
-package com.pluxity.cctv
+package com.pluxity.temperaturehumidity
 
 import com.ninjasquad.springmockk.MockkBean
 import com.pluxity.GsApplication
-import com.pluxity.cctv.dto.CctvCreateRequest
-import com.pluxity.cctv.dto.CctvUpdateRequest
-import com.pluxity.cctv.entity.Cctv
-import com.pluxity.cctv.repository.CctvRepository
-import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.DomainPermission
 import com.pluxity.permission.PermissionLevel
 import com.pluxity.permission.ResourcePermission
 import com.pluxity.permission.ResourceType
+import com.pluxity.temperaturehumidity.dto.TemperatureHumidityCreateRequest
+import com.pluxity.temperaturehumidity.dto.TemperatureHumidityUpdateRequest
+import com.pluxity.temperaturehumidity.entity.TemperatureHumidity
+import com.pluxity.temperaturehumidity.repository.TemperatureHumidityRepository
+import com.pluxity.temperaturehumidity.service.TemperatureHumidityService
 import com.pluxity.user.service.UserResourcePermissionService
 import com.pluxity.user.service.UserService
 import com.pluxity.util.initAuthUser
@@ -34,16 +34,14 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest(classes = [GsApplication::class])
 @ActiveProfiles("test")
-class CctvPermissionTest : BehaviorSpec() {
+class TemperatureHumidityPermissionTest : BehaviorSpec() {
     @MockkBean lateinit var userService: UserService
 
-    @MockkBean lateinit var cctvRepository: CctvRepository
-
-    @MockkBean lateinit var deviceCctvRepository: DeviceCctvRepository
+    @MockkBean lateinit var temperatureHumidityRepository: TemperatureHumidityRepository
 
     @MockkBean lateinit var userResourcePermissionService: UserResourcePermissionService
 
-    @Autowired lateinit var cctvService: CctvService
+    @Autowired lateinit var temperatureHumidityService: TemperatureHumidityService
 
     init {
         extension(SpringExtension)
@@ -56,23 +54,22 @@ class CctvPermissionTest : BehaviorSpec() {
             SecurityContextHolder.clearContext()
             clearMocks(
                 userService,
-                cctvRepository,
-                deviceCctvRepository,
+                temperatureHumidityRepository,
                 userResourcePermissionService,
             )
         }
 
-        Given("CCTV 생성/수정/삭제 권한 체크") {
+        Given("온습도계 생성/수정/삭제 권한 체크") {
 
             When("글로벌 정책이 없으면 생성은 거부") {
                 val exception =
                     shouldThrow<CustomException> {
-                        cctvService.create(CctvCreateRequest("c1", "name", "url"))
+                        temperatureHumidityService.save(TemperatureHumidityCreateRequest("th1", "name"))
                     }
                 Then("PERMISSION_DENIED 예외가 발생한다") {
                     exception.errorCode shouldBe ErrorCode.PERMISSION_DENIED
-                    verify(exactly = 0) { cctvRepository.save(any()) }
-                    verify(exactly = 0) { userResourcePermissionService.create(10L, ResourceType.CCTV, "c1") }
+                    verify(exactly = 0) { temperatureHumidityRepository.save(any()) }
+                    verify(exactly = 0) { userResourcePermissionService.create(10L, ResourceType.TEMPERATURE_HUMIDITY, "th1") }
                 }
             }
 
@@ -83,17 +80,17 @@ class CctvPermissionTest : BehaviorSpec() {
                     domainPermissions =
                         listOf(
                             DomainPermission(
-                                resourceName = ResourceType.CCTV.name,
+                                resourceName = ResourceType.TEMPERATURE_HUMIDITY.name,
                                 level = PermissionLevel.WRITE,
                             ),
                         ),
                 )
-                every { cctvRepository.save(any()) } returns Cctv("c1", "name", "url")
-                every { userResourcePermissionService.create(10L, ResourceType.CCTV, "c1") } just runs
-                val result = cctvService.create(CctvCreateRequest("c1", "name", "url"))
+                every { temperatureHumidityRepository.save(any()) } returns TemperatureHumidity("th1", "name")
+                every { userResourcePermissionService.create(10L, ResourceType.TEMPERATURE_HUMIDITY, "th1") } just runs
+                val result = temperatureHumidityService.save(TemperatureHumidityCreateRequest("th1", "name"))
                 Then("등록 호출이 수행된다") {
-                    result shouldBe "c1"
-                    verify(exactly = 1) { userResourcePermissionService.create(10L, ResourceType.CCTV, "c1") }
+                    result shouldBe "th1"
+                    verify(exactly = 1) { userResourcePermissionService.create(10L, ResourceType.TEMPERATURE_HUMIDITY, "th1") }
                 }
             }
 
@@ -101,48 +98,46 @@ class CctvPermissionTest : BehaviorSpec() {
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
-                        cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
+                        temperatureHumidityService.putUpdate("th1", TemperatureHumidityUpdateRequest("new-name"))
                     }
                 Then("PERMISSION_DENIED 예외가 발생한다") {
                     exception.errorCode shouldBe ErrorCode.PERMISSION_DENIED
-                    verify(exactly = 0) { cctvRepository.findById(any()) }
+                    verify(exactly = 0) { temperatureHumidityRepository.findByIdOrNullCustom(any()) }
                 }
             }
 
             When("수정 요청 시 권한이 READ인 경우") {
-                setUserWithPermission(userService, ResourceType.CCTV, PermissionLevel.READ, "c1")
+                setUserWithPermission(userService, ResourceType.TEMPERATURE_HUMIDITY, PermissionLevel.READ, "th1")
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
-                        cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
+                        temperatureHumidityService.putUpdate("th1", TemperatureHumidityUpdateRequest("new-name"))
                     }
                 Then("PERMISSION_DENIED 예외가 발생한다") {
                     exception.errorCode shouldBe ErrorCode.PERMISSION_DENIED
-                    verify(exactly = 0) { cctvRepository.findById(any()) }
+                    verify(exactly = 0) { temperatureHumidityRepository.findByIdOrNullCustom(any()) }
                 }
             }
 
             When("수정 요청 시 권한이 WRITE인 경우") {
-                setUserWithPermission(userService, ResourceType.CCTV, PermissionLevel.WRITE, "c1")
+                setUserWithPermission(userService, ResourceType.TEMPERATURE_HUMIDITY, PermissionLevel.WRITE, "th1")
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
-                val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
-                cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
+                val th = TemperatureHumidity("th1", "name")
+                every { temperatureHumidityRepository.findByIdOrNullCustom("th1") } returns th
+                temperatureHumidityService.putUpdate("th1", TemperatureHumidityUpdateRequest("new-name"))
                 Then("정상 수정된다") {
-                    cctv.name shouldBe "new-name"
-                    cctv.url shouldBe "new-url"
+                    th.name shouldBe "new-name"
                 }
             }
 
             When("수정 요청 시 권한이 ADMIN인 경우") {
-                setUserWithPermission(userService, ResourceType.CCTV, PermissionLevel.ADMIN, "c1")
+                setUserWithPermission(userService, ResourceType.TEMPERATURE_HUMIDITY, PermissionLevel.ADMIN, "th1")
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
-                val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
-                cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
+                val th = TemperatureHumidity("th1", "name")
+                every { temperatureHumidityRepository.findByIdOrNullCustom("th1") } returns th
+                temperatureHumidityService.putUpdate("th1", TemperatureHumidityUpdateRequest("new-name"))
                 Then("정상 수정된다") {
-                    cctv.name shouldBe "new-name"
-                    cctv.url shouldBe "new-url"
+                    th.name shouldBe "new-name"
                 }
             }
 
@@ -153,46 +148,44 @@ class CctvPermissionTest : BehaviorSpec() {
                     domainPermissions =
                         listOf(
                             DomainPermission(
-                                resourceName = ResourceType.CCTV.name,
+                                resourceName = ResourceType.TEMPERATURE_HUMIDITY.name,
                                 level = PermissionLevel.WRITE,
                             ),
                         ),
                 )
-                val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
-                every { userResourcePermissionService.exists(10L, ResourceType.CCTV, "c1") } returns true
-                cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
-                Then("CCTV가 업데이트된다") {
-                    cctv.name shouldBe "new-name"
-                    cctv.url shouldBe "new-url"
+                val th = TemperatureHumidity("th1", "name")
+                every { temperatureHumidityRepository.findByIdOrNullCustom("th1") } returns th
+                every { userResourcePermissionService.exists(10L, ResourceType.TEMPERATURE_HUMIDITY, "th1") } returns true
+                temperatureHumidityService.putUpdate("th1", TemperatureHumidityUpdateRequest("new-name"))
+                Then("온습도계가 업데이트된다") {
+                    th.name shouldBe "new-name"
                 }
             }
 
             When("글로벌 WRITE 권한이면 수정이 허용된다") {
-                val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
+                val th = TemperatureHumidity("th1", "name")
+                every { temperatureHumidityRepository.findByIdOrNullCustom("th1") } returns th
                 setUserWithPermissions(
                     userService,
                     resourcePermissions =
                         listOf(
                             ResourcePermission(
-                                resourceName = ResourceType.CCTV.name,
-                                resourceId = "c1",
+                                resourceName = ResourceType.TEMPERATURE_HUMIDITY.name,
+                                resourceId = "th1",
                                 level = PermissionLevel.WRITE,
                             ),
                         ),
                     domainPermissions =
                         listOf(
                             DomainPermission(
-                                resourceName = ResourceType.CCTV.name,
+                                resourceName = ResourceType.TEMPERATURE_HUMIDITY.name,
                                 level = PermissionLevel.WRITE,
                             ),
                         ),
                 )
-                cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
+                temperatureHumidityService.putUpdate("th1", TemperatureHumidityUpdateRequest("new-name"))
                 Then("정상 수정된다") {
-                    cctv.name shouldBe "new-name"
-                    cctv.url shouldBe "new-url"
+                    th.name shouldBe "new-name"
                 }
             }
 
@@ -200,85 +193,81 @@ class CctvPermissionTest : BehaviorSpec() {
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
-                        cctvService.delete("c1")
+                        temperatureHumidityService.delete("th1")
                     }
                 Then("PERMISSION_DENIED 예외가 발생한다") {
                     exception.errorCode shouldBe ErrorCode.PERMISSION_DENIED
-                    verify(exactly = 0) { cctvRepository.findById(any()) }
+                    verify(exactly = 0) { temperatureHumidityRepository.findByIdOrNullCustom(any()) }
                 }
             }
 
             When("삭제 요청 시 권한이 READ인 경우") {
-                setUserWithPermission(userService, ResourceType.CCTV, PermissionLevel.READ, "c1")
+                setUserWithPermission(userService, ResourceType.TEMPERATURE_HUMIDITY, PermissionLevel.READ, "th1")
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
-                        cctvService.delete("c1")
+                        temperatureHumidityService.delete("th1")
                     }
                 Then("PERMISSION_DENIED 예외가 발생한다") {
                     exception.errorCode shouldBe ErrorCode.PERMISSION_DENIED
-                    verify(exactly = 0) { cctvRepository.findById(any()) }
+                    verify(exactly = 0) { temperatureHumidityRepository.findByIdOrNullCustom(any()) }
                 }
             }
 
             When("삭제 요청 시 권한이 WRITE인 경우") {
-                setUserWithPermission(userService, ResourceType.CCTV, PermissionLevel.WRITE, "c1")
+                setUserWithPermission(userService, ResourceType.TEMPERATURE_HUMIDITY, PermissionLevel.WRITE, "th1")
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
-                        cctvService.delete("c1")
+                        temperatureHumidityService.delete("th1")
                     }
                 Then("PERMISSION_DENIED 예외가 발생한다") {
                     exception.errorCode shouldBe ErrorCode.PERMISSION_DENIED
-                    verify(exactly = 0) { cctvRepository.findById(any()) }
+                    verify(exactly = 0) { temperatureHumidityRepository.findByIdOrNullCustom(any()) }
                 }
             }
 
             When("삭제 요청 시 권한이 ADMIN인 경우") {
-                setUserWithPermission(userService, ResourceType.CCTV, PermissionLevel.ADMIN, "c1")
+                setUserWithPermission(userService, ResourceType.TEMPERATURE_HUMIDITY, PermissionLevel.ADMIN, "th1")
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
-                every { userResourcePermissionService.delete(ResourceType.CCTV, "c1") } just runs
-                val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
-                every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
-                every { cctvRepository.deleteById(any()) } just runs
-                cctvService.delete("c1")
+                every { userResourcePermissionService.delete(ResourceType.TEMPERATURE_HUMIDITY, "th1") } just runs
+                val th = TemperatureHumidity("th1", "name")
+                every { temperatureHumidityRepository.findByIdOrNullCustom("th1") } returns th
+                every { temperatureHumidityRepository.deleteById(any()) } just runs
+                temperatureHumidityService.delete("th1")
                 Then("정상 삭제된다") {
-                    verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
-                    verify(exactly = 1) { cctvRepository.deleteById("c1") }
-                    verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.CCTV, "c1") }
+                    verify(exactly = 1) { temperatureHumidityRepository.deleteById("th1") }
+                    verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.TEMPERATURE_HUMIDITY, "th1") }
                 }
             }
 
             When("글로벌 ADMIN 권한이면 삭제가 허용된다") {
-                val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
-                every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
-                every { cctvRepository.deleteById(any()) } just runs
-                every { userResourcePermissionService.delete(ResourceType.CCTV, "c1") } just runs
+                val th = TemperatureHumidity("th1", "name")
+                every { temperatureHumidityRepository.findByIdOrNullCustom("th1") } returns th
+                every { temperatureHumidityRepository.deleteById(any()) } just runs
+                every { userResourcePermissionService.delete(ResourceType.TEMPERATURE_HUMIDITY, "th1") } just runs
                 setUserWithPermissions(
                     userService,
                     resourcePermissions =
                         listOf(
                             ResourcePermission(
-                                resourceName = ResourceType.CCTV.name,
-                                resourceId = "c1",
+                                resourceName = ResourceType.TEMPERATURE_HUMIDITY.name,
+                                resourceId = "th1",
                                 level = PermissionLevel.ADMIN,
                             ),
                         ),
                     domainPermissions =
                         listOf(
                             DomainPermission(
-                                resourceName = ResourceType.CCTV.name,
+                                resourceName = ResourceType.TEMPERATURE_HUMIDITY.name,
                                 level = PermissionLevel.ADMIN,
                             ),
                         ),
                 )
-                cctvService.delete("c1")
+                temperatureHumidityService.delete("th1")
                 Then("정상 삭제된다") {
-                    verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
-                    verify(exactly = 1) { cctvRepository.deleteById("c1") }
-                    verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.CCTV, "c1") }
+                    verify(exactly = 1) { temperatureHumidityRepository.deleteById("th1") }
+                    verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.TEMPERATURE_HUMIDITY, "th1") }
                 }
             }
 
@@ -289,22 +278,20 @@ class CctvPermissionTest : BehaviorSpec() {
                     domainPermissions =
                         listOf(
                             DomainPermission(
-                                resourceName = ResourceType.CCTV.name,
+                                resourceName = ResourceType.TEMPERATURE_HUMIDITY.name,
                                 level = PermissionLevel.ADMIN,
                             ),
                         ),
                 )
-                val cctv = Cctv("c1", "name", "url")
-                every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
-                every { userResourcePermissionService.exists(10L, ResourceType.CCTV, "c1") } returns true
-                every { userResourcePermissionService.delete(ResourceType.CCTV, "c1") } just runs
-                every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
-                every { cctvRepository.deleteById(any()) } just runs
-                cctvService.delete("c1")
+                val th = TemperatureHumidity("th1", "name")
+                every { temperatureHumidityRepository.findByIdOrNullCustom("th1") } returns th
+                every { userResourcePermissionService.exists(10L, ResourceType.TEMPERATURE_HUMIDITY, "th1") } returns true
+                every { userResourcePermissionService.delete(ResourceType.TEMPERATURE_HUMIDITY, "th1") } just runs
+                every { temperatureHumidityRepository.deleteById(any()) } just runs
+                temperatureHumidityService.delete("th1")
                 Then("삭제 및 delete가 수행된다") {
-                    verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
-                    verify(exactly = 1) { cctvRepository.deleteById("c1") }
-                    verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.CCTV, "c1") }
+                    verify(exactly = 1) { temperatureHumidityRepository.deleteById("th1") }
+                    verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.TEMPERATURE_HUMIDITY, "th1") }
                 }
             }
         }

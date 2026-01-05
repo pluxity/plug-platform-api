@@ -1,13 +1,13 @@
-package com.pluxity.cctv
+package com.pluxity.temperaturehumidity
 
 import com.ninjasquad.springmockk.MockkBean
 import com.pluxity.GsApplication
-import com.pluxity.cctv.entity.Cctv
-import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionLevel
 import com.pluxity.permission.ResourceType
+import com.pluxity.temperaturehumidity.entity.TemperatureHumidity
+import com.pluxity.temperaturehumidity.repository.TemperatureHumidityRepository
 import com.pluxity.user.service.UserService
 import com.pluxity.util.initAuthUser
 import com.pluxity.util.setUserWithPermission
@@ -25,10 +25,10 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 @SpringBootTest(classes = [GsApplication::class])
 @ActiveProfiles("test")
-class CctvRepositoryPermissionTest : BehaviorSpec() {
+class TemperatureHumidityRepositoryPermissionTest : BehaviorSpec() {
     @MockkBean lateinit var userService: UserService
 
-    @Autowired lateinit var cctvRepository: CctvRepository
+    @Autowired lateinit var temperatureHumidityRepository: TemperatureHumidityRepository
 
     init {
         extension(SpringExtension)
@@ -42,34 +42,34 @@ class CctvRepositoryPermissionTest : BehaviorSpec() {
             clearMocks(userService)
         }
 
-        Given("CCTV 조회 권한 체크") {
+        Given("온습도계 조회 권한 체크") {
             When("리소스 id에 READ 권한이 있으면") {
-                Then("CCTV가 조회된다") {
-                    setUserWithPermission(userService, ResourceType.CCTV, PermissionLevel.READ, "c1")
-                    cctvRepository.save(Cctv("c1", "name", "url"))
-                    val result = cctvRepository.findByIdOrNullCustom("c1")
-                    result?.id shouldBe "c1"
+                Then("온습도계가 조회된다") {
+                    setUserWithPermission(userService, ResourceType.TEMPERATURE_HUMIDITY, PermissionLevel.READ, "th1")
+                    temperatureHumidityRepository.save(TemperatureHumidity("th1", "name"))
+                    val result = temperatureHumidityRepository.findByIdOrNullCustom("th1")
+                    result?.id shouldBe "th1"
                 }
             }
 
             When("리소스 id에 READ 권한이 없으면") {
                 Then("PERMISSION_DENIED 예외가 발생한다") {
-                    setUserWithPermission(userService, ResourceType.CCTV, PermissionLevel.READ, "c2")
-                    cctvRepository.save(Cctv("c1", "name", "url"))
+                    setUserWithPermission(userService, ResourceType.TEMPERATURE_HUMIDITY, PermissionLevel.READ, "th2")
+                    temperatureHumidityRepository.save(TemperatureHumidity("th1", "name"))
                     val exception =
                         shouldThrow<CustomException> {
-                            cctvRepository.findByIdOrNullCustom("c1")
+                            temperatureHumidityRepository.findByIdOrNullCustom("th1")
                         }
                     exception.errorCode shouldBe ErrorCode.PERMISSION_DENIED
                 }
             }
 
             When("Domain 권한이 READ 권한이면") {
-                Then("CCTV가 조회된다") {
-                    setUserWithPermission(userService, ResourceType.CCTV, PermissionLevel.READ, "c1")
-                    cctvRepository.save(Cctv("c1", "name", "url"))
-                    val result = cctvRepository.findByIdOrNullCustom("c1")
-                    result?.id shouldBe "c1"
+                Then("온습도계가 조회된다") {
+                    setUserWithPermission(userService, ResourceType.TEMPERATURE_HUMIDITY, PermissionLevel.READ, "th1")
+                    temperatureHumidityRepository.save(TemperatureHumidity("th1", "name"))
+                    val result = temperatureHumidityRepository.findByIdOrNullCustom("th1")
+                    result?.id shouldBe "th1"
                 }
             }
         }

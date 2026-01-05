@@ -3,14 +3,18 @@ package com.pluxity.temperaturehumidity.service
 import com.pluxity.feature.entity.Feature
 import com.pluxity.feature.service.FeatureAssignType
 import com.pluxity.feature.service.FeatureAssignment
+import com.pluxity.global.annotation.CheckPermission
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.permission.PermissionLevel
+import com.pluxity.permission.ResourceType
 import com.pluxity.temperaturehumidity.dto.TemperatureHumidityCreateRequest
 import com.pluxity.temperaturehumidity.dto.TemperatureHumidityResponse
 import com.pluxity.temperaturehumidity.dto.TemperatureHumidityUpdateRequest
 import com.pluxity.temperaturehumidity.dto.toTemperatureHumidityResponse
 import com.pluxity.temperaturehumidity.entity.TemperatureHumidity
 import com.pluxity.temperaturehumidity.repository.TemperatureHumidityRepository
+import com.pluxity.user.entity.PermissionAction
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,6 +26,7 @@ class TemperatureHumidityService(
     override val type: FeatureAssignType = FeatureAssignType.THERMO_HYGROMETER
 
     @Transactional
+    @CheckPermission(action = PermissionAction.CREATE, resourceType = ResourceType.TEMPERATURE_HUMIDITY, level = PermissionLevel.WRITE)
     fun save(request: TemperatureHumidityCreateRequest): String =
         temperatureHumidityRepository
             .save(
@@ -45,6 +50,7 @@ class TemperatureHumidityService(
     }
 
     @Transactional
+    @CheckPermission(action = PermissionAction.UPDATE, resourceType = ResourceType.TEMPERATURE_HUMIDITY, level = PermissionLevel.WRITE)
     fun putUpdate(
         id: String,
         request: TemperatureHumidityUpdateRequest,
@@ -54,6 +60,7 @@ class TemperatureHumidityService(
     }
 
     @Transactional
+    @CheckPermission(action = PermissionAction.DELETE, resourceType = ResourceType.TEMPERATURE_HUMIDITY, level = PermissionLevel.ADMIN)
     fun delete(id: String) {
         val device = getTemperatureHumidity(id)
         device.clearAllRelations()
