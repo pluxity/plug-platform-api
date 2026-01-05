@@ -1,4 +1,4 @@
-package com.pluxity.util
+package util
 
 import base.entity.withId
 import com.pluxity.permission.DomainPermission
@@ -41,6 +41,27 @@ fun setUserWithPermission(
                     ResourcePermission(
                         resourceName = resourceType.name,
                         resourceId = resourceId,
+                        level = level,
+                    ),
+                ),
+            domainPermissions = emptyList(),
+        )
+    every { userService.findUserByUsername("tester") } returns user
+}
+
+fun setUserWithPermission(
+    userService: UserService,
+    resourceType: ResourceType,
+    level: PermissionLevel,
+    resourceId: Long,
+) {
+    val user =
+        makeUserWithPermissions(
+            resourcePermissions =
+                listOf(
+                    ResourcePermission(
+                        resourceName = resourceType.name,
+                        resourceId = resourceId.toString(),
                         level = level,
                     ),
                 ),

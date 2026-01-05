@@ -15,9 +15,6 @@ import com.pluxity.permission.ResourcePermission
 import com.pluxity.permission.ResourceType
 import com.pluxity.user.service.UserResourcePermissionService
 import com.pluxity.user.service.UserService
-import com.pluxity.util.initAuthUser
-import com.pluxity.util.setUserWithPermission
-import com.pluxity.util.setUserWithPermissions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringExtension
@@ -31,6 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.ActiveProfiles
+import util.initAuthUser
+import util.setUserWithPermission
+import util.setUserWithPermissions
 
 @SpringBootTest(classes = [GsApplication::class])
 @ActiveProfiles("test")

@@ -9,8 +9,6 @@ import com.pluxity.permission.ResourceType
 import com.pluxity.temperaturehumidity.entity.TemperatureHumidity
 import com.pluxity.temperaturehumidity.repository.TemperatureHumidityRepository
 import com.pluxity.user.service.UserService
-import com.pluxity.util.initAuthUser
-import com.pluxity.util.setUserWithPermission
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringExtension
@@ -21,6 +19,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
+import util.initAuthUser
+import util.setUserWithPermission
 
 @Transactional
 @SpringBootTest(classes = [GsApplication::class])
