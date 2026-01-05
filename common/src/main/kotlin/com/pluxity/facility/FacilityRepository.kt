@@ -1,6 +1,7 @@
 package com.pluxity.facility
 
 import com.pluxity.global.annotation.CheckPermission
+import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.PermissionCheckType
 import org.springframework.data.jpa.repository.JpaRepository
 
@@ -9,6 +10,6 @@ interface FacilityRepository : JpaRepository<Facility, Long> {
 
     fun findByCode(code: String): Facility?
 
-    @CheckPermission(phase = PermissionCheckType.ITEM_LIST)
+    @CheckPermission(phase = PermissionCheckType.ITEM_LIST, resourceType = ResourceType.FACILITY)
     fun findAllByOrderByCreatedAtDesc(): List<Facility>
 }

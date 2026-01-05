@@ -5,7 +5,6 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.constant.SecurityConstants
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionLevel
-import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.Permissible
 import com.pluxity.user.entity.PermissionAction
 import com.pluxity.user.entity.PermissionCheckType
@@ -110,10 +109,6 @@ class PermissionCheckAspect(
         }
 
         val user = getCurrentUserIfApplicable() ?: return
-        if (checkPermission.resourceType == ResourceType.NONE) {
-            return
-        }
-        val userId = user.id ?: return
         val resourceId =
             when (checkPermission.action) {
                 PermissionAction.CREATE -> returnObject?.toString()
@@ -124,7 +119,7 @@ class PermissionCheckAspect(
 
         when (checkPermission.action) {
             PermissionAction.CREATE ->
-                userResourcePermissionService.create(userId, checkPermission.resourceType, resourceId)
+                userResourcePermissionService.create(user.requiredId, checkPermission.resourceType, resourceId)
             PermissionAction.DELETE ->
                 userResourcePermissionService.delete(checkPermission.resourceType, resourceId)
             else -> Unit
