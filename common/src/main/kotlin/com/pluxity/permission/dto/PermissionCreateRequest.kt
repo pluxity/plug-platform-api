@@ -3,8 +3,8 @@ package com.pluxity.permission.dto
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotNull
 
-data class PermissionGroupCreateRequest(
-    @field:Schema(description = "권한 집합 이름")
+data class PermissionCreateRequest(
+    @field:Schema(description = "권한 이름")
     @field:NotNull
     var name: String,
     @field:Schema(description = "권한에 대한 설명")

@@ -32,15 +32,25 @@ class Role(
         this.description = description
     }
 
-    fun hasPermissionFor(
+    fun hasDomainPermissionFor(
+        resourceName: String,
+        requiredLevel: PermissionLevel,
+    ): Boolean =
+        rolePermissions
+            .asSequence()
+            .map { it.permission }
+            .flatMap { it.domainPermissions.asSequence() }
+            .any { it.allows(resourceName, requiredLevel) }
+
+    fun hasResourcePermissionFor(
         resourceName: String,
         resourceId: String,
         requiredLevel: PermissionLevel,
     ): Boolean =
         rolePermissions
             .asSequence()
-            .map { it.permissionGroup }
-            .flatMap { it.permissions.asSequence() }
+            .map { it.permission }
+            .flatMap { it.resourcePermissions.asSequence() }
             .any { it.allows(resourceName, resourceId, requiredLevel) }
 
     fun addRolePermission(rolePermission: RolePermission) {

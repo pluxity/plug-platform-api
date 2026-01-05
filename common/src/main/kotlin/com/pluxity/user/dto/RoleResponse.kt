@@ -1,14 +1,14 @@
 package com.pluxity.user.dto
 
-import com.pluxity.permission.dto.PermissionGroupResponse
-import com.pluxity.permission.dto.toPermissionGroupResponse
+import com.pluxity.permission.dto.PermissionResponse
+import com.pluxity.permission.dto.toPermissionResponse
 import com.pluxity.user.entity.Role
 
 data class RoleResponse(
     val id: Long,
     val name: String,
     val description: String?,
-    val permissions: List<PermissionGroupResponse>,
+    val permissions: List<PermissionResponse>,
 )
 
 fun Role.toRoleResponse() =
@@ -17,7 +17,7 @@ fun Role.toRoleResponse() =
         this.name,
         this.description,
         this.rolePermissions
-            .map { it.permissionGroup }
-            .map { it.toPermissionGroupResponse() }
+            .map { it.permission }
+            .map { it.toPermissionResponse() }
             .toList(),
     )

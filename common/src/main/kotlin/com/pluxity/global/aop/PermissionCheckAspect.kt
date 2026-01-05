@@ -40,7 +40,12 @@ class PermissionCheckAspect(
         val user = getCurrentUserIfApplicable() ?: return
 
         when (checkPermission.action) {
-            PermissionAction.CREATE -> ensureCreatePermission(user, checkPermission)
+            PermissionAction.CREATE -> {
+                val resourceType = checkPermission.resourceType
+                if (!user.canAccessDomain(resourceType.name, PermissionLevel.WRITE)) {
+                    throw CustomException(ErrorCode.PERMISSION_DENIED)
+                }
+            }
             PermissionAction.UPDATE,
             PermissionAction.DELETE,
             -> {
@@ -49,7 +54,7 @@ class PermissionCheckAspect(
                     when (checkPermission.action) {
                         PermissionAction.UPDATE -> PermissionLevel.WRITE
                         PermissionAction.DELETE -> PermissionLevel.ADMIN
-                        else -> checkPermission.level
+                        else -> throw CustomException(ErrorCode.PERMISSION_DENIED)
                     }
                 if (!permissionStrategy.check(user, resource, requiredLevel)) {
                     throw CustomException(ErrorCode.PERMISSION_DENIED)
@@ -136,16 +141,6 @@ class PermissionCheckAspect(
         return object : Permissible {
             override val resourceType = checkPermission.resourceType
             override val resourceId = args[index].toString()
-        }
-    }
-
-    private fun ensureCreatePermission(
-        user: User,
-        checkPermission: CheckPermission,
-    ) {
-        val resourceType = checkPermission.resourceType
-        if (!user.canAccess(resourceType.name, "ALL", PermissionLevel.WRITE)) {
-            throw CustomException(ErrorCode.PERMISSION_DENIED)
         }
     }
 

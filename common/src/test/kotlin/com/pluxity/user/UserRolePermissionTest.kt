@@ -1,11 +1,11 @@
 package com.pluxity.user
 
 import com.pluxity.config.MockBeansConfig
-import com.pluxity.permission.PermissionGroupRepository
-import com.pluxity.permission.PermissionGroupService
-import com.pluxity.permission.dto.PermissionGroupCreateRequest
-import com.pluxity.permission.dto.PermissionGroupUpdateRequest
+import com.pluxity.permission.PermissionRepository
+import com.pluxity.permission.PermissionService
+import com.pluxity.permission.dto.PermissionCreateRequest
 import com.pluxity.permission.dto.PermissionRequest
+import com.pluxity.permission.dto.PermissionUpdateRequest
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleUpdateRequest
 import com.pluxity.user.dto.UserCreateRequest
@@ -35,15 +35,15 @@ import kotlin.properties.Delegates
 @SpringBootTest
 @Import(MockBeansConfig::class)
 @Transactional
-internal class UserRolePermissionGroupTest
+internal class UserRolePermissionTest
     @Autowired
     constructor(
         private val userService: UserService,
         private val roleService: RoleService,
-        private val permissionGroupService: PermissionGroupService,
+        private val permissionService: PermissionService,
         private val userRepository: UserRepository,
         private val roleRepository: RoleRepository,
-        private val permissionGroupRepository: PermissionGroupRepository,
+        private val permissionRepository: PermissionRepository,
         private val userRoleRepository: UserRoleRepository,
         private val rolePermissionRepository: RolePermissionRepository,
         private val em: EntityManager,
@@ -64,24 +64,24 @@ internal class UserRolePermissionGroupTest
             // 1. Permission Groups 생성 (resourceId는 숫자 형식 사용)
 
             mainFacilityGroupId =
-                permissionGroupService.create(
-                    PermissionGroupCreateRequest(
+                permissionService.create(
+                    PermissionCreateRequest(
                         "주요 시설 관리 그룹",
                         null,
                         listOf(PermissionRequest("FACILITY", listOf("1", "2"))),
                     ),
                 )
             subFacilityGroupId =
-                permissionGroupService.create(
-                    PermissionGroupCreateRequest(
+                permissionService.create(
+                    PermissionCreateRequest(
                         "보조 시설 관리 그룹",
                         null,
                         listOf(PermissionRequest("FACILITY", mutableListOf("3"))),
                     ),
                 )
             cctvGroupId =
-                permissionGroupService.create(
-                    PermissionGroupCreateRequest(
+                permissionService.create(
+                    PermissionCreateRequest(
                         "CCTV 조회 그룹",
                         null,
                         listOf(PermissionRequest("CCTV", mutableListOf("1", "2"))),
@@ -94,7 +94,7 @@ internal class UserRolePermissionGroupTest
                     RoleCreateRequest(
                         name = "ADMIN",
                         description = "관리자",
-                        permissionGroupIds = listOf(mainFacilityGroupId, subFacilityGroupId, cctvGroupId),
+                        permissionIds = listOf(mainFacilityGroupId, subFacilityGroupId, cctvGroupId),
                         authority = RoleType.ADMIN,
                     ),
                     UsernamePasswordAuthenticationToken("testUser", null, listOf(SimpleGrantedAuthority("ROLE_ADMIN"))),
@@ -104,7 +104,7 @@ internal class UserRolePermissionGroupTest
                     RoleCreateRequest(
                         name = "OPERATOR",
                         description = "운영자",
-                        permissionGroupIds = listOf(mainFacilityGroupId),
+                        permissionIds = listOf(mainFacilityGroupId),
                     ),
                     UsernamePasswordAuthenticationToken("testUser", null, null),
                 ) // 운영자는 주요 시설(1, 2)만 관리
@@ -113,7 +113,7 @@ internal class UserRolePermissionGroupTest
                     RoleCreateRequest(
                         name = "VIEWER",
                         description = "조회자",
-                        permissionGroupIds = listOf(cctvGroupId),
+                        permissionIds = listOf(cctvGroupId),
                     ),
                     UsernamePasswordAuthenticationToken("testUser", null, null),
                 ) // 조회자는 CCTV(1, 2)만 조회
@@ -159,18 +159,18 @@ internal class UserRolePermissionGroupTest
         @DisplayName("전체 라이프사이클 시나리오")
         internal inner class FullLifecycleScenario {
             @Test
-            @DisplayName("PermissionGroup 수정 → Role 수정 → User 수정까지 데이터 정합성 유지")
+            @DisplayName("Permission 수정 → Role 수정 → User 수정까지 데이터 정합성 유지")
             fun fullLifecycle_shouldMaintainConsistency() {
-                // === STEP 1: PermissionGroup의 권한 내용 변경 ===
+                // === STEP 1: Permission의 권한 내용 변경 ===
                 val operator = findUserOrFail(operatorUserId)
 
                 Assertions.assertTrue(operator.canAccess("FACILITY", "1"), "초기 상태: 1번 시설 접근 가능")
                 Assertions.assertFalse(operator.canAccess("FACILITY", "3"), "초기 상태: 3번 시설 접근 불가")
 
                 // WHEN: '주요 시설 관리 그룹'의 권한을 ID 1,2에서 ID 2,3으로 변경
-                permissionGroupService.update(
+                permissionService.update(
                     mainFacilityGroupId,
-                    PermissionGroupUpdateRequest(
+                    PermissionUpdateRequest(
                         "주요 시설 관리 그룹 v2",
                         null,
                         listOf(PermissionRequest("FACILITY", mutableListOf("2", "3"))),
@@ -185,7 +185,7 @@ internal class UserRolePermissionGroupTest
                 Assertions.assertTrue(operatorAfterStep1.canAccess("FACILITY", "2"), "2번 시설 권한은 유지되어야 함")
                 Assertions.assertTrue(operatorAfterStep1.canAccess("FACILITY", "3"), "3번 시설 권한이 생겨야 함")
 
-                // === STEP 2: Role에 할당된 PermissionGroup 변경 ===
+                // === STEP 2: Role에 할당된 Permission 변경 ===
                 // WHEN: OPERATOR 역할에 'CCTV 조회 그룹'을 추가
                 roleService.update(
                     operatorRoleId,
@@ -265,33 +265,33 @@ internal class UserRolePermissionGroupTest
         @DisplayName("삭제 시나리오 (Deletion Scenarios)")
         internal inner class DeletionScenario {
             @Test
-            @DisplayName("PermissionGroup 삭제 시, 해당 그룹을 포함하는 Role과 User의 권한이 자동으로 철회되어야 한다")
-            fun whenPermissionGroupIsDeleted_accessShouldBeRevoked() {
+            @DisplayName("Permission 삭제 시, 해당 그룹을 포함하는 Role과 User의 권한이 자동으로 철회되어야 한다")
+            fun whenPermissionIsDeleted_accessShouldBeRevoked() {
                 // GIVEN: operator 사용자는 mainFacilityGroupId를 통해 "FACILITY:1" 접근 권한이 있음
                 val operatorBeforeDelete = findUserOrFail(operatorUserId)
                 Assertions.assertTrue(operatorBeforeDelete.canAccess("FACILITY", "1"), "삭제 전, 시설 접근이 가능해야 합니다.")
 
                 // WHEN: '주요 시설 관리 그룹'(mainFacilityGroupId)을 삭제
-                permissionGroupService.delete(mainFacilityGroupId)
+                permissionService.delete(mainFacilityGroupId)
                 em.flush()
                 em.clear()
 
                 // THEN:
-                // 1. Role과 PermissionGroup의 매핑(RolePermission)이 사라졌는지 확인
+                // 1. Role과 Permission의 매핑(RolePermission)이 사라졌는지 확인
                 val count =
-                    rolePermissionRepository.findAll().count { it.permissionGroup.id == mainFacilityGroupId }
-                Assertions.assertEquals(0, count, "삭제된 PermissionGroup과 연결된 RolePermission 레코드는 없어야 합니다")
+                    rolePermissionRepository.findAll().count { it.permission.id == mainFacilityGroupId }
+                Assertions.assertEquals(0, count, "삭제된 Permission과 연결된 RolePermission 레코드는 없어야 합니다")
 
                 // 2. operator 사용자의 "FACILITY:1" 접근 권한이 사라졌는지 확인
                 val operatorAfterDelete = findUserOrFail(operatorUserId)
                 Assertions.assertFalse(
                     operatorAfterDelete.canAccess("FACILITY", "1"),
-                    "PermissionGroup 삭제 후, 시설 접근은 불가능해야 합니다.",
+                    "Permission 삭제 후, 시설 접근은 불가능해야 합니다.",
                 )
 
                 // 3. ADMIN 사용자는 여전히 모든 권한을 가져야 함 (특별 케이스)
                 val admin = findUserOrFail(adminUserId)
-                Assertions.assertTrue(admin.canAccess("FACILITY", "1"), "ADMIN은 PermissionGroup 삭제와 무관하게 접근 가능해야 합니다.")
+                Assertions.assertTrue(admin.canAccess("FACILITY", "1"), "ADMIN은 Permission 삭제와 무관하게 접근 가능해야 합니다.")
             }
 
             @Test
@@ -344,11 +344,11 @@ internal class UserRolePermissionGroupTest
                     "UserRole 레코드가 1개 줄어야 합니다.",
                 )
 
-                // 3. Role과 PermissionGroup은 영향을 받지 않았는지 확인
+                // 3. Role과 Permission은 영향을 받지 않았는지 확인
                 Assertions.assertTrue(roleRepository.existsById(operatorRoleId), "Role은 삭제되지 않아야 합니다.")
                 Assertions.assertTrue(
-                    permissionGroupRepository.existsById(mainFacilityGroupId),
-                    "PermissionGroup은 삭제되지 않아야 합니다.",
+                    permissionRepository.existsById(mainFacilityGroupId),
+                    "Permission은 삭제되지 않아야 합니다.",
                 )
             }
         }
@@ -375,12 +375,12 @@ internal class UserRolePermissionGroupTest
             }
 
             @Test
-            @DisplayName("Role에 할당된 모든 PermissionGroup을 제거했을 때, 해당 Role을 가진 User의 권한이 사라져야 한다")
-            fun whenAllPermissionGroupsRemovedFromRole_userShouldLoseAccess() {
+            @DisplayName("Role에 할당된 모든 Permission을 제거했을 때, 해당 Role을 가진 User의 권한이 사라져야 한다")
+            fun whenAllPermissionsRemovedFromRole_userShouldLoseAccess() {
                 // GIVEN: operator 사용자는 operatorRoleId를 통해 권한을 가지고 있음
                 Assertions.assertTrue(findUserOrFail(operatorUserId).canAccess("FACILITY", "1"))
 
-                // WHEN: Role 업데이트 시 빈 PermissionGroup ID 리스트를 전달
+                // WHEN: Role 업데이트 시 빈 Permission ID 리스트를 전달
                 roleService.update(operatorRoleId, RoleUpdateRequest("OPERATOR", null, mutableListOf()))
                 em.flush()
                 em.clear()
@@ -456,15 +456,15 @@ internal class UserRolePermissionGroupTest
             }
 
             @Test
-            @DisplayName("Role에 할당된 여러 PermissionGroup이 중복된 권한을 포함해도, canAccess는 정상 동작해야 한다")
+            @DisplayName("Role에 할당된 여러 Permission이 중복된 권한을 포함해도, canAccess는 정상 동작해야 한다")
             fun whenRoleHasOverlappingPermissions_canAccessShouldWorkCorrectly() {
                 // GIVEN:
-                // "FACILITY:2" 권한을 중복으로 포함하는 새로운 PermissionGroup 생성
+                // "FACILITY:2" 권한을 중복으로 포함하는 새로운 Permission 생성
                 val overlappingPermission =
                     PermissionRequest("FACILITY", mutableListOf("2", "4"))
                 val overlappingGroupId =
-                    permissionGroupService.create(
-                        PermissionGroupCreateRequest("중복 권한 그룹", null, listOf(overlappingPermission)),
+                    permissionService.create(
+                        PermissionCreateRequest("중복 권한 그룹", null, listOf(overlappingPermission)),
                     )
 
                 // OPERATOR 역할에 이 그룹을 추가 (기존 '주요 시설 관리 그룹'과 "FACILITY:2"가 겹침)

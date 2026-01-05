@@ -2,11 +2,12 @@ package com.pluxity.user
 
 import com.pluxity.config.MockBeansConfig
 import com.pluxity.global.exception.CustomException
-import com.pluxity.permission.PermissionGroupRepository
-import com.pluxity.permission.PermissionGroupService
+import com.pluxity.permission.DomainPermissionRepository
 import com.pluxity.permission.PermissionRepository
+import com.pluxity.permission.PermissionService
+import com.pluxity.permission.ResourcePermissionRepository
 import com.pluxity.permission.ResourceType
-import com.pluxity.permission.dto.PermissionGroupCreateRequest
+import com.pluxity.permission.dto.PermissionCreateRequest
 import com.pluxity.permission.dto.PermissionRequest
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleUpdateRequest
@@ -41,13 +42,14 @@ internal class UserIntegrationTest
     constructor(
         private val userService: UserService,
         private val roleService: RoleService,
-        private val permissionGroupService: PermissionGroupService, // PermissionService -> PermissionGroupService
+        private val permissionService: PermissionService, // PermissionService -> PermissionService
         private val userRepository: UserRepository,
         private val userRoleRepository: UserRoleRepository,
         private val roleRepository: RoleRepository,
         private val rolePermissionRepository: RolePermissionRepository,
-        private val permissionGroupRepository: PermissionGroupRepository, // 추가
         private val permissionRepository: PermissionRepository, // 추가
+        private val resourcePermissionRepository: ResourcePermissionRepository, // 추가
+        private val domainPermissionRepository: DomainPermissionRepository,
         private val em: EntityManager,
     ) {
         // 테스트 전체에서 사용할 고정된 ID
@@ -57,29 +59,30 @@ internal class UserIntegrationTest
         private var operatorRoleId by Delegates.notNull<Long>()
         private var viewerRoleId by Delegates.notNull<Long>()
 
-        // Permission ID -> PermissionGroup ID
+        // Permission ID -> Permission ID
         private var userManageGroupId by Delegates.notNull<Long>()
         private var facilityReadGroupId by Delegates.notNull<Long>()
         private var facilityEditGroupId by Delegates.notNull<Long>()
 
-        /** 각 테스트 실행 전, 복잡하게 얽힌 상태를 미리 설정합니다. (PermissionGroup 중심 구조로 변경)  */
+        /** 각 테스트 실행 전, 복잡하게 얽힌 상태를 미리 설정합니다. (Permission 중심 구조로 변경)  */
         @BeforeEach
         fun setUp() {
             // 모든 테이블 초기화 (참조 무결성 순서 고려)
             userRoleRepository.deleteAllInBatch()
             rolePermissionRepository.deleteAllInBatch()
+            resourcePermissionRepository.deleteAllInBatch()
+            domainPermissionRepository.deleteAllInBatch()
             permissionRepository.deleteAllInBatch()
-            permissionGroupRepository.deleteAllInBatch()
             userRepository.deleteAllInBatch()
             roleRepository.deleteAllInBatch()
 
             em.flush()
             em.clear()
 
-            // 1. PermissionGroup 생성
+            // 1. Permission 생성
             userManageGroupId =
-                permissionGroupService.create(
-                    PermissionGroupCreateRequest(
+                permissionService.create(
+                    PermissionCreateRequest(
                         "사용자 관리 그룹",
                         "모든 사용자 관리 권한",
                         listOf(
@@ -91,8 +94,8 @@ internal class UserIntegrationTest
                     ),
                 )
             facilityReadGroupId =
-                permissionGroupService.create(
-                    PermissionGroupCreateRequest(
+                permissionService.create(
+                    PermissionCreateRequest(
                         "시설 조회 그룹",
                         "시설 조회 권한",
                         listOf(
@@ -104,8 +107,8 @@ internal class UserIntegrationTest
                     ),
                 )
             facilityEditGroupId =
-                permissionGroupService.create(
-                    PermissionGroupCreateRequest(
+                permissionService.create(
+                    PermissionCreateRequest(
                         "시설 수정 그룹",
                         "시설 수정 권한",
                         listOf(
@@ -117,13 +120,13 @@ internal class UserIntegrationTest
                     ),
                 )
 
-            // 2. Role 생성 및 PermissionGroup 할당
+            // 2. Role 생성 및 Permission 할당
             adminRoleId =
                 roleService.save(
                     RoleCreateRequest(
                         name = "ADMIN",
                         description = "관리자",
-                        permissionGroupIds = listOf(userManageGroupId, facilityReadGroupId, facilityEditGroupId),
+                        permissionIds = listOf(userManageGroupId, facilityReadGroupId, facilityEditGroupId),
                     ),
                     UsernamePasswordAuthenticationToken("testUser", null, null),
                 )
@@ -132,7 +135,7 @@ internal class UserIntegrationTest
                     RoleCreateRequest(
                         name = "OPERATOR",
                         description = "운영자",
-                        permissionGroupIds = listOf(facilityReadGroupId, facilityEditGroupId),
+                        permissionIds = listOf(facilityReadGroupId, facilityEditGroupId),
                     ),
                     UsernamePasswordAuthenticationToken("testUser", null, null),
                 )
@@ -141,7 +144,7 @@ internal class UserIntegrationTest
                     RoleCreateRequest(
                         name = "VIEWER",
                         description = "조회자",
-                        permissionGroupIds = listOf(facilityReadGroupId),
+                        permissionIds = listOf(facilityReadGroupId),
                     ),
                     UsernamePasswordAuthenticationToken("testUser", null, null),
                 )
@@ -236,8 +239,8 @@ internal class UserIntegrationTest
         }
 
         @Test
-        @DisplayName("[연쇄 삭제 검증 2] 특정 PermissionGroup 삭제 시, Role들은 유지되지만 RolePermission 연결은 끊어져야 한다")
-        fun deletePermissionGroup_shouldOnlyRemoveGroupAndRolePermissionLink_notRole() {
+        @DisplayName("[연쇄 삭제 검증 2] 특정 Permission 삭제 시, Role들은 유지되지만 RolePermission 연결은 끊어져야 한다")
+        fun deletePermission_shouldOnlyRemoveGroupAndRolePermissionLink_notRole() {
             // GIVEN
             val initialRoleCount = roleRepository.count()
             val initialRolePermissionCount =
@@ -248,13 +251,13 @@ internal class UserIntegrationTest
             Assertions.assertThat(operatorRoleBeforeDelete.rolePermissions).hasSize(2)
 
             // WHEN: 운영자와 관리자 모두 가진 '시설 수정 그룹' 삭제
-            permissionGroupService.delete(facilityEditGroupId)
+            permissionService.delete(facilityEditGroupId)
             em.flush()
             em.clear()
 
             // THEN
             assertThrows<CustomException> {
-                permissionGroupService.findById(facilityEditGroupId)
+                permissionService.findById(facilityEditGroupId)
             }
             Assertions.assertThat(roleRepository.count()).isEqualTo(initialRoleCount)
             Assertions.assertThat(rolePermissionRepository.count()).isEqualTo(initialRolePermissionCount - 2)
@@ -308,7 +311,7 @@ internal class UserIntegrationTest
         }
 
         @Test
-        @DisplayName("[복합 업데이트 2] Role의 PermissionGroup 목록을 변경하면 User의 접근 권한이 즉시 변경되어야 한다")
+        @DisplayName("[복합 업데이트 2] Role의 Permission 목록을 변경하면 User의 접근 권한이 즉시 변경되어야 한다")
         fun updateRolePermissions_shouldReflectOnAllUsersWithThatRole() {
             // GIVEN
             val operator = findUserOrFail(operatorUserId)
@@ -340,10 +343,10 @@ internal class UserIntegrationTest
         }
 
         @Test
-        @DisplayName("[전체 시나리오] PermissionGroup 삭제 -> User 역할 변경 -> Role 삭제 -> User 삭제 순으로 실행해도 데이터 정합성이 깨지지 않는다")
+        @DisplayName("[전체 시나리오] Permission 삭제 -> User 역할 변경 -> Role 삭제 -> User 삭제 순으로 실행해도 데이터 정합성이 깨지지 않는다")
         fun fullScenario_deletePermissionThenUpdateRoleThenUpdateUserThenDeleteUser() {
-            // === 1. PermissionGroup 삭제 (facility_edit) ===
-            permissionGroupService.delete(facilityEditGroupId)
+            // === 1. Permission 삭제 (facility_edit) ===
+            permissionService.delete(facilityEditGroupId)
             em.flush()
             em.clear()
 
@@ -398,6 +401,6 @@ internal class UserIntegrationTest
             // FINAL: admin 유저와 관련 데이터는 모두 온전해야 함
             Assertions.assertThat(userRepository.findWithGraphById(adminUserId)).isNotNull()
             Assertions.assertThat(roleRepository.findById(adminRoleId)).isPresent()
-            Assertions.assertThat(permissionGroupRepository.findById(userManageGroupId)).isPresent()
+            Assertions.assertThat(permissionRepository.findById(userManageGroupId)).isPresent()
         }
     }

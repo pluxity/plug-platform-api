@@ -1,47 +1,68 @@
 package com.pluxity.permission
 
 import com.pluxity.global.entity.IdentityIdEntity
-import jakarta.persistence.Column
+import com.pluxity.user.entity.RolePermission
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
-import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
 @Entity
 @Table(name = "permission")
 class Permission(
-    @Column(nullable = false)
-    var resourceName: String,
-    @Column(nullable = false)
-    var resourceId: String,
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var level: PermissionLevel = PermissionLevel.READ,
-    @ManyToOne(fetch = FetchType.LAZY)
-    var permissionGroup: PermissionGroup? = null,
+    var name: String,
+    var description: String?,
 ) : IdentityIdEntity() {
-    fun allows(
-        resourceName: String,
-        resourceId: String,
-        requiredLevel: PermissionLevel,
-    ): Boolean =
-        this.resourceName.equals(resourceName, ignoreCase = true) &&
-            this.resourceId == resourceId &&
-            this.level.allows(requiredLevel)
+    @OneToMany(mappedBy = "permission", cascade = [CascadeType.ALL])
+    val rolePermissions: MutableSet<RolePermission> = HashSet()
 
-    fun changePermissionGroup(permissionGroup: PermissionGroup?) {
-        this.permissionGroup?.permissions?.remove(this)
-        this.permissionGroup = permissionGroup
-        permissionGroup?.permissions?.let { permissions ->
-            if (!permissions.contains(this)) {
-                permissions.add(this)
+    @OneToMany(mappedBy = "permission", cascade = [CascadeType.ALL])
+    val resourcePermissions: MutableSet<ResourcePermission> = HashSet()
+
+    @OneToMany(mappedBy = "permission", cascade = [CascadeType.ALL])
+    val domainPermissions: MutableSet<DomainPermission> = HashSet()
+
+    fun changeName(name: String) {
+        this.name = name
+    }
+
+    fun changeDescription(description: String) {
+        this.description = description
+    }
+
+    fun addResourcePermission(permission: ResourcePermission) {
+        if (!resourcePermissions.contains(permission)) {
+            resourcePermissions.add(permission)
+            if (permission.permission != this) {
+                permission.changePermission(this)
             }
         }
     }
 
-    fun clearPermissionGroup() {
-        this.permissionGroup = null
+    fun removeResourcePermission(permission: ResourcePermission) {
+        if (resourcePermissions.contains(permission)) {
+            resourcePermissions.remove(permission)
+            if (permission.permission == this) {
+                permission.clearPermission()
+            }
+        }
+    }
+
+    fun addDomainPermission(permission: DomainPermission) {
+        if (!domainPermissions.contains(permission)) {
+            domainPermissions.add(permission)
+            if (permission.permission != this) {
+                permission.changePermission(this)
+            }
+        }
+    }
+
+    fun removeDomainPermission(permission: DomainPermission) {
+        if (domainPermissions.contains(permission)) {
+            domainPermissions.remove(permission)
+            if (permission.permission == this) {
+                permission.clearPermission()
+            }
+        }
     }
 }

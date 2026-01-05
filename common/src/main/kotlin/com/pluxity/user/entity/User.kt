@@ -101,8 +101,17 @@ class User(
         resourceId: String,
         requiredLevel: PermissionLevel,
     ): Boolean =
-        userRoles.any { it.role.auth == RoleType.ADMIN.roleName } ||
-            userRoles.any { it.role.hasPermissionFor(resourceName, resourceId, requiredLevel) }
+        isAdmin() ||
+            userRoles.any { it.role.hasResourcePermissionFor(resourceName, resourceId, requiredLevel) }
+
+    fun canAccessDomain(
+        resourceName: String,
+        requiredLevel: PermissionLevel,
+    ): Boolean =
+        isAdmin() ||
+            userRoles.any { it.role.hasDomainPermissionFor(resourceName, requiredLevel) }
+
+    fun isAdmin(): Boolean = userRoles.any { it.role.auth == RoleType.ADMIN.roleName }
 
     fun isPasswordChangeRequired(): Boolean =
         lastPasswordChangeDate.isBefore(

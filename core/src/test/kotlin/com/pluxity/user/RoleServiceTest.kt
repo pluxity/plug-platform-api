@@ -4,10 +4,10 @@ import com.pluxity.building.Building
 import com.pluxity.building.BuildingRepository
 import com.pluxity.config.MockBeansConfig
 import com.pluxity.global.exception.CustomException
-import com.pluxity.permission.PermissionGroupRepository
-import com.pluxity.permission.PermissionGroupService
+import com.pluxity.permission.PermissionRepository
+import com.pluxity.permission.PermissionService
 import com.pluxity.permission.ResourceType
-import com.pluxity.permission.dto.PermissionGroupCreateRequest
+import com.pluxity.permission.dto.PermissionCreateRequest
 import com.pluxity.permission.dto.PermissionRequest
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleUpdateRequest
@@ -37,8 +37,8 @@ internal class RoleServiceTest
     @Autowired
     constructor(
         private val roleService: RoleService,
-        private val permissionGroupService: PermissionGroupService, // PermissionService -> PermissionGroupService
-        private val permissionGroupRepository: PermissionGroupRepository, // 추가
+        private val permissionService: PermissionService, // PermissionService -> PermissionService
+        private val permissionRepository: PermissionRepository, // 추가
         private val buildingRepository: BuildingRepository,
         private val em: EntityManager,
         private val roleRepository: RoleRepository,
@@ -46,8 +46,8 @@ internal class RoleServiceTest
     ) {
         val buildings: MutableList<Building> = mutableListOf()
 
-        // permissionIds -> permissionGroupIds
-        val permissionGroupIds: MutableList<Long> = mutableListOf()
+        // permissionIds -> permissionIds
+        val permissionIds: MutableList<Long> = mutableListOf()
 
         @BeforeEach
         fun setUp() {
@@ -59,13 +59,13 @@ internal class RoleServiceTest
                 },
             )
 
-            // [수정] 테스트에 사용할 권한 그룹(PermissionGroup)을 미리 생성
-            permissionGroupIds.clear()
+            // [수정] 테스트에 사용할 권한 그룹(Permission)을 미리 생성
+            permissionIds.clear()
 
             buildings.forEach { building: Building ->
                 // 각 건물 ID에 대해 하나의 권한을 가진 그룹을 생성
                 val request =
-                    PermissionGroupCreateRequest(
+                    PermissionCreateRequest(
                         "Building ${building.id} Group",
                         "Description for ${building.name}",
                         listOf(
@@ -75,8 +75,8 @@ internal class RoleServiceTest
                             ),
                         ),
                     )
-                val groupId = permissionGroupService.create(request)
-                permissionGroupIds.add(groupId)
+                val groupId = permissionService.create(request)
+                permissionIds.add(groupId)
             }
 
             em.flush()
@@ -85,10 +85,10 @@ internal class RoleServiceTest
 
         @Test
         @DisplayName("새로운 Role을 권한 그룹과 함께 생성하고, 생성된 Role을 서비스로 조회하여 검증한다")
-        fun save_withPermissionGroups_andVerifyWithService() {
+        fun save_withPermissions_andVerifyWithService() {
             // GIVEN
             // 1번, 2번 건물에 대한 권한 그룹 ID만 사용하여 Role 생성
-            val initialGroupIds = listOf(permissionGroupIds[0], permissionGroupIds[1])
+            val initialGroupIds = listOf(permissionIds[0], permissionIds[1])
             val createRequest =
                 RoleCreateRequest("Test Role", "A role for testing", initialGroupIds)
 
@@ -104,14 +104,14 @@ internal class RoleServiceTest
             Assertions.assertThat(response.name).isEqualTo("Test Role")
             Assertions.assertThat(response.description).isEqualTo("A role for testing")
 
-            // Role이 가진 PermissionGroup 목록을 검증
-            // RoleResponse가 PermissionGroup ID 목록을 직접 반환한다고 가정
+            // Role이 가진 Permission 목록을 검증
+            // RoleResponse가 Permission ID 목록을 직접 반환한다고 가정
             // (만약 아니라면, Role 엔티티를 직접 조회해서 확인해야 함)
             val responseGroupIds =
                 roleService
                     .findRoleById(roleId)
                     .rolePermissions
-                    .map { it.permissionGroup.id }
+                    .map { it.permission.id }
 
             Assertions.assertThat(responseGroupIds).hasSize(2)
             Assertions.assertThat(responseGroupIds).containsExactlyInAnyOrderElementsOf(initialGroupIds)
@@ -121,7 +121,7 @@ internal class RoleServiceTest
         @DisplayName("ID로 Role 조회 시, 할당된 모든 권한 그룹의 상세 권한 정보까지 포함하여 반환한다")
         fun findById_returnsRoleWithAllPermissionsInGroups() {
             // GIVEN
-            val initialGroupIds = listOf(permissionGroupIds[0], permissionGroupIds[1])
+            val initialGroupIds = listOf(permissionIds[0], permissionIds[1])
             val createRequest =
                 RoleCreateRequest(
                     "Test Role",
@@ -144,8 +144,9 @@ internal class RoleServiceTest
 
             val responseResourceIds =
                 response.permissions
-                    .flatMap { group -> group.permissions }
-                    .flatMap { perm -> perm.permissions.map { it.resourceId } }
+                    .flatMap { group -> group.resourcePermissions }
+                    .flatMap { perm -> perm.permissions }
+                    .map { it.resourceId }
 
             Assertions
                 .assertThat(responseResourceIds)
@@ -165,7 +166,7 @@ internal class RoleServiceTest
                     RoleCreateRequest(
                         "Initial Role",
                         "Desc",
-                        listOf(permissionGroupIds[0], permissionGroupIds[1]),
+                        listOf(permissionIds[0], permissionIds[1]),
                     ),
                     authentication,
                 )
@@ -173,7 +174,7 @@ internal class RoleServiceTest
             em.clear()
 
             // 업데이트 요청: 1번은 삭제, 2번은 유지, 3번은 새로 추가 -> 최종 권한 그룹은 2, 3번
-            val updatedGroupIdList = listOf(permissionGroupIds[1], permissionGroupIds[2])
+            val updatedGroupIdList = listOf(permissionIds[1], permissionIds[2])
             val updateRequest =
                 RoleUpdateRequest(
                     "Updated Role",
@@ -196,8 +197,9 @@ internal class RoleServiceTest
             Assertions.assertThat(response.permissions).hasSize(2)
             val finalResourceIds =
                 response.permissions
-                    .flatMap { group -> group.permissions }
-                    .flatMap { perm -> perm.permissions.map { it.resourceId } }
+                    .flatMap { group -> group.resourcePermissions }
+                    .flatMap { perm -> perm.permissions }
+                    .map { it.resourceId }
 
             Assertions
                 .assertThat(finalResourceIds)
@@ -215,16 +217,16 @@ internal class RoleServiceTest
                 roleRepository.save(Role(name = "Deletable Role", description = "Desc"))
             em.flush()
             em.clear()
-            val permissionGroup =
-                permissionGroupService.findPermissionGroupById(permissionGroupIds.first())
-            val newRolePermissions = listOf(RolePermission(role = role, permissionGroup = permissionGroup))
+            val permission =
+                permissionService.findPermissionById(permissionIds.first())
+            val newRolePermissions = listOf(RolePermission(role = role, permission = permission))
             rolePermissionRepository.saveAll(newRolePermissions)
             newRolePermissions.forEach { rolePermission: RolePermission -> role.addRolePermission(rolePermission) }
             val roleId = role.requiredId
 
             Assertions.assertThat(roleService.findById(roleId)).isNotNull()
 
-            val initialGroupCount = permissionGroupRepository.count()
+            val initialGroupCount = permissionRepository.count()
 
             // WHEN
             roleService.delete(roleId)
@@ -234,8 +236,8 @@ internal class RoleServiceTest
             // THEN
             assertThrows<CustomException> { roleService.findById(roleId) }
 
-            // [중요] PermissionGroup 엔티티 자체는 삭제되지 않고 그대로 남아있어야 함을 검증
-            Assertions.assertThat(permissionGroupRepository.count()).isEqualTo(initialGroupCount)
+            // [중요] Permission 엔티티 자체는 삭제되지 않고 그대로 남아있어야 함을 검증
+            Assertions.assertThat(permissionRepository.count()).isEqualTo(initialGroupCount)
         }
 
         @Test

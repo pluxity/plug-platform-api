@@ -3,9 +3,9 @@ package com.pluxity.permission
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.DataResponseBody
 import com.pluxity.global.response.ErrorResponseBody
-import com.pluxity.permission.dto.PermissionGroupCreateRequest
-import com.pluxity.permission.dto.PermissionGroupResponse
-import com.pluxity.permission.dto.PermissionGroupUpdateRequest
+import com.pluxity.permission.dto.PermissionCreateRequest
+import com.pluxity.permission.dto.PermissionResponse
+import com.pluxity.permission.dto.PermissionUpdateRequest
 import com.pluxity.permission.dto.ResourceTypeResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -28,8 +28,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/permissions")
 @Tag(name = "Permission", description = "권한 관리 API")
-class PermissionGroupController(
-    private val permissionGroupService: PermissionGroupService,
+class PermissionController(
+    private val permissionService: PermissionService,
 ) {
     @Operation(summary = "권한 생성", description = "새로운 권한과 하위 권한들을 생성합니다.")
     @ApiResponses(
@@ -46,9 +46,9 @@ class PermissionGroupController(
     )
     @PostMapping
     @ResponseCreated(path = "/permissions/{id}")
-    fun createPermissionGroup(
-        @Parameter(description = "권한 생성 정보", required = true) @RequestBody request: @Valid PermissionGroupCreateRequest,
-    ): ResponseEntity<Long> = ResponseEntity.ok(permissionGroupService.create(request))
+    fun createPermission(
+        @Parameter(description = "권한 생성 정보", required = true) @RequestBody request: @Valid PermissionCreateRequest,
+    ): ResponseEntity<Long> = ResponseEntity.ok(permissionService.create(request))
 
     @GetMapping
     @ApiResponses(
@@ -60,8 +60,8 @@ class PermissionGroupController(
         ],
     )
     @Operation(summary = "권한 목록 조회", description = "모든 권한 목록을 조회합니다.")
-    fun getPermissionGroups(): ResponseEntity<DataResponseBody<List<PermissionGroupResponse>>> =
-        ResponseEntity.ok(DataResponseBody(permissionGroupService.findAll()))
+    fun getPermissions(): ResponseEntity<DataResponseBody<List<PermissionResponse>>> =
+        ResponseEntity.ok(DataResponseBody(permissionService.findAll()))
 
     @Operation(summary = "권한 상세 조회", description = "ID로 특정 권한의 상세 정보를 조회합니다.")
     @ApiResponses(
@@ -77,9 +77,9 @@ class PermissionGroupController(
         ],
     )
     @GetMapping("/{id}")
-    fun getPermissionGroup(
+    fun getPermission(
         @Parameter(description = "권한 ID", required = true) @PathVariable id: Long,
-    ): ResponseEntity<DataResponseBody<PermissionGroupResponse>> = ResponseEntity.ok(DataResponseBody(permissionGroupService.findById(id)))
+    ): ResponseEntity<DataResponseBody<PermissionResponse>> = ResponseEntity.ok(DataResponseBody(permissionService.findById(id)))
 
     @Operation(summary = "권한 정보 수정", description = "ID로 특정 권한의 정보를 수정합니다. (PATCH 방식)")
     @ApiResponses(
@@ -99,11 +99,11 @@ class PermissionGroupController(
         ],
     )
     @PatchMapping("/{id}")
-    fun updatePermissionGroup(
+    fun updatePermission(
         @Parameter(description = "권한 ID", required = true) @PathVariable id: Long,
-        @Parameter(description = "권한 수정 정보", required = true) @RequestBody request: @Valid PermissionGroupUpdateRequest,
+        @Parameter(description = "권한 수정 정보", required = true) @RequestBody request: @Valid PermissionUpdateRequest,
     ): ResponseEntity<Void> {
-        permissionGroupService.update(id, request)
+        permissionService.update(id, request)
         return ResponseEntity.noContent().build()
     }
 
@@ -121,10 +121,10 @@ class PermissionGroupController(
         ],
     )
     @DeleteMapping("/{id}")
-    fun deletePermissionGroup(
+    fun deletePermission(
         @Parameter(description = "권한 ID", required = true) @PathVariable id: Long,
     ): ResponseEntity<Void?> {
-        permissionGroupService.delete(id)
+        permissionService.delete(id)
         return ResponseEntity.noContent().build<Void?>()
     }
 

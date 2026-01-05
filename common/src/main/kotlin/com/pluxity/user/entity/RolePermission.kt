@@ -1,6 +1,6 @@
 package com.pluxity.user.entity
 
-import com.pluxity.permission.PermissionGroup
+import com.pluxity.permission.Permission
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -20,6 +20,6 @@ class RolePermission(
     @JoinColumn(name = "role_id")
     var role: Role,
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_group_id")
-    var permissionGroup: PermissionGroup,
+    @JoinColumn(name = "permission_id")
+    var permission: Permission,
 )

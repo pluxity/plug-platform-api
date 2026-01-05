@@ -5,9 +5,9 @@ import com.pluxity.building.BuildingRepository
 import com.pluxity.config.MockBeansConfig
 import com.pluxity.facility.FacilityService
 import com.pluxity.global.exception.CustomException
-import com.pluxity.permission.PermissionGroupService
+import com.pluxity.permission.PermissionService
 import com.pluxity.permission.ResourceType
-import com.pluxity.permission.dto.PermissionGroupCreateRequest
+import com.pluxity.permission.dto.PermissionCreateRequest
 import com.pluxity.permission.dto.PermissionRequest
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.UserRoleUpdateRequest
@@ -39,7 +39,7 @@ internal class UserRolePermissionIntegrationTest
     constructor(
         private val userService: UserService,
         private val roleService: RoleService,
-        private val permissionGroupService: PermissionGroupService,
+        private val permissionService: PermissionService,
         private val facilityService: FacilityService,
         private val userRepository: UserRepository,
         private val roleRepository: RoleRepository,
@@ -105,9 +105,9 @@ internal class UserRolePermissionIntegrationTest
 
             setAuthentication(adminUser)
 
-            // 2. [수정] 1번, 3번 시설에 대한 PermissionGroup을 생성합니다.
+            // 2. [수정] 1번, 3번 시설에 대한 Permission을 생성합니다.
             val createGroup1Request =
-                PermissionGroupCreateRequest(
+                PermissionCreateRequest(
                     "1번 시설 그룹",
                     "1번 시설 접근 권한",
                     listOf(
@@ -118,7 +118,7 @@ internal class UserRolePermissionIntegrationTest
                     ),
                 )
             val createGroup3Request =
-                PermissionGroupCreateRequest(
+                PermissionCreateRequest(
                     "3번 시설 그룹",
                     "3번 시설 접근 권한",
                     listOf(
@@ -129,12 +129,12 @@ internal class UserRolePermissionIntegrationTest
                     ),
                 )
 
-            val group1Id = permissionGroupService.create(createGroup1Request)
-            val group3Id = permissionGroupService.create(createGroup3Request)
+            val group1Id = permissionService.create(createGroup1Request)
+            val group3Id = permissionService.create(createGroup3Request)
 
             val permittedGroupIds = listOf(group1Id, group3Id)
 
-            // 3. [수정] "시설 관리자" 역할을 생성하면서 위에서 생성한 PermissionGroup들의 ID 목록을 전달합니다.
+            // 3. [수정] "시설 관리자" 역할을 생성하면서 위에서 생성한 Permission들의 ID 목록을 전달합니다.
             val createRoleRequest =
                 RoleCreateRequest("시설 관리자", "1, 3번 시설 접근 가능", permittedGroupIds)
             val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)

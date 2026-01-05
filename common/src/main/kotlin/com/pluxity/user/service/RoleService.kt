@@ -2,7 +2,7 @@ package com.pluxity.user.service
 
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.permission.PermissionGroupService
+import com.pluxity.permission.PermissionService
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleResponse
 import com.pluxity.user.dto.RoleUpdateRequest
@@ -23,7 +23,7 @@ class RoleService(
     private val roleRepository: RoleRepository,
     private val rolePermissionRepository: RolePermissionRepository,
     private val userRoleRepository: UserRoleRepository,
-    private val permissionGroupService: PermissionGroupService,
+    private val permissionService: PermissionService,
     private val em: EntityManager,
 ) {
     @Transactional
@@ -43,14 +43,14 @@ class RoleService(
                 ),
             )
 
-        request.permissionGroupIds.let { groupIds ->
-            if (groupIds.isNotEmpty()) {
+        request.permissionIds.let { permissionIds ->
+            if (permissionIds.isNotEmpty()) {
                 val newRolePermissions =
-                    groupIds.map { groupId ->
-                        val permissionGroup = permissionGroupService.findPermissionGroupById(groupId)
+                    permissionIds.map { permissionId ->
+                        val permission = permissionService.findPermissionById(permissionId)
                         RolePermission(
                             role = role,
-                            permissionGroup = permissionGroup,
+                            permission = permission,
                         )
                     }
 
@@ -85,19 +85,19 @@ class RoleService(
         }
         request.description?.let { role.changeDescription(request.description) }
 
-        request.permissionGroupIds?.let { syncPermissionGroups(role, request.permissionGroupIds) }
+        request.permissionIds?.let { syncPermissions(role, request.permissionIds) }
     }
 
-    private fun syncPermissionGroups(
+    private fun syncPermissions(
         role: Role,
-        requestedGroupIds: List<Long>,
+        requestedPermissionIds: List<Long>,
     ) {
-        val currentGroupIds = role.rolePermissions.map { it.permissionGroup.id }.toSet()
-        val requestedGroupIdsSet = requestedGroupIds.toSet()
+        val currentPermissionIds = role.rolePermissions.map { it.permission.id }.toSet()
+        val requestedPermissionIdsSet = requestedPermissionIds.toSet()
 
         val rolePermissionsToRemove =
             role.rolePermissions
-                .filter { !requestedGroupIdsSet.contains(it.permissionGroup.id) }
+                .filter { !requestedPermissionIdsSet.contains(it.permission.id) }
 
         if (rolePermissionsToRemove.isNotEmpty()) {
             rolePermissionRepository.deleteAllInBatch(rolePermissionsToRemove)
@@ -106,15 +106,15 @@ class RoleService(
             }
         }
 
-        val idsToAdd = requestedGroupIdsSet.filter { !currentGroupIds.contains(it) }
+        val idsToAdd = requestedPermissionIdsSet.filter { !currentPermissionIds.contains(it) }
 
         if (idsToAdd.isNotEmpty()) {
             val rolePermissionsToAdd =
-                idsToAdd.map { groupId ->
-                    val permissionGroup = permissionGroupService.findPermissionGroupById(groupId)
+                idsToAdd.map { permissionId ->
+                    val permission = permissionService.findPermissionById(permissionId)
                     RolePermission(
                         role = role,
-                        permissionGroup = permissionGroup,
+                        permission = permission,
                     )
                 }
 

@@ -50,7 +50,7 @@ class UserRoleTest
                     RoleCreateRequest(
                         name = "Test Role $i",
                         description = "Desc $i",
-                        permissionGroupIds = mutableListOf(),
+                        permissionIds = mutableListOf(),
                     )
                 val authentication = UsernamePasswordAuthenticationToken("testUser", null, null)
                 roleIds.add(roleService.save(request, authentication))

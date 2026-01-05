@@ -9,8 +9,9 @@ import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.permission.Permission
+import com.pluxity.permission.DomainPermission
 import com.pluxity.permission.PermissionLevel
+import com.pluxity.permission.ResourcePermission
 import com.pluxity.permission.ResourceType
 import com.pluxity.user.service.UserResourcePermissionService
 import com.pluxity.user.service.UserService
@@ -75,13 +76,14 @@ class CctvPermissionTest : BehaviorSpec() {
             When("글로벌 정책이 있으면 생성 후 소유권을 등록") {
                 setUserWithPermissions(
                     userService,
-                    listOf(
-                        Permission(
-                            resourceName = ResourceType.CCTV.name,
-                            resourceId = "ALL",
-                            level = PermissionLevel.WRITE,
+                    resourcePermissions = emptyList(),
+                    domainPermissions =
+                        listOf(
+                            DomainPermission(
+                                resourceName = ResourceType.CCTV.name,
+                                level = PermissionLevel.WRITE,
+                            ),
                         ),
-                    ),
                 )
                 every { cctvRepository.save(any()) } returns Cctv("c1", "name", "url")
                 every { userResourcePermissionService.create(10L, ResourceType.CCTV, "c1") } just runs
@@ -142,6 +144,17 @@ class CctvPermissionTest : BehaviorSpec() {
             }
 
             When("소유주면 수정이 정상 동작") {
+                setUserWithPermissions(
+                    userService,
+                    resourcePermissions = emptyList(),
+                    domainPermissions =
+                        listOf(
+                            DomainPermission(
+                                resourceName = ResourceType.CCTV.name,
+                                level = PermissionLevel.WRITE,
+                            ),
+                        ),
+                )
                 val cctv = Cctv("c1", "name", "url")
                 every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 every { userResourcePermissionService.exists(10L, ResourceType.CCTV, "c1") } returns true
@@ -157,13 +170,21 @@ class CctvPermissionTest : BehaviorSpec() {
                 every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 setUserWithPermissions(
                     userService,
-                    listOf(
-                        Permission(
-                            resourceName = ResourceType.CCTV.name,
-                            resourceId = "ALL",
-                            level = PermissionLevel.WRITE,
+                    resourcePermissions =
+                        listOf(
+                            ResourcePermission(
+                                resourceName = ResourceType.CCTV.name,
+                                resourceId = "c1",
+                                level = PermissionLevel.WRITE,
+                            ),
                         ),
-                    ),
+                    domainPermissions =
+                        listOf(
+                            DomainPermission(
+                                resourceName = ResourceType.CCTV.name,
+                                level = PermissionLevel.WRITE,
+                            ),
+                        ),
                 )
                 cctvService.update("c1", CctvUpdateRequest("new-name", "new-url"))
                 Then("정상 수정된다") {
@@ -234,13 +255,21 @@ class CctvPermissionTest : BehaviorSpec() {
                 every { userResourcePermissionService.delete(10L, ResourceType.CCTV, "c1") } just runs
                 setUserWithPermissions(
                     userService,
-                    listOf(
-                        Permission(
-                            resourceName = ResourceType.CCTV.name,
-                            resourceId = "ALL",
-                            level = PermissionLevel.ADMIN,
+                    resourcePermissions =
+                        listOf(
+                            ResourcePermission(
+                                resourceName = ResourceType.CCTV.name,
+                                resourceId = "c1",
+                                level = PermissionLevel.ADMIN,
+                            ),
                         ),
-                    ),
+                    domainPermissions =
+                        listOf(
+                            DomainPermission(
+                                resourceName = ResourceType.CCTV.name,
+                                level = PermissionLevel.ADMIN,
+                            ),
+                        ),
                 )
                 cctvService.delete("c1")
                 Then("정상 삭제된다") {
@@ -251,6 +280,17 @@ class CctvPermissionTest : BehaviorSpec() {
             }
 
             When("소유주면 삭제 후 소유권이 해제") {
+                setUserWithPermissions(
+                    userService,
+                    resourcePermissions = emptyList(),
+                    domainPermissions =
+                        listOf(
+                            DomainPermission(
+                                resourceName = ResourceType.CCTV.name,
+                                level = PermissionLevel.ADMIN,
+                            ),
+                        ),
+                )
                 val cctv = Cctv("c1", "name", "url")
                 every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 every { userResourcePermissionService.exists(10L, ResourceType.CCTV, "c1") } returns true

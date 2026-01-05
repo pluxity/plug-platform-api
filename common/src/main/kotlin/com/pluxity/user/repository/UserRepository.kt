@@ -15,7 +15,9 @@ interface UserRepository : JpaRepository<User, Long> {
 
     @EntityGraph(
         attributePaths = [
-            "userRoles.user", "userRoles.role.rolePermissions.permissionGroup.permissions",
+            "userRoles.user",
+            "userRoles.role.rolePermissions.permission.resourcePermissions",
+            "userRoles.role.rolePermissions.permission.domainPermissions",
         ],
     )
     fun findWithGraphById(id: Long): User?

@@ -6,9 +6,7 @@ import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.permission.Permission
 import com.pluxity.permission.PermissionLevel
-import com.pluxity.permission.ResourceType
 import com.pluxity.user.service.UserService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
@@ -65,16 +63,7 @@ class CctvRepositoryPermissionTest : BehaviorSpec() {
 
             When("READ 권한이면 조회된다") {
                 Then("CCTV가 조회된다") {
-                    setUserWithPermissions(
-                        userService,
-                        listOf(
-                            Permission(
-                                resourceName = ResourceType.CCTV.name,
-                                resourceId = "ALL",
-                                level = PermissionLevel.READ,
-                            ),
-                        ),
-                    )
+                    setUserWithPermission(userService, PermissionLevel.READ)
                     cctvRepository.save(Cctv("c1", "name", "url"))
                     val result = cctvRepository.findByIdOrNullCustom("c1")
                     result?.id shouldBe "c1"

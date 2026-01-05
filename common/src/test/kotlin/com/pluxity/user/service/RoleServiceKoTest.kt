@@ -2,8 +2,8 @@ package com.pluxity.user.service
 
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.permission.PermissionGroup
-import com.pluxity.permission.PermissionGroupService
+import com.pluxity.permission.Permission
+import com.pluxity.permission.PermissionService
 import com.pluxity.user.dto.RoleCreateRequest
 import com.pluxity.user.dto.RoleUpdateRequest
 import com.pluxity.user.entity.RolePermission
@@ -27,7 +27,7 @@ class RoleServiceKoTest :
         val roleRepository: RoleRepository = mockk()
         val rolePermissionRepository: RolePermissionRepository = mockk()
         val userRoleRepository: UserRoleRepository = mockk()
-        val permissionGroupService: PermissionGroupService = mockk()
+        val permissionService: PermissionService = mockk()
         val em: EntityManager = mockk()
 
         val roleService =
@@ -35,7 +35,7 @@ class RoleServiceKoTest :
                 roleRepository,
                 rolePermissionRepository,
                 userRoleRepository,
-                permissionGroupService,
+                permissionService,
                 em,
             )
 
@@ -45,23 +45,23 @@ class RoleServiceKoTest :
                     RoleCreateRequest(
                         name = "Test Role",
                         description = "Test Description",
-                        permissionGroupIds = listOf(1L, 2L),
+                        permissionIds = listOf(1L, 2L),
                     )
                 val savedRole = dummyRole(name = createRequest.name, description = createRequest.description)
-                val permissionGroup1 =
-                    PermissionGroup(
+                val permission1 =
+                    Permission(
                         name = "Group 1",
                         description = "Group 1 Description",
                     )
-                val permissionGroup2 =
-                    PermissionGroup(
+                val permission2 =
+                    Permission(
                         name = "Group 2",
                         description = "Group 2 Description",
                     )
 
                 every { roleRepository.save(any()) } returns savedRole
-                every { permissionGroupService.findPermissionGroupById(1L) } returns permissionGroup1
-                every { permissionGroupService.findPermissionGroupById(2L) } returns permissionGroup2
+                every { permissionService.findPermissionById(1L) } returns permission1
+                every { permissionService.findPermissionById(2L) } returns permission2
                 every { rolePermissionRepository.saveAll(any<List<RolePermission>>()) } returns listOf()
 
                 Then("성공") {
@@ -75,7 +75,7 @@ class RoleServiceKoTest :
                     RoleCreateRequest(
                         name = "Simple Role",
                         description = "Simple Description",
-                        permissionGroupIds = emptyList(),
+                        permissionIds = emptyList(),
                     )
                 val savedRole =
                     dummyRole(
@@ -150,7 +150,7 @@ class RoleServiceKoTest :
                     RoleUpdateRequest(
                         name = "New Name",
                         description = "New Description",
-                        permissionGroupIds = null,
+                        permissionIds = null,
                     )
 
                 every { roleRepository.findWithInfoById(1L) } returns role
@@ -169,15 +169,15 @@ class RoleServiceKoTest :
                     RoleUpdateRequest(
                         name = "updateRole",
                         description = "update description",
-                        permissionGroupIds = listOf(1L, 2L),
+                        permissionIds = listOf(1L, 2L),
                     )
-                val permissionGroup1 = PermissionGroup(name = "Group 1", description = "Group 1 Description")
-                val permissionGroup2 = PermissionGroup(name = "Group 2", description = "Group 2 Description")
+                val permission1 = Permission(name = "Group 1", description = "Group 1 Description")
+                val permission2 = Permission(name = "Group 2", description = "Group 2 Description")
 
                 every { roleRepository.findWithInfoById(1L) } returns role
                 every { rolePermissionRepository.deleteAllInBatch(any()) } just runs
-                every { permissionGroupService.findPermissionGroupById(1L) } returns permissionGroup1
-                every { permissionGroupService.findPermissionGroupById(2L) } returns permissionGroup2
+                every { permissionService.findPermissionById(1L) } returns permission1
+                every { permissionService.findPermissionById(2L) } returns permission2
                 every { rolePermissionRepository.saveAll(any<List<RolePermission>>()) } returns listOf()
 
                 Then("성공적으로 업데이트") {
@@ -192,7 +192,7 @@ class RoleServiceKoTest :
                     RoleUpdateRequest(
                         name = "New Name",
                         description = "New Description",
-                        permissionGroupIds = null,
+                        permissionIds = null,
                     )
 
                 every { roleRepository.findWithInfoById(999L) } returns null

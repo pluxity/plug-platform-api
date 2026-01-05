@@ -7,14 +7,20 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface RoleRepository : JpaRepository<Role, Long> {
     @EntityGraph(
         attributePaths = [
-            "userRoles.user", "userRoles.role", "rolePermissions.permissionGroup.permissions",
+            "userRoles.user",
+            "userRoles.role",
+            "rolePermissions.permission.resourcePermissions",
+            "rolePermissions.permission.domainPermissions",
         ],
     )
     fun findWithInfoById(id: Long): Role?
 
     @EntityGraph(
         attributePaths = [
-            "userRoles.user", "userRoles.role", "rolePermissions.permissionGroup.permissions",
+            "userRoles.user",
+            "userRoles.role",
+            "rolePermissions.permission.resourcePermissions",
+            "rolePermissions.permission.domainPermissions",
         ],
     )
     fun findByAuthIsNotOrderByCreatedAtDesc(auth: String): List<Role>
