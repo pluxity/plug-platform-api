@@ -12,7 +12,7 @@ data class PermissionRequest(
     ) val resourceType: String,
     @field:Schema(
         description = "자원 아이디",
-    ) val resourceIds: List<String>,
+    ) val resourceIds: List<String> = listOf(),
     @field:Schema(
         description = "권한 레벨",
         implementation = PermissionLevel::class,
