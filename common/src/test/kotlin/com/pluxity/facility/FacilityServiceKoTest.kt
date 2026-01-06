@@ -20,7 +20,6 @@ import com.pluxity.global.exception.CustomException
 import facility.dummyCreateFacilityRequest
 import facility.dummyUpdateFacilityRequest
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -34,9 +33,6 @@ import org.springframework.data.repository.findByIdOrNull
 
 class FacilityServiceKoTest :
     BehaviorSpec({
-
-        isolationMode = IsolationMode.InstancePerLeaf
-
         val facilityRepository = mockk<FacilityRepository>()
         val fileService = mockk<FileService>(relaxed = true)
         val facilityHistoryService = mockk<FacilityHistoryService>()
@@ -257,7 +253,7 @@ class FacilityServiceKoTest :
 
                 val exception =
                     shouldThrow<CustomException> {
-                        facilityService.update(id, request)
+                        facilityService.putUpdate(id, request)
                     }
 
                 Then("DUPLICATE_FACILITY_CODE 예외가 발생한다.") {
@@ -275,7 +271,7 @@ class FacilityServiceKoTest :
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { facilityRepository.existsByCode(request.code!!) } returns false
 
-                facilityService.update(id, request)
+                facilityService.putUpdate(id, request)
 
                 Then("시설 정보가 업데이트된다.") {
                     verify(exactly = 1) { facilityRepository.findByIdOrNull(id) }
@@ -294,7 +290,7 @@ class FacilityServiceKoTest :
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { fileService.finalizeUpload(newThumbnailId, any()) } returns fileEntity
 
-                facilityService.update(id, request)
+                facilityService.putUpdate(id, request)
 
                 Then("새로운 파일이 finalize된다.") {
                     verify(exactly = 1) { fileService.finalizeUpload(newThumbnailId, any()) }
@@ -310,7 +306,7 @@ class FacilityServiceKoTest :
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
 
-                facilityService.update(id, request)
+                facilityService.putUpdate(id, request)
 
                 Then("파일이 finalize되지 않는다.") {
                     verify(exactly = 0) { fileService.finalizeUpload(any(), any()) }

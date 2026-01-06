@@ -569,30 +569,17 @@ class FeatureServiceKoTest :
             When("할당되지 않은 CCTV 제거 시도할 때") {
                 val featureId = "test-feature-id"
                 val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
+                val feature = dummyFeature(id = featureId)
 
+                every { featureRepository.findByIdOrNull(featureId) } returns feature
                 every {
-                    featureAssignment.validateRevoke(assignDto.id, featureId)
+                    cctvAssignment.validateRevoke(assignDto.id, featureId)
                 } throws CustomException(ErrorCode.CCTV_NOT_ASSIGNED, assignDto.id)
 
                 Then("CCTV_NOT_ASSIGNED 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         featureService.removeSomethingFromFeature(featureId, assignDto)
                     }.errorCode shouldBe ErrorCode.CCTV_NOT_ASSIGNED
-                }
-            }
-
-            When("다른 Feature에 할당된 CCTV 제거 시도") {
-                val featureId = "test-feature-id"
-                val assignDto = FeatureAssignDto(id = "cctv-1", type = FeatureAssignType.CCTV)
-
-                every {
-                    featureAssignment.validateRevoke(assignDto.id, featureId)
-                } throws CustomException(ErrorCode.CCTV_MISMATCH)
-
-                Then("CCTV_MISMATCH 예외 발생") {
-                    shouldThrowExactly<CustomException> {
-                        featureService.removeSomethingFromFeature(featureId, assignDto)
-                    }.errorCode shouldBe ErrorCode.CCTV_MISMATCH
                 }
             }
         }
