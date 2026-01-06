@@ -130,6 +130,30 @@ internal class PermissionServiceTest
                     }
                 assertThat(exception.errorCode).isEqualTo(ErrorCode.DUPLICATE_RESOURCE_ID)
             }
+
+            @Test
+            @DisplayName("실패: 요청 DTO의 ResourceType이 유효하지 않을 경우 INVALID_RESOURCE_TYPE 예외가 발생한다.")
+            fun withInvalidResourceTypeInRequest_shouldThrowException() {
+                // given
+                val invalidRequest =
+                    PermissionGroupCreateRequest(
+                        "잘못된 그룹",
+                        "설명",
+                        listOf(
+                            PermissionRequest(
+                                "INVALID-RESOURCE-TYPE",
+                                listOf("READ"),
+                            ),
+                        ),
+                    )
+
+                // when & then
+                val exception =
+                    assertThrows<CustomException> {
+                        permissionGroupService.create(invalidRequest)
+                    }
+                assertThat(exception.message).isEqualTo(ErrorCode.INVALID_RESOURCE_TYPE.getMessage().format("INVALID-RESOURCE-TYPE"))
+            }
         }
 
         @Nested

@@ -165,6 +165,24 @@ internal class BuildingServiceTest
         }
 
         @Test
+        @DisplayName("존재하지 않는 건물 ID로 건물 수정 시 예외가 발생한다.")
+        fun update_WithInvalidRequest_ThrowsCustomException() {
+            // given
+            val invalidId = 9999L
+
+            val updateRequest =
+                BuildingUpdateRequest(
+                    FacilityUpdateRequest("수정된 건물 이름", "수정된 코드", "수정된 건물 설명", null, null, null, null),
+                    emptyList(),
+                )
+
+            // when & then
+            assertThrows<CustomException> {
+                buildingService.update(invalidId, updateRequest)
+            }
+        }
+
+        @Test
         @DisplayName("건물 삭제 시 모든 이력이 삭제된다")
         fun delete() {
             // given

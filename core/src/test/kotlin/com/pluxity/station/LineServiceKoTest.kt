@@ -129,10 +129,15 @@ class LineServiceKoTest :
             }
 
             When("유효한 요청으로 Line 수정 요청") {
-                every { lineRepository.findByNameAndIdNot(any(), any()) } returns null
+                every { lineRepository.findByNameAndIdNot(updateRequest.name!!, any()) } returns null
 
                 Then("성공") {
                     lineService.update(line.requiredId, updateRequest)
+
+                    line.name shouldBe updateRequest.name
+                    line.color shouldBe updateRequest.color
+
+                    verify(exactly = 1) { lineRepository.findByNameAndIdNot(any(), any()) }
                 }
             }
         }
@@ -150,6 +155,7 @@ class LineServiceKoTest :
                 Then("성공") {
                     lineService.delete(line.requiredId)
                     verify(exactly = 1) { lineRepository.delete(any()) }
+                    verify(exactly = 1) { stationLineService.deleteStationLine(any(), any()) }
                 }
             }
         }

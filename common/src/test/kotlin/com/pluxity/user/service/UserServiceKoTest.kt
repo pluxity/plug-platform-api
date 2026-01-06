@@ -15,6 +15,7 @@ import com.pluxity.user.repository.RoleRepository
 import com.pluxity.user.repository.UserRepository
 import com.pluxity.user.repository.UserRoleRepository
 import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -27,6 +28,8 @@ import org.springframework.security.crypto.password.PasswordEncoder
 
 class UserServiceKoTest :
     BehaviorSpec({
+        isolationMode = IsolationMode.InstancePerLeaf
+
         val userRepository: UserRepository = mockk()
         val roleRepository: RoleRepository = mockk()
         val passwordEncoder: PasswordEncoder = mockk()
@@ -181,6 +184,7 @@ class UserServiceKoTest :
                 Then("성공") {
                     val res = userService.update(user.requiredId, updateRequest)
                     res.name shouldBe updateRequest.name
+                    res.roles.size shouldBe 1
                 }
             }
         }

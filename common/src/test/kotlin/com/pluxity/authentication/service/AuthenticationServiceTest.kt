@@ -6,10 +6,12 @@ import com.pluxity.authentication.entity.RefreshToken
 import com.pluxity.authentication.repository.RefreshTokenRepository
 import com.pluxity.authentication.security.JwtProvider
 import com.pluxity.config.MockBeansConfig
+import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.global.properties.JwtProperties
 import com.pluxity.user.entity.User
 import com.pluxity.user.repository.UserRepository
+import io.kotest.matchers.shouldBe
 import jakarta.persistence.EntityManager
 import jakarta.servlet.http.Cookie
 import org.assertj.core.api.Assertions
@@ -158,6 +160,17 @@ class AuthenticationServiceTest
             assertThrows<CustomException> {
                 authenticationService.refreshToken(servletRequest, MockHttpServletResponse())
             }
+        }
+
+        @Test
+        @DisplayName("실패: 리프레시 토큰 없이 요청 시 예외가 발생한다.")
+        fun refreshToken_null_shouldThrowException() {
+            val servletRequest = MockHttpServletRequest()
+            val exception =
+                assertThrows<CustomException> {
+                    authenticationService.refreshToken(servletRequest, MockHttpServletResponse())
+                }
+            exception.message shouldBe ErrorCode.INVALID_REFRESH_TOKEN.getMessage()
         }
 
         private fun extractTokenValueFromCookie(
