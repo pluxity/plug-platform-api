@@ -145,7 +145,6 @@ internal class RoleServiceTest
             val responseResourceIds =
                 response.permissions
                     .flatMap { group -> group.resourcePermissions }
-                    .flatMap { perm -> perm.permissions }
                     .map { it.resourceId }
 
             Assertions
@@ -198,7 +197,6 @@ internal class RoleServiceTest
             val finalResourceIds =
                 response.permissions
                     .flatMap { group -> group.resourcePermissions }
-                    .flatMap { perm -> perm.permissions }
                     .map { it.resourceId }
 
             Assertions

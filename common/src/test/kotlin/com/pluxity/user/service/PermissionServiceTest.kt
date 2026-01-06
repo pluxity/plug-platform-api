@@ -153,14 +153,14 @@ internal class PermissionServiceTest
                 assertThat(response.id).isEqualTo(groupId)
                 assertThat(response.description).isEqualTo("시설에 대한 기본 권한")
                 assertThat(response.name).isEqualTo("기본 시설 관리 그룹")
-                assertThat(response.resourcePermissions).hasSize(2)
+                assertThat(response.resourcePermissions).hasSize(3)
                 assertThat(response.resourcePermissions.first().resourceType).isNotNull().isNotEmpty()
                 assertThat(
                     response.resourcePermissions
                         .first()
                         .resourceType.javaClass,
                 ).isEqualTo(String::class.java)
-                assertThat(response.resourcePermissions.first().permissions).isNotNull().isNotEmpty()
+                assertThat(response.resourcePermissions.first().resourceId).isNotNull().isNotEmpty()
                 assertThat(response.domainPermissions).isEmpty()
             }
 
