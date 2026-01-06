@@ -13,9 +13,12 @@ import com.pluxity.station.entity.dummyLine
 import com.pluxity.station.entity.dummyStation
 import facility.floor.dummyFloorResponse
 import file.dummyFileResponse
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -28,6 +31,8 @@ import org.springframework.data.repository.findByIdOrNull
 
 class StationServiceKoTest :
     BehaviorSpec({
+        isolationMode = IsolationMode.InstancePerLeaf
+
         val fileService: FileService = mockk()
         val facilityService: FacilityService = mockk()
         val floorService: FloorService = mockk()
@@ -52,20 +57,64 @@ class StationServiceKoTest :
             )
 
         Given("Station 생성을 진행할 때") {
-            When("유효한 요청으로 Station 생성 요청") {
-                val createRequest = dummyCreateStationRequest()
-                val saved = dummyStation()
-                val line = dummyLine()
+            val createRequest = dummyCreateStationRequest()
+            val saved = dummyStation()
+            val line = dummyLine()
 
-                every { facilityService.save(any<Facility>(), createRequest.facility) } returns saved
-                every { floorService.save(any(), any()) } just runs
-                every { lineService.findLineById(any()) } returns line
-                every { stationLineService.save(any(), any()) } just runs
-                every { stationCodeService.save(any(), any()) } just runs
+            // Mock 세팅
+            every { facilityService.save(any<Station>(), any()) } returns saved
+            every { floorService.save(any(), any()) } just runs
+            every { lineService.findLineById(any()) } returns line
+            every { stationLineService.save(any(), any()) } just runs
+            every { stationCodeService.save(any(), any()) } just runs
 
-                Then("성공") {
-                    val saveId = stationService.save(createRequest)
+            When("유효한 요청으로 Station 생성 요청을 보내면") {
+                val saveId = stationService.save(createRequest)
+
+                Then("저장된 ID가 반환된다") {
                     saveId shouldBe saved.id
+                }
+
+                Then("연관된 서비스들에 저장 요청을 전달한다.") {
+                    verify(exactly = 1) { facilityService.save(any(), any()) }
+                    verify(exactly = 1) { floorService.save(any(), any()) }
+                    verify(exactly = 1) { stationLineService.save(any(), any()) }
+                    verify(exactly = 1) { stationCodeService.save(any(), any()) }
+                }
+            }
+            When("시설 저장 중 중복 에러가 발생하면") {
+                every { facilityService.save(any(), any()) } throws
+                    CustomException(ErrorCode.DUPLICATE_FACILITY_CODE)
+
+                Then("더 이상 프로세스를 진행하지 않고 예외를 상위로 던진다") {
+                    shouldThrow<CustomException> {
+                        stationService.save(createRequest)
+                    }
+
+                    verify { floorService wasNot Called }
+                    verify { stationLineService wasNot Called }
+                }
+            }
+            When("연관된 노선이 여러 개 포함된 경우") {
+                val multipleLineRequest = createRequest.copy(lineIds = listOf(1L, 2L, 3L))
+
+                stationService.save(multipleLineRequest)
+
+                Then("노선 정보 조회 및 저장이 개수만큼 반복 호출된다") {
+                    verify(exactly = 3) { lineService.findLineById(any()) }
+                    verify(exactly = 3) { stationLineService.save(any(), any()) }
+                }
+            }
+            When("노선 ID와 스테이션 코드가 없는 최소 정보로 생성 요청을 보내면") {
+                val minimalRequest = createRequest.copy(lineIds = emptyList(), stationCodes = emptyList())
+
+                stationService.save(minimalRequest)
+
+                Then("기본 시설과 층 정보만 저장하고 종료된다") {
+                    verify(exactly = 1) { facilityService.save(any(), any()) }
+                    verify(exactly = 1) { floorService.save(any(), any()) }
+                    verify { stationLineService wasNot Called }
+                    verify { stationCodeService wasNot Called }
                 }
             }
         }
@@ -93,8 +142,12 @@ class StationServiceKoTest :
                     stationLineService.findLineMapByStationIds(any())
                 } returns mapOf(station to listOf(1L))
 
+                val result = stationService.findAll()
+
                 Then("정상 조회") {
-                    stationService.findAll().size shouldBe 1
+                    result.size shouldBe 1
+                    result.first().facility.name shouldBe station.name
+                    result.first().floors.size shouldBe 1
                 }
             }
         }

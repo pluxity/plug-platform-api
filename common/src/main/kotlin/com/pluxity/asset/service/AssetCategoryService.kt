@@ -60,13 +60,13 @@ class AssetCategoryService(
                 assignToParent(parent)
             }
 
-        assetCategoryRepository.save(category)
+        val savedCategory = assetCategoryRepository.save(category)
 
         request.thumbnailFileId?.let {
-            fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${category.id}")
+            fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${savedCategory.requiredId}")
         }
 
-        return category.requiredId
+        return savedCategory.requiredId
     }
 
     @Transactional

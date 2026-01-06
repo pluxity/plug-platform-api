@@ -107,6 +107,16 @@ class ParkServiceKoTest :
                     park.boundary shouldBe updateRequest.boundary
                 }
             }
+            When("없는 아이디로 업데이트 요청") {
+                Then("NOT_FOUND_PARK 예외 발생") {
+                    val searchId = 1L
+                    every { parkRepository.findByIdOrNull(searchId) } returns null
+
+                    shouldThrowExactly<CustomException> {
+                        parkService.update(searchId, dummyUpdateParkRequest())
+                    }.message shouldBe ErrorCode.NOT_FOUND_PARK.getMessage().format(searchId)
+                }
+            }
         }
 
         Given("Park 삭제를 진행할 때") {
@@ -124,6 +134,16 @@ class ParkServiceKoTest :
                     parkService.delete(park.requiredId)
                     verify(exactly = 1) { facilityService.deleteFacility(any()) }
                     slot.captured shouldBe park.id
+                }
+            }
+            When("없는 아이디로 업데이트 요청") {
+                Then("NOT_FOUND_PARK 예외 발생") {
+                    val searchId = 1L
+                    every { parkRepository.findByIdOrNull(searchId) } returns null
+
+                    shouldThrowExactly<CustomException> {
+                        parkService.delete(searchId)
+                    }.message shouldBe ErrorCode.NOT_FOUND_PARK.getMessage().format(searchId)
                 }
             }
         }
