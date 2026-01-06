@@ -23,7 +23,6 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionLevel
 import com.pluxity.permission.ResourceType
 import com.pluxity.user.entity.PermissionAction
-import com.pluxity.user.entity.PermissionCheckType
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -92,7 +91,7 @@ class FacilityService(
             .findByIdOrNull(id)
             ?: throw CustomException(NOT_FOUND_FACILITY, id)
 
-    @CheckPermission(phase = PermissionCheckType.ITEM_LIST, resourceType = ResourceType.FACILITY)
+    @CheckPermission(action = PermissionAction.READ_LIST, resourceType = ResourceType.FACILITY)
     @Transactional(readOnly = true)
     fun findAll(): List<Facility> = facilityRepository.findAll()
 

@@ -7,7 +7,7 @@ import com.pluxity.global.annotation.CheckPermission
 import com.pluxity.permission.ResourceType
 import com.pluxity.temperaturehumidity.entity.TemperatureHumidity
 import com.pluxity.temperaturehumidity.repository.TemperatureHumidityCustomRepository
-import com.pluxity.user.entity.PermissionCheckType
+import com.pluxity.user.entity.PermissionAction
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -23,7 +23,7 @@ class TemperatureHumidityCustomRepositoryImpl(
                     .where(path(TemperatureHumidity::id).equal(id))
             }.firstOrNull()
 
-    @CheckPermission(resourceType = ResourceType.TEMPERATURE_HUMIDITY, phase = PermissionCheckType.ITEM_LIST)
+    @CheckPermission(action = PermissionAction.READ_LIST, resourceType = ResourceType.TEMPERATURE_HUMIDITY)
     override fun findAllByFacilityIdIfPresent(facilityId: Long?): List<TemperatureHumidity> =
         kotlinJdslJpqlExecutor
             .findAll {

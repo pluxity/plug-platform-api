@@ -1,7 +1,8 @@
 package com.pluxity.user.entity
 
 enum class PermissionAction {
-    READ,
+    READ_SINGLE,
+    READ_LIST,
     CREATE,
     UPDATE,
     DELETE,

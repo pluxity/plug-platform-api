@@ -7,7 +7,6 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionLevel
 import com.pluxity.user.entity.Permissible
 import com.pluxity.user.entity.PermissionAction
-import com.pluxity.user.entity.PermissionCheckType
 import com.pluxity.user.entity.PermissionStrategy
 import com.pluxity.user.entity.RoleType
 import com.pluxity.user.entity.User
@@ -50,16 +49,18 @@ class PermissionCheckAspect(
             -> {
                 val resource = resolveArgumentResource(joinPoint, checkPermission)
                 val requiredLevel =
-                    when (checkPermission.action) {
-                        PermissionAction.UPDATE -> PermissionLevel.WRITE
-                        PermissionAction.DELETE -> PermissionLevel.ADMIN
-                        else -> throw CustomException(ErrorCode.PERMISSION_DENIED)
+                    if (checkPermission.action == PermissionAction.UPDATE) {
+                        PermissionLevel.WRITE
+                    } else {
+                        PermissionLevel.ADMIN
                     }
                 if (!permissionStrategy.check(user, resource, requiredLevel)) {
                     throw CustomException(ErrorCode.PERMISSION_DENIED)
                 }
             }
-            PermissionAction.READ -> Unit
+            PermissionAction.READ_SINGLE,
+            PermissionAction.READ_LIST,
+            -> Unit
         }
     }
 
@@ -69,30 +70,35 @@ class PermissionCheckAspect(
         checkPermission: CheckPermission,
     ): Any? {
         val user = getCurrentUserIfApplicable() ?: return joinPoint.proceed()
-        if (checkPermission.action != PermissionAction.READ) {
+        val isRead =
+            checkPermission.action == PermissionAction.READ_SINGLE ||
+                checkPermission.action == PermissionAction.READ_LIST
+
+        if (!isRead) {
             return joinPoint.proceed()
         }
 
         val returnObject = joinPoint.proceed()
 
-        return when (checkPermission.phase) {
-            PermissionCheckType.SINGLE_ITEM -> {
-                if (!permissionStrategy.check(user, returnObject, checkPermission.level)) {
-                    throw CustomException(ErrorCode.PERMISSION_DENIED)
-                }
+        if (checkPermission.action == PermissionAction.READ_SINGLE) {
+            if (!permissionStrategy.check(user, returnObject, checkPermission.level)) {
+                throw CustomException(ErrorCode.PERMISSION_DENIED)
+            }
+            return returnObject
+        }
+        // READ_LIST
+        return when (returnObject) {
+            is MutableCollection<*> -> {
+                returnObject.removeIf { it == null || !permissionStrategy.check(user, it, checkPermission.level) }
                 returnObject
             }
-
-            PermissionCheckType.ITEM_LIST -> {
-                when (returnObject) {
-                    is MutableCollection<*> -> {
-                        returnObject.removeIf { item: Any? ->
-                            item == null || !permissionStrategy.check(user, item, checkPermission.level)
-                        }
-                    }
-                }
+            is Collection<*> -> {
+                // 불변 컬렉션이면 새 리스트로 반환
                 returnObject
+                    .filterNotNull()
+                    .filter { permissionStrategy.check(user, it, checkPermission.level) }
             }
+            else -> error("READ_LIST expects a Collection but got: ${returnObject?.javaClass?.name}")
         }
     }
 
