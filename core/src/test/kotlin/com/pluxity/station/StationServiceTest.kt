@@ -48,14 +48,14 @@ internal class StationServiceTest
             val request =
                 StationCreateRequest(
                     FacilityCreateRequest(
-                        "강남역",
-                        "GANGNAM_ST",
-                        "2호선, 신분당선 환승역",
-                        drawingFileId,
-                        thumbnailFileId,
-                        127.0276,
-                        37.4979,
-                        "{\"congestion\":\"high\"}",
+                        name = "강남역",
+                        code = "GANGNAM_ST",
+                        description = "2호선, 신분당선 환승역",
+                        drawingFileId = drawingFileId,
+                        thumbnailFileId = thumbnailFileId,
+                        lon = 127.0276,
+                        lat = 37.4979,
+                        locationMeta = "{\"congestion\":\"high\"}",
                     ),
                     listOf(FloorRequest("B1층", "-1"), FloorRequest("B2층", "-2")),
                     listOf(line2Id, lineSinbundangId),
@@ -113,7 +113,7 @@ internal class StationServiceTest
             // GIVEN: 필수 필드만 채운 요청
             val request =
                 StationCreateRequest(
-                    FacilityCreateRequest("단일역", "SINGLE_ST", null, null, null, null, null, null),
+                    FacilityCreateRequest(name = "단일역", code = "SINGLE_ST"),
                     emptyList(),
                     emptyList(),
                     // 층, 노선, 역코드 정보 없음
@@ -137,7 +137,7 @@ internal class StationServiceTest
             // GIVEN: 기준 역 생성
             stationService.save(
                 StationCreateRequest(
-                    FacilityCreateRequest("기준역", "DUPE_CODE", null, null, null, null, null, null),
+                    FacilityCreateRequest(name = "기준역", code = "DUPE_CODE"),
                     emptyList(),
                     emptyList(),
                     emptyList(),
@@ -146,7 +146,7 @@ internal class StationServiceTest
 
             val duplicateRequest =
                 StationCreateRequest(
-                    FacilityCreateRequest("다른역", "DUPE_CODE", null, null, null, null, null, null),
+                    FacilityCreateRequest(name = "다른역", code = "DUPE_CODE"),
                     emptyList(),
                     emptyList(),
                     emptyList(),
@@ -164,7 +164,7 @@ internal class StationServiceTest
             val line1Id = createAndSaveLine("1호선", "L1").requiredId
             stationService.save(
                 StationCreateRequest(
-                    FacilityCreateRequest("역A", "STA_A", null, null, null, null, null, null),
+                    FacilityCreateRequest(name = "역A", code = "STA_A"),
                     emptyList(),
                     listOf(line1Id),
                     mutableListOf("133"),
@@ -172,7 +172,7 @@ internal class StationServiceTest
             )
             stationService.save(
                 StationCreateRequest(
-                    FacilityCreateRequest("역B", "STA_B", null, null, null, null, null, null),
+                    FacilityCreateRequest(name = "역B", code = "STA_B"),
                     emptyList(),
                     emptyList(),
                     emptyList(),
@@ -212,7 +212,7 @@ internal class StationServiceTest
             val stationId =
                 stationService.save(
                     StationCreateRequest(
-                        FacilityCreateRequest("원본역", "ORI_ST", "설명", null, null, null, null, null),
+                        FacilityCreateRequest(name = "원본역", code = "ORI_ST", description = "설명"),
                         listOf(FloorRequest("1층", "1")),
                         listOf(lineAId),
                         mutableListOf("A01"),
@@ -223,7 +223,7 @@ internal class StationServiceTest
             // GIVEN: 원본과 완전히 다른 교체 요청 (층, 노선, 역코드 모두 변경, 설명은 null로)
             val putRequest =
                 StationUpdateRequest(
-                    FacilityUpdateRequest("교체된역", "PUT_ST", null, null, null, null, null),
+                    FacilityUpdateRequest(name = "교체된역", code = "PUT_ST"),
                     // 층 정보 삭제
                     emptyList(),
                     StationUpdateInfo(listOf(lineBId, lineCId), mutableListOf("B01", "C01")),
@@ -270,7 +270,7 @@ internal class StationServiceTest
             val stationId =
                 stationService.save(
                     StationCreateRequest(
-                        FacilityCreateRequest("삭제될역", "DEL_ST", null, null, null, null, null, null),
+                        FacilityCreateRequest(name = "삭제될역", code = "DEL_ST"),
                         listOf(FloorRequest("1층", "1")),
                         listOf(lineId),
                         mutableListOf("DEL_C"),
@@ -364,7 +364,7 @@ internal class StationServiceTest
             val stationId =
                 stationService.save(
                     StationCreateRequest(
-                        FacilityCreateRequest("역", "ST", null, null, null, null, null, null),
+                        FacilityCreateRequest(name = "역", code = "ST"),
                         emptyList(),
                         listOf(lineId),
                         emptyList(),
@@ -401,7 +401,7 @@ internal class StationServiceTest
         ): Long =
             stationService.save(
                 StationCreateRequest(
-                    FacilityCreateRequest(name, code, null, null, null, null, null, null),
+                    FacilityCreateRequest(name = name, code = code),
                     emptyList(),
                     emptyList(),
                     emptyList(),

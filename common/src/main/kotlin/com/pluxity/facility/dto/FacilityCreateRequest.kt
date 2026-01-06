@@ -19,15 +19,15 @@ data class FacilityCreateRequest(
     val code: String,
     @field:Schema(description = "시설 설명", example = "description")
     @field:Size(max = 255, message = "시설 설명은 최대 255자까지 입력 가능합니다.")
-    val description: String?,
+    val description: String? = null,
     @field:Schema(description = "도면 파일 ID", example = "1")
-    val drawingFileId: Long?,
+    val drawingFileId: Long? = null,
     @field:Schema(description = "썸네일파일 ID", example = "1")
-    val thumbnailFileId: Long?,
+    val thumbnailFileId: Long? = null,
     @field:Schema(description = "경도", example = "127")
-    val lon: Double?,
+    val lon: Double? = null,
     @field:Schema(description = "위도", example = "37")
-    val lat: Double?,
+    val lat: Double? = null,
     @field:Schema(description = "위치 관련 부가정보", example = "[{\"height\":..}]]")
-    val locationMeta: String?,
+    val locationMeta: String? = null,
 )

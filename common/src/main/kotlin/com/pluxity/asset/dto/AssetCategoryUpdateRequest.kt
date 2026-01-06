@@ -14,7 +14,7 @@ data class AssetCategoryUpdateRequest(
     @field:Size(max = 50, message = "카테고리 코드는 50글자를 초과할 수 없습니다")
     val code: String,
     @field:Schema(description = "부모 카테고리 ID", example = "1")
-    val parentId: Long?,
+    val parentId: Long? = null,
     @field:Schema(description = "아이콘 파일 ID", example = "10")
-    val thumbnailFileId: Long?,
+    val thumbnailFileId: Long? = null,
 )

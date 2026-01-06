@@ -35,7 +35,7 @@ class AssetCategoryServiceTest
         @DisplayName("성공: 유효한 요청으로 최상위 카테고리(depth=1)를 생성하고 모든 응답 필드를 검증한다")
         fun createAssetCategory_withValidRequest_savesRootCategory() {
             val thumbnailFileId = testFileUploader.initiateTestFileUpload("icon.png")
-            val request = AssetCategoryCreateRequest("가전", "ELEC", null, thumbnailFileId)
+            val request = AssetCategoryCreateRequest(name = "가전", code = "ELEC", thumbnailFileId = thumbnailFileId)
 
             val categoryId = assetCategoryService.createAssetCategory(request)
 
@@ -53,7 +53,7 @@ class AssetCategoryServiceTest
         @DisplayName("실패: 부모 ID를 지정하여 자식 카테고리(depth>1) 생성을 시도하면 예외가 발생한다")
         fun createAssetCategory_withParentId_throwsException() {
             val parentId = createAndSaveCategory("가전", "ELEC", null)
-            val childRequest = AssetCategoryCreateRequest("TV", "TV", parentId, null)
+            val childRequest = AssetCategoryCreateRequest(name = "TV", code = "TV", parentId = parentId)
 
             assertThrows<CustomException> { assetCategoryService.createAssetCategory(childRequest) }
         }
@@ -62,7 +62,7 @@ class AssetCategoryServiceTest
         @DisplayName("실패: 중복된 코드로 생성 시도 시 CustomException이 발생한다")
         fun createAssetCategory_withDuplicateCode_throwsException() {
             createAndSaveCategory("가전", "ELEC", null)
-            val duplicateRequest = AssetCategoryCreateRequest("전자제품", "ELEC", null, null)
+            val duplicateRequest = AssetCategoryCreateRequest(name = "전자제품", code = "ELEC")
 
             assertThrows<CustomException> { assetCategoryService.createAssetCategory(duplicateRequest) }
         }
@@ -70,7 +70,7 @@ class AssetCategoryServiceTest
         @Test
         @DisplayName("실패: 존재하지 않는 부모 ID로 생성 시도 시 CustomException이 발생한다")
         fun createAssetCategory_withNonExistentParentId_throwsException() {
-            val request = AssetCategoryCreateRequest("자식", "CHILD", 9999L, null)
+            val request = AssetCategoryCreateRequest(name = "자식", code = "CHILD", parentId = 9999L)
             assertThrows<CustomException> { assetCategoryService.createAssetCategory(request) }
         }
 
@@ -96,7 +96,7 @@ class AssetCategoryServiceTest
         fun updateAssetCategory_withoutParentChange_updatesSuccessfully() {
             val categoryId = createAndSaveCategory("원본", "ORI", null, null)
             val newIconId = testFileUploader.initiateTestFileUpload("new.png")
-            val request = AssetCategoryUpdateRequest("수정된 이름", "UPD", null, newIconId)
+            val request = AssetCategoryUpdateRequest(name = "수정된 이름", code = "UPD", thumbnailFileId = newIconId)
 
             assetCategoryService.updateAssetCategory(categoryId, request)
 
@@ -113,7 +113,7 @@ class AssetCategoryServiceTest
         fun updateAssetCategory_withParentId_throwsException() {
             val categoryId = createAndSaveCategory("카테고리", "CAT", null)
             val newParentId = createAndSaveCategory("새 부모", "NEW_P", null)
-            val request = AssetCategoryUpdateRequest("이름변경", "CAT_UPDATED", newParentId, null)
+            val request = AssetCategoryUpdateRequest(name = "이름변경", code = "CAT_UPDATED", parentId = newParentId)
 
             assertThrows<CustomException> { assetCategoryService.updateAssetCategory(categoryId, request) }
         }
@@ -154,7 +154,7 @@ class AssetCategoryServiceTest
             parentId: Long?,
             thumbnailId: Long?,
         ): Long {
-            val request = AssetCategoryCreateRequest(name, code, parentId, thumbnailId)
+            val request = AssetCategoryCreateRequest(name = name, code = code, parentId = parentId, thumbnailFileId = thumbnailId)
             return assetCategoryService.createAssetCategory(request)
         }
     }

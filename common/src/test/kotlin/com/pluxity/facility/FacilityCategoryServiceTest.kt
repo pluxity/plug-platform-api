@@ -28,11 +28,11 @@ internal class FacilityCategoryServiceTest {
     @BeforeEach
     fun setUp() {
         // 부모 카테고리 생성
-        val parentRequest = FacilityCategoryCreateRequest("부모 카테고리", null)
+        val parentRequest = FacilityCategoryCreateRequest(name = "부모 카테고리")
         parentCategoryId = categoryService.create(parentRequest)
 
         // 테스트용 카테고리 요청 준비
-        createRequest = FacilityCategoryCreateRequest("테스트 카테고리", parentCategoryId)
+        createRequest = FacilityCategoryCreateRequest(name = "테스트 카테고리", parentId = parentCategoryId)
     }
 
     @Test
@@ -52,7 +52,7 @@ internal class FacilityCategoryServiceTest {
     @DisplayName("부모 카테고리 없이 카테고리 생성 시 카테고리가 저장된다")
     fun create_WithoutParentCategory_SavesCategory() {
         // given
-        val requestWithoutParent = FacilityCategoryCreateRequest("부모 없는 카테고리", null)
+        val requestWithoutParent = FacilityCategoryCreateRequest(name = "부모 없는 카테고리")
 
         // when
         val categoryId = categoryService.create(requestWithoutParent)
@@ -69,7 +69,7 @@ internal class FacilityCategoryServiceTest {
     fun create_WithNonExistingParentId_ThrowsCustomException() {
         // given
         val nonExistingParentId = 9999L
-        val invalidRequest = FacilityCategoryCreateRequest("실패할 카테고리", nonExistingParentId)
+        val invalidRequest = FacilityCategoryCreateRequest(name = "실패할 카테고리", parentId = nonExistingParentId)
 
         // when & then
         assertThrows<CustomException> { categoryService.create(invalidRequest) }
@@ -104,7 +104,7 @@ internal class FacilityCategoryServiceTest {
     fun update_WithValidRequest_UpdatesCategory() {
         // given
         val savedCategoryId = categoryService.create(createRequest)
-        val updateRequest = FacilityCategoryUpdateRequest("수정된 카테고리", null)
+        val updateRequest = FacilityCategoryUpdateRequest(name = "수정된 카테고리")
 
         // when
         categoryService.update(savedCategoryId, updateRequest)
@@ -120,9 +120,9 @@ internal class FacilityCategoryServiceTest {
         // given
         val savedCategoryId = categoryService.create(createRequest)
         // 새로운 부모 카테고리 생성
-        val newParentRequest = FacilityCategoryCreateRequest("새 부모 카테고리", null)
+        val newParentRequest = FacilityCategoryCreateRequest(name = "새 부모 카테고리")
         val newParentId = categoryService.create(newParentRequest)
-        val updateRequest = FacilityCategoryUpdateRequest("카테고리", newParentId)
+        val updateRequest = FacilityCategoryUpdateRequest(name = "카테고리", parentId = newParentId)
 
         // when
         categoryService.update(savedCategoryId, updateRequest)
@@ -138,7 +138,7 @@ internal class FacilityCategoryServiceTest {
         // given
         val savedCategoryId = categoryService.create(createRequest)
         val nonExistingParentId = 9999L
-        val invalidRequest = FacilityCategoryUpdateRequest("유효한 이름", nonExistingParentId)
+        val invalidRequest = FacilityCategoryUpdateRequest(name = "유효한 이름", parentId = nonExistingParentId)
 
         // when & then
         assertThrows<CustomException> { categoryService.update(savedCategoryId, invalidRequest) }
@@ -185,8 +185,8 @@ internal class FacilityCategoryServiceTest {
         val savedCategoryId = categoryService.create(createRequest)
         val invalidRequest =
             FacilityCategoryUpdateRequest(
-                "유효한 이름",
-                savedCategoryId, // 자기 자신을 부모로 설정
+                name = "유효한 이름",
+                parentId = savedCategoryId, // 자기 자신을 부모로 설정
             )
 
         // when & then
@@ -208,10 +208,10 @@ internal class FacilityCategoryServiceTest {
     fun delete_WithChildCategories_ThrowsCustomException() {
         // given
         // 부모 -> 자식 구조 생성
-        val parentResponseId = categoryService.create(FacilityCategoryCreateRequest("새로운 부모", null))
+        val parentResponseId = categoryService.create(FacilityCategoryCreateRequest(name = "새로운 부모"))
 
         // 자식 카테고리 생성
-        val childResponseId = categoryService.create(FacilityCategoryCreateRequest("자식 카테고리", parentResponseId))
+        val childResponseId = categoryService.create(FacilityCategoryCreateRequest(name = "자식 카테고리", parentId = parentResponseId))
 
         // when & then
         // 자식이 있는 부모 카테고리 삭제 시도
@@ -223,13 +223,13 @@ internal class FacilityCategoryServiceTest {
     fun create_ExceedingMaxDepth_ThrowsCustomException() {
         // given
         // 1단계: 루트
-        val rootResponseId = categoryService.create(FacilityCategoryCreateRequest("루트 카테고리", null))
+        val rootResponseId = categoryService.create(FacilityCategoryCreateRequest(name = "루트 카테고리"))
 
         // 2단계: 루트 -> 자식1
-        val child1ResponseId = categoryService.create(FacilityCategoryCreateRequest("자식 카테고리 1", rootResponseId))
+        val child1ResponseId = categoryService.create(FacilityCategoryCreateRequest(name = "자식 카테고리 1", parentId = rootResponseId))
 
         // 3단계: 루트 -> 자식1 -> 자식2(최대 깊이 초과 가정)
-        val exceedDepthRequest = FacilityCategoryCreateRequest("최대 깊이 초과 카테고리", child1ResponseId)
+        val exceedDepthRequest = FacilityCategoryCreateRequest(name = "최대 깊이 초과 카테고리", parentId = child1ResponseId)
 
         // when & then
         // 최대 깊이(일반적으로 2단계)를 초과하는 카테고리 생성 시도
@@ -246,8 +246,8 @@ internal class FacilityCategoryServiceTest {
         // 동일한 이름, 동일한 부모를 가진 카테고리 생성 시도
         val duplicateRequest =
             FacilityCategoryCreateRequest(
-                "테스트 카테고리", // 동일한 이름
-                parentCategoryId, // 동일한 부모
+                name = "테스트 카테고리", // 동일한 이름
+                parentId = parentCategoryId, // 동일한 부모
             )
 
         // when & then
@@ -259,7 +259,7 @@ internal class FacilityCategoryServiceTest {
     fun update_WithNameAndParent() {
         // given
         val savedCategoryId = categoryService.create(createRequest)
-        val updateRequest = FacilityCategoryUpdateRequest("새 이름 업데이트", parentCategoryId)
+        val updateRequest = FacilityCategoryUpdateRequest(name = "새 이름 업데이트", parentId = parentCategoryId)
 
         // when
         categoryService.update(savedCategoryId, updateRequest)

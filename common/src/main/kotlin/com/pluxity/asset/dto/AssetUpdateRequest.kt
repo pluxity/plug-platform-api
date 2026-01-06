@@ -14,9 +14,9 @@ data class AssetUpdateRequest(
     @field:NotBlank(message = "에셋 코드는 필수입니다")
     val code: String,
     @field:Schema(description = "파일 ID", example = "1")
-    val fileId: Long?,
+    val fileId: Long? = null,
     @field:Schema(description = "썸네일 파일 ID", example = "2")
-    val thumbnailFileId: Long?,
+    val thumbnailFileId: Long? = null,
     @field:Schema(description = "카테고리 ID", example = "3")
-    val categoryId: Long?,
+    val categoryId: Long? = null,
 )

@@ -78,7 +78,7 @@ class FacilityPermissionTest : BehaviorSpec() {
 
             When("글로벌 정책이 없으면 생성은 거부") {
                 val building = Building("테스트 건물", "설명")
-                val request = FacilityCreateRequest("테스트 건물", "CODE1", "설명", null, null, null, null, null)
+                val request = FacilityCreateRequest(name = "테스트 건물", code = "CODE1", description = "설명")
                 val exception =
                     shouldThrow<CustomException> {
                         facilityService.save(building, request)
@@ -118,7 +118,7 @@ class FacilityPermissionTest : BehaviorSpec() {
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
-                        facilityService.putUpdate(1L, FacilityUpdateRequest("수정된 이름", null, null, null, null, null, null))
+                        facilityService.putUpdate(1L, FacilityUpdateRequest(name = "수정된 이름"))
                     }
                 Then("PERMISSION_DENIED 예외가 발생한다") {
                     exception.errorCode shouldBe ErrorCode.PERMISSION_DENIED
@@ -131,7 +131,7 @@ class FacilityPermissionTest : BehaviorSpec() {
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val exception =
                     shouldThrow<CustomException> {
-                        facilityService.putUpdate(1L, FacilityUpdateRequest("수정된 이름", null, null, null, null, null, null))
+                        facilityService.putUpdate(1L, FacilityUpdateRequest(name = "수정된 이름"))
                     }
                 Then("PERMISSION_DENIED 예외가 발생한다") {
                     exception.errorCode shouldBe ErrorCode.PERMISSION_DENIED
@@ -144,7 +144,7 @@ class FacilityPermissionTest : BehaviorSpec() {
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val building = Building("테스트 건물", "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
-                facilityService.putUpdate(1L, FacilityUpdateRequest("수정된 이름", null, null, null, null, null, null))
+                facilityService.putUpdate(1L, FacilityUpdateRequest(name = "수정된 이름"))
                 Then("정상 수정된다") {
                     building.name shouldBe "수정된 이름"
                 }
@@ -155,7 +155,7 @@ class FacilityPermissionTest : BehaviorSpec() {
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 val building = Building("테스트 건물", "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
-                facilityService.putUpdate(1L, FacilityUpdateRequest("수정된 이름", null, null, null, null, null, null))
+                facilityService.putUpdate(1L, FacilityUpdateRequest(name = "수정된 이름"))
                 Then("정상 수정된다") {
                     building.name shouldBe "수정된 이름"
                 }
@@ -176,7 +176,7 @@ class FacilityPermissionTest : BehaviorSpec() {
                 val building = Building("테스트 건물", "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
                 every { userResourcePermissionService.exists(10L, ResourceType.FACILITY, "1") } returns true
-                facilityService.putUpdate(1L, FacilityUpdateRequest("수정된 이름", null, null, null, null, null, null))
+                facilityService.putUpdate(1L, FacilityUpdateRequest(name = "수정된 이름"))
                 Then("시설이 업데이트된다") {
                     building.name shouldBe "수정된 이름"
                 }
@@ -203,7 +203,7 @@ class FacilityPermissionTest : BehaviorSpec() {
                             ),
                         ),
                 )
-                facilityService.putUpdate(1L, FacilityUpdateRequest("수정된 이름", null, null, null, null, null, null))
+                facilityService.putUpdate(1L, FacilityUpdateRequest(name = "수정된 이름"))
                 Then("정상 수정된다") {
                     building.name shouldBe "수정된 이름"
                 }

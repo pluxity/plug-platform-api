@@ -13,24 +13,24 @@ data class FacilityUpdateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED,
     )
     @field:Size(max = 50, message = "코드는 최대 50자까지 입력 가능합니다.")
-    val code: String?,
+    val code: String? = null,
     @field:Schema(
         description = "시설 설명",
         example = "description",
         requiredMode = Schema.RequiredMode.REQUIRED,
     )
     @field:Size(max = 255, message = "시설 설명은 최대 255자까지 입력 가능합니다.")
-    val description: String?,
+    val description: String? = null,
     @field:Schema(description = "썸네일파일 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-    val thumbnailFileId: Long?,
+    val thumbnailFileId: Long? = null,
     @field:Schema(description = "경도", example = "127", requiredMode = Schema.RequiredMode.REQUIRED)
-    val lon: Double?,
+    val lon: Double? = null,
     @field:Schema(description = "위도", example = "37", requiredMode = Schema.RequiredMode.REQUIRED)
-    val lat: Double?,
+    val lat: Double? = null,
     @field:Schema(
         description = "위치 관련 부가정보",
         example = "[{\"height\":..}]]",
         requiredMode = Schema.RequiredMode.REQUIRED,
     )
-    val locationMeta: String?,
+    val locationMeta: String? = null,
 )

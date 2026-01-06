@@ -36,8 +36,15 @@ class AssetServiceTest
         fun createAsset_WithValidRequest_SavesAssetAndReturnsDetailedResponse() {
             val assetFileId = testFileUploader.initiateTestFileUpload("asset_file.glb")
             val thumbnailFileId = testFileUploader.initiateTestFileUpload("thumbnail_image.png")
-            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest("테스트 카테고리", "TCC", null, null))
-            val request = AssetCreateRequest("테스트 에셋", "TES", assetFileId, thumbnailFileId, categoryId)
+            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest(name = "테스트 카테고리", code = "TCC"))
+            val request =
+                AssetCreateRequest(
+                    name = "테스트 에셋",
+                    code = "TES",
+                    fileId = assetFileId,
+                    thumbnailFileId = thumbnailFileId,
+                    categoryId = categoryId,
+                )
 
             val createdAssetId = assetService.createAsset(request)
 
@@ -61,9 +68,23 @@ class AssetServiceTest
         @Test
         @DisplayName("성공: 전체 에셋 조회 시 상세 정보가 포함된 목록을 반환한다")
         fun getAssets_ReturnsListOfDetailedAssetResponses() {
-            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest("카테고리", "CAT", null, null))
-            assetService.createAsset(AssetCreateRequest("에셋1", "AS1", testFileUploader.initiateTestFileUpload("f1.png"), null, categoryId))
-            assetService.createAsset(AssetCreateRequest("에셋2", "AS2", testFileUploader.initiateTestFileUpload("f2.png"), null, categoryId))
+            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest(name = "카테고리", code = "CAT"))
+            assetService.createAsset(
+                AssetCreateRequest(
+                    name = "에셋1",
+                    code = "AS1",
+                    fileId = testFileUploader.initiateTestFileUpload("f1.png"),
+                    categoryId = categoryId,
+                ),
+            )
+            assetService.createAsset(
+                AssetCreateRequest(
+                    name = "에셋2",
+                    code = "AS2",
+                    fileId = testFileUploader.initiateTestFileUpload("f2.png"),
+                    categoryId = categoryId,
+                ),
+            )
 
             val responses: List<AssetResponse> = assetService.getAssets()
             assertThat(responses).hasSize(2)
@@ -76,22 +97,29 @@ class AssetServiceTest
         @Test
         @DisplayName("성공: 유효한 요청으로 에셋 정보를 수정하고, 모든 필드의 변경사항을 검증한다")
         fun updateAsset_WithValidRequest_UpdatesAssetAndVerifiesChanges() {
-            val originalCategoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest("원본 카테고리", "ORI", null, null))
+            val originalCategoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest(name = "원본 카테고리", code = "ORI"))
             val originalAssetId =
                 assetService.createAsset(
                     AssetCreateRequest(
-                        "원본 에셋",
-                        "ORI_A",
-                        testFileUploader.initiateTestFileUpload("ori_f.png"),
-                        testFileUploader.initiateTestFileUpload("ori_t.png"),
-                        originalCategoryId,
+                        name = "원본 에셋",
+                        code = "ORI_A",
+                        fileId = testFileUploader.initiateTestFileUpload("ori_f.png"),
+                        thumbnailFileId = testFileUploader.initiateTestFileUpload("ori_t.png"),
+                        categoryId = originalCategoryId,
                     ),
                 )
 
-            val newCategoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest("새 카테고리", "NEW_C", null, null))
+            val newCategoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest(name = "새 카테고리", code = "NEW_C"))
             val newFileId = testFileUploader.initiateTestFileUpload("new_f.png")
             val newThumbnailId = testFileUploader.initiateTestFileUpload("new_t.png")
-            val request = AssetUpdateRequest("수정된 에셋", "UPD_A", newFileId, newThumbnailId, newCategoryId)
+            val request =
+                AssetUpdateRequest(
+                    name = "수정된 에셋",
+                    code = "UPD_A",
+                    fileId = newFileId,
+                    thumbnailFileId = newThumbnailId,
+                    categoryId = newCategoryId,
+                )
 
             assetService.updateAsset(originalAssetId, request)
 
@@ -111,7 +139,7 @@ class AssetServiceTest
         fun deleteAsset_RemovesAsset() {
             val assetId =
                 assetService.createAsset(
-                    AssetCreateRequest("삭제될 에셋", "DEL", testFileUploader.initiateTestFileUpload("del.png"), null, null),
+                    AssetCreateRequest(name = "삭제될 에셋", code = "DEL", fileId = testFileUploader.initiateTestFileUpload("del.png")),
                 )
             assertThat(assetRepository.findById(assetId)).isPresent
             assetService.deleteAsset(assetId)
@@ -124,11 +152,11 @@ class AssetServiceTest
         fun assignCategory_UpdatesAssetCategory() {
             val assetId =
                 assetService.createAsset(
-                    AssetCreateRequest("카테고리 없는 에셋", "NO_CAT", testFileUploader.initiateTestFileUpload("file.png"), null, null),
+                    AssetCreateRequest(name = "카테고리 없는 에셋", code = "NO_CAT", fileId = testFileUploader.initiateTestFileUpload("file.png")),
                 )
             assertThat(assetService.getAsset(assetId).categoryId).isNull()
 
-            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest("할당될 카테고리", "ASSIGN", null, null))
+            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest(name = "할당될 카테고리", code = "ASSIGN"))
             assetService.assignCategory(assetId, categoryId)
             val updatedAsset = assetService.getAsset(assetId)
             assertThat(updatedAsset.categoryId).isEqualTo(categoryId)
@@ -139,10 +167,15 @@ class AssetServiceTest
         @Test
         @DisplayName("성공: 에셋의 카테고리를 제거하면 null로 변경된다")
         fun removeCategory_SetsAssetCategoryToNull() {
-            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest("제거될 카테고리", "REM", null, null))
+            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest(name = "제거될 카테고리", code = "REM"))
             val assetId =
                 assetService.createAsset(
-                    AssetCreateRequest("카테고리 있는 에셋", "HAS_CAT", testFileUploader.initiateTestFileUpload("file.png"), null, categoryId),
+                    AssetCreateRequest(
+                        name = "카테고리 있는 에셋",
+                        code = "HAS_CAT",
+                        fileId = testFileUploader.initiateTestFileUpload("file.png"),
+                        categoryId = categoryId,
+                    ),
                 )
             assertThat(assetService.getAsset(assetId).categoryId).isNotNull()
 
@@ -156,8 +189,11 @@ class AssetServiceTest
         @Test
         @DisplayName("실패: 중복된 코드로 에셋 생성 시 예외가 발생한다")
         fun createAsset_WithDuplicateCode_ThrowsCustomException() {
-            assetService.createAsset(AssetCreateRequest("첫 에셋", "DUP_CODE", testFileUploader.initiateTestFileUpload("f1.png"), null, null))
-            val duplicateRequest = AssetCreateRequest("두 번째 에셋", "DUP_CODE", testFileUploader.initiateTestFileUpload("f2.png"), null, null)
+            assetService.createAsset(
+                AssetCreateRequest(name = "첫 에셋", code = "DUP_CODE", fileId = testFileUploader.initiateTestFileUpload("f1.png")),
+            )
+            val duplicateRequest =
+                AssetCreateRequest(name = "두 번째 에셋", code = "DUP_CODE", fileId = testFileUploader.initiateTestFileUpload("f2.png"))
             assertThrows<CustomException> { assetService.createAsset(duplicateRequest) }
         }
 
@@ -165,7 +201,7 @@ class AssetServiceTest
         @DisplayName("실패: 유효하지 않은 파일 ID로 에셋 생성 시 예외가 발생한다")
         fun createAsset_WithInvalidFileId_ThrowsCustomException() {
             val invalidFileId = 9999L
-            val request = AssetCreateRequest("에셋", "CODE", invalidFileId, null, null)
+            val request = AssetCreateRequest(name = "에셋", code = "CODE", fileId = invalidFileId)
             assertThrows<CustomException> { assetService.createAsset(request) }
         }
 
@@ -173,7 +209,13 @@ class AssetServiceTest
         @DisplayName("실패: 유효하지 않은 카테고리 ID로 에셋 생성 시 예외가 발생한다")
         fun createAsset_WithInvalidCategoryId_ThrowsCustomException() {
             val invalidCategoryId = 9999L
-            val request = AssetCreateRequest("에셋", "CODE", testFileUploader.initiateTestFileUpload("file.png"), null, invalidCategoryId)
+            val request =
+                AssetCreateRequest(
+                    name = "에셋",
+                    code = "CODE",
+                    fileId = testFileUploader.initiateTestFileUpload("file.png"),
+                    categoryId = invalidCategoryId,
+                )
             assertThrows<CustomException> { assetService.createAsset(request) }
         }
 
@@ -181,7 +223,7 @@ class AssetServiceTest
         @DisplayName("실패: 존재하지 않는 에셋 업데이트 시 예외가 발생한다")
         fun updateAsset_WithNonExistingId_ThrowsCustomException() {
             val nonExistingId = 9999L
-            val request = AssetUpdateRequest("수정", "UPD", null, null, null)
+            val request = AssetUpdateRequest(name = "수정", code = "UPD")
             assertThrows<CustomException> { assetService.updateAsset(nonExistingId, request) }
         }
 
@@ -197,7 +239,7 @@ class AssetServiceTest
         fun removeCategory_FromAssetWithNoCategory_ThrowsCustomException() {
             val assetId =
                 assetService.createAsset(
-                    AssetCreateRequest("카테고리 없는 에셋", "NO_CAT", testFileUploader.initiateTestFileUpload("file.png"), null, null),
+                    AssetCreateRequest(name = "카테고리 없는 에셋", code = "NO_CAT", fileId = testFileUploader.initiateTestFileUpload("file.png")),
                 )
             assertThrows<CustomException> { assetService.removeCategory(assetId) }
         }
@@ -205,15 +247,19 @@ class AssetServiceTest
         @Test
         @DisplayName("실패: 중복된 이름으로 에셋 생성 시 예외가 발생한다")
         fun createAsset_WithDuplicateName_ThrowsCustomException() {
-            assetService.createAsset(AssetCreateRequest("중복된 이름", "CODE1", testFileUploader.initiateTestFileUpload("f1.png"), null, null))
-            val duplicateRequest = AssetCreateRequest("중복된 이름", "CODE2", testFileUploader.initiateTestFileUpload("f2.png"), null, null)
+            assetService.createAsset(
+                AssetCreateRequest(name = "중복된 이름", code = "CODE1", fileId = testFileUploader.initiateTestFileUpload("f1.png")),
+            )
+            val duplicateRequest =
+                AssetCreateRequest(name = "중복된 이름", code = "CODE2", fileId = testFileUploader.initiateTestFileUpload("f2.png"))
             assertThrows<CustomException> { assetService.createAsset(duplicateRequest) }
         }
 
         @Test
         @DisplayName("성공: 카테고리 없이 에셋을 생성할 수 있다")
         fun createAsset_withNullCategoryId_succeeds() {
-            val request = AssetCreateRequest("카테고리 없는 에셋", "NO_CAT", testFileUploader.initiateTestFileUpload("file.png"), null, null)
+            val request =
+                AssetCreateRequest(name = "카테고리 없는 에셋", code = "NO_CAT", fileId = testFileUploader.initiateTestFileUpload("file.png"))
             val createdAssetId = assetService.createAsset(request)
             val response = assetService.getAsset(createdAssetId)
             assertThat(response).isNotNull
@@ -226,9 +272,9 @@ class AssetServiceTest
         fun updateAsset_onlyWithName_updatesSuccessfully() {
             val assetId =
                 assetService.createAsset(
-                    AssetCreateRequest("원본 이름", "CODE", testFileUploader.initiateTestFileUpload("file.png"), null, null),
+                    AssetCreateRequest(name = "원본 이름", code = "CODE", fileId = testFileUploader.initiateTestFileUpload("file.png")),
                 )
-            val request = AssetUpdateRequest("새로운 이름", "CODE", null, null, null)
+            val request = AssetUpdateRequest(name = "새로운 이름", code = "CODE")
             assetService.updateAsset(assetId, request)
             val updatedAsset = assetService.getAsset(assetId)
             assertThat(updatedAsset.name).isEqualTo("새로운 이름")
@@ -238,13 +284,18 @@ class AssetServiceTest
         @Test
         @DisplayName("성공: 에셋 정보 수정 시 카테고리를 null 로 받더라도 카테고리는 변경되지 않는다.")
         fun updateAsset_toNullCategory_updatesSuccessfully() {
-            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest("카테고리", "CAT", null, null))
+            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest(name = "카테고리", code = "CAT"))
             val assetId =
                 assetService.createAsset(
-                    AssetCreateRequest("에셋", "CODE", testFileUploader.initiateTestFileUpload("file.png"), null, categoryId),
+                    AssetCreateRequest(
+                        name = "에셋",
+                        code = "CODE",
+                        fileId = testFileUploader.initiateTestFileUpload("file.png"),
+                        categoryId = categoryId,
+                    ),
                 )
             assertThat(assetService.getAsset(assetId).categoryId).isNotNull()
-            val request = AssetUpdateRequest("에셋", "CODE", null, null, null)
+            val request = AssetUpdateRequest(name = "에셋", code = "CODE")
             assetService.updateAsset(assetId, request)
             val updatedAsset = assetService.getAsset(assetId)
             assertThat(updatedAsset.categoryId).isEqualTo(categoryId)
@@ -253,12 +304,14 @@ class AssetServiceTest
         @Test
         @DisplayName("실패: 에셋 업데이트 시 다른 에셋과 이름이 중복되면 예외가 발생한다")
         fun updateAsset_withDuplicateName_throwsCustomException() {
-            assetService.createAsset(AssetCreateRequest("에셋1", "CODE1", testFileUploader.initiateTestFileUpload("f1.png"), null, null))
+            assetService.createAsset(
+                AssetCreateRequest(name = "에셋1", code = "CODE1", fileId = testFileUploader.initiateTestFileUpload("f1.png")),
+            )
             val assetId2 =
                 assetService.createAsset(
-                    AssetCreateRequest("에셋2", "CODE2", testFileUploader.initiateTestFileUpload("f2.png"), null, null),
+                    AssetCreateRequest(name = "에셋2", code = "CODE2", fileId = testFileUploader.initiateTestFileUpload("f2.png")),
                 )
-            val request = AssetUpdateRequest("에셋1", "CODE2", null, null, null)
+            val request = AssetUpdateRequest(name = "에셋1", code = "CODE2")
             assertThrows<CustomException> { assetService.updateAsset(assetId2, request) }
         }
 
@@ -273,7 +326,7 @@ class AssetServiceTest
         @Test
         @DisplayName("성공: 특정 카테고리에 에셋이 없는 경우 조회 시 빈 리스트를 반환한다")
         fun getAssetsByCategory_whenNoAssetsInCategory_returnsEmptyList() {
-            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest("빈 카테고리", "EMPTY", null, null))
+            val categoryId = assetCategoryService.createAssetCategory(AssetCategoryCreateRequest(name = "빈 카테고리", code = "EMPTY"))
             val responses = assetService.getAssetsByCategory(categoryId)
             assertThat(responses).isNotNull.isEmpty()
         }

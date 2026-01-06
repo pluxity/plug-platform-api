@@ -14,9 +14,9 @@ data class AssetCreateRequest(
     @field:Size(max = 50, message = "에셋 코드는 50글자를 초과할 수 없습니다")
     val code: String,
     @field:Schema(description = "파일 ID", example = "1")
-    val fileId: Long?,
+    val fileId: Long? = null,
     @field:Schema(description = "썸네일 파일 ID", example = "2")
-    val thumbnailFileId: Long?,
+    val thumbnailFileId: Long? = null,
     @field:Schema(description = "카테고리 ID", example = "3")
-    val categoryId: Long?,
+    val categoryId: Long? = null,
 )
