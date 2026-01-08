@@ -7,6 +7,7 @@ import com.pluxity.permission.dto.PermissionRequest
 import com.pluxity.permission.dto.PermissionUpdateRequest
 import com.pluxity.permission.entity.dummyPermission
 import com.pluxity.user.repository.RolePermissionRepository
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -70,6 +71,30 @@ class PermissionServiceKoTest :
                     shouldThrowExactly<CustomException> {
                         permissionService.create(createRequest)
                     }.errorCode shouldBe ErrorCode.DUPLICATE_RESOURCE_ID
+                }
+            }
+
+            When("중복된 도메인 권한이 포함된 요청으로 생성") {
+                val createRequest =
+                    PermissionCreateRequest(
+                        name = "Test Group",
+                        description = "Test Description",
+                        permissions =
+                            listOf(
+                                PermissionRequest("FACILITY", listOf()),
+                                PermissionRequest("FACILITY", listOf()),
+                            ),
+                    )
+
+                every { permissionRepository.existsByName(any()) } returns false
+
+                val exception =
+                    shouldThrowExactly<CustomException> {
+                        permissionService.create(createRequest)
+                    }
+
+                Then("DUPLICATE_RESOURCE_ID 예외 발생") {
+                    exception.message shouldBe ErrorCode.DUPLICATE_RESOURCE_ID.getMessage().format("FACILITY")
                 }
             }
 
@@ -198,6 +223,53 @@ class PermissionServiceKoTest :
 
                 Then("성공") {
                     permissionService.update(1L, updateRequest)
+                }
+            }
+
+            When("레벨이 다른 중복된 도메인 권한이 포함되었을때") {
+                val permission = dummyPermission(id = 1L, name = "Origin Name", description = "Origin Description")
+                val validId = 1L
+                val request =
+                    PermissionUpdateRequest(
+                        name = "New Name",
+                        description = "New Description",
+                        permissions =
+                            listOf(
+                                PermissionRequest("FACILITY", emptyList(), PermissionLevel.WRITE),
+                                PermissionRequest("FACILITY", emptyList(), PermissionLevel.READ),
+                            ),
+                    )
+
+                every { permissionRepository.findByIdOrNull(validId) } returns permission
+                every { permissionRepository.existsByNameAndIdNot(request.name!!, validId) } returns false
+
+                val exception = shouldThrow<CustomException> { permissionService.update(validId, request) }
+
+                Then("DUPLICATE_RESOURCE_ID 예외 발생") {
+                    exception.message shouldBe ErrorCode.DUPLICATE_RESOURCE_ID.getMessage().format("FACILITY")
+                }
+            }
+
+            When("레벨이 다른 중복된 리소스 ID가 포함되었을때") {
+                val permission = dummyPermission(id = 1L, name = "Origin Name", description = "Origin Description")
+                val validId = 1L
+                val request =
+                    PermissionUpdateRequest(
+                        name = "New Name",
+                        description = "New Description",
+                        permissions =
+                            listOf(
+                                PermissionRequest("FACILITY", listOf("2L", "3L"), PermissionLevel.WRITE),
+                                PermissionRequest("FACILITY", listOf("1L", "2L"), PermissionLevel.READ),
+                            ),
+                    )
+                every { permissionRepository.findByIdOrNull(validId) } returns permission
+                every { permissionRepository.existsByNameAndIdNot(request.name!!, validId) } returns false
+
+                val exception = shouldThrow<CustomException> { permissionService.update(validId, request) }
+
+                Then("DUPLICATE_RESOURCE_ID 예외 발생") {
+                    exception.message shouldBe ErrorCode.DUPLICATE_RESOURCE_ID.getMessage().format("FACILITY")
                 }
             }
         }
