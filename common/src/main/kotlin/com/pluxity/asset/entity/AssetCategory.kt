@@ -13,7 +13,7 @@ class AssetCategory(
     var code: String,
     @Column(name = "icon_file_id")
     var iconFileId: Long? = null,
-    var categoryName: String,
+    categoryName: String = "",
 ) : Category<AssetCategory>(categoryName) {
     @OneToMany(mappedBy = "category")
     val assets: MutableList<Asset> = mutableListOf()

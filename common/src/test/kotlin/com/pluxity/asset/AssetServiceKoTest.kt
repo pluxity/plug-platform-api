@@ -371,7 +371,7 @@ class AssetServiceKoTest :
                 service.assignCategory(validAssetId, 2L)
                 Then("에셋의 카테고리가 지정한 카테고리로 변경되어야 한다") {
                     asset.category?.id shouldBe 2L
-                    asset.category?.categoryName shouldBe "after-category"
+                    asset.category?.name shouldBe "after-category"
                     verify(exactly = 1) { assetRepository.findByIdOrNull(validAssetId) }
                     verify(exactly = 1) { assetCategoryService.findById(categoryId) }
                 }
