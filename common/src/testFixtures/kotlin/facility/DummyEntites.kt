@@ -2,6 +2,7 @@ package facility
 
 import base.entity.withId
 import com.pluxity.facility.Facility
+import com.pluxity.facility.category.FacilityCategory
 import com.pluxity.facility.floor.Floor
 import io.mockk.mockk
 
@@ -13,3 +14,8 @@ fun dummyFloor(
     floorId: String = "1F",
     name: String = "1층",
 ) = Floor(facility = facility, floorId = floorId, name = name).withId(id)
+
+fun dummyFacilityCategory(
+    id: Long = 1L,
+    name: String,
+) = FacilityCategory(categoryName = name).withId(id)

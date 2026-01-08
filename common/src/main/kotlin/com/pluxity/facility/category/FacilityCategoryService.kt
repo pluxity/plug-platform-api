@@ -80,5 +80,6 @@ class FacilityCategoryService(
         }
     }
 
+    @Transactional(readOnly = true)
     fun getCategoryDepth(): CategoryDepthResponse = CategoryDepthResponse(FacilityCategory().maxDepth)
 }
