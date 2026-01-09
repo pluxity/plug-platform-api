@@ -4,7 +4,6 @@ import com.pluxity.cctv.dto.CctvCreateRequest
 import com.pluxity.cctv.dto.CctvUpdateRequest
 import com.pluxity.cctv.entity.dummyCctv
 import com.pluxity.cctv.repository.CctvRepository
-import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.properties.MediaMtxProperties
@@ -24,7 +23,6 @@ class CctvServiceKoTest :
     BehaviorSpec({
 
         val cctvRepository: CctvRepository = mockk()
-        val deviceCctvRepository: DeviceCctvRepository = mockk(relaxed = true)
         val mediaMtxService: MediaMtxService = mockk(relaxed = true)
         val mediaMtxProperties: MediaMtxProperties =
             mockk {
@@ -34,7 +32,6 @@ class CctvServiceKoTest :
         val cctvService =
             CctvService(
                 cctvRepository,
-                deviceCctvRepository,
                 mediaMtxService,
                 mediaMtxProperties,
             )

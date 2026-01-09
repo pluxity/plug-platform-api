@@ -6,7 +6,6 @@ import com.pluxity.cctv.dto.CctvCreateRequest
 import com.pluxity.cctv.dto.CctvUpdateRequest
 import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.repository.CctvRepository
-import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.DomainPermission
@@ -40,8 +39,6 @@ class CctvPermissionTest : BehaviorSpec() {
     @MockkBean(relaxed = true)
     lateinit var cctvRepository: CctvRepository
 
-    @MockkBean lateinit var deviceCctvRepository: DeviceCctvRepository
-
     @MockkBean lateinit var userResourcePermissionService: UserResourcePermissionService
 
     @MockkBean(relaxed = true)
@@ -61,7 +58,6 @@ class CctvPermissionTest : BehaviorSpec() {
             clearMocks(
                 userService,
                 cctvRepository,
-                deviceCctvRepository,
                 userResourcePermissionService,
             )
         }
@@ -244,11 +240,9 @@ class CctvPermissionTest : BehaviorSpec() {
                 every { userResourcePermissionService.delete(ResourceType.CCTV, "c1") } just runs
                 val cctv = Cctv("c1", "name", "url")
                 every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
-                every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
                 every { cctvRepository.deleteById(any()) } just runs
                 cctvService.delete("c1")
                 Then("정상 삭제된다") {
-                    verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
                     verify(exactly = 1) { cctvRepository.deleteById("c1") }
                     verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.CCTV, "c1") }
                 }
@@ -257,7 +251,6 @@ class CctvPermissionTest : BehaviorSpec() {
             When("글로벌 ADMIN 권한이면 삭제가 허용된다") {
                 val cctv = Cctv("c1", "name", "url")
                 every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
-                every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
                 every { cctvRepository.deleteById(any()) } just runs
                 every { userResourcePermissionService.delete(ResourceType.CCTV, "c1") } just runs
                 setUserWithPermissions(
@@ -280,7 +273,6 @@ class CctvPermissionTest : BehaviorSpec() {
                 )
                 cctvService.delete("c1")
                 Then("정상 삭제된다") {
-                    verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
                     verify(exactly = 1) { cctvRepository.deleteById("c1") }
                     verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.CCTV, "c1") }
                 }
@@ -302,11 +294,9 @@ class CctvPermissionTest : BehaviorSpec() {
                 every { cctvRepository.findByIdOrNullCustom("c1") } returns cctv
                 every { userResourcePermissionService.exists(10L, ResourceType.CCTV, "c1") } returns true
                 every { userResourcePermissionService.delete(ResourceType.CCTV, "c1") } just runs
-                every { deviceCctvRepository.deleteByCctvIdIn(any()) } just runs
                 every { cctvRepository.deleteById(any()) } just runs
                 cctvService.delete("c1")
                 Then("삭제 및 delete가 수행된다") {
-                    verify(exactly = 1) { deviceCctvRepository.deleteByCctvIdIn(listOf("c1")) }
                     verify(exactly = 1) { cctvRepository.deleteById("c1") }
                     verify(exactly = 1) { userResourcePermissionService.delete(ResourceType.CCTV, "c1") }
                 }

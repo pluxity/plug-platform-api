@@ -6,7 +6,6 @@ import com.pluxity.cctv.dto.CctvUpdateRequest
 import com.pluxity.cctv.dto.toCctvResponse
 import com.pluxity.cctv.entity.Cctv
 import com.pluxity.cctv.repository.CctvRepository
-import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.feature.entity.Feature
 import com.pluxity.feature.service.FeatureAssignType
 import com.pluxity.feature.service.FeatureAssignment
@@ -29,7 +28,6 @@ private val log = KotlinLogging.logger {}
 @Service
 class CctvService(
     private val cctvRepository: CctvRepository,
-    private val deviceCctvRepository: DeviceCctvRepository,
     private val mediaMtxService: MediaMtxService,
     private val mediaMtxProperties: MediaMtxProperties,
 ) : FeatureAssignment {
@@ -92,7 +90,6 @@ class CctvService(
         cctv.mtxName?.let {
             mediaMtxService.deletePath(it)
         }
-        deviceCctvRepository.deleteByCctvIdIn(listOf(cctv.id))
         cctvRepository.deleteById(cctv.id)
     }
 
