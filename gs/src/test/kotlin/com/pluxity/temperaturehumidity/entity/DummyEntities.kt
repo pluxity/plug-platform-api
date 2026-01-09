@@ -7,4 +7,4 @@ fun dummyTemperatureHumidity(
     id: String = "thId",
     name: String = "thName",
     feature: Feature? = null,
-): TemperatureHumidity = TemperatureHumidity(id, name, feature)
+): TemperatureHumidity = TemperatureHumidity(id, name).apply { changeFeature(feature) }

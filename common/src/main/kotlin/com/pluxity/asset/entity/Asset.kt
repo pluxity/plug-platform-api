@@ -23,14 +23,15 @@ class Asset(
     var name: String,
     @Column(name = "code", unique = true, nullable = false, length = 50)
     var code: String,
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    var category: AssetCategory? = null,
     @Column(name = "file_id")
     var fileId: Long? = null,
     @Column(name = "thumbnail_file_id")
     var thumbnailFileId: Long? = null,
 ) : IdentityIdEntity() {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    var category: AssetCategory? = null
+
     companion object {
         const val ASSETS_PATH: String = "assets"
 

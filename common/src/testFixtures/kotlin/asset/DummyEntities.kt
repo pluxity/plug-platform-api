@@ -26,7 +26,6 @@ fun dummyAsset(
 ) = Asset(
     name = name,
     code = code,
-    category = category,
     fileId = fileId,
     thumbnailFileId = thumbnailFileId,
-).withId(id).withAudit()
+).apply { assignCategory(category) }.withId(id).withAudit()

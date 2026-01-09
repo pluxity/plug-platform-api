@@ -18,11 +18,12 @@ class TemperatureHumidity(
     @Id
     val id: String,
     var name: String,
-    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST])
-    @JoinColumn(name = "feature_id")
-    var feature: Feature? = null,
 ) : BaseEntity(),
     Permissible {
+    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST])
+    @JoinColumn(name = "feature_id")
+    var feature: Feature? = null
+
     fun changeFeature(feature: Feature?) {
         this.feature = feature
     }
