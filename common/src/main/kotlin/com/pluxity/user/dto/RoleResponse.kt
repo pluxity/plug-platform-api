@@ -18,6 +18,7 @@ fun Role.toRoleResponse() =
         this.description,
         this.rolePermissions
             .map { it.permission }
+            .sortedByDescending { it.id }
             .map { it.toPermissionResponse() }
             .toList(),
     )
