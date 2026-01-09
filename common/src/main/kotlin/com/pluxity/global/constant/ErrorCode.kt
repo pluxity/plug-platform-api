@@ -98,6 +98,9 @@ enum class ErrorCode(
 
     INVALID_RESOURCE_IDS_INCLUDED(HttpStatus.BAD_REQUEST, "요청한 리소스 ID %s 는 유효하지 않습니다."),
     FAILED_TO_SAVE_ENTITY(HttpStatus.INTERNAL_SERVER_ERROR, "엔티티 저장에 실패했습니다."),
+
+    MEDIAMTX_ADD_ERROR(HttpStatus.BAD_REQUEST, "MediaMtx등록 실패: %s"),
+    MEDIAMTX_DELETE_ERROR(HttpStatus.BAD_REQUEST, "MediaMtx등록 실패: %s"),
     ;
 
     override fun getHttpStatus(): HttpStatus = httpStatus

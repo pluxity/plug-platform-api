@@ -40,3 +40,7 @@ file:
 logging:
   level:
     com: DEBUG
+
+mediamtx:
+  api-url: ${MEDIAMTX_API_URL:http://192.168.10.181:8407}
+  view-url: ${MEDIAMTX_VIEW_URL:http://192.168.10.181:8406}

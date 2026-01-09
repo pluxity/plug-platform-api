@@ -2,6 +2,8 @@ package com.pluxity.temperaturehumidity
 
 import com.ninjasquad.springmockk.MockkBean
 import com.pluxity.GsApplication
+import com.pluxity.cctv.MediaMtxService
+import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.PermissionLevel
@@ -27,6 +29,12 @@ import util.setUserWithPermission
 @ActiveProfiles("test")
 class TemperatureHumidityRepositoryPermissionTest : BehaviorSpec() {
     @MockkBean lateinit var userService: UserService
+
+    @MockkBean(relaxed = true)
+    lateinit var mediaMtxService: MediaMtxService
+
+    @MockkBean(relaxed = true)
+    lateinit var cctvRepository: CctvRepository
 
     @Autowired lateinit var temperatureHumidityRepository: TemperatureHumidityRepository
 

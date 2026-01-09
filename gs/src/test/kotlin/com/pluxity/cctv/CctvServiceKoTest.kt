@@ -7,6 +7,7 @@ import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.cctv.repository.DeviceCctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.properties.MediaMtxProperties
 import entity.dummyFeature
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
@@ -24,11 +25,18 @@ class CctvServiceKoTest :
 
         val cctvRepository: CctvRepository = mockk()
         val deviceCctvRepository: DeviceCctvRepository = mockk(relaxed = true)
+        val mediaMtxService: MediaMtxService = mockk(relaxed = true)
+        val mediaMtxProperties: MediaMtxProperties =
+            mockk {
+                every { viewUrl } returns "http://test-view-url"
+            }
 
         val cctvService =
             CctvService(
                 cctvRepository,
                 deviceCctvRepository,
+                mediaMtxService,
+                mediaMtxProperties,
             )
         Given("CCTV 생성을 진행할 때") {
             When("유효한 요청으로 CCTV 생성 요청") {

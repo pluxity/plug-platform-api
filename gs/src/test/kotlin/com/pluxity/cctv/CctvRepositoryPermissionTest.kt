@@ -28,6 +28,9 @@ import util.setUserWithPermission
 class CctvRepositoryPermissionTest : BehaviorSpec() {
     @MockkBean lateinit var userService: UserService
 
+    @MockkBean(relaxed = true)
+    lateinit var mediaMtxService: MediaMtxService
+
     @Autowired lateinit var cctvRepository: CctvRepository
 
     init {

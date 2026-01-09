@@ -24,6 +24,8 @@ class Cctv(
     @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST])
     @JoinColumn(name = "feature_id")
     var feature: Feature? = null,
+    @Column
+    var mtxName: String? = null,
 ) : BaseEntity(),
     Permissible {
     fun updateCctv(request: CctvUpdateRequest) {
@@ -33,6 +35,10 @@ class Cctv(
 
     fun changeFeature(feature: Feature?) {
         this.feature = feature
+    }
+
+    fun updateMtxName(mtxName: String?) {
+        this.mtxName = mtxName
     }
 
     override val resourceId: String
