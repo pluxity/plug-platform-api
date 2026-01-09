@@ -5,7 +5,9 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.permission.dto.PermissionCreateRequest
 import com.pluxity.permission.dto.PermissionResponse
 import com.pluxity.permission.dto.PermissionUpdateRequest
+import com.pluxity.permission.dto.ResourceTypeResponse
 import com.pluxity.permission.dto.toPermissionResponse
+import com.pluxity.permission.dto.toResourceTypeResponse
 import com.pluxity.user.repository.RolePermissionRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -17,6 +19,7 @@ class PermissionService(
     private val resourcePermissionRepository: ResourcePermissionRepository,
     private val domainPermissionRepository: DomainPermissionRepository,
     private val rolePermissionRepository: RolePermissionRepository,
+    private val resourceDataProviders: List<ResourceDataProvider>,
 ) {
     @Transactional
     fun create(request: PermissionCreateRequest): Long {
@@ -196,4 +199,16 @@ class PermissionService(
     fun findPermissionById(id: Long): Permission =
         permissionRepository.findByIdOrNull(id)
             ?: throw CustomException(ErrorCode.NOT_FOUND_PERMISSION, id)
+
+    @Transactional(readOnly = true)
+    fun findAllResourceTypes(): List<ResourceTypeResponse> {
+        val providerMap = resourceDataProviders.associateBy { it.resourceType }
+
+        return ResourceType.entries
+            .filter { it != ResourceType.NONE }
+            .map { resourceType ->
+                val resources = providerMap[resourceType]?.findAllResources() ?: emptyList()
+                resourceType.toResourceTypeResponse(resources)
+            }
+    }
 }

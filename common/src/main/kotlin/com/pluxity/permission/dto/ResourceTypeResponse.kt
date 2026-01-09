@@ -17,11 +17,15 @@ data class ResourceTypeResponse(
         description = "관련 API 엔드포인트 경로",
         example = "facilities",
     ) val endpoint: String,
+    @field:Schema(
+        description = "해당 타입의 리소스 목록",
+    ) val resources: List<ResourceItemResponse> = emptyList(),
 )
 
-fun ResourceType.ResourceTypeResponse(): ResourceTypeResponse =
+fun ResourceType.toResourceTypeResponse(resources: List<ResourceItemResponse> = emptyList()): ResourceTypeResponse =
     ResourceTypeResponse(
         key = name,
         name = resourceName,
         endpoint = endpoint,
+        resources = resources,
     )

@@ -147,12 +147,8 @@ class PermissionController(
     )
     @Operation(
         summary = "권한 설정 가능 리소스 타입 목록 조회",
-        description = "역할에 부여할 수 있는 모든 리소스 타입의 상세 정보(키, 이름, 엔드포인트)를 JSON 배열 형태로 조회합니다.",
+        description = "역할에 부여할 수 있는 모든 리소스 타입의 상세 정보(키, 이름, 엔드포인트, 리소스 목록)를 JSON 배열 형태로 조회합니다.",
     )
     fun getAvailableResourceTypes(): ResponseEntity<DataResponseBody<List<ResourceTypeResponse>>> =
-        ResponseEntity.ok(
-            DataResponseBody(
-                ResourceType.entries.filter { it != ResourceType.NONE }.map { it.ResourceTypeResponse() },
-            ),
-        )
+        ResponseEntity.ok(DataResponseBody(permissionService.findAllResourceTypes()))
 }

@@ -25,12 +25,14 @@ class PermissionServiceKoTest :
         val resourcePermissionRepository: ResourcePermissionRepository = mockk()
         val domainPermissionRepository: DomainPermissionRepository = mockk()
         val rolePermissionRepository: RolePermissionRepository = mockk()
+        val resourceDataProviders: List<ResourceDataProvider> = emptyList()
         val permissionService =
             PermissionService(
                 permissionRepository,
                 resourcePermissionRepository,
                 domainPermissionRepository,
                 rolePermissionRepository,
+                resourceDataProviders,
             )
 
         Given("Permission 생성을 진행할 때") {
