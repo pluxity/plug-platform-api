@@ -23,5 +23,5 @@ interface RoleRepository : JpaRepository<Role, Long> {
             "rolePermissions.permission.domainPermissions",
         ],
     )
-    fun findByAuthIsNotOrderByCreatedAtDesc(auth: String): List<Role>
+    fun findAllByOrderByCreatedAtDesc(): List<Role>
 }

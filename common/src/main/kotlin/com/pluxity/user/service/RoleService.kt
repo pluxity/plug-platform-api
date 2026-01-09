@@ -68,10 +68,7 @@ class RoleService(
     fun findById(id: Long): RoleResponse = findRoleById(id).toRoleResponse()
 
     @Transactional(readOnly = true)
-    fun findAll(): List<RoleResponse> =
-        roleRepository
-            .findByAuthIsNotOrderByCreatedAtDesc("ADMIN")
-            .map { it.toRoleResponse() }
+    fun findAll(): List<RoleResponse> = roleRepository.findAllByOrderByCreatedAtDesc().map { it.toRoleResponse() }
 
     @Transactional
     fun update(

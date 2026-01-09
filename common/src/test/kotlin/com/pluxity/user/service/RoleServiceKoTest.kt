@@ -98,7 +98,7 @@ class RoleServiceKoTest :
                 val role1 = dummyRole(name = "Role1", description = "Desc1")
                 val role2 = dummyRole(id = 2L, name = "Role2", description = "Desc2")
 
-                every { roleRepository.findByAuthIsNotOrderByCreatedAtDesc(any()) } returns listOf(role1, role2)
+                every { roleRepository.findAllByOrderByCreatedAtDesc() } returns listOf(role1, role2)
 
                 Then("정상 조회") {
                     val result = roleService.findAll()
@@ -109,7 +109,7 @@ class RoleServiceKoTest :
             }
 
             When("데이터가 없을 때") {
-                every { roleRepository.findByAuthIsNotOrderByCreatedAtDesc(any()) } returns emptyList()
+                every { roleRepository.findAllByOrderByCreatedAtDesc() } returns emptyList()
 
                 Then("빈 목록 반환") {
                     val result = roleService.findAll()
