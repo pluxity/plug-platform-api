@@ -1,0 +1,48 @@
+name: Deploy GS_AUTH API (Docker)
+
+on:
+  push:
+    branches: [ "project/gs/refactor/permission-check" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -f gs/Dockerfile -t plug-temp-api:latest .
+
+      - name: Save Docker image to tar
+        run: |
+          pwd
+          ls -al
+          docker save -o plug-temp-api.tar plug-temp-api:latest 
+          chmod 644 plug-temp-api.tar
+          echo "==== after docker save ===="
+          ls -al
+          ls -al plug-temp-api.tar
+
+      - name: Upload Docker image tar to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "plug-temp-api.tar"          # 여기서는 깔끔하게 상대 경로
+          target: ${{ secrets.PLUG_TEMP_PATH }}
+
+      - name: Deploy on server with docker compose
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            cd ${{ secrets.PLUG_TEMP_PATH }}
+            chmod +x deploy.sh
+            ./deploy.sh
