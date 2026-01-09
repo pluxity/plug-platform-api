@@ -18,10 +18,13 @@ import com.pluxity.permission.PermissionLevel
 import com.pluxity.permission.ResourceType
 import com.pluxity.properties.MediaMtxProperties
 import com.pluxity.user.entity.PermissionAction
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class CctvService(
@@ -37,7 +40,7 @@ class CctvService(
         try {
             synchronizeCctv()
         } catch (e: Exception) {
-            error { "CctvService 초기화 중 미디어서버 동기화 실패 (서버 상태를 확인하세요): ${e.message}" }
+            log.error { "CctvService 초기화 중 미디어서버 동기화 실패 (서버 상태를 확인하세요): ${e.message}" }
         }
     }
 

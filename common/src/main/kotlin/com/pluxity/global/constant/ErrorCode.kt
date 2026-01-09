@@ -100,7 +100,7 @@ enum class ErrorCode(
     FAILED_TO_SAVE_ENTITY(HttpStatus.INTERNAL_SERVER_ERROR, "엔티티 저장에 실패했습니다."),
 
     MEDIAMTX_ADD_ERROR(HttpStatus.BAD_REQUEST, "MediaMtx등록 실패: %s"),
-    MEDIAMTX_DELETE_ERROR(HttpStatus.BAD_REQUEST, "MediaMtx등록 실패: %s"),
+    MEDIAMTX_DELETE_ERROR(HttpStatus.BAD_REQUEST, "MediaMtx삭제 실패: %s"),
     ;
 
     override fun getHttpStatus(): HttpStatus = httpStatus

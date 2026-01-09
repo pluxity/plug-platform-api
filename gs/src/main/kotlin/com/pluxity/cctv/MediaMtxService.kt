@@ -62,12 +62,16 @@ class MediaMtxService(
             .uri("/v3/config/paths/delete/$path")
             .retrieve()
             .onStatus({ !it.is2xxSuccessful }) { resp ->
-                resp
-                    .bodyToMono<MediaMtxErrorResponse>()
-                    .defaultIfEmpty(MediaMtxErrorResponse("empty body"))
-                    .flatMap { body ->
-                        Mono.error(CustomException(errorCode = ErrorCode.MEDIAMTX_DELETE_ERROR, body.error))
-                    }
+                if (resp.statusCode().value() == 404) {
+                    Mono.empty()
+                } else {
+                    resp
+                        .bodyToMono<MediaMtxErrorResponse>()
+                        .defaultIfEmpty(MediaMtxErrorResponse("empty body"))
+                        .flatMap { body ->
+                            Mono.error(CustomException(errorCode = ErrorCode.MEDIAMTX_DELETE_ERROR, body.error))
+                        }
+                }
             }.toBodilessEntity()
             .block()
     }
