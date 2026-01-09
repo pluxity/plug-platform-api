@@ -8,7 +8,7 @@ data class PermissionCreateRequest(
     @field:NotNull
     var name: String,
     @field:Schema(description = "권한에 대한 설명")
-    val description: String?,
+    val description: String? = null,
     @field:Schema(description = "권한의 상세 목록")
     @field:NotNull
     var permissions: List<PermissionRequest>,

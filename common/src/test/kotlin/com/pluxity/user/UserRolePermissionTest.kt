@@ -66,25 +66,25 @@ internal class UserRolePermissionTest
             mainFacilityGroupId =
                 permissionService.create(
                     PermissionCreateRequest(
-                        "주요 시설 관리 그룹",
-                        null,
-                        listOf(PermissionRequest("FACILITY", listOf("1", "2"))),
+                        name = "주요 시설 관리 그룹",
+                        description = null,
+                        permissions = listOf(PermissionRequest(resourceType = "FACILITY", resourceIds = listOf("1", "2"))),
                     ),
                 )
             subFacilityGroupId =
                 permissionService.create(
                     PermissionCreateRequest(
-                        "보조 시설 관리 그룹",
-                        null,
-                        listOf(PermissionRequest("FACILITY", mutableListOf("3"))),
+                        name = "보조 시설 관리 그룹",
+                        description = null,
+                        permissions = listOf(PermissionRequest(resourceType = "FACILITY", resourceIds = mutableListOf("3"))),
                     ),
                 )
             cctvGroupId =
                 permissionService.create(
                     PermissionCreateRequest(
-                        "CCTV 조회 그룹",
-                        null,
-                        listOf(PermissionRequest("CCTV", mutableListOf("1", "2"))),
+                        name = "CCTV 조회 그룹",
+                        description = null,
+                        permissions = listOf(PermissionRequest(resourceType = "CCTV", resourceIds = mutableListOf("1", "2"))),
                     ),
                 )
 
@@ -123,26 +123,20 @@ internal class UserRolePermissionTest
                 userService
                     .save(
                         UserCreateRequest(
-                            "admin",
-                            "pw",
-                            "관리자 유저",
-                            null,
-                            null,
-                            null,
-                            listOf(adminRoleId),
+                            username = "admin",
+                            password = "pw",
+                            name = "관리자 유저",
+                            roleIds = listOf(adminRoleId),
                         ),
                     ).id
             operatorUserId =
                 userService
                     .save(
                         UserCreateRequest(
-                            "operator",
-                            "pw",
-                            "운영자 유저",
-                            null,
-                            null,
-                            null,
-                            listOf(operatorRoleId),
+                            username = "operator",
+                            password = "pw",
+                            name = "운영자 유저",
+                            roleIds = listOf(operatorRoleId),
                         ),
                     ).id
 
@@ -171,9 +165,9 @@ internal class UserRolePermissionTest
                 permissionService.update(
                     mainFacilityGroupId,
                     PermissionUpdateRequest(
-                        "주요 시설 관리 그룹 v2",
-                        null,
-                        listOf(PermissionRequest("FACILITY", mutableListOf("2", "3"))),
+                        name = "주요 시설 관리 그룹 v2",
+                        description = null,
+                        permissions = listOf(PermissionRequest(resourceType = "FACILITY", resourceIds = mutableListOf("2", "3"))),
                     ),
                 )
                 em.flush()
@@ -189,7 +183,7 @@ internal class UserRolePermissionTest
                 // WHEN: OPERATOR 역할에 'CCTV 조회 그룹'을 추가
                 roleService.update(
                     operatorRoleId,
-                    RoleUpdateRequest("운영자+", null, listOf(mainFacilityGroupId, cctvGroupId)),
+                    RoleUpdateRequest(name = "운영자+", permissionIds = listOf(mainFacilityGroupId, cctvGroupId)),
                 )
                 em.flush()
                 em.clear()
@@ -203,7 +197,7 @@ internal class UserRolePermissionTest
                 // WHEN: operatorUser를 운영자(OPERATOR)에서 조회자(VIEWER)로 강등
                 userService.update(
                     operatorUserId,
-                    UserUpdateRequest(null, null, null, null, listOf(viewerRoleId)),
+                    UserUpdateRequest(roleIds = listOf(viewerRoleId)),
                 )
                 em.flush()
                 em.clear()
@@ -228,13 +222,10 @@ internal class UserRolePermissionTest
                     userService
                         .save(
                             UserCreateRequest(
-                                "viewer",
-                                "pw",
-                                "조회자 유저",
-                                null,
-                                null,
-                                null,
-                                listOf(viewerRoleId),
+                                username = "viewer",
+                                password = "pw",
+                                name = "조회자 유저",
+                                roleIds = listOf(viewerRoleId),
                             ),
                         ).id
                 em.flush()
@@ -363,7 +354,7 @@ internal class UserRolePermissionTest
                 Assertions.assertTrue(findUserOrFail(operatorUserId).canAccess("FACILITY", "1"))
 
                 // WHEN: 사용자 업데이트 시 빈 Role ID 리스트를 전달
-                userService.update(operatorUserId, UserUpdateRequest(null, null, null, null, mutableListOf()))
+                userService.update(operatorUserId, UserUpdateRequest(roleIds = mutableListOf()))
                 em.flush()
                 em.clear()
 
@@ -381,7 +372,10 @@ internal class UserRolePermissionTest
                 Assertions.assertTrue(findUserOrFail(operatorUserId).canAccess("FACILITY", "1"))
 
                 // WHEN: Role 업데이트 시 빈 Permission ID 리스트를 전달
-                roleService.update(operatorRoleId, RoleUpdateRequest("OPERATOR", null, mutableListOf()))
+                roleService.update(
+                    operatorRoleId,
+                    RoleUpdateRequest(name = "OPERATOR", permissionIds = mutableListOf()),
+                )
                 em.flush()
                 em.clear()
 
@@ -395,7 +389,7 @@ internal class UserRolePermissionTest
             fun whenUserCreatedWithoutRole_thenAssignRole_shouldGrantPermissions() {
                 // WHEN: Role 없이 사용자 생성
                 val createRequest =
-                    UserCreateRequest("newUser", "pw", "신규 유저", null, null, null, mutableListOf())
+                    UserCreateRequest(username = "newUser", password = "pw", name = "신규 유저", roleIds = mutableListOf())
                 val newUserId = userService.save(createRequest).id
                 em.flush()
                 em.clear()
@@ -407,7 +401,7 @@ internal class UserRolePermissionTest
                 // WHEN: 나중에 VIEWER Role 할당
                 userService.update(
                     newUserId,
-                    UserUpdateRequest(null, null, null, null, listOf(viewerRoleId)),
+                    UserUpdateRequest(roleIds = listOf(viewerRoleId)),
                 )
                 em.flush()
                 em.clear()
@@ -430,13 +424,10 @@ internal class UserRolePermissionTest
                     userService
                         .save(
                             UserCreateRequest(
-                                "multiRoleUser",
-                                "pw",
-                                "다중 역할 유저",
-                                null,
-                                null,
-                                null,
-                                listOf(operatorRoleId, viewerRoleId),
+                                username = "multiRoleUser",
+                                password = "pw",
+                                name = "다중 역할 유저",
+                                roleIds = listOf(operatorRoleId, viewerRoleId),
                             ),
                         ).id
                 em.flush()
@@ -461,16 +452,16 @@ internal class UserRolePermissionTest
                 // GIVEN:
                 // "FACILITY:2" 권한을 중복으로 포함하는 새로운 Permission 생성
                 val overlappingPermission =
-                    PermissionRequest("FACILITY", mutableListOf("2", "4"))
+                    PermissionRequest(resourceType = "FACILITY", resourceIds = mutableListOf("2", "4"))
                 val overlappingGroupId =
                     permissionService.create(
-                        PermissionCreateRequest("중복 권한 그룹", null, listOf(overlappingPermission)),
+                        PermissionCreateRequest(name = "중복 권한 그룹", permissions = listOf(overlappingPermission)),
                     )
 
                 // OPERATOR 역할에 이 그룹을 추가 (기존 '주요 시설 관리 그룹'과 "FACILITY:2"가 겹침)
                 roleService.update(
                     operatorRoleId,
-                    RoleUpdateRequest(null, null, listOf(mainFacilityGroupId, overlappingGroupId)),
+                    RoleUpdateRequest(permissionIds = listOf(mainFacilityGroupId, overlappingGroupId)),
                 )
                 em.flush()
                 em.clear()

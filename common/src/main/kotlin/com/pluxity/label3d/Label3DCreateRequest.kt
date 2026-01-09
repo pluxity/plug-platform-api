@@ -9,7 +9,7 @@ data class Label3DCreateRequest(
     val id: String,
     val displayText: String?,
     @field:NotNull
-    val facilityId: Long,
+    var facilityId: Long,
     val floorId: String?,
     val position: Spatial?,
     val rotation: Spatial?,

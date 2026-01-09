@@ -56,7 +56,7 @@ class FacilityPathKoTest :
                 Then("NOT_FOUND_FACILITY_PATH 예외가 발생한다.") {
                     val exception =
                         shouldThrowExactly<CustomException> {
-                            service.update(invalidId, null, null, null)
+                            service.update(pathId = invalidId)
                         }
                     exception.errorCode shouldBe ErrorCode.NOT_FOUND_FACILITY_PATH
                     exception.message shouldBe ErrorCode.NOT_FOUND_FACILITY_PATH.getMessage().format(invalidId)
@@ -74,7 +74,7 @@ class FacilityPathKoTest :
                     )
 
                 every { facilityPathRepository.findByIdOrNull(invalidId) } returns testFacilityPath
-                service.update(invalidId, updateName, null, null)
+                service.update(pathId = invalidId, name = updateName)
                 Then(" 수정 되지 않는다.") {
                     testFacilityPath.name shouldBe "test-name"
                     verify(exactly = 1) { facilityPathRepository.findByIdOrNull(invalidId) }
@@ -91,7 +91,7 @@ class FacilityPathKoTest :
                     )
 
                 every { facilityPathRepository.findByIdOrNull(validId) } returns testFacilityPath
-                service.update(validId, updatedName, null, null)
+                service.update(pathId = validId, name = updatedName)
                 Then("수정에 성공한다.") {
                     testFacilityPath.name shouldBe updatedName
                     verify(exactly = 1) { facilityPathRepository.findByIdOrNull(validId) }
@@ -111,7 +111,7 @@ class FacilityPathKoTest :
 
                 val exception =
                     shouldThrowExactly<CustomException> {
-                        service.update(validId, null, invalidPathType, null)
+                        service.update(pathId = validId, type = invalidPathType)
                     }
 
                 Then("NOT_FOUND_PATH_TYPE 예외가 발생한다.") {
@@ -133,7 +133,7 @@ class FacilityPathKoTest :
                     )
 
                 every { facilityPathRepository.findByIdOrNull(validId) } returns testFacilityPath
-                service.update(validId, updateName, updatePathType.name, updatePath)
+                service.update(pathId = validId, name = updateName, type = updatePathType.name, path = updatePath)
                 Then("수정에 성공한다.") {
                     testFacilityPath.name shouldBe updateName
                     testFacilityPath.path shouldBe updatePath

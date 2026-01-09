@@ -2,6 +2,7 @@ package com.pluxity.facility
 
 import base.entity.withAudit
 import base.entity.withId
+import com.pluxity.facility.category.FacilityCategory
 import com.pluxity.facility.dto.FacilityCreateRequest
 import com.pluxity.facility.dto.FacilityDrawingUpdateRequest
 import com.pluxity.facility.dto.FacilityFloorUpdateRequest
@@ -51,7 +52,7 @@ class FacilityServiceKoTest :
         Given("시설 생성 요청을 할 때") {
             When("코드가 중복이라면") {
                 val request = dummyCreateFacilityRequest()
-                val facility = FacilityInstance(request.name)
+                val facility = FacilityInstance(name = request.name)
 
                 every { facilityRepository.existsByCode(request.code) } returns true
 
@@ -72,9 +73,16 @@ class FacilityServiceKoTest :
                 val drawingFileId = 10L
                 val thumbnailFileId = 20L
 
-                val request = FacilityCreateRequest("시설", "CODE", "설명", drawingFileId, thumbnailFileId, null, null, null)
-                val facility = FacilityInstance(request.name)
-                val savedFacility = FacilityInstance(request.name, request.code).withId(generatedId)
+                val request =
+                    FacilityCreateRequest(
+                        name = "시설",
+                        code = "CODE",
+                        description = "설명",
+                        drawingFileId = drawingFileId,
+                        thumbnailFileId = thumbnailFileId,
+                    )
+                val facility = FacilityInstance(name = request.name)
+                val savedFacility = FacilityInstance(name = request.name, code = request.code).withId(generatedId)
 
                 val drawingFile = mockk<FileEntity> { every { id } returns request.drawingFileId!! }
                 val thumbnailFile = mockk<FileEntity> { every { id } returns request.thumbnailFileId!! }
@@ -107,9 +115,9 @@ class FacilityServiceKoTest :
 
             When("도면 파일 ID가 있으면") {
                 val drawingFileId = 10L
-                val request = FacilityCreateRequest("시설", "CODE", "설명", drawingFileId, null, null, null, null)
-                val facility = FacilityInstance(request.name)
-                val savedFacility = FacilityInstance(request.name, request.code).withId(1L)
+                val request = FacilityCreateRequest(name = "시설", code = "CODE", description = "설명", drawingFileId = drawingFileId)
+                val facility = FacilityInstance(name = request.name)
+                val savedFacility = FacilityInstance(name = request.name, code = request.code).withId(1L)
                 val fileEntity = mockk<FileEntity> { every { id } returns drawingFileId }
 
                 every { facilityRepository.existsByCode(request.code) } returns false
@@ -125,9 +133,9 @@ class FacilityServiceKoTest :
             }
 
             When("도면 파일 ID가 없으면") {
-                val request = FacilityCreateRequest("시설", "CODE", "설명", null, null, null, null, null)
-                val facility = FacilityInstance(request.name)
-                val savedFacility = FacilityInstance(request.name, request.code).withId(1L)
+                val request = FacilityCreateRequest(name = "시설", code = "CODE", description = "설명")
+                val facility = FacilityInstance(name = request.name)
+                val savedFacility = FacilityInstance(name = request.name, code = request.code).withId(1L)
 
                 every { facilityRepository.existsByCode(request.code) } returns false
                 every { facilityRepository.save(any<Facility>()) } returns savedFacility
@@ -141,9 +149,9 @@ class FacilityServiceKoTest :
 
             When("썸네일 파일 ID만 있으면") {
                 val thumbnailFileId = 10L
-                val request = FacilityCreateRequest("시설", "CODE", "설명", null, thumbnailFileId, null, null, null)
-                val facility = FacilityInstance(request.name)
-                val savedFacility = FacilityInstance(request.name, request.code).withId(1L)
+                val request = FacilityCreateRequest(name = "시설", code = "CODE", description = "설명", thumbnailFileId = thumbnailFileId)
+                val facility = FacilityInstance(name = request.name)
+                val savedFacility = FacilityInstance(name = request.name, code = request.code).withId(1L)
                 val fileEntity = mockk<FileEntity> { every { id } returns thumbnailFileId }
 
                 every { facilityRepository.existsByCode(request.code) } returns false
@@ -158,9 +166,10 @@ class FacilityServiceKoTest :
             }
 
             When("위치 정보(Position)가 포함되어 있으면") {
-                val request = FacilityCreateRequest("시설", "CODE", "설명", null, null, 127.0, 37.0, "정문 앞")
-                val facility = FacilityInstance(request.name)
-                val savedFacility = FacilityInstance(request.name, request.code).withId(1L)
+                val request =
+                    FacilityCreateRequest(name = "시설", code = "CODE", description = "설명", lon = 127.0, lat = 37.0, locationMeta = "정문 앞")
+                val facility = FacilityInstance(name = request.name)
+                val savedFacility = FacilityInstance(name = request.name, code = request.code).withId(1L)
 
                 every { facilityRepository.existsByCode(request.code) } returns false
                 every { facilityRepository.save(any<Facility>()) } returns savedFacility
@@ -179,7 +188,7 @@ class FacilityServiceKoTest :
         Given("코드로 시설 조회 요청을 할 때") {
             When("코드가 유효하다면") {
                 val code = "VALID_CODE"
-                val facility = FacilityInstance("시설", code)
+                val facility = FacilityInstance(name = "시설", code = code)
 
                 every { facilityRepository.findByCode(code) } returns facility
 
@@ -211,7 +220,7 @@ class FacilityServiceKoTest :
         Given("ID로 시설 조회 요청을 할 때") {
             When("ID가 유효하다면") {
                 val id = 1L
-                val facility = FacilityInstance("시설", "CODE").withId(id)
+                val facility = FacilityInstance(name = "시설", code = "CODE").withId(id)
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
 
@@ -244,9 +253,9 @@ class FacilityServiceKoTest :
         Given("시설 수정 요청을 할 때") {
             When("수정 요청한 코드가 중복이라면") {
                 val id = 1L
-                val facility = FacilityInstance("시설", "OLD_CODE").withId(id)
+                val facility = FacilityInstance(name = "시설", code = "OLD_CODE").withId(id)
                 val newCode = "NEW_CODE"
-                val request = FacilityUpdateRequest("시설", newCode, null, null, null, null, null)
+                val request = FacilityUpdateRequest(name = "시설", code = newCode)
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { facilityRepository.existsByCode(newCode) } returns true
@@ -266,7 +275,7 @@ class FacilityServiceKoTest :
             When("정상적으로 시설 수정이 성공하면") {
                 val id = 1L
                 val request = dummyUpdateFacilityRequest()
-                val facility = FacilityInstance("시설", request.code).withId(id)
+                val facility = FacilityInstance(name = "시설", code = request.code).withId(id)
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { facilityRepository.existsByCode(request.code!!) } returns false
@@ -282,8 +291,8 @@ class FacilityServiceKoTest :
                 val id = 1L
                 val oldThumbnailId = 10L
                 val newThumbnailId = 20L
-                val request = FacilityUpdateRequest("시설", null, null, newThumbnailId, null, null, null)
-                val facility = FacilityInstance("시설", null, null, null, null, oldThumbnailId).withId(id)
+                val request = FacilityUpdateRequest(name = "시설", thumbnailFileId = newThumbnailId)
+                val facility = FacilityInstance(name = "시설", thumbnailFileId = oldThumbnailId).withId(id)
                 val fileEntity = mockk<FileEntity>()
                 every { fileEntity.id } returns newThumbnailId
 
@@ -301,8 +310,8 @@ class FacilityServiceKoTest :
             When("썸네일 파일 ID가 동일하면") {
                 val id = 1L
                 val thumbnailId = 10L
-                val request = FacilityUpdateRequest("시설", null, null, thumbnailId, null, null, null)
-                val facility = FacilityInstance("시설", null, null, null, null, thumbnailId).withId(id)
+                val request = FacilityUpdateRequest(name = "시설", thumbnailFileId = thumbnailId)
+                val facility = FacilityInstance(name = "시설", thumbnailFileId = thumbnailId).withId(id)
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
 
@@ -318,7 +327,7 @@ class FacilityServiceKoTest :
             When("정상적으로 시설 전체 수정이 성공하면") {
                 val id = 1L
                 val request = dummyUpdateFacilityRequest()
-                val facility = FacilityInstance("시설", "OLD_CODE").withId(id)
+                val facility = FacilityInstance(name = "시설", code = "OLD_CODE").withId(id)
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { facilityRepository.existsByCode(request.code!!) } returns false
@@ -332,8 +341,8 @@ class FacilityServiceKoTest :
 
             When("썸네일 파일 ID를 null로 변경하면") {
                 val id = 1L
-                val request = FacilityUpdateRequest("시설", null, null, null, null, null, null)
-                val facility = FacilityInstance("시설", null, null, null, null, 10L).withId(id)
+                val request = FacilityUpdateRequest(name = "시설")
+                val facility = FacilityInstance(name = "시설", thumbnailFileId = 10L).withId(id)
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
 
@@ -365,7 +374,7 @@ class FacilityServiceKoTest :
 
             When("정상적으로 시설 삭제가 성공하면") {
                 val id = 1L
-                val facility = FacilityInstance("시설", "CODE").withId(id)
+                val facility = FacilityInstance(name = "시설", code = "CODE").withId(id)
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { facilityRepository.delete(facility) } just runs
@@ -399,7 +408,7 @@ class FacilityServiceKoTest :
 
             When("정상적으로 히스토리 조회가 성공하면") {
                 val id = 1L
-                val facility = FacilityInstance("시설", "CODE").withId(id)
+                val facility = FacilityInstance(name = "시설", code = "CODE").withId(id)
                 val histories = emptyList<com.pluxity.facility.dto.FacilityHistoryResponse>()
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
@@ -418,7 +427,7 @@ class FacilityServiceKoTest :
         Given("도면 파일 수정 요청을 할 때") {
             When("시설 ID가 유효하지 않다면") {
                 val invalidId = 999L
-                val request = FacilityDrawingUpdateRequest(10L, "주석")
+                val request = FacilityDrawingUpdateRequest(drawingFileId = 10L, comment = "주석")
 
                 every { facilityRepository.findByIdOrNull(invalidId) } returns null
 
@@ -436,8 +445,8 @@ class FacilityServiceKoTest :
 
             When("정상적으로 도면 파일 수정이 성공하면") {
                 val id = 1L
-                val facility = FacilityInstance("시설", "CODE").withId(id).withAudit()
-                val request = FacilityDrawingUpdateRequest(10L, "주석")
+                val facility = FacilityInstance(name = "시설", code = "CODE").withId(id).withAudit()
+                val request = FacilityDrawingUpdateRequest(drawingFileId = 10L, comment = "주석")
                 val fileEntity = mockk<FileEntity>()
 
                 every { fileEntity.id } returns request.drawingFileId
@@ -457,7 +466,7 @@ class FacilityServiceKoTest :
         Given("시설 경로 저장 요청을 할 때") {
             When("시설 ID가 유효하지 않다면") {
                 val invalidId = 999L
-                val request = FacilityPathSaveRequest("경로명", "SUBWAY", "{}")
+                val request = FacilityPathSaveRequest(name = "경로명", type = "SUBWAY", path = "{}")
 
                 every { facilityRepository.findByIdOrNull(invalidId) } returns null
 
@@ -475,8 +484,8 @@ class FacilityServiceKoTest :
 
             When("정상적으로 경로 저장이 성공하면") {
                 val id = 1L
-                val facility = FacilityInstance("시설", "CODE").withId(id)
-                val request = FacilityPathSaveRequest("경로명", "SUBWAY", "{}")
+                val facility = FacilityInstance(name = "시설", code = "CODE").withId(id)
+                val request = FacilityPathSaveRequest(name = "경로명", type = "SUBWAY", path = "{}")
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { facilityPathService.save(facility, request.name, request.type, request.path) } just runs
@@ -493,7 +502,7 @@ class FacilityServiceKoTest :
             When("시설 ID가 유효하지 않다면") {
                 val invalidId = 999L
                 val pathId = 1L
-                val request = FacilityPathUpdateRequest("수정경로명", "WAY", "{}")
+                val request = FacilityPathUpdateRequest(name = "수정경로명", type = "WAY", path = "{}")
 
                 every { facilityRepository.findByIdOrNull(invalidId) } returns null
 
@@ -512,8 +521,8 @@ class FacilityServiceKoTest :
             When("정상적으로 경로 수정이 성공하면") {
                 val id = 1L
                 val pathId = 1L
-                val facility = FacilityInstance("시설", "CODE").withId(id)
-                val request = FacilityPathUpdateRequest("수정경로명", "WAY", "{}")
+                val facility = FacilityInstance(name = "시설", code = "CODE").withId(id)
+                val request = FacilityPathUpdateRequest(name = "수정경로명", type = "WAY", path = "{}")
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { facilityPathService.update(pathId, request.name, request.type, request.path) } just runs
@@ -548,7 +557,7 @@ class FacilityServiceKoTest :
             When("정상적으로 경로 삭제가 성공하면") {
                 val id = 1L
                 val pathId = 1L
-                val facility = FacilityInstance("시설", "CODE").withId(id)
+                val facility = FacilityInstance(name = "시설", code = "CODE").withId(id)
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { facilityPathService.delete(pathId) } just runs
@@ -564,7 +573,7 @@ class FacilityServiceKoTest :
         Given("시설 위치 수정 요청을 할 때") {
             When("시설 ID가 유효하지 않다면") {
                 val invalidId = 999L
-                val request = FacilityLocationUpdateRequest(127.0, 37.0, "{}")
+                val request = FacilityLocationUpdateRequest(lon = 127.0, lat = 37.0, locationMeta = "{}")
 
                 every { facilityRepository.findByIdOrNull(invalidId) } returns null
 
@@ -581,8 +590,8 @@ class FacilityServiceKoTest :
 
             When("정상적으로 위치 수정이 성공하면") {
                 val id = 1L
-                val facility = FacilityInstance("시설", "CODE").withId(id)
-                val request = FacilityLocationUpdateRequest(127.0, 37.0, "{}")
+                val facility = FacilityInstance(name = "시설", code = "CODE").withId(id)
+                val request = FacilityLocationUpdateRequest(lon = 127.0, lat = 37.0, locationMeta = "{}")
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
 
@@ -597,7 +606,7 @@ class FacilityServiceKoTest :
         Given("시설 층 수정 요청을 할 때") {
             When("시설 ID가 유효하지 않다면") {
                 val invalidId = 999L
-                val request = FacilityFloorUpdateRequest(emptyList())
+                val request = FacilityFloorUpdateRequest(floors = emptyList())
 
                 every { facilityRepository.findByIdOrNull(invalidId) } returns null
 
@@ -615,8 +624,8 @@ class FacilityServiceKoTest :
 
             When("정상적으로 층 수정이 성공하면") {
                 val id = 1L
-                val facility = FacilityInstance("시설", "CODE").withId(id)
-                val request = FacilityFloorUpdateRequest(emptyList())
+                val facility = FacilityInstance(name = "시설", code = "CODE").withId(id)
+                val request = FacilityFloorUpdateRequest(floors = emptyList())
 
                 every { facilityRepository.findByIdOrNull(id) } returns facility
                 every { floorService.update(facility, request.floors) } just runs
@@ -631,8 +640,14 @@ class FacilityServiceKoTest :
 
         Given("시설 목록 조회 요청을 할 때") {
             When("정상적으로 조회가 성공하면") {
-                val facility1 = FacilityInstance("시설1", "CODE1", null, null, 10L, 20L).withId(1L).withAudit()
-                val facility2 = FacilityInstance("시설2", "CODE2").withId(2L).withAudit()
+                val facility1 =
+                    FacilityInstance(
+                        name = "시설1",
+                        code = "CODE1",
+                        drawingFileId = 10L,
+                        thumbnailFileId = 20L,
+                    ).withId(1L).withAudit()
+                val facility2 = FacilityInstance(name = "시설2", code = "CODE2").withId(2L).withAudit()
                 val facilities = listOf(facility1, facility2)
 
                 every { facilityRepository.findAllByOrderByCreatedAtDesc() } returns facilities
@@ -669,7 +684,7 @@ class FacilityServiceKoTest :
         drawingFileId: Long? = null,
         thumbnailFileId: Long? = null,
         position: FacilityPosition? = null,
-        category: com.pluxity.facility.category.FacilityCategory? = null,
+        category: FacilityCategory? = null,
     ) : Facility(
             name = name,
             code = code,

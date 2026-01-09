@@ -128,7 +128,7 @@ class AssetCategoryServiceKoTest :
 
         Given("에셋 카테고리 생성 요청을 할 때") {
             When("코드가 중복이라면") {
-                val request = AssetCategoryCreateRequest("카테고리", "DUPLICATE_CODE", null, null)
+                val request = AssetCategoryCreateRequest(name = "카테고리", code = "DUPLICATE_CODE")
 
                 every { assetCategoryRepository.existsByCode(request.code) } returns true
 
@@ -146,7 +146,7 @@ class AssetCategoryServiceKoTest :
 
             When("부모 카테고리 ID가 유효하지 않다면") {
                 val invalidParentId = 999L
-                val request = AssetCategoryCreateRequest("카테고리", "CODE", invalidParentId, null)
+                val request = AssetCategoryCreateRequest(name = "카테고리", code = "CODE", parentId = invalidParentId)
 
                 every { assetCategoryRepository.existsByCode(request.code) } returns false
                 every { assetCategoryRepository.findByIdOrNull(invalidParentId) } returns null
@@ -165,7 +165,7 @@ class AssetCategoryServiceKoTest :
             }
 
             When("정상적으로 카테고리 생성이 성공하면") {
-                val request = AssetCategoryCreateRequest("카테고리", "CODE", null, null)
+                val request = AssetCategoryCreateRequest(name = "카테고리", code = "CODE")
                 val savedCategory = dummyAssetCategory(id = 1L, categoryName = request.name, code = request.code)
 
                 every { assetCategoryRepository.existsByCode(request.code) } returns false
@@ -184,7 +184,7 @@ class AssetCategoryServiceKoTest :
             When("부모 카테고리와 함께 생성하면") {
                 val parentId = 1L
                 val parent = dummyAssetCategory(id = parentId, categoryName = "부모")
-                val request = AssetCategoryCreateRequest("자식", "CHILD_CODE", parentId, null)
+                val request = AssetCategoryCreateRequest(name = "자식", code = "CHILD_CODE", parentId = parentId)
                 val savedCategory = dummyAssetCategory(id = 2L, categoryName = request.name, code = request.code)
                 savedCategory.parent = parent
 
@@ -201,7 +201,7 @@ class AssetCategoryServiceKoTest :
 
             When("썸네일 파일 ID와 함께 생성하면") {
                 val thumbnailFileId = 10L
-                val request = AssetCategoryCreateRequest("카테고리", "CODE", null, thumbnailFileId)
+                val request = AssetCategoryCreateRequest(name = "카테고리", code = "CODE", thumbnailFileId = thumbnailFileId)
                 val savedCategory =
                     dummyAssetCategory(
                         id = 1L,
@@ -228,7 +228,7 @@ class AssetCategoryServiceKoTest :
             When("수정 요청한 코드를 가진 카테고리가 이미 존재한다면") {
                 val categoryId = 1L
                 val existingCategory = dummyAssetCategory(id = categoryId, code = "OLD_CODE")
-                val request = AssetCategoryUpdateRequest("카테고리", "NEW_CODE", null, null)
+                val request = AssetCategoryUpdateRequest(name = "카테고리", code = "NEW_CODE")
 
                 every { assetCategoryRepository.findByIdOrNull(categoryId) } returns existingCategory
                 every { assetCategoryRepository.existsByCode(request.code) } returns true
@@ -253,7 +253,7 @@ class AssetCategoryServiceKoTest :
 
             When("수정 요청한 카테고리가 존재하지 않다면") {
                 val invalidCategoryId = 999L
-                val request = AssetCategoryUpdateRequest("카테고리", "CODE", null, null)
+                val request = AssetCategoryUpdateRequest(name = "카테고리", code = "CODE")
 
                 every { assetCategoryRepository.findByIdOrNull(invalidCategoryId) } returns null
 
@@ -271,7 +271,7 @@ class AssetCategoryServiceKoTest :
             When("정상적으로 카테고리 수정이 성공하면") {
                 val categoryId = 1L
                 val category = dummyAssetCategory(id = categoryId, categoryName = "이전 이름", code = "OLD_CODE")
-                val request = AssetCategoryUpdateRequest("새 이름", "NEW_CODE", null, null)
+                val request = AssetCategoryUpdateRequest(name = "새 이름", code = "NEW_CODE")
 
                 every { assetCategoryRepository.findByIdOrNull(categoryId) } returns category
                 every { assetCategoryRepository.existsByCode(request.code) } returns false
@@ -291,10 +291,9 @@ class AssetCategoryServiceKoTest :
                 val category = dummyAssetCategory(id = categoryId, code = "CODE", iconFileId = oldThumbnailId)
                 val request =
                     AssetCategoryUpdateRequest(
-                        "카테고리",
-                        "CODE",
-                        null,
-                        newThumbnailId,
+                        name = "카테고리",
+                        code = "CODE",
+                        thumbnailFileId = newThumbnailId,
                     )
                 val fileEntity = FileEntity(originalFileName = "new-icon.png", filePath = "path", contentType = "image/png")
 
@@ -314,7 +313,7 @@ class AssetCategoryServiceKoTest :
                 val categoryId = 1L
                 val oldThumbnailId = 10L
                 val category = dummyAssetCategory(id = categoryId, code = "CODE", iconFileId = oldThumbnailId)
-                val request = AssetCategoryUpdateRequest("카테고리", "CODE", null, null)
+                val request = AssetCategoryUpdateRequest(name = "카테고리", code = "CODE")
 
                 every { assetCategoryRepository.findByIdOrNull(categoryId) } returns category
                 every { assetCategoryRepository.existsByCode(request.code) } returns false

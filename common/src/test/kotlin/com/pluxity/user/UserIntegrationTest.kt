@@ -83,40 +83,43 @@ internal class UserIntegrationTest
             userManageGroupId =
                 permissionService.create(
                     PermissionCreateRequest(
-                        "사용자 관리 그룹",
-                        "모든 사용자 관리 권한",
-                        listOf(
-                            PermissionRequest(
-                                ResourceType.FACILITY.name,
-                                mutableListOf("*"),
+                        name = "사용자 관리 그룹",
+                        description = "모든 사용자 관리 권한",
+                        permissions =
+                            listOf(
+                                PermissionRequest(
+                                    resourceType = ResourceType.FACILITY.name,
+                                    resourceIds = mutableListOf("*"),
+                                ),
                             ),
-                        ),
                     ),
                 )
             facilityReadGroupId =
                 permissionService.create(
                     PermissionCreateRequest(
-                        "시설 조회 그룹",
-                        "시설 조회 권한",
-                        listOf(
-                            PermissionRequest(
-                                ResourceType.FACILITY.name,
-                                mutableListOf("READ"),
+                        name = "시설 조회 그룹",
+                        description = "시설 조회 권한",
+                        permissions =
+                            listOf(
+                                PermissionRequest(
+                                    resourceType = ResourceType.FACILITY.name,
+                                    resourceIds = mutableListOf("READ"),
+                                ),
                             ),
-                        ),
                     ),
                 )
             facilityEditGroupId =
                 permissionService.create(
                     PermissionCreateRequest(
-                        "시설 수정 그룹",
-                        "시설 수정 권한",
-                        listOf(
-                            PermissionRequest(
-                                ResourceType.FACILITY.name,
-                                mutableListOf("EDIT"),
+                        name = "시설 수정 그룹",
+                        description = "시설 수정 권한",
+                        permissions =
+                            listOf(
+                                PermissionRequest(
+                                    resourceType = ResourceType.FACILITY.name,
+                                    resourceIds = mutableListOf("EDIT"),
+                                ),
                             ),
-                        ),
                     ),
                 )
 
@@ -154,26 +157,20 @@ internal class UserIntegrationTest
                 userService
                     .save(
                         UserCreateRequest(
-                            "admin",
-                            "pw",
-                            "Admin User",
-                            null,
-                            null,
-                            null,
-                            listOf(adminRoleId),
+                            username = "admin",
+                            password = "pw",
+                            name = "Admin User",
+                            roleIds = listOf(adminRoleId),
                         ),
                     ).id
             operatorUserId =
                 userService
                     .save(
                         UserCreateRequest(
-                            "operator",
-                            "pw",
-                            "Operator User",
-                            null,
-                            null,
-                            null,
-                            listOf(operatorRoleId),
+                            username = "operator",
+                            password = "pw",
+                            name = "Operator User",
+                            roleIds = listOf(operatorRoleId),
                         ),
                     ).id
 
@@ -198,15 +195,15 @@ internal class UserIntegrationTest
             em.flush()
             em.clear()
 
-            val roleToDelete = roleRepository.save(Role("DELETABLE_ROLE", "곧 삭제될 역할"))
-            val roleToKeep = roleRepository.save(Role("KEEPER_ROLE", "유지될 역할"))
+            val roleToDelete = roleRepository.save(Role(name = "DELETABLE_ROLE", description = "곧 삭제될 역할"))
+            val roleToKeep = roleRepository.save(Role(name = "KEEPER_ROLE", description = "유지될 역할"))
 
-            val userWithTwoRoles = User("multiRoleUser", "pw", "다중역할사용자", "", null, null)
+            val userWithTwoRoles = User(username = "multiRoleUser", password = "pw", name = "다중역할사용자", code = "")
             userWithTwoRoles.addRole(roleToDelete)
             userWithTwoRoles.addRole(roleToKeep)
             userRepository.save(userWithTwoRoles)
 
-            val userWithOneRole = User("singleRoleUser", "pw", "단일역할사용자", "", null, null)
+            val userWithOneRole = User(username = "singleRoleUser", password = "pw", name = "단일역할사용자", code = "")
             userWithOneRole.addRole(roleToDelete)
             userRepository.save(userWithOneRole)
 
@@ -298,8 +295,7 @@ internal class UserIntegrationTest
             Assertions.assertThat(user.getRoles()[0].id).isEqualTo(operatorRoleId)
 
             // WHEN
-            val request =
-                UserUpdateRequest(null, null, null, null, listOf(viewerRoleId))
+            val request = UserUpdateRequest(roleIds = listOf(viewerRoleId))
             userService.update(operatorUserId, request)
             em.flush()
             em.clear()
@@ -323,9 +319,9 @@ internal class UserIntegrationTest
             roleService.update(
                 operatorRoleId,
                 RoleUpdateRequest(
-                    "운영자",
-                    "권한 변경된 운영자",
-                    listOf(facilityReadGroupId, userManageGroupId),
+                    name = "운영자",
+                    description = "권한 변경된 운영자",
+                    permissionIds = listOf(facilityReadGroupId, userManageGroupId),
                 ),
             )
             em.flush()
@@ -361,7 +357,7 @@ internal class UserIntegrationTest
             // === 2. User의 Role 변경 (operator -> viewer) ===
             userService.update(
                 operatorUserId,
-                UserUpdateRequest(null, null, null, null, listOf(viewerRoleId)),
+                UserUpdateRequest(roleIds = listOf(viewerRoleId)),
             )
             em.flush()
             em.clear()

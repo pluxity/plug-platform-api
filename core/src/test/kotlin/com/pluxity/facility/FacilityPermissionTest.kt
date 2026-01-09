@@ -77,7 +77,7 @@ class FacilityPermissionTest : BehaviorSpec() {
         Given("시설 생성/수정/삭제 권한 체크") {
 
             When("글로벌 정책이 없으면 생성은 거부") {
-                val building = Building("테스트 건물", "설명")
+                val building = Building(name = "테스트 건물", description = "설명")
                 val request = FacilityCreateRequest(name = "테스트 건물", code = "CODE1", description = "설명")
                 val exception =
                     shouldThrow<CustomException> {
@@ -102,8 +102,8 @@ class FacilityPermissionTest : BehaviorSpec() {
                             ),
                         ),
                 )
-                val building = Building("테스트 건물", "설명").withId(1L)
-                val request = FacilityCreateRequest("테스트 건물", "CODE1", "설명", null, null, null, null, null)
+                val building = Building(name = "테스트 건물", description = "설명").withId(1L)
+                val request = FacilityCreateRequest(name = "테스트 건물", code = "CODE1", description = "설명")
                 every { facilityRepository.existsByCode(any()) } returns false
                 every { facilityRepository.save(any()) } returns building
                 every { userResourcePermissionService.create(any(), any(), any()) } just runs
@@ -142,7 +142,7 @@ class FacilityPermissionTest : BehaviorSpec() {
             When("수정 요청 시 권한이 WRITE인 경우") {
                 setUserWithPermission(userService, ResourceType.FACILITY, PermissionLevel.WRITE, 1L)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
-                val building = Building("테스트 건물", "설명").withId(1L)
+                val building = Building(name = "테스트 건물", description = "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
                 facilityService.putUpdate(1L, FacilityUpdateRequest(name = "수정된 이름"))
                 Then("정상 수정된다") {
@@ -153,7 +153,7 @@ class FacilityPermissionTest : BehaviorSpec() {
             When("수정 요청 시 권한이 ADMIN인 경우") {
                 setUserWithPermission(userService, ResourceType.FACILITY, PermissionLevel.ADMIN, 1L)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
-                val building = Building("테스트 건물", "설명").withId(1L)
+                val building = Building(name = "테스트 건물", description = "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
                 facilityService.putUpdate(1L, FacilityUpdateRequest(name = "수정된 이름"))
                 Then("정상 수정된다") {
@@ -173,7 +173,7 @@ class FacilityPermissionTest : BehaviorSpec() {
                             ),
                         ),
                 )
-                val building = Building("테스트 건물", "설명").withId(1L)
+                val building = Building(name = "테스트 건물", description = "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
                 every { userResourcePermissionService.exists(10L, ResourceType.FACILITY, "1") } returns true
                 facilityService.putUpdate(1L, FacilityUpdateRequest(name = "수정된 이름"))
@@ -183,7 +183,7 @@ class FacilityPermissionTest : BehaviorSpec() {
             }
 
             When("글로벌 WRITE 권한이면 수정이 허용된다") {
-                val building = Building("테스트 건물", "설명").withId(1L)
+                val building = Building(name = "테스트 건물", description = "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
                 setUserWithPermissions(
                     userService,
@@ -251,7 +251,7 @@ class FacilityPermissionTest : BehaviorSpec() {
                 setUserWithPermission(userService, ResourceType.FACILITY, PermissionLevel.ADMIN, 1L)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns false
                 every { userResourcePermissionService.delete(any(), any()) } just runs
-                val building = Building("테스트 건물", "설명").withId(1L)
+                val building = Building(name = "테스트 건물", description = "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
                 every { facilityRepository.delete(any()) } just runs
                 facilityService.deleteFacility(1L)
@@ -262,7 +262,7 @@ class FacilityPermissionTest : BehaviorSpec() {
             }
 
             When("글로벌 ADMIN 권한이면 삭제가 허용된다") {
-                val building = Building("테스트 건물", "설명").withId(1L)
+                val building = Building(name = "테스트 건물", description = "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
                 every { facilityRepository.delete(any()) } just runs
                 every { userResourcePermissionService.delete(any(), any()) } just runs
@@ -303,7 +303,7 @@ class FacilityPermissionTest : BehaviorSpec() {
                             ),
                         ),
                 )
-                val building = Building("테스트 건물", "설명").withId(1L)
+                val building = Building(name = "테스트 건물", description = "설명").withId(1L)
                 every { facilityRepository.findById(1L) } returns java.util.Optional.of(building)
                 every { userResourcePermissionService.exists(any(), any(), any()) } returns true
                 every { userResourcePermissionService.delete(any(), any()) } just runs

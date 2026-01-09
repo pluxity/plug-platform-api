@@ -19,9 +19,9 @@ class FacilityPathService(
     @Transactional
     fun update(
         pathId: Long,
-        name: String?,
-        type: String?,
-        path: String?,
+        name: String? = null,
+        type: String? = null,
+        path: String? = null,
     ) {
         val facilityPath = findById(pathId)
         name?.takeIf { it.isNotBlank() }?.let { facilityPath.updateName(it) }

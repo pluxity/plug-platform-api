@@ -26,7 +26,7 @@ fun Facility.toResponse(
     drawing: FileResponse? = null,
     thumbnail: FileResponse? = null,
 ): FacilityResponse {
-    val emptyFileResponse = FileResponse(null, null, null, null, null, null)
+    val emptyFileResponse = FileResponse()
 
     return FacilityResponse(
         id = this.requiredId,

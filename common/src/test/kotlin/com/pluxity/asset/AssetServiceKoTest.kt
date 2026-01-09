@@ -158,7 +158,7 @@ class AssetServiceKoTest :
 
         Given("에셋 생성 요청 할 때") {
             When("에셋 name이 중복이라면") {
-                var request = AssetCreateRequest("test-asset", "test-code", null, null, null)
+                var request = AssetCreateRequest(name = "test-asset", code = "test-code")
                 every { assetRepository.findByName(request.name) } returns dummyAsset(name = "test-asset")
 
                 var exception =
@@ -173,7 +173,7 @@ class AssetServiceKoTest :
                 }
             }
             When("에셋 코드가 중복이라면") {
-                var request = AssetCreateRequest("test-asset", "test-code", null, null, null)
+                var request = AssetCreateRequest(name = "test-asset", code = "test-code")
                 every { assetRepository.findByName(request.name) } returns null
                 every { assetRepository.findByCode(request.code) } returns dummyAsset(name = "test-code")
 
@@ -190,7 +190,7 @@ class AssetServiceKoTest :
             }
             When("카테고리 ID가 유효하지 않다면") {
                 var invalidCategoryId = 999L
-                var request = AssetCreateRequest("test-asset", "test-code", null, null, invalidCategoryId)
+                var request = AssetCreateRequest(name = "test-asset", code = "test-code", categoryId = invalidCategoryId)
                 every { assetRepository.findByName(request.name) } returns null
                 every { assetRepository.findByCode(request.code) } returns null
                 every { assetCategoryRepository.findByIdOrNull(invalidCategoryId) } returns null
@@ -212,7 +212,8 @@ class AssetServiceKoTest :
                 var validCategoryId = 999L
                 var validFileId = 999L
 
-                var request = AssetCreateRequest("test-asset", "test-code", validFileId, null, validCategoryId)
+                var request =
+                    AssetCreateRequest(name = "test-asset", code = "test-code", fileId = validFileId, categoryId = validCategoryId)
 
                 var category = dummyAssetCategory(id = validCategoryId)
                 var fileEntity = FileEntity(originalFileName = "test-file", filePath = "test-path", contentType = "image/png")
@@ -236,7 +237,7 @@ class AssetServiceKoTest :
 
         Given("에셋 수정 요청 할 때") {
             When("수정 요청한 이름을 가진 에셋이 이미 존재한다면") {
-                var request = AssetUpdateRequest("test-asset", "test-code", null, null, null)
+                var request = AssetUpdateRequest(name = "test-asset", code = "test-code")
                 var assetId = 1L
 
                 every { assetRepository.findByNameAndIdNot(request.name, assetId) } returns dummyAsset()
@@ -251,7 +252,7 @@ class AssetServiceKoTest :
             }
 
             When("수정 요청한 코드를 가진 에셋이 이미 존재한다면") {
-                var request = AssetUpdateRequest("test-asset", "test-code", null, null, null)
+                var request = AssetUpdateRequest(name = "test-asset", code = "test-code")
                 var assetId = 1L
 
                 every { assetRepository.findByNameAndIdNot(request.name, assetId) } returns null
@@ -268,7 +269,7 @@ class AssetServiceKoTest :
 
             When("수정 요청한 에셋이 존재하지 않다면") {
                 var invalidAssetId = 999L
-                var request = AssetUpdateRequest("test-asset", "test-code", null, null, null)
+                var request = AssetUpdateRequest(name = "test-asset", code = "test-code")
 
                 every { assetRepository.findByNameAndIdNot(request.name, invalidAssetId) } returns null
                 every { assetRepository.findByCodeAndIdNot(request.code, invalidAssetId) } returns null
@@ -284,7 +285,7 @@ class AssetServiceKoTest :
 
             When("카테고리 ID가 유효하지 않다면") {
                 var invalidCategoryId = 999L
-                var request = AssetUpdateRequest("test-asset", "test-code", null, null, invalidCategoryId)
+                var request = AssetUpdateRequest(name = "test-asset", code = "test-code", categoryId = invalidCategoryId)
                 var assetId = 1L
                 every { assetRepository.findByNameAndIdNot(request.name, assetId) } returns null
                 every { assetRepository.findByCodeAndIdNot(request.code, assetId) } returns null
@@ -301,7 +302,7 @@ class AssetServiceKoTest :
             When("정상적으로 에셋 수정이 성공하면") {
                 var asset = dummyAsset(id = 1L, name = "before-asset", code = "before-code")
                 var validCategoryId = 999L
-                var request = AssetUpdateRequest("after-asset", "after-code", null, null, validCategoryId)
+                var request = AssetUpdateRequest(name = "after-asset", code = "after-code", categoryId = validCategoryId)
                 var assetId = 1L
                 var category = dummyAssetCategory(id = validCategoryId)
                 every { assetRepository.findByNameAndIdNot(request.name, assetId) } returns null
