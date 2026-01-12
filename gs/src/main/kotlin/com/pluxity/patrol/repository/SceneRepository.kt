@@ -16,4 +16,9 @@ interface SceneRepository : JpaRepository<Scene, Long> {
     fun findByIdWithDetails(id: Long): Scene?
 
     fun findByFacilityId(facilityId: Long): List<Scene>
+
+    fun deleteByIdAndFacilityId(
+        id: Long,
+        facilityId: Long,
+    ): Long
 }
