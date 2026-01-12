@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -47,10 +48,10 @@ class SceneController(
         ],
     )
     @PostMapping
-    @ResponseCreated(path = "facilities/{facilityId}/scenes/{id}")
+    @ResponseCreated(path = "/scenes/{id}")
     fun createScene(
         @Parameter(description = "Facility ID", required = true) @PathVariable("facilityId") facilityId: Long,
-        @Parameter(description = "씬 생성 정보", required = true) @RequestBody request: SceneCreateRequest,
+        @Parameter(description = "씬 생성 정보", required = true) @RequestBody @Valid request: SceneCreateRequest,
     ): ResponseEntity<Long> = ResponseEntity.ok(sceneService.createScene(facilityId, request))
 
     @Operation(summary = "씬 상세 조회", description = "ID로 특정 씬의 상세 정보를 조회합니다")
@@ -121,7 +122,7 @@ class SceneController(
     fun updateScene(
         @Parameter(description = "시설 ID", required = true) @PathVariable facilityId: Long,
         @Parameter(description = "씬 ID", required = true) @PathVariable id: Long,
-        @Parameter(description = "씬 수정 정보", required = true) @RequestBody request: SceneUpdateRequest,
+        @Parameter(description = "씬 수정 정보", required = true) @RequestBody @Valid request: SceneUpdateRequest,
     ): ResponseEntity<Void> {
         sceneService.updateScene(facilityId, id, request)
         return ResponseEntity.noContent().build()

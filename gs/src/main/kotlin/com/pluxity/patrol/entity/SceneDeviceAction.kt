@@ -26,6 +26,7 @@ class SceneDeviceAction(
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     var deviceAction: DeviceAction,
+    @Column(columnDefinition = "TEXT")
     var actionParam: String? = null,
     var executionOrder: Int? = 0,
 ) : IdentityIdEntity()
