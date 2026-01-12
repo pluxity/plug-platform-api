@@ -107,6 +107,7 @@ enum class ErrorCode(
     UNMATCHED_FACILITY_SCENE(HttpStatus.BAD_REQUEST, "요청한 Scene이 해당 시설에 속하지 않습니다."),
     NOT_FOUND_SCENE(HttpStatus.NOT_FOUND, "ID가 %s인 Scene을 찾을 수 없습니다."),
     NOT_FOUND_ACTION(HttpStatus.NOT_FOUND, "Scene에 등록되지 않은 Action 입니다."),
+    INVALID_DEVICE_TYPE(HttpStatus.BAD_REQUEST, "요청한 Device Type은 유효하지 않습니다."),
     ;
 
     override fun getHttpStatus(): HttpStatus = httpStatus

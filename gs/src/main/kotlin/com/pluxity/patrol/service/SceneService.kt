@@ -1,8 +1,10 @@
 package com.pluxity.patrol.service
 
+import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.patrol.constant.DeviceType
 import com.pluxity.patrol.dto.SceneCreateRequest
 import com.pluxity.patrol.dto.SceneListResponse
 import com.pluxity.patrol.dto.SceneResponse
@@ -10,6 +12,7 @@ import com.pluxity.patrol.dto.SceneUpdateRequest
 import com.pluxity.patrol.entity.Scene
 import com.pluxity.patrol.entity.SceneDeviceAction
 import com.pluxity.patrol.repository.SceneRepository
+import com.pluxity.temperaturehumidity.repository.TemperatureHumidityRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional
 class SceneService(
     val facilityRepository: FacilityRepository,
     val sceneRepository: SceneRepository,
+    val cctvRepository: CctvRepository,
+    val temperatureHumidityRepository: TemperatureHumidityRepository,
 ) {
     fun createScene(
         facilityId: Long,
@@ -39,11 +44,12 @@ class SceneService(
             )
 
         request.sceneDeviceActionRequests?.forEach { actionRequest ->
+            checkDeviceExists(actionRequest.deviceId, actionRequest.deviceType)
+
             if (!actionRequest.deviceType.execute(actionRequest.deviceAction)) {
                 throw CustomException(ErrorCode.INVALID_DEVICE_ACTION, actionRequest.deviceType, actionRequest.deviceAction)
             }
 
-            // todo: deviceId 검증 필요
             scene.addSceneDeviceAction(
                 SceneDeviceAction(
                     scene = scene,
@@ -96,13 +102,14 @@ class SceneService(
         request.rotation?.takeIf { it != scene.rotation }?.let { scene.rotation = it }
         request.duration?.takeIf { it != scene.duration }?.let { scene.duration = it }
 
-        // todo: deviceId 검증 필요
         request.sceneDeviceActionRequests?.let { actionRequests ->
             val requestIds = actionRequests.mapNotNull { it.sceneDeviceActionId }.toSet()
 
             scene.sceneDeviceActions.removeIf { it.id !in requestIds }
 
             actionRequests.forEach { actionRequest ->
+                checkDeviceExists(actionRequest.deviceId, actionRequest.deviceType)
+
                 if (!actionRequest.deviceType.execute(actionRequest.deviceAction)) {
                     throw CustomException(ErrorCode.INVALID_DEVICE_ACTION, actionRequest.deviceType, actionRequest.deviceAction)
                 }
@@ -149,6 +156,25 @@ class SceneService(
     ) {
         if (scene.facility.id != facilityId) {
             throw CustomException(ErrorCode.UNMATCHED_FACILITY_SCENE)
+        }
+    }
+
+    private val deviceExistsCheckers: Map<DeviceType, (String) -> Boolean> =
+        mapOf(
+            DeviceType.CCTV to { id -> cctvRepository.existsById(id) },
+            DeviceType.TEMPERATURE_HUMIDITY to { id -> temperatureHumidityRepository.existsById(id) },
+        )
+
+    private fun checkDeviceExists(
+        deviceId: String,
+        deviceType: DeviceType,
+    ) {
+        val checker =
+            deviceExistsCheckers[deviceType]
+                ?: throw CustomException(ErrorCode.INVALID_DEVICE_TYPE)
+
+        if (!checker(deviceId)) {
+            throw CustomException(ErrorCode.NOT_FOUND_DEVICE)
         }
     }
 }
