@@ -11,7 +11,7 @@ abstract class IdentityIdEntity : BaseEntity() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    var id: Long? = null
+    open var id: Long? = null
         protected set
 
     val requiredId: Long get() =
