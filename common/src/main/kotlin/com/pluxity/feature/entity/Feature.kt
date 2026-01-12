@@ -54,7 +54,7 @@ class Feature(
     ) @Embedded var scale: Spatial? = Spatial(1.0, 1.0, 1.0),
     var assetId: Long? = null,
     @NotFound(action = NotFoundAction.IGNORE) @JoinColumn(name = "facility_id") @ManyToOne(
-        fetch = FetchType.LAZY,
+        fetch = FetchType.EAGER,
     ) var facility: Facility,
     @Column(name = "floor_id") var floorId: String? = null,
 ) : BaseEntity() {

@@ -17,7 +17,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 @Entity
 @EntityListeners(AuditingEntityListener::class)
 class FacilityPath(
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "facility_id")
     @NotFound(action = NotFoundAction.IGNORE)
     var facility: Facility? = null,

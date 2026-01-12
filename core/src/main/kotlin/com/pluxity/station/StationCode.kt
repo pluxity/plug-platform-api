@@ -10,11 +10,9 @@ import org.hibernate.annotations.NotFoundAction
 
 @Entity
 class StationCode(
+    @JoinColumn(name = "station_id")
+    @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
-    @JoinColumn(
-        name = "station_id",
-    )
-    @ManyToOne(fetch = FetchType.LAZY)
     var station: Station,
     var code: String,
 ) : IdentityIdEntity()

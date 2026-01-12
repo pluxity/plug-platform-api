@@ -12,9 +12,9 @@ import org.hibernate.annotations.NotFoundAction
 @Entity
 @Table(name = "station_line")
 class StationLine(
-    @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "station_id")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @NotFound(action = NotFoundAction.IGNORE)
     var station: Station,
     @JoinColumn(name = "line_id")
     @ManyToOne(fetch = FetchType.LAZY)

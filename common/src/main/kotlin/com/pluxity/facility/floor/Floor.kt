@@ -14,7 +14,7 @@ import org.hibernate.annotations.NotFoundAction
 @Entity
 @Table(name = "floor")
 class Floor(
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "facility_id")
     @NotFound(action = NotFoundAction.IGNORE)
     var facility: Facility? = null,
