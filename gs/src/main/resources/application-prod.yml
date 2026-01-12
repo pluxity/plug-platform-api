@@ -15,7 +15,6 @@ spring:
     username: ${DB_USERNAME:pluxity}
     password: ${DB_PASSWORD:pluxity0304}
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
     hibernate:
       ddl-auto: update #FIXME: flyway 사용하면 여기 바꿔야함
