@@ -15,6 +15,7 @@ enum class ErrorCode(
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "적절하지 않은 파일 유형입니다."),
     INVALID_FILE_STATUS(HttpStatus.BAD_REQUEST, "적절하지 않은 파일 상태입니다."),
     INVALID_SBM_FILE(HttpStatus.BAD_REQUEST, "적절하지 않은 SBM 파일입니다."),
+    INVALID_FORMAT(HttpStatus.BAD_REQUEST, "유효하지 않은 요청입니다."),
 
     EXPIRED_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "ACCESS 토큰이 만료되었습니다."),
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "REFRESH 토큰이 만료되었습니다."),

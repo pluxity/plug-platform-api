@@ -38,3 +38,21 @@ file:
 mediamtx:
   api-url: ${MEDIAMTX_API_URL:http://192.168.10.181:8407}
   view-url: ${MEDIAMTX_VIEW_URL:http://192.168.10.181:8406}
+
+springwolf: # socket documentation ui
+  enabled: true
+  docket:
+    default-content-type: application/json
+    base-package: com.pluxity
+    servers:
+      stomp:
+        protocol: stomp
+        host: localhost:8080/stomp/platform
+    info:
+      title: Plug Platform AsyncAPI Documentation
+      version: 1.0.0
+      description: AsyncAPI Documentation using Springwolf
+  plugin:
+    stomp:
+      endpoint:
+        app: /app

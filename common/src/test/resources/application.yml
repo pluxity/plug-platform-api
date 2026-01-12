@@ -19,3 +19,6 @@ logging:
     com: INFO
     root: INFO
     org.zalando.logbook: TRACE
+
+springwolf:
+  enabled: false
