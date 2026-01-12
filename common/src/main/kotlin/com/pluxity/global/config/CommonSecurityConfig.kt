@@ -85,7 +85,7 @@ class CommonSecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOriginPatterns = mutableListOf("http://localhost:*", "http://192.168.10.181:*")
+        configuration.allowedOriginPatterns = mutableListOf("http://localhost:*", "http://192.168.10.*:*")
         configuration.allowedMethods = mutableListOf("GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS") // OPTIONS도 명시적으로 허용하는 것이 좋음
         configuration.allowedHeaders = mutableListOf("*") // 와일드카드 또는 필요한 헤더 명시
         configuration.allowCredentials = true
