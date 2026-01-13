@@ -94,48 +94,43 @@ class SceneService(
         val scene =
             sceneRepository.findByIdWithDetails(id)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENE, id)
+
         validateFacility(scene, facilityId)
+        scene.updateScene(request)
 
-        request.name?.takeIf { it != scene.name }?.let { scene.name = it }
-        request.description?.takeIf { it != scene.description }?.let { scene.description = it }
-        request.position?.takeIf { it != scene.position }?.let { scene.position = it }
-        request.rotation?.takeIf { it != scene.rotation }?.let { scene.rotation = it }
-        request.duration?.takeIf { it != scene.duration }?.let { scene.duration = it }
+        val actionRequests = request.sceneDeviceActionRequests ?: emptyList()
 
-        request.sceneDeviceActionRequests?.let { actionRequests ->
-            val requestIds = actionRequests.mapNotNull { it.sceneDeviceActionId }.toSet()
+        val requestIds = actionRequests.mapNotNull { it.sceneDeviceActionId }.toSet()
+        scene.sceneDeviceActions.removeIf { it.id !in requestIds }
 
-            scene.sceneDeviceActions.removeIf { it.id !in requestIds }
+        actionRequests.forEach { actionRequest ->
+            checkDeviceExists(actionRequest.deviceId, actionRequest.deviceType)
 
-            actionRequests.forEach { actionRequest ->
-                checkDeviceExists(actionRequest.deviceId, actionRequest.deviceType)
+            if (!actionRequest.deviceType.execute(actionRequest.deviceAction)) {
+                throw CustomException(ErrorCode.INVALID_DEVICE_ACTION, actionRequest.deviceType, actionRequest.deviceAction)
+            }
 
-                if (!actionRequest.deviceType.execute(actionRequest.deviceAction)) {
-                    throw CustomException(ErrorCode.INVALID_DEVICE_ACTION, actionRequest.deviceType, actionRequest.deviceAction)
-                }
-
-                if (actionRequest.sceneDeviceActionId != null) {
-                    // 기존 scenDeviceAction 업데이트
-                    scene.sceneDeviceActions.find { it.id == actionRequest.sceneDeviceActionId }?.apply {
-                        deviceType = actionRequest.deviceType
-                        deviceId = actionRequest.deviceId
-                        deviceAction = actionRequest.deviceAction
-                        actionParam = actionRequest.actionParam
-                        executionOrder = actionRequest.executionOrder ?: 0
-                    } ?: throw CustomException(ErrorCode.NOT_FOUND_ACTION)
-                } else {
-                    // 신규 scenDeviceAction 생성
-                    scene.addSceneDeviceAction(
-                        SceneDeviceAction(
-                            scene = scene,
-                            deviceType = actionRequest.deviceType,
-                            deviceId = actionRequest.deviceId,
-                            deviceAction = actionRequest.deviceAction,
-                            actionParam = actionRequest.actionParam,
-                            executionOrder = actionRequest.executionOrder,
-                        ),
-                    )
-                }
+            if (actionRequest.sceneDeviceActionId != null) {
+                // 수정: ID가 있으면 기존 객체 찾아 덮어쓰기
+                scene.sceneDeviceActions.find { it.id == actionRequest.sceneDeviceActionId }?.apply {
+                    deviceType = actionRequest.deviceType
+                    deviceId = actionRequest.deviceId
+                    deviceAction = actionRequest.deviceAction
+                    actionParam = actionRequest.actionParam
+                    executionOrder = actionRequest.executionOrder ?: 0
+                } ?: throw CustomException(ErrorCode.NOT_FOUND_ACTION)
+            } else {
+                // 생성: ID가 없으면 새로 추가
+                scene.addSceneDeviceAction(
+                    SceneDeviceAction(
+                        scene = scene,
+                        deviceType = actionRequest.deviceType,
+                        deviceId = actionRequest.deviceId,
+                        deviceAction = actionRequest.deviceAction,
+                        actionParam = actionRequest.actionParam,
+                        executionOrder = actionRequest.executionOrder,
+                    ),
+                )
             }
         }
     }

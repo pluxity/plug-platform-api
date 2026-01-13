@@ -204,13 +204,13 @@ class SceneServiceKoTest :
         }
 
         Given("Scene 수정을 진행할 때") {
-            When("이름만 수정") {
+            When("전체 필드 수정") {
                 val scene = dummyScene()
                 val facilityId = 1L
                 every { sceneRepository.findByIdWithDetails(1L) } returns scene
                 every { scene.facility.id } returns facilityId
 
-                Then("이름만 변경됨") {
+                Then("모든 필드가 요청 값으로 덮어씌워짐") {
                     val updateRequest =
                         SceneUpdateRequest(
                             name = "수정된 씬",
@@ -222,7 +222,30 @@ class SceneServiceKoTest :
                         )
                     sceneService.updateScene(facilityId, 1L, updateRequest)
                     scene.name shouldBe "수정된 씬"
-                    scene.description shouldBe "테스트 설명" // 기존 값 유지
+                    scene.description shouldBe null
+                }
+            }
+
+            When("모든 필드와 함께 수정") {
+                val scene = dummyScene()
+                val facilityId = 1L
+                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { scene.facility.id } returns facilityId
+
+                Then("모든 필드가 요청 값으로 업데이트됨") {
+                    val updateRequest =
+                        SceneUpdateRequest(
+                            name = "수정된 씬",
+                            description = "수정된 설명",
+                            duration = 20.0,
+                            rotation = Spatial(1.0, 1.0, 1.0),
+                            position = Spatial(2.0, 2.0, 2.0),
+                            sceneDeviceActionRequests = null,
+                        )
+                    sceneService.updateScene(facilityId, 1L, updateRequest)
+                    scene.name shouldBe "수정된 씬"
+                    scene.description shouldBe "수정된 설명"
+                    scene.duration shouldBe 20.0
                 }
             }
 
@@ -238,7 +261,7 @@ class SceneServiceKoTest :
                 Then("기존 항목 유지하고 새 항목 추가") {
                     val updateRequest =
                         SceneUpdateRequest(
-                            name = null,
+                            name = "test",
                             description = null,
                             duration = null,
                             rotation = null,
@@ -281,7 +304,7 @@ class SceneServiceKoTest :
                 Then("요청에 없는 항목 삭제") {
                     val updateRequest =
                         SceneUpdateRequest(
-                            name = null,
+                            name = "test",
                             description = null,
                             duration = null,
                             rotation = null,
@@ -301,6 +324,29 @@ class SceneServiceKoTest :
                     sceneService.updateScene(1L, 1L, updateRequest)
                     scene.sceneDeviceActions.size shouldBe 1
                     scene.sceneDeviceActions[0].deviceId shouldBe "cctv-1"
+                }
+            }
+
+            When("sceneDeviceActionRequests가 null이면 기존 항목 전체 삭제") {
+                val scene = dummyScene()
+                val action1 = dummySceneDeviceAction(id = 1L, scene = scene, deviceId = "cctv-1")
+                scene.sceneDeviceActions.add(action1)
+
+                every { scene.facility.id } returns 1L
+                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+
+                Then("모든 sceneDeviceAction 삭제됨") {
+                    val updateRequest =
+                        SceneUpdateRequest(
+                            name = "test",
+                            description = null,
+                            duration = null,
+                            rotation = null,
+                            position = null,
+                            sceneDeviceActionRequests = null,
+                        )
+                    sceneService.updateScene(1L, 1L, updateRequest)
+                    scene.sceneDeviceActions.size shouldBe 0
                 }
             }
 

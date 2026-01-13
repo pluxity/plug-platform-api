@@ -3,6 +3,7 @@ package com.pluxity.patrol.entity
 import com.pluxity.facility.Facility
 import com.pluxity.feature.entity.Spatial
 import com.pluxity.global.entity.IdentityIdEntity
+import com.pluxity.patrol.dto.SceneUpdateRequest
 import jakarta.persistence.AttributeOverride
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -55,5 +56,13 @@ class Scene(
 
     fun removeSceneDeviceAction(sceneDeviceAction: SceneDeviceAction) {
         sceneDeviceActions.remove(sceneDeviceAction)
+    }
+
+    fun updateScene(request: SceneUpdateRequest) {
+        this.name = request.name
+        this.description = request.description
+        this.position = request.position
+        this.rotation = request.rotation
+        this.duration = request.duration ?: 0.0
     }
 }
