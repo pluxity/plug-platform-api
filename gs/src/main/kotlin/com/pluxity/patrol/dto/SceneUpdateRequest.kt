@@ -24,5 +24,5 @@ data class SceneUpdateRequest(
     val position: Spatial?,
     @field:Valid
     @field:Schema(description = "씬에 포함된 기기 액션 목록")
-    val sceneDeviceActionRequests: List<SceneDeviceActionRequest>?,
+    val sceneDeviceActionRequests: List<SceneDeviceActionUpdateRequest>?,
 )

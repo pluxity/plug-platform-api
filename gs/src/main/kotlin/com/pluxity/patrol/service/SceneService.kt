@@ -112,13 +112,10 @@ class SceneService(
 
             if (actionRequest.sceneDeviceActionId != null) {
                 // 수정: ID가 있으면 기존 객체 찾아 덮어쓰기
-                scene.sceneDeviceActions.find { it.id == actionRequest.sceneDeviceActionId }?.apply {
-                    deviceType = actionRequest.deviceType
-                    deviceId = actionRequest.deviceId
-                    deviceAction = actionRequest.deviceAction
-                    actionParam = actionRequest.actionParam
-                    executionOrder = actionRequest.executionOrder ?: 0
-                } ?: throw CustomException(ErrorCode.NOT_FOUND_ACTION)
+                scene.sceneDeviceActions
+                    .find { it.id == actionRequest.sceneDeviceActionId }
+                    ?.updateSceneDeviceAction(actionRequest)
+                    ?: throw CustomException(ErrorCode.NOT_FOUND_ACTION)
             } else {
                 // 생성: ID가 없으면 새로 추가
                 scene.addSceneDeviceAction(

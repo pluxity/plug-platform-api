@@ -8,7 +8,8 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.patrol.constant.DeviceAction
 import com.pluxity.patrol.constant.DeviceType
 import com.pluxity.patrol.dto.SceneCreateRequest
-import com.pluxity.patrol.dto.SceneDeviceActionRequest
+import com.pluxity.patrol.dto.SceneDeviceActionCreateRequest
+import com.pluxity.patrol.dto.SceneDeviceActionUpdateRequest
 import com.pluxity.patrol.dto.SceneUpdateRequest
 import com.pluxity.patrol.entity.dummyScene
 import com.pluxity.patrol.entity.dummySceneDeviceAction
@@ -94,8 +95,7 @@ class SceneServiceKoTest :
                         rotation = null,
                         sceneDeviceActionRequests =
                             arrayListOf(
-                                SceneDeviceActionRequest(
-                                    sceneDeviceActionId = null,
+                                SceneDeviceActionCreateRequest(
                                     deviceId = "cctv-1",
                                     deviceAction = DeviceAction.VIEW,
                                     deviceType = DeviceType.CCTV,
@@ -127,8 +127,7 @@ class SceneServiceKoTest :
                         rotation = null,
                         sceneDeviceActionRequests =
                             arrayListOf(
-                                SceneDeviceActionRequest(
-                                    sceneDeviceActionId = null,
+                                SceneDeviceActionCreateRequest(
                                     deviceId = "cctv-1",
                                     deviceAction = DeviceAction.TURN_ON, // CCTV는 VIEW만 가능
                                     deviceType = DeviceType.CCTV,
@@ -268,7 +267,7 @@ class SceneServiceKoTest :
                             position = null,
                             sceneDeviceActionRequests =
                                 arrayListOf(
-                                    SceneDeviceActionRequest(
+                                    SceneDeviceActionUpdateRequest(
                                         sceneDeviceActionId = 1L, // 기존 항목 유지
                                         deviceId = "cctv-1",
                                         deviceAction = DeviceAction.VIEW,
@@ -276,7 +275,7 @@ class SceneServiceKoTest :
                                         actionParam = null,
                                         executionOrder = 0,
                                     ),
-                                    SceneDeviceActionRequest(
+                                    SceneDeviceActionUpdateRequest(
                                         sceneDeviceActionId = null, // 신규 항목
                                         deviceId = "cctv-2",
                                         deviceAction = DeviceAction.VIEW,
@@ -311,7 +310,7 @@ class SceneServiceKoTest :
                             position = null,
                             sceneDeviceActionRequests =
                                 arrayListOf(
-                                    SceneDeviceActionRequest(
+                                    SceneDeviceActionUpdateRequest(
                                         sceneDeviceActionId = 1L, // id=2는 제외되어 삭제됨
                                         deviceId = "cctv-1",
                                         deviceAction = DeviceAction.VIEW,

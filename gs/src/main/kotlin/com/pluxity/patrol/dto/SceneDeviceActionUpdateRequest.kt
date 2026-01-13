@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PositiveOrZero
 
-data class SceneDeviceActionRequest(
+data class SceneDeviceActionUpdateRequest(
     @field:Schema(
         description = "scene_device_action ID (기존 데이터 수정 시 ID 필수, 신규 생성 시 null)",
         example = "null",

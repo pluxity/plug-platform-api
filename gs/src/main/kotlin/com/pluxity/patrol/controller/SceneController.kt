@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController
 class SceneController(
     val sceneService: SceneService,
 ) {
-    @Operation(summary = "씬 생성", description = "새로운 씬을 생성합니다. <br>sceneDeviceActionId가 null이면 신규 생성, 있으면 기존 것 업데이트")
+    @Operation(summary = "씬 생성", description = "새로운 씬을 생성합니다.")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "201", description = "씬 생성 성공"),

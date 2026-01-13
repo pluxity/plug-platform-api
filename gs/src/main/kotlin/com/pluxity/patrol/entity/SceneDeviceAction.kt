@@ -3,6 +3,7 @@ package com.pluxity.patrol.entity
 import com.pluxity.global.entity.IdentityIdEntity
 import com.pluxity.patrol.constant.DeviceAction
 import com.pluxity.patrol.constant.DeviceType
+import com.pluxity.patrol.dto.SceneDeviceActionUpdateRequest
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -29,4 +30,12 @@ class SceneDeviceAction(
     @Column(columnDefinition = "TEXT")
     var actionParam: String? = null,
     var executionOrder: Int? = 0,
-) : IdentityIdEntity()
+) : IdentityIdEntity() {
+    fun updateSceneDeviceAction(request: SceneDeviceActionUpdateRequest) {
+        this.deviceType = request.deviceType
+        this.deviceId = request.deviceId
+        this.deviceAction = request.deviceAction
+        this.actionParam = request.actionParam
+        this.executionOrder = request.executionOrder ?: 0
+    }
+}
