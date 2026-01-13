@@ -1,6 +1,5 @@
 package com.pluxity.patrol
 
-import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.feature.entity.Spatial
 import com.pluxity.global.constant.ErrorCode
@@ -14,15 +13,16 @@ import com.pluxity.patrol.dto.SceneUpdateRequest
 import com.pluxity.patrol.entity.dummyScene
 import com.pluxity.patrol.entity.dummySceneDeviceAction
 import com.pluxity.patrol.repository.SceneRepository
+import com.pluxity.patrol.service.DeviceManager
 import com.pluxity.patrol.service.SceneService
-import com.pluxity.temperaturehumidity.repository.TemperatureHumidityRepository
 import facility.dummyFacility
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 import io.mockk.verify
 import org.springframework.data.repository.findByIdOrNull
 
@@ -31,10 +31,8 @@ class SceneServiceKoTest :
 
         val facilityRepository: FacilityRepository = mockk()
         val sceneRepository: SceneRepository = mockk()
-        val cctvRepository: CctvRepository = mockk()
-        val temperatureHumidityRepository: TemperatureHumidityRepository = mockk()
-
-        val sceneService = SceneService(facilityRepository, sceneRepository, cctvRepository, temperatureHumidityRepository)
+        val deviceManager: DeviceManager = mockk()
+        val sceneService = SceneService(facilityRepository, sceneRepository, deviceManager)
 
         Given("Scene 생성을 진행할 때") {
             When("유효한 요청으로 생성") {
@@ -105,52 +103,14 @@ class SceneServiceKoTest :
                             ),
                     )
 
-                every { cctvRepository.existsById("cctv-1") } returns true
+                every { deviceManager.checkDeviceExists(any(), any()) } just runs
+                every { deviceManager.validateAction(any(), any()) } just runs
                 every { facilityRepository.findByIdOrNull(1L) } returns facility
                 every { sceneRepository.save(any()) } returns scene
 
                 Then("Scene과 SceneDeviceAction 함께 생성") {
                     val savedId = sceneService.createScene(facilityId, createRequest)
                     savedId shouldBe 1L
-                }
-            }
-
-            When("유효하지 않은 deviceAction으로 생성 요청") {
-                val facilityId = 1L
-                val facility = dummyFacility(facilityId)
-                val createRequest =
-                    SceneCreateRequest(
-                        name = "테스트 씬",
-                        description = null,
-                        duration = null,
-                        position = null,
-                        rotation = null,
-                        sceneDeviceActionRequests =
-                            arrayListOf(
-                                SceneDeviceActionCreateRequest(
-                                    deviceId = "cctv-1",
-                                    deviceAction = DeviceAction.TURN_ON, // CCTV는 VIEW만 가능
-                                    deviceType = DeviceType.CCTV,
-                                    actionParam = null,
-                                    executionOrder = 0,
-                                ),
-                            ),
-                    )
-
-                every { cctvRepository.existsById("cctv-1") } returns true
-                every { facilityRepository.findByIdOrNull(1L) } returns facility
-
-                val exception =
-                    shouldThrow<CustomException> {
-                        sceneService.createScene(facilityId, createRequest)
-                    }
-
-                Then("INVALID_DEVICE_ACTION 예외 발생") {
-                    exception.message shouldBe
-                        ErrorCode.INVALID_DEVICE_ACTION.getMessage().format(
-                            DeviceType.CCTV,
-                            DeviceAction.TURN_ON,
-                        )
                 }
             }
         }
@@ -253,7 +213,8 @@ class SceneServiceKoTest :
                 val existingAction = dummySceneDeviceAction(id = 1L, scene = scene)
                 scene.sceneDeviceActions.add(existingAction)
 
-                every { cctvRepository.existsById(any()) } returns true
+                every { deviceManager.checkDeviceExists(any(), any()) } just runs
+                every { deviceManager.validateAction(any(), any()) } just runs
                 every { scene.facility.id } returns 1L
                 every { sceneRepository.findByIdWithDetails(1L) } returns scene
 
@@ -296,7 +257,8 @@ class SceneServiceKoTest :
                 val action2 = dummySceneDeviceAction(id = 2L, scene = scene, deviceId = "cctv-2")
                 scene.sceneDeviceActions.addAll(listOf(action1, action2))
 
-                every { cctvRepository.existsById(any()) } returns true
+                every { deviceManager.checkDeviceExists(any(), any()) } just runs
+                every { deviceManager.validateAction(any(), any()) } just runs
                 every { scene.facility.id } returns 1L
                 every { sceneRepository.findByIdWithDetails(1L) } returns scene
 
