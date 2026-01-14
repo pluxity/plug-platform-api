@@ -42,3 +42,31 @@ fun dummySceneDeviceAction(
         actionParam = actionParam,
         executionOrder = executionOrder,
     ).withId(id)
+
+fun dummyScenario(
+    id: Long = 1L,
+    facility: Facility = dummyFacility(),
+    name: String = "테스트 시나리오",
+    description: String? = "테스트 설명",
+    isActive: Boolean? = true,
+): Scenario =
+    Scenario(
+        facility = facility,
+        name = name,
+        description = description,
+        isActive = isActive ?: true,
+    ).withId(id)
+
+fun dummyScenarioScene(
+    id: Long = 1L,
+    scenario: Scenario,
+    scene: Scene,
+    executionOrder: Int = 1,
+    duration: Double? = 10.0,
+): ScenarioScene =
+    ScenarioScene(
+        scenario = scenario,
+        scene = scene,
+        executionOrder = executionOrder,
+        duration = duration,
+    ).withId(id)
