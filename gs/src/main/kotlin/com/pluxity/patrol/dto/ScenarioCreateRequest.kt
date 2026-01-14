@@ -18,5 +18,8 @@ data class ScenarioCreateRequest(
     val isActive: Boolean = true,
     @field:Valid
     @field:Schema(description = "시나리오에 포함할 씬 목록")
-    val scenarioSceneRequests: List<ScenarioSceneCreateRequest>?,
+    val scenarioSceneRequests: List<ScenarioSceneCreateRequest>? = null,
+    @field:Valid
+    @field:Schema(description = "트리거 설정 (선택)")
+    val trigger: TriggerRequest? = null,
 )

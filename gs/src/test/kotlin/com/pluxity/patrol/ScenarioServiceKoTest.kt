@@ -7,13 +7,18 @@ import com.pluxity.patrol.dto.ScenarioCreateRequest
 import com.pluxity.patrol.dto.ScenarioSceneCreateRequest
 import com.pluxity.patrol.dto.ScenarioSceneUpdateRequest
 import com.pluxity.patrol.dto.ScenarioUpdateRequest
+import com.pluxity.patrol.dto.TriggerRequest
+import com.pluxity.patrol.dto.TriggerRequestType
 import com.pluxity.patrol.entity.ScenarioScene
+import com.pluxity.patrol.entity.Trigger
 import com.pluxity.patrol.entity.dummyScenario
 import com.pluxity.patrol.entity.dummyScenarioScene
 import com.pluxity.patrol.entity.dummyScene
 import com.pluxity.patrol.repository.ScenarioRepository
 import com.pluxity.patrol.repository.SceneRepository
+import com.pluxity.patrol.repository.TriggerRepository
 import com.pluxity.patrol.service.ScenarioService
+import com.pluxity.patrol.service.TriggerService
 import facility.dummyFacility
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
@@ -29,8 +34,17 @@ class ScenarioServiceKoTest :
         val scenarioRepository = mockk<ScenarioRepository>()
         val sceneRepository = mockk<SceneRepository>()
         val facilityRepository = mockk<FacilityRepository>()
+        val triggerService = mockk<TriggerService>()
+        val triggerRepository = mockk<TriggerRepository>()
 
-        val scenarioService = ScenarioService(scenarioRepository, sceneRepository, facilityRepository)
+        val scenarioService =
+            ScenarioService(
+                scenarioRepository,
+                sceneRepository,
+                facilityRepository,
+                triggerService,
+                triggerRepository,
+            )
 
         Given("Scenario 생성을 진행할 때") {
             When("유효한 요청으로 생성") {
@@ -496,6 +510,66 @@ class ScenarioServiceKoTest :
                 Then("정상 삭제") {
                     scenarioService.deleteScenario(1L, 1L)
                     verify(exactly = 1) { scenarioRepository.deleteByIdAndFacilityId(any(), any()) }
+                }
+            }
+        }
+
+        Given("Scenario와 Trigger를 함께 생성할 때") {
+            When("Trigger와 함께 생성 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+                val trigger = mockk<Trigger>()
+
+                val createRequest =
+                    ScenarioCreateRequest(
+                        name = "테스트 시나리오",
+                        description = "테스트 설명",
+                        isActive = true,
+                        scenarioSceneRequests = null,
+                        trigger =
+                            TriggerRequest(
+                                triggerType = TriggerRequestType.DAILY,
+                                hour = 9,
+                                minute = 0,
+                            ),
+                    )
+
+                every { facilityRepository.findByIdOrNull(facilityId) } returns facility
+                every { scenarioRepository.save(any()) } returns scenario
+                every { triggerService.createTrigger(any(), any()) } returns trigger
+                every { triggerRepository.save(any()) } returns trigger
+
+                Then("Scenario와 Trigger 함께 생성") {
+                    val savedId = scenarioService.createScenario(facilityId, createRequest)
+                    savedId shouldBe 1L
+                    verify(exactly = 1) { triggerService.createTrigger(any(), any()) }
+                    verify(exactly = 1) { triggerRepository.save(any()) }
+                }
+            }
+
+            When("Trigger 없이 생성 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+
+                val createRequest =
+                    ScenarioCreateRequest(
+                        name = "테스트 시나리오",
+                        description = "테스트 설명",
+                        isActive = true,
+                        scenarioSceneRequests = null,
+                        trigger = null,
+                    )
+
+                every { facilityRepository.findByIdOrNull(facilityId) } returns facility
+                every { scenarioRepository.save(any()) } returns scenario
+
+                Then("Scenario만 생성되고 Trigger는 생성되지 않음") {
+                    val savedId = scenarioService.createScenario(facilityId, createRequest)
+                    savedId shouldBe 1L
+                    verify(exactly = 0) { triggerService.createTrigger(any(), any()) }
+                    verify(exactly = 0) { triggerRepository.save(any()) }
                 }
             }
         }
