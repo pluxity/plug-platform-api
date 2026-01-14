@@ -113,6 +113,11 @@ enum class ErrorCode(
     DUPLICATE_EXECUTION_ORDER(HttpStatus.BAD_REQUEST, "중복된 실행 순서가 존재합니다."),
     NOT_FOUND_SCENARIO(HttpStatus.NOT_FOUND, "ID가 %s인 Scenario를 찾을 수 없습니다."),
     NOT_FOUND_SCENARIO_SCENE(HttpStatus.NOT_FOUND, "ID가 %s인 ScenarioScene을 찾을 수 없습니다."),
+
+    INVALID_CRON_DAY_VALUE(HttpStatus.BAD_REQUEST, "%s는 유효하지 않은 크론 요일 값입니다. (0~6)"),
+
+    TRIGGER_WEEKLY_DAYS_REQUIRED(HttpStatus.BAD_REQUEST, "WEEKLY 트리거는 요일 선택이 필수입니다."),
+    TRIGGER_ONCE_DATE_REQUIRED(HttpStatus.BAD_REQUEST, "ONCE 트리거는 실행 날짜가 필수입니다."),
     ;
 
     override fun getHttpStatus(): HttpStatus = httpStatus
