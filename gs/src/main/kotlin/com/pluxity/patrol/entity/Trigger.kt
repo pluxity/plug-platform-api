@@ -13,17 +13,41 @@ import java.time.LocalDate
 class Trigger(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scenario_id", nullable = false)
-    val scenario: Scenario,
+    var scenario: Scenario,
     @Column(nullable = false)
-    val cronExpression: String,
+    var cronExpression: String,
     @Column(nullable = false)
-    val triggerType: TriggerType,
-    val executeMinute: Int? = null,
-    val executeHour: Int? = null,
-    val month: Int? = null,
-    val dayOfMonth: Int? = null,
-    val dayOfWeek: Int = 0,
-    val startDate: LocalDate? = null,
-    val endDate: LocalDate? = null,
-    val isActive: Boolean = true,
-) : IdentityIdEntity()
+    var triggerType: TriggerType,
+    var executeMinute: Int? = null,
+    var executeHour: Int? = null,
+    var month: Int? = null,
+    var dayOfMonth: Int? = null,
+    var dayOfWeek: Int = 0,
+    var startDate: LocalDate? = null,
+    var endDate: LocalDate? = null,
+    var isActive: Boolean = true,
+) : IdentityIdEntity() {
+    fun updateTrigger(
+        triggerType: TriggerType,
+        hour: Int,
+        minute: Int,
+        dayOfWeek: Int,
+        dayOfMonth: Int?,
+        month: Int?,
+        startDate: LocalDate,
+        endDate: LocalDate?,
+        cronExpression: String,
+        isActive: Boolean,
+    ) {
+        this.triggerType = triggerType
+        this.executeHour = hour
+        this.executeMinute = minute
+        this.dayOfWeek = dayOfWeek
+        this.dayOfMonth = dayOfMonth
+        this.month = month
+        this.startDate = startDate
+        this.endDate = endDate
+        this.cronExpression = cronExpression
+        this.isActive = isActive
+    }
+}

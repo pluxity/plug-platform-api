@@ -6,8 +6,14 @@ import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import java.time.LocalDate
 
-@Schema(description = "트리거 생성/수정 요청")
+@Schema(description = "트리거 수정 요청")
 data class TriggerRequest(
+    @field:Schema(
+        description = "트리거 ID",
+        example = "1",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
+    )
+    val triggerId: Long? = null,
     @field:Schema(
         description = "트리거 타입",
         example = "DAILY",
@@ -61,15 +67,3 @@ data class TriggerRequest(
     )
     val isActive: Boolean = true,
 )
-
-@Schema(description = "트리거 타입", enumAsRef = true)
-enum class TriggerRequestType {
-    @field:Schema(description = "일회성 - onceDate 필수")
-    ONCE,
-
-    @field:Schema(description = "매일 반복")
-    DAILY,
-
-    @field:Schema(description = "매주 반복 - daysOfWeek 필수")
-    WEEKLY,
-}
