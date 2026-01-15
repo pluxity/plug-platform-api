@@ -2,9 +2,9 @@ package com.pluxity.patrol.service
 
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.patrol.constant.TriggerRequestType
 import com.pluxity.patrol.constant.TriggerType
 import com.pluxity.patrol.dto.TriggerRequest
-import com.pluxity.patrol.dto.TriggerRequestType
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.Trigger
 import org.springframework.stereotype.Service

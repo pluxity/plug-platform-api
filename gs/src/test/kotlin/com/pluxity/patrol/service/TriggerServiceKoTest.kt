@@ -3,8 +3,8 @@ package com.pluxity.patrol.service
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.patrol.constant.CronDayOfWeek
+import com.pluxity.patrol.constant.TriggerRequestType
 import com.pluxity.patrol.dto.TriggerRequest
-import com.pluxity.patrol.dto.TriggerRequestType
 import com.pluxity.patrol.entity.dummyScenario
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec

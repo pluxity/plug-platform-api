@@ -1,6 +1,7 @@
 package com.pluxity.patrol.dto
 
 import com.pluxity.patrol.constant.CronDayOfWeek
+import com.pluxity.patrol.constant.TriggerRequestType
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
