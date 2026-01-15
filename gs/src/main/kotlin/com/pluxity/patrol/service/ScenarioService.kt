@@ -6,7 +6,9 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.patrol.dto.ScenarioCreateRequest
 import com.pluxity.patrol.dto.ScenarioListResponse
 import com.pluxity.patrol.dto.ScenarioResponse
+import com.pluxity.patrol.dto.ScenarioSceneUpdateRequest
 import com.pluxity.patrol.dto.ScenarioUpdateRequest
+import com.pluxity.patrol.dto.TriggerRequest
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioScene
 import com.pluxity.patrol.repository.ScenarioRepository
@@ -114,67 +116,66 @@ class ScenarioService(
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO, id)
 
         validateFacility(scenario, facilityId)
-
-        // 기본 필드 업데이트
         scenario.updateScenario(request)
 
-        val sceneRequests = request.scenarioScenes ?: emptyList()
+        updateScenarioScenes(scenario, request.scenarioScenes ?: emptyList(), facilityId)
+        updateTriggers(scenario, request.triggers ?: emptyList())
+    }
 
-        // 순서 검증
-        val requestOrderIds = sceneRequests.map { it.order }
-        validateExecutionOrders(requestOrderIds)
+    private fun updateScenarioScenes(
+        scenario: Scenario,
+        sceneRequests: List<ScenarioSceneUpdateRequest>,
+        facilityId: Long,
+    ) {
+        validateExecutionOrders(sceneRequests.map { it.order })
 
-        // 요청에 scenarioScene이 없다면 모두 제거
         val requestIds = sceneRequests.mapNotNull { it.scenarioSceneId }.toSet()
+
+        // 요청에 포함되지 않은 scenarioScene 제거
         scenario.scenarioScenes.removeIf { it.id !in requestIds }
 
-        val sceneIds = sceneRequests.map { it.sceneId }
         val scenes =
-            if (sceneIds.isNotEmpty()) {
-                sceneRepository.findAllById(sceneIds).associateBy { it.id }
+            if (sceneRequests.isNotEmpty()) {
+                sceneRepository.findAllById(sceneRequests.map { it.sceneId }).associateBy { it.requiredId }
             } else {
                 emptyMap()
             }
 
         sceneRequests.forEach { sceneRequest ->
+            val scene =
+                scenes[sceneRequest.sceneId]
+                    ?: throw CustomException(ErrorCode.NOT_FOUND_SCENE, sceneRequest.sceneId)
+
+            if (scene.facility.id != facilityId) {
+                throw CustomException(ErrorCode.UNMATCHED_FACILITY_SCENE)
+            }
+
             if (sceneRequest.scenarioSceneId != null) {
                 val scenarioScene =
                     scenario.scenarioScenes.find { it.id == sceneRequest.scenarioSceneId }
                         ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_SCENE, sceneRequest.scenarioSceneId)
 
-                // scene이 변경된 경우
                 if (scenarioScene.scene.id != sceneRequest.sceneId) {
-                    val newScene =
-                        scenes[sceneRequest.sceneId]
-                            ?: throw CustomException(ErrorCode.NOT_FOUND_SCENE, sceneRequest.sceneId)
-                    if (newScene.facility.id != facilityId) {
-                        throw CustomException(ErrorCode.UNMATCHED_FACILITY_SCENE)
-                    }
-                    scenarioScene.scene = newScene
+                    scenarioScene.scene = scene
                 }
                 scenarioScene.updateScenarioScene(sceneRequest)
             } else {
-                val findScene =
-                    scenes[sceneRequest.sceneId]
-                        ?: throw CustomException(ErrorCode.NOT_FOUND_SCENE, sceneRequest.sceneId)
-
-                if (findScene.facility.id != facilityId) {
-                    throw CustomException(ErrorCode.UNMATCHED_FACILITY_SCENE)
-                }
-
                 scenario.addScenarioScenes(
                     ScenarioScene(
                         scenario = scenario,
-                        scene = findScene,
+                        scene = scene,
                         executionOrder = sceneRequest.order,
-                        duration = sceneRequest.duration ?: findScene.duration,
+                        duration = sceneRequest.duration ?: scene.duration,
                     ),
                 )
             }
         }
+    }
 
-        val triggerRequests = request.triggers ?: emptyList()
-
+    private fun updateTriggers(
+        scenario: Scenario,
+        triggerRequests: List<TriggerRequest>,
+    ) {
         val requestTriggerIds = triggerRequests.mapNotNull { it.triggerId }.toSet()
         scenario.triggers.removeIf { it.id !in requestTriggerIds }
 
@@ -183,7 +184,6 @@ class ScenarioService(
                 val existingTrigger =
                     scenario.triggers.find { it.id == triggerRequest.triggerId }
                         ?: throw CustomException(ErrorCode.NOT_FOUND_TRIGGER, triggerRequest.triggerId)
-
                 triggerService.updateTrigger(existingTrigger, triggerRequest)
             } else {
                 val newTrigger = triggerService.createTrigger(triggerRequest, scenario)
