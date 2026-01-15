@@ -118,6 +118,7 @@ enum class ErrorCode(
 
     TRIGGER_WEEKLY_DAYS_REQUIRED(HttpStatus.BAD_REQUEST, "WEEKLY 트리거는 요일 선택이 필수입니다."),
     TRIGGER_ONCE_DATE_REQUIRED(HttpStatus.BAD_REQUEST, "ONCE 트리거는 실행 날짜가 필수입니다."),
+    NOT_FOUND_TRIGGER(HttpStatus.NOT_FOUND, "ID가 %s인 Trigger를 찾을 수 없습니다."),
     ;
 
     override fun getHttpStatus(): HttpStatus = httpStatus

@@ -72,7 +72,7 @@ class ScenarioService(
 
         val savedScenario = scenarioRepository.save(scenario)
 
-        request.trigger?.let { triggerRequest ->
+        request.triggers?.forEach { triggerRequest ->
             val trigger = triggerService.createTrigger(triggerRequest, savedScenario)
             triggerRepository.save(trigger)
         }
@@ -170,6 +170,24 @@ class ScenarioService(
                         duration = sceneRequest.duration ?: findScene.duration,
                     ),
                 )
+            }
+        }
+
+        val triggerRequests = request.triggers ?: emptyList()
+
+        val requestTriggerIds = triggerRequests.mapNotNull { it.triggerId }.toSet()
+        scenario.triggers.removeIf { it.id !in requestTriggerIds }
+
+        triggerRequests.forEach { triggerRequest ->
+            if (triggerRequest.triggerId != null) {
+                val existingTrigger =
+                    scenario.triggers.find { it.id == triggerRequest.triggerId }
+                        ?: throw CustomException(ErrorCode.NOT_FOUND_TRIGGER, triggerRequest.triggerId)
+
+                triggerService.updateTrigger(existingTrigger, triggerRequest)
+            } else {
+                val newTrigger = triggerService.createTrigger(triggerRequest, scenario)
+                scenario.addTrigger(newTrigger)
             }
         }
     }

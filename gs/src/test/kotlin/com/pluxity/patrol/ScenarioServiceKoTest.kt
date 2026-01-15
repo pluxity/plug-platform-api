@@ -3,12 +3,12 @@ package com.pluxity.patrol
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.patrol.constant.TriggerRequestType
 import com.pluxity.patrol.dto.ScenarioCreateRequest
 import com.pluxity.patrol.dto.ScenarioSceneCreateRequest
 import com.pluxity.patrol.dto.ScenarioSceneUpdateRequest
 import com.pluxity.patrol.dto.ScenarioUpdateRequest
 import com.pluxity.patrol.dto.TriggerRequest
-import com.pluxity.patrol.dto.TriggerRequestType
 import com.pluxity.patrol.entity.ScenarioScene
 import com.pluxity.patrol.entity.Trigger
 import com.pluxity.patrol.entity.dummyScenario
@@ -514,8 +514,174 @@ class ScenarioServiceKoTest :
             }
         }
 
+        Given("Scenario 수정 시 Trigger 업데이트") {
+            When("triggerId 없이 새 trigger 추가 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+                val newTrigger = mockk<Trigger>(relaxed = true)
+
+                every { scenario.facility.id } returns facilityId
+                every { scenarioRepository.findByIdWithDetails(1L) } returns scenario
+                every { triggerService.createTrigger(any(), any()) } returns newTrigger
+
+                Then("새 Trigger 생성 후 scenario에 추가") {
+                    val updateRequest =
+                        ScenarioUpdateRequest(
+                            name = "수정된 시나리오",
+                            description = null,
+                            isActive = null,
+                            scenarioScenes = null,
+                            triggers =
+                                listOf(
+                                    TriggerRequest(
+                                        triggerId = null,
+                                        triggerType = TriggerRequestType.DAILY,
+                                        hour = 10,
+                                        minute = 0,
+                                    ),
+                                ),
+                        )
+                    scenarioService.updateScenario(facilityId, 1L, updateRequest)
+                    verify(exactly = 1) { triggerService.createTrigger(any(), any()) }
+                    scenario.triggers.size shouldBe 1
+                }
+            }
+
+            When("triggerId로 기존 trigger 업데이트 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+                val existingTrigger = mockk<Trigger>(relaxed = true)
+
+                scenario.triggers.add(existingTrigger)
+
+                every { scenario.facility.id } returns facilityId
+                every { existingTrigger.id } returns 10L
+                every { scenarioRepository.findByIdWithDetails(1L) } returns scenario
+                every { triggerService.updateTrigger(any(), any()) } returns Unit
+
+                Then("기존 Trigger 업데이트") {
+                    val updateRequest =
+                        ScenarioUpdateRequest(
+                            name = "수정된 시나리오",
+                            description = null,
+                            isActive = null,
+                            scenarioScenes = null,
+                            triggers =
+                                listOf(
+                                    TriggerRequest(
+                                        triggerId = 10L,
+                                        triggerType = TriggerRequestType.DAILY,
+                                        hour = 15,
+                                        minute = 30,
+                                    ),
+                                ),
+                        )
+                    scenarioService.updateScenario(facilityId, 1L, updateRequest)
+                    verify(exactly = 1) { triggerService.updateTrigger(existingTrigger, any()) }
+                }
+            }
+
+            When("요청에 없는 기존 trigger는 삭제") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+                val existingTrigger1 = mockk<Trigger>(relaxed = true)
+                val existingTrigger2 = mockk<Trigger>(relaxed = true)
+
+                scenario.triggers.add(existingTrigger1)
+                scenario.triggers.add(existingTrigger2)
+
+                every { scenario.facility.id } returns facilityId
+                every { existingTrigger1.id } returns 10L
+                every { existingTrigger2.id } returns 20L
+                every { scenarioRepository.findByIdWithDetails(1L) } returns scenario
+                every { triggerService.updateTrigger(any(), any()) } returns Unit
+
+                Then("요청에 포함된 trigger만 유지, 나머지 삭제") {
+                    val updateRequest =
+                        ScenarioUpdateRequest(
+                            name = "수정된 시나리오",
+                            description = null,
+                            isActive = null,
+                            scenarioScenes = null,
+                            triggers =
+                                listOf(
+                                    TriggerRequest(
+                                        triggerId = 10L,
+                                        triggerType = TriggerRequestType.DAILY,
+                                        hour = 10,
+                                        minute = 0,
+                                    ),
+                                ),
+                        )
+                    scenarioService.updateScenario(facilityId, 1L, updateRequest)
+                    scenario.triggers.size shouldBe 1
+                    scenario.triggers[0].id shouldBe 10L
+                }
+            }
+
+            When("triggers가 빈 리스트면 전체 삭제") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+                val existingTrigger = mockk<Trigger>(relaxed = true)
+
+                scenario.triggers.add(existingTrigger)
+
+                every { scenario.facility.id } returns facilityId
+                every { existingTrigger.id } returns 10L
+                every { scenarioRepository.findByIdWithDetails(1L) } returns scenario
+
+                Then("모든 Trigger 삭제됨") {
+                    val updateRequest =
+                        ScenarioUpdateRequest(
+                            name = "수정된 시나리오",
+                            description = null,
+                            isActive = null,
+                            scenarioScenes = null,
+                            triggers = emptyList(),
+                        )
+                    scenarioService.updateScenario(facilityId, 1L, updateRequest)
+                    scenario.triggers.size shouldBe 0
+                }
+            }
+
+            When("존재하지 않는 triggerId로 업데이트 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+
+                every { scenario.facility.id } returns facilityId
+                every { scenarioRepository.findByIdWithDetails(1L) } returns scenario
+
+                Then("NOT_FOUND_TRIGGER 예외 발생") {
+                    val updateRequest =
+                        ScenarioUpdateRequest(
+                            name = "수정된 시나리오",
+                            description = null,
+                            isActive = null,
+                            scenarioScenes = null,
+                            triggers =
+                                listOf(
+                                    TriggerRequest(
+                                        triggerId = 999L,
+                                        triggerType = TriggerRequestType.DAILY,
+                                        hour = 10,
+                                        minute = 0,
+                                    ),
+                                ),
+                        )
+                    shouldThrowExactly<CustomException> {
+                        scenarioService.updateScenario(facilityId, 1L, updateRequest)
+                    }.errorCode shouldBe ErrorCode.NOT_FOUND_TRIGGER
+                }
+            }
+        }
+
         Given("Scenario와 Trigger를 함께 생성할 때") {
-            When("Trigger와 함께 생성 요청") {
+            When("단일 Trigger와 함께 생성 요청") {
                 val facilityId = 1L
                 val facility = dummyFacility(facilityId)
                 val scenario = dummyScenario(facility = facility)
@@ -527,11 +693,13 @@ class ScenarioServiceKoTest :
                         description = "테스트 설명",
                         isActive = true,
                         scenarioSceneRequests = null,
-                        trigger =
-                            TriggerRequest(
-                                triggerType = TriggerRequestType.DAILY,
-                                hour = 9,
-                                minute = 0,
+                        triggers =
+                            listOf(
+                                TriggerRequest(
+                                    triggerType = TriggerRequestType.DAILY,
+                                    hour = 9,
+                                    minute = 0,
+                                ),
                             ),
                     )
 
@@ -548,6 +716,46 @@ class ScenarioServiceKoTest :
                 }
             }
 
+            When("여러 Trigger와 함께 생성 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+                val trigger = mockk<Trigger>()
+
+                val createRequest =
+                    ScenarioCreateRequest(
+                        name = "테스트 시나리오",
+                        description = "테스트 설명",
+                        isActive = true,
+                        scenarioSceneRequests = null,
+                        triggers =
+                            listOf(
+                                TriggerRequest(
+                                    triggerType = TriggerRequestType.DAILY,
+                                    hour = 9,
+                                    minute = 0,
+                                ),
+                                TriggerRequest(
+                                    triggerType = TriggerRequestType.DAILY,
+                                    hour = 18,
+                                    minute = 0,
+                                ),
+                            ),
+                    )
+
+                every { facilityRepository.findByIdOrNull(facilityId) } returns facility
+                every { scenarioRepository.save(any()) } returns scenario
+                every { triggerService.createTrigger(any(), any()) } returns trigger
+                every { triggerRepository.save(any()) } returns trigger
+
+                Then("Scenario와 여러 Trigger 함께 생성") {
+                    val savedId = scenarioService.createScenario(facilityId, createRequest)
+                    savedId shouldBe 1L
+                    verify(exactly = 2) { triggerService.createTrigger(any(), any()) }
+                    verify(exactly = 2) { triggerRepository.save(any()) }
+                }
+            }
+
             When("Trigger 없이 생성 요청") {
                 val facilityId = 1L
                 val facility = dummyFacility(facilityId)
@@ -559,7 +767,7 @@ class ScenarioServiceKoTest :
                         description = "테스트 설명",
                         isActive = true,
                         scenarioSceneRequests = null,
-                        trigger = null,
+                        triggers = null,
                     )
 
                 every { facilityRepository.findByIdOrNull(facilityId) } returns facility

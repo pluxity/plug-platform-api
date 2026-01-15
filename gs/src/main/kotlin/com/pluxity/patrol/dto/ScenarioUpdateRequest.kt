@@ -18,5 +18,8 @@ data class ScenarioUpdateRequest(
     val isActive: Boolean?,
     @field:Valid
     @field:Schema(description = "시나리오에 포함된 씬 목록")
-    val scenarioScenes: List<ScenarioSceneUpdateRequest>?,
+    val scenarioScenes: List<ScenarioSceneUpdateRequest>? = null,
+    @field:Valid
+    @field:Schema(description = "트리거 목록 (null이면 기존 유지, 빈 리스트면 전체 삭제)")
+    val triggers: List<TriggerRequest>? = null,
 )

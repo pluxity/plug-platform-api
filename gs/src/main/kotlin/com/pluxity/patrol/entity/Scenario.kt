@@ -23,6 +23,8 @@ class Scenario(
     @OneToMany(mappedBy = "scenario", cascade = [CascadeType.ALL], orphanRemoval = true)
     @OrderBy("executionOrder ASC")
     var scenarioScenes: MutableList<ScenarioScene> = mutableListOf(),
+    @OneToMany(mappedBy = "scenario", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var triggers: MutableList<Trigger> = mutableListOf(),
     @Column(nullable = false)
     var name: String,
     var description: String?,
@@ -35,6 +37,15 @@ class Scenario(
 
     fun removeScenarioScenes(scenarioScene: ScenarioScene) {
         scenarioScenes.remove(scenarioScene)
+    }
+
+    fun addTrigger(trigger: Trigger) {
+        triggers.add(trigger)
+        trigger.scenario = this
+    }
+
+    fun removeTrigger(trigger: Trigger) {
+        triggers.remove(trigger)
     }
 
     fun updateScenario(request: ScenarioUpdateRequest) {

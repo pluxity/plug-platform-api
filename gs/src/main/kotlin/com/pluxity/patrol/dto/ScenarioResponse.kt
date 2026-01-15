@@ -1,6 +1,7 @@
 package com.pluxity.patrol.dto
 
 import com.pluxity.feature.entity.Spatial
+import com.pluxity.patrol.constant.TriggerType
 import com.pluxity.patrol.entity.Scenario
 
 data class ScenarioResponse(
@@ -10,6 +11,7 @@ data class ScenarioResponse(
     val descriptor: String?,
     val isActive: Boolean,
     val scenarioScenes: List<ScenarioSceneResponse>,
+    val triggers: List<TriggerResponse>,
 ) {
     data class FacilitySummary(
         val id: Long,
@@ -28,6 +30,12 @@ data class ScenarioResponse(
         val sceneName: String,
         val position: Spatial?,
         val rotation: Spatial?,
+    )
+
+    data class TriggerResponse(
+        val triggerId: Long,
+        val triggerType: TriggerType,
+        val cronExpression: String,
     )
 
     companion object {
@@ -55,6 +63,14 @@ data class ScenarioResponse(
                                     position = scenarioScene.scene.position,
                                     rotation = scenarioScene.scene.rotation,
                                 ),
+                        )
+                    },
+                triggers =
+                    scenario.triggers.map { trigger ->
+                        TriggerResponse(
+                            triggerId = trigger.requiredId,
+                            triggerType = trigger.triggerType,
+                            cronExpression = trigger.cronExpression,
                         )
                     },
             )
