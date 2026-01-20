@@ -2,6 +2,7 @@ package com.pluxity.patrol.constant
 
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import java.time.DayOfWeek
 
 enum class CronDayOfWeek(
     val bit: Int,
@@ -21,5 +22,7 @@ enum class CronDayOfWeek(
         fun fromCronValue(cronValue: Int): CronDayOfWeek =
             entries.find { it.cronValue == cronValue }
                 ?: throw CustomException(ErrorCode.INVALID_CRON_DAY_VALUE, cronValue)
+
+        fun fromDayOfWeek(dayOfWeek: DayOfWeek): CronDayOfWeek = fromCronValue(dayOfWeek.value % 7)
     }
 }
