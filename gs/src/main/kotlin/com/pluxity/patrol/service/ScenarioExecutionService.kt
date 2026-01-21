@@ -4,6 +4,8 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
+import com.pluxity.patrol.dto.ScenarioExecutionResponse
+import com.pluxity.patrol.dto.ScenarioExecutionSearchRequest
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioExecution
 import com.pluxity.patrol.event.ScenarioExecutedEvent
@@ -82,5 +84,39 @@ class ScenarioExecutionService(
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION)
 
         execution.cancel(LocalDateTime.now())
+    }
+
+    @Transactional(readOnly = true)
+    fun findByScenarioId(
+        scenarioId: Long,
+        request: ScenarioExecutionSearchRequest,
+    ): List<ScenarioExecutionResponse> {
+        val startDateTime = request.startDate?.atStartOfDay()
+        val endDateTime = request.endDate?.atTime(23, 59, 59)
+
+        return repository
+            .findByScenarioIdAndFilters(
+                scenarioId = scenarioId,
+                status = request.status,
+                startDate = startDateTime,
+                endDate = endDateTime,
+            ).map { ScenarioExecutionResponse.from(it) }
+    }
+
+    @Transactional(readOnly = true)
+    fun findByFacilityId(
+        facilityId: Long,
+        request: ScenarioExecutionSearchRequest,
+    ): List<ScenarioExecutionResponse> {
+        val startDateTime = request.startDate?.atStartOfDay()
+        val endDateTime = request.endDate?.atTime(23, 59, 59)
+
+        return repository
+            .findByFacilityIdAndFilters(
+                facilityId = facilityId,
+                status = request.status,
+                startDate = startDateTime,
+                endDate = endDateTime,
+            ).map { ScenarioExecutionResponse.from(it) }
     }
 }

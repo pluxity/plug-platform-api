@@ -1,20 +1,27 @@
 package com.pluxity.patrol.controller
 
 import com.pluxity.global.annotation.ResponseCreated
+import com.pluxity.global.response.ErrorResponseBody
 import com.pluxity.patrol.dto.ScenarioExecutionFailRequest
+import com.pluxity.patrol.dto.ScenarioExecutionResponse
+import com.pluxity.patrol.dto.ScenarioExecutionSearchRequest
 import com.pluxity.patrol.service.ScenarioExecutionService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/scenario-executions")
-@Tag(name = "ScenarioExecution Controller", description = "시나리오 실행 API")
+@Tag(name = "ScenarioExecution Controller", description = "시나리오 실행 이력 API")
 class ScenarioExecutionController(
     private val scenarioExecutionService: ScenarioExecutionService,
 ) {
@@ -52,4 +59,48 @@ class ScenarioExecutionController(
         scenarioExecutionService.cancel(id)
         return ResponseEntity.ok().build()
     }
+
+    @Operation(summary = "시나리오별 실행 이력 조회", description = "특정 시나리오의 실행 이력을 검색/필터링하여 조회합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "조회 성공"),
+            ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+        ],
+    )
+    @GetMapping("/scenarios/{scenarioId}/executions")
+    fun findByScenarioId(
+        @Parameter(description = "시나리오 ID", required = true) @PathVariable("scenarioId") scenarioId: Long,
+        request: ScenarioExecutionSearchRequest,
+    ): ResponseEntity<List<ScenarioExecutionResponse>> = ResponseEntity.ok(scenarioExecutionService.findByScenarioId(scenarioId, request))
+
+    @Operation(summary = "시설별 실행 이력 조회", description = "특정 시설의 모든 시나리오 실행 이력을 검색/필터링하여 조회합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "조회 성공"),
+            ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+        ],
+    )
+    @GetMapping("/facilities/{facilityId}/executions")
+    fun findByFacilityId(
+        @Parameter(description = "시설 ID", required = true) @PathVariable("facilityId") facilityId: Long,
+        request: ScenarioExecutionSearchRequest,
+    ): ResponseEntity<List<ScenarioExecutionResponse>> = ResponseEntity.ok(scenarioExecutionService.findByFacilityId(facilityId, request))
 }

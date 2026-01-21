@@ -33,7 +33,7 @@ class ScenarioExecutionEventListener(
     )
     @StompAsyncOperationBinding
     fun handle(event: ScenarioExecutedEvent) {
-        log.info("시나리오 실행 이벤트 처리: {}", event)
+        log.info { "시나리오 실행 이벤트 처리: $event" }
         messagingTemplate.convertAndSend(
             TOPIC_SCENARIO_EXECUTION,
             ScenarioTriggerMessage(event.scenarioExecutionId, event.scenarioId),
