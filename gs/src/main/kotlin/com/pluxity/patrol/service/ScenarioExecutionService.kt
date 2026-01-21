@@ -8,6 +8,7 @@ import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioExecution
 import com.pluxity.patrol.event.ScenarioExecutedEvent
 import com.pluxity.patrol.repository.ScenarioExecutionRepository
+import com.pluxity.patrol.repository.ScenarioRepository
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -15,19 +16,23 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
+@Transactional
 class ScenarioExecutionService(
     private val repository: ScenarioExecutionRepository,
+    private val scenarioRepository: ScenarioRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
-    @Transactional
     fun execute(scenario: Scenario) {
+        val now = LocalDateTime.now()
+
         val execution =
             repository.save(
                 ScenarioExecution(
                     scenario = scenario,
                     triggerType = TriggerSource.AUTO,
                     executionStatus = ScenarioExecutionStatus.TRIGGERED,
-                    triggeredAt = LocalDateTime.now(),
+                    triggeredAt = now,
+                    startedAt = now,
                 ),
             )
 
@@ -36,61 +41,46 @@ class ScenarioExecutionService(
         )
     }
 
-    @Transactional
-    fun start(executionId: Long) {
-        val triggeredExecution =
-            repository.findByIdOrNull(executionId)
-                ?: throw CustomException(ErrorCode.NOT_FOUND_DATA)
+    fun start(scenarioId: Long): Long {
+        val now = LocalDateTime.now()
 
-        repository.save(
-            ScenarioExecution(
-                scenario = triggeredExecution.scenario,
-                triggerType = triggeredExecution.triggerType,
-                executionStatus = ScenarioExecutionStatus.RUNNING,
-                triggeredAt = triggeredExecution.triggeredAt,
-                startedAt = LocalDateTime.now(),
-            ),
-        )
+        val scenario =
+            scenarioRepository.findByIdOrNull(scenarioId)
+                ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO, scenarioId)
+
+        return repository
+            .save(
+                ScenarioExecution(
+                    scenario = scenario,
+                    triggerType = TriggerSource.MANUAL,
+                    executionStatus = ScenarioExecutionStatus.RUNNING,
+                    startedAt = now,
+                ),
+            ).requiredId
     }
 
-    @Transactional
-    fun complete(
+    fun complete(executionId: Long) {
+        val execution =
+            repository.findByIdOrNull(executionId)
+                ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION)
+        execution.complete(LocalDateTime.now())
+    }
+
+    fun fail(
         executionId: Long,
-        success: Boolean,
         errorMessage: String?,
     ) {
-        val triggeredExecution =
+        val execution =
             repository.findByIdOrNull(executionId)
-                ?: throw CustomException(ErrorCode.NOT_FOUND_DATA)
-
-        repository.save(
-            ScenarioExecution(
-                scenario = triggeredExecution.scenario,
-                triggerType = triggeredExecution.triggerType,
-                executionStatus = if (success) ScenarioExecutionStatus.COMPLETED else ScenarioExecutionStatus.FAILED,
-                triggeredAt = triggeredExecution.triggeredAt,
-                finishedAt = LocalDateTime.now(),
-                errorMessage = errorMessage,
-                startedAt = triggeredExecution.startedAt,
-            ),
-        )
+                ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION)
+        execution.fail(LocalDateTime.now(), errorMessage)
     }
 
-    @Transactional
     fun cancel(executionId: Long) {
-        val triggeredExecution =
+        val execution =
             repository.findByIdOrNull(executionId)
-                ?: throw CustomException(ErrorCode.NOT_FOUND_DATA)
+                ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION)
 
-        repository.save(
-            ScenarioExecution(
-                scenario = triggeredExecution.scenario,
-                triggerType = triggeredExecution.triggerType,
-                executionStatus = ScenarioExecutionStatus.CANCELLED,
-                triggeredAt = triggeredExecution.triggeredAt,
-                finishedAt = LocalDateTime.now(),
-                startedAt = triggeredExecution.startedAt,
-            ),
-        )
+        execution.cancel(LocalDateTime.now())
     }
 }

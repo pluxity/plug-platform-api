@@ -1,22 +1,22 @@
 package com.pluxity.patrol.event
 
 import com.pluxity.messaging.dto.ScenarioTriggerMessage
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.springwolf.bindings.stomp.annotations.StompAsyncOperationBinding
 import io.github.springwolf.core.asyncapi.annotations.AsyncOperation
 import io.github.springwolf.core.asyncapi.annotations.AsyncPublisher
-import org.slf4j.LoggerFactory
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 
+private val log = KotlinLogging.logger {}
+
 @Component
 class ScenarioExecutionEventListener(
     private val messagingTemplate: SimpMessagingTemplate,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     companion object {
         const val TOPIC_SCENARIO_EXECUTION = "/topic/scenario-execution"
     }
