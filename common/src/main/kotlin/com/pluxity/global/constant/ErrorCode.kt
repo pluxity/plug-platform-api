@@ -122,6 +122,9 @@ enum class ErrorCode(
 
     INVALID_EXECUTION_STATUS(HttpStatus.BAD_REQUEST, "실행 상태가 %s인 경우 %s할 수 없습니다."),
     NOT_FOUND_SCENARIO_EXECUTION(HttpStatus.NOT_FOUND, "ID가 %s인 ScenarioExecution을 찾을 수 없습니다."),
+
+    NOT_FOUND_SCENE_EXECUTION(HttpStatus.NOT_FOUND, "ID가 %s인 SceneExecution을 찾을 수 없습니다."),
+    INVALID_SCENE_EXECUTION_STATUS(HttpStatus.BAD_REQUEST, "실행 상태가 %s인 경우 %s할 수 없습니다."),
     ;
 
     override fun getHttpStatus(): HttpStatus = httpStatus
