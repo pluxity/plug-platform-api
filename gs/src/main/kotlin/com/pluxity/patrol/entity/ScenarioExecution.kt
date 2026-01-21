@@ -9,6 +9,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import java.time.LocalDateTime
 
 @Entity
@@ -16,6 +17,8 @@ class ScenarioExecution(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scenario_id", nullable = false)
     val scenario: Scenario,
+    @OneToMany(mappedBy = "scenarioExecution")
+    val sceneExecutions: MutableList<SceneExecution> = mutableListOf(),
     var triggerType: TriggerSource,
     var executionStatus: ScenarioExecutionStatus,
     val triggeredAt: LocalDateTime? = null,

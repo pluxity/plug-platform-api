@@ -4,6 +4,7 @@ import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
+import com.pluxity.patrol.dto.ScenarioExecutionDetailResponse
 import com.pluxity.patrol.dto.ScenarioExecutionResponse
 import com.pluxity.patrol.dto.ScenarioExecutionSearchRequest
 import com.pluxity.patrol.entity.Scenario
@@ -84,6 +85,14 @@ class ScenarioExecutionService(
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION)
 
         execution.cancel(LocalDateTime.now())
+    }
+
+    @Transactional(readOnly = true)
+    fun findById(id: Long): ScenarioExecutionDetailResponse {
+        val execution =
+            repository.findByIdWithDetails(id)
+                ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION, id)
+        return ScenarioExecutionDetailResponse.from(execution)
     }
 
     @Transactional(readOnly = true)

@@ -2,6 +2,7 @@ package com.pluxity.patrol.controller
 
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.ErrorResponseBody
+import com.pluxity.patrol.dto.ScenarioExecutionDetailResponse
 import com.pluxity.patrol.dto.ScenarioExecutionFailRequest
 import com.pluxity.patrol.dto.ScenarioExecutionResponse
 import com.pluxity.patrol.dto.ScenarioExecutionSearchRequest
@@ -59,6 +60,22 @@ class ScenarioExecutionController(
         scenarioExecutionService.cancel(id)
         return ResponseEntity.ok().build()
     }
+
+    @Operation(summary = "시나리오 실행 상세 조회", description = "특정 시나리오 실행의 상세 정보와 씬 실행 목록을 조회합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "조회 성공"),
+            ApiResponse(
+                responseCode = "404",
+                description = "ScenarioExecution을 찾을 수 없음",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+        ],
+    )
+    @GetMapping("/scenario-executions/{id}")
+    fun findById(
+        @Parameter(description = "시나리오 실행 ID", required = true) @PathVariable("id") id: Long,
+    ): ResponseEntity<ScenarioExecutionDetailResponse> = ResponseEntity.ok(scenarioExecutionService.findById(id))
 
     @Operation(summary = "시나리오별 실행 이력 조회", description = "특정 시나리오의 실행 이력을 검색/필터링하여 조회합니다.")
     @ApiResponses(

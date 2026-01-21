@@ -12,6 +12,19 @@ interface ScenarioExecutionRepository : JpaRepository<ScenarioExecution, Long> {
         """
         SELECT se FROM ScenarioExecution se
         JOIN FETCH se.scenario s
+        LEFT JOIN FETCH se.sceneExecutions sce
+        LEFT JOIN FETCH sce.scene
+        WHERE se.id = :id
+        """,
+    )
+    fun findByIdWithDetails(
+        @Param("id") id: Long,
+    ): ScenarioExecution?
+
+    @Query(
+        """
+        SELECT se FROM ScenarioExecution se
+        JOIN FETCH se.scenario s
         WHERE s.id = :scenarioId
           AND (cast(:status as string ) IS NULL OR se.executionStatus = :status)
           AND (cast(:startDate as localdatetime) IS NULL OR se.startedAt >= :startDate)
