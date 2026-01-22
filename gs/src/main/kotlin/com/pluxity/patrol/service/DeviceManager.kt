@@ -28,7 +28,7 @@ class DeviceManager(
                 ?: throw CustomException(ErrorCode.INVALID_DEVICE_TYPE)
 
         if (!checker(deviceId)) {
-            throw CustomException(ErrorCode.NOT_FOUND_DEVICE)
+            throw CustomException(ErrorCode.NOT_FOUND_DEVICE, deviceId)
         }
     }
 

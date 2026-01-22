@@ -16,17 +16,7 @@
     </style>
 </head>
 <body>
-<h2>Scenario Execution WebSocket Test</h2>
-
-<div class="section">
-    <h3>Controls</h3>
-    <label>Scenario Execution ID: <input type="number" id="executionId" value="1"/></label>
-    <br/><br/>
-    <button onclick="sendStart()">Start</button>
-    <button onclick="sendComplete(true)">Complete (Success)</button>
-    <button onclick="sendComplete(false)">Complete (Fail)</button>
-    <button onclick="sendCancel()">Cancel</button>
-</div>
+<h2>WebSocket Test</h2>
 
 <div class="section">
     <h3>Log</h3>
@@ -48,39 +38,13 @@
         console.log(message);
     };
 
-    const getExecutionId = () => {
-        return parseInt(document.getElementById('executionId').value);
-    };
-
-    const sendStart = () => {
-        const payload = { scenarioExecutionId: getExecutionId() };
-        stompClient.send('/app/scenario/execution/start', {}, JSON.stringify(payload));
-        log(`SEND /app/scenario/execution/start: ${JSON.stringify(payload)}`, 'log-send');
-    };
-
-    const sendComplete = (success) => {
-        const payload = {
-            scenarioExecutionId: getExecutionId(),
-            success: success,
-            errorMessage: success ? null : 'Test error message'
-        };
-        stompClient.send('/app/scenario/execution/complete', {}, JSON.stringify(payload));
-        log(`SEND /app/scenario/execution/complete: ${JSON.stringify(payload)}`, 'log-send');
-    };
-
-    const sendCancel = () => {
-        const payload = { scenarioExecutionId: getExecutionId() };
-        stompClient.send('/app/scenario/execution/cancel', {}, JSON.stringify(payload));
-        log(`SEND /app/scenario/execution/cancel: ${JSON.stringify(payload)}`, 'log-send');
-    };
-
     const login = () => {
         log('Logging in...');
         axios
             .post(`http://${getServerInfo()}/auth/sign-in`,
                 {
-                    username: 'user',
-                    password: 'password'
+                    username: 'string',
+                    password: 'string'
                 },
                 {
                     headers: {
