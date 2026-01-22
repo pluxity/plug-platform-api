@@ -67,4 +67,8 @@ data class TriggerRequest(
         defaultValue = "true",
     )
     val isActive: Boolean = true,
+    @field:Schema(
+        description = "트리거 타겟",
+    )
+    val triggerTargetRequests: List<TriggerTargetRequest>? = null,
 )

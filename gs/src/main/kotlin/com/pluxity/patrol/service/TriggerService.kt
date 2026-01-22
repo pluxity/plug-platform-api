@@ -7,11 +7,15 @@ import com.pluxity.patrol.constant.TriggerType
 import com.pluxity.patrol.dto.TriggerRequest
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.Trigger
+import com.pluxity.patrol.entity.TriggerTarget
+import com.pluxity.patrol.repository.TriggerRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
-class TriggerService {
+class TriggerService(
+    val triggerRepository: TriggerRepository,
+) {
     private data class TriggerParams(
         val triggerType: TriggerType,
         val dayOfWeekBit: Int,
@@ -26,19 +30,33 @@ class TriggerService {
     ): Trigger {
         val params = buildTriggerParams(request)
 
-        return Trigger(
-            scenario = scenario,
-            triggerType = params.triggerType,
-            executeHour = request.hour,
-            executeMinute = request.minute,
-            dayOfWeek = params.dayOfWeekBit,
-            month = params.month,
-            dayOfMonth = params.dayOfMonth,
-            startDate = request.startDate ?: LocalDate.now(),
-            endDate = request.endDate,
-            cronExpression = params.cronExpression,
-            isActive = request.isActive,
-        )
+        val trigger =
+            triggerRepository.save(
+                Trigger(
+                    scenario = scenario,
+                    triggerType = params.triggerType,
+                    executeHour = request.hour,
+                    executeMinute = request.minute,
+                    dayOfWeek = params.dayOfWeekBit,
+                    month = params.month,
+                    dayOfMonth = params.dayOfMonth,
+                    startDate = request.startDate ?: LocalDate.now(),
+                    endDate = request.endDate,
+                    cronExpression = params.cronExpression,
+                    isActive = request.isActive,
+                ),
+            )
+
+        request.triggerTargetRequests?.forEach { target ->
+            trigger.addTriggerTarget(
+                TriggerTarget(
+                    trigger = trigger,
+                    targetType = target.targetType,
+                    targetId = target.targetId,
+                ),
+            )
+        }
+        return trigger
     }
 
     fun updateTrigger(

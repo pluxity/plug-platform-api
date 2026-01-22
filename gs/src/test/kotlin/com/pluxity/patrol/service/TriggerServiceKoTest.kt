@@ -6,15 +6,23 @@ import com.pluxity.patrol.constant.CronDayOfWeek
 import com.pluxity.patrol.constant.TriggerRequestType
 import com.pluxity.patrol.dto.TriggerRequest
 import com.pluxity.patrol.entity.dummyScenario
+import com.pluxity.patrol.repository.TriggerRepository
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import java.time.LocalDate
 
 class TriggerServiceKoTest :
     BehaviorSpec({
 
-        val service = TriggerService()
+        val triggerRepository = mockk<TriggerRepository>()
+        val service = TriggerService(triggerRepository)
+
+        beforeSpec {
+            every { triggerRepository.save(any()) } answers { firstArg() }
+        }
 
         Given("트리거 생성 할때") {
 

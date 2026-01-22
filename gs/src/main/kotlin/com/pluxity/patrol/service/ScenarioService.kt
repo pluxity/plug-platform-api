@@ -13,7 +13,6 @@ import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioScene
 import com.pluxity.patrol.repository.ScenarioRepository
 import com.pluxity.patrol.repository.SceneRepository
-import com.pluxity.patrol.repository.TriggerRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,7 +24,6 @@ class ScenarioService(
     val sceneRepository: SceneRepository,
     val facilityRepository: FacilityRepository,
     val triggerService: TriggerService,
-    val triggerRepository: TriggerRepository,
 ) {
     fun createScenario(
         facilityId: Long,
@@ -75,8 +73,7 @@ class ScenarioService(
         val savedScenario = scenarioRepository.save(scenario)
 
         request.triggers?.forEach { triggerRequest ->
-            val trigger = triggerService.createTrigger(triggerRequest, savedScenario)
-            triggerRepository.save(trigger)
+            triggerService.createTrigger(triggerRequest, savedScenario)
         }
 
         return savedScenario.requiredId

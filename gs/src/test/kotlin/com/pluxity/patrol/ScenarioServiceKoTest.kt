@@ -16,7 +16,6 @@ import com.pluxity.patrol.entity.dummyScenarioScene
 import com.pluxity.patrol.entity.dummyScene
 import com.pluxity.patrol.repository.ScenarioRepository
 import com.pluxity.patrol.repository.SceneRepository
-import com.pluxity.patrol.repository.TriggerRepository
 import com.pluxity.patrol.service.ScenarioService
 import com.pluxity.patrol.service.TriggerService
 import facility.dummyFacility
@@ -35,7 +34,6 @@ class ScenarioServiceKoTest :
         val sceneRepository = mockk<SceneRepository>()
         val facilityRepository = mockk<FacilityRepository>()
         val triggerService = mockk<TriggerService>()
-        val triggerRepository = mockk<TriggerRepository>()
 
         val scenarioService =
             ScenarioService(
@@ -43,7 +41,6 @@ class ScenarioServiceKoTest :
                 sceneRepository,
                 facilityRepository,
                 triggerService,
-                triggerRepository,
             )
 
         Given("Scenario 생성을 진행할 때") {
@@ -706,13 +703,11 @@ class ScenarioServiceKoTest :
                 every { facilityRepository.findByIdOrNull(facilityId) } returns facility
                 every { scenarioRepository.save(any()) } returns scenario
                 every { triggerService.createTrigger(any(), any()) } returns trigger
-                every { triggerRepository.save(any()) } returns trigger
 
                 Then("Scenario와 Trigger 함께 생성") {
                     val savedId = scenarioService.createScenario(facilityId, createRequest)
                     savedId shouldBe 1L
                     verify(exactly = 1) { triggerService.createTrigger(any(), any()) }
-                    verify(exactly = 1) { triggerRepository.save(any()) }
                 }
             }
 
@@ -746,13 +741,11 @@ class ScenarioServiceKoTest :
                 every { facilityRepository.findByIdOrNull(facilityId) } returns facility
                 every { scenarioRepository.save(any()) } returns scenario
                 every { triggerService.createTrigger(any(), any()) } returns trigger
-                every { triggerRepository.save(any()) } returns trigger
 
                 Then("Scenario와 여러 Trigger 함께 생성") {
                     val savedId = scenarioService.createScenario(facilityId, createRequest)
                     savedId shouldBe 1L
                     verify(exactly = 2) { triggerService.createTrigger(any(), any()) }
-                    verify(exactly = 2) { triggerRepository.save(any()) }
                 }
             }
 
@@ -777,7 +770,6 @@ class ScenarioServiceKoTest :
                     val savedId = scenarioService.createScenario(facilityId, createRequest)
                     savedId shouldBe 1L
                     verify(exactly = 0) { triggerService.createTrigger(any(), any()) }
-                    verify(exactly = 0) { triggerRepository.save(any()) }
                 }
             }
         }
