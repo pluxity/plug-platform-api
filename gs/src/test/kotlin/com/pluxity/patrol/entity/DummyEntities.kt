@@ -12,7 +12,7 @@ fun dummyScene(
     facility: Facility = dummyFacility(),
     name: String = "테스트 씬",
     description: String? = "테스트 설명",
-    duration: Double? = 10.0,
+    duration: Double = 10.0,
     position: Spatial? = Spatial(0.0, 0.0, 0.0),
     rotation: Spatial? = Spatial(0.0, 0.0, 0.0),
 ): Scene =
@@ -62,7 +62,7 @@ fun dummyScenarioScene(
     scenario: Scenario,
     scene: Scene,
     executionOrder: Int = 1,
-    duration: Double? = 10.0,
+    duration: Double = 10.0,
 ): ScenarioScene =
     ScenarioScene(
         scenario = scenario,

@@ -65,7 +65,7 @@ class SceneServiceKoTest :
                     SceneCreateRequest(
                         name = "테스트 씬",
                         description = null,
-                        duration = null,
+                        duration = 0.0,
                         position = null,
                         rotation = null,
                         sceneDeviceActionRequests = null,
@@ -88,7 +88,7 @@ class SceneServiceKoTest :
                     SceneCreateRequest(
                         name = "테스트 씬",
                         description = null,
-                        duration = null,
+                        duration = 0.0,
                         position = null,
                         rotation = null,
                         sceneDeviceActionRequests =

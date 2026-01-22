@@ -27,7 +27,7 @@ class Scene(
     @Column(nullable = false)
     var name: String,
     var description: String? = null,
-    var duration: Double? = null,
+    var duration: Double,
     @AttributeOverride(
         name = "z",
         column = Column(name = "position_z"),
