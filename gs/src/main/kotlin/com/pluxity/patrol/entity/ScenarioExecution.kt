@@ -5,19 +5,16 @@ import com.pluxity.global.entity.IdentityIdEntity
 import com.pluxity.global.exception.CustomException
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import java.time.LocalDateTime
 
 @Entity
 class ScenarioExecution(
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scenario_id", nullable = false)
-    val scenario: Scenario,
-    @OneToMany(mappedBy = "scenarioExecution")
+    val scenarioName: String,
+    val facilityName: String,
+    @OneToMany(mappedBy = "scenarioExecution", cascade = [CascadeType.ALL], orphanRemoval = true)
     val sceneExecutions: MutableList<SceneExecution> = mutableListOf(),
     var triggerType: TriggerSource,
     var executionStatus: ScenarioExecutionStatus,
@@ -26,6 +23,11 @@ class ScenarioExecution(
     var finishedAt: LocalDateTime? = null,
     var errorMessage: String? = null,
 ) : IdentityIdEntity() {
+    fun addSceneExecution(sceneExecution: SceneExecution) {
+        this.sceneExecutions.add(sceneExecution)
+        sceneExecution.scenarioExecution = this
+    }
+
     fun complete(at: LocalDateTime) {
         if (executionStatus != ScenarioExecutionStatus.RUNNING) {
             throw CustomException(ErrorCode.INVALID_EXECUTION_STATUS, executionStatus, "완료")

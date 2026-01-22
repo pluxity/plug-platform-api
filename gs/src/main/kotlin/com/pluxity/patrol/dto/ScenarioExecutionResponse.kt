@@ -7,8 +7,8 @@ import java.time.LocalDateTime
 
 data class ScenarioExecutionResponse(
     val id: Long,
-    val scenarioId: Long,
     val scenarioName: String,
+    val facilityName: String,
     val triggerType: TriggerSource,
     val executionStatus: ScenarioExecutionStatus,
     val triggeredAt: LocalDateTime?,
@@ -20,8 +20,8 @@ data class ScenarioExecutionResponse(
         fun from(entity: ScenarioExecution) =
             ScenarioExecutionResponse(
                 id = entity.requiredId,
-                scenarioId = entity.scenario.requiredId,
-                scenarioName = entity.scenario.name,
+                scenarioName = entity.scenarioName,
+                facilityName = entity.facilityName,
                 triggerType = entity.triggerType,
                 executionStatus = entity.executionStatus,
                 triggeredAt = entity.triggeredAt,

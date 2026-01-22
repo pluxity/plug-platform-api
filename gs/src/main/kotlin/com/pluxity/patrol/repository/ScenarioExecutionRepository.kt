@@ -11,9 +11,7 @@ interface ScenarioExecutionRepository : JpaRepository<ScenarioExecution, Long> {
     @Query(
         """
         SELECT se FROM ScenarioExecution se
-        JOIN FETCH se.scenario s
         LEFT JOIN FETCH se.sceneExecutions sce
-        LEFT JOIN FETCH sce.scene
         WHERE se.id = :id
         """,
     )
@@ -24,8 +22,7 @@ interface ScenarioExecutionRepository : JpaRepository<ScenarioExecution, Long> {
     @Query(
         """
         SELECT se FROM ScenarioExecution se
-        JOIN FETCH se.scenario s
-        WHERE s.id = :scenarioId
+        WHERE se.scenarioName = :scenarioName
           AND (cast(:status as string ) IS NULL OR se.executionStatus = :status)
           AND (cast(:startDate as localdatetime) IS NULL OR se.startedAt >= :startDate)
           AND (cast(:endDate as localdatetime) IS NULL OR se.startedAt <= :endDate)
@@ -33,7 +30,7 @@ interface ScenarioExecutionRepository : JpaRepository<ScenarioExecution, Long> {
         """,
     )
     fun findByScenarioIdAndFilters(
-        @Param("scenarioId") scenarioId: Long,
+        @Param("scenarioName") scenarioName: String,
         @Param("status") status: ScenarioExecutionStatus?,
         @Param("startDate") startDate: LocalDateTime?,
         @Param("endDate") endDate: LocalDateTime?,
@@ -42,8 +39,7 @@ interface ScenarioExecutionRepository : JpaRepository<ScenarioExecution, Long> {
     @Query(
         """
         SELECT se FROM ScenarioExecution se
-        JOIN FETCH se.scenario s
-        WHERE s.facility.id = :facilityId
+        WHERE se.facilityName = :facilityName
           AND (cast(:status as string) IS NULL OR se.executionStatus = :status)
           AND (cast(:startDate as localdatetime) IS NULL OR se.startedAt >= :startDate)
           AND (cast(:endDate as localdatetime) IS NULL OR se.startedAt <= :endDate)
@@ -51,7 +47,7 @@ interface ScenarioExecutionRepository : JpaRepository<ScenarioExecution, Long> {
     """,
     )
     fun findByFacilityIdAndFilters(
-        @Param("facilityId") facilityId: Long,
+        @Param("facilityName") facilityName: String,
         @Param("status") status: ScenarioExecutionStatus?,
         @Param("startDate") startDate: LocalDateTime?,
         @Param("endDate") endDate: LocalDateTime?,

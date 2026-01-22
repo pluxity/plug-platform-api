@@ -27,13 +27,13 @@ class ScenarioExecutionController(
     private val scenarioExecutionService: ScenarioExecutionService,
 ) {
     @ResponseCreated(path = "/scenario-executions/{id}")
-    @PostMapping("/start/{scenarioId}")
+    @PostMapping("/scenario-executions/start/{scenarioId}")
     @Operation(summary = "시나리오 수동 실행")
-    fun start(
+    fun startManually(
         @PathVariable scenarioId: Long,
-    ): ResponseEntity<Long> = ResponseEntity.ok(scenarioExecutionService.start(scenarioId))
+    ): ResponseEntity<Long> = ResponseEntity.ok(scenarioExecutionService.startManually(scenarioId))
 
-    @PostMapping("/{id}/complete")
+    @PostMapping("/scenario-executions/{id}/complete")
     @Operation(summary = "시나리오 실행 완료")
     fun complete(
         @PathVariable id: Long,
@@ -42,7 +42,7 @@ class ScenarioExecutionController(
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/{id}/fail")
+    @PostMapping("/scenario-executions/{id}/fail")
     @Operation(summary = "시나리오 실행 실패")
     fun fail(
         @PathVariable id: Long,
@@ -52,7 +52,7 @@ class ScenarioExecutionController(
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/{id}/cancel")
+    @PostMapping("/scenario-executions/{id}/cancel")
     @Operation(summary = "시나리오 실행 취소")
     fun cancel(
         @PathVariable id: Long,
