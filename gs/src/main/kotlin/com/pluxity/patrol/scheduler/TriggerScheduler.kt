@@ -49,7 +49,7 @@ class TriggerScheduler(
 
     private fun execute(trigger: Trigger) {
         try {
-            scenarioExecutionService.execute(trigger.scenario)
+            scenarioExecutionService.execute(trigger.scenario, trigger)
 
             if (trigger.triggerType == TriggerType.ONCE) {
                 trigger.isActive = false

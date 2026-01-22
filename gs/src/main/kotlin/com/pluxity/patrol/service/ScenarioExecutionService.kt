@@ -4,6 +4,7 @@ import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.messaging.dto.ScenarioTriggerMessage
+import com.pluxity.messaging.dto.TriggerTargetInfo
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
 import com.pluxity.patrol.dto.ScenarioExecutionDetailResponse
@@ -12,6 +13,7 @@ import com.pluxity.patrol.dto.ScenarioExecutionSearchRequest
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioExecution
 import com.pluxity.patrol.entity.SceneExecution
+import com.pluxity.patrol.entity.Trigger
 import com.pluxity.patrol.repository.ScenarioExecutionRepository
 import com.pluxity.patrol.repository.ScenarioRepository
 import org.springframework.context.ApplicationEventPublisher
@@ -28,7 +30,10 @@ class ScenarioExecutionService(
     private val eventPublisher: ApplicationEventPublisher,
     private val facilityRepository: FacilityRepository,
 ) {
-    fun execute(scenario: Scenario) {
+    fun execute(
+        scenario: Scenario,
+        trigger: Trigger,
+    ) {
         val now = LocalDateTime.now()
 
         val execution =
@@ -56,8 +61,16 @@ class ScenarioExecutionService(
             )
         }
 
+        val targets =
+            trigger.triggerTargets.map { target ->
+                TriggerTargetInfo(
+                    targetType = target.targetType,
+                    targetId = target.targetId,
+                )
+            }
+
         eventPublisher.publishEvent(
-            ScenarioTriggerMessage(execution.requiredId, scenario.requiredId),
+            ScenarioTriggerMessage(execution.requiredId, scenario.requiredId, targets),
         )
     }
 
