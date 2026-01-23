@@ -12,6 +12,7 @@ import com.pluxity.patrol.dto.ScenarioExecutionResponse
 import com.pluxity.patrol.dto.ScenarioExecutionSearchRequest
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioExecution
+import com.pluxity.patrol.entity.SceneDeviceActionExecution
 import com.pluxity.patrol.entity.SceneExecution
 import com.pluxity.patrol.entity.Trigger
 import com.pluxity.patrol.repository.ScenarioExecutionRepository
@@ -27,8 +28,8 @@ import java.time.LocalDateTime
 class ScenarioExecutionService(
     private val scenarioExecutionRepository: ScenarioExecutionRepository,
     private val scenarioRepository: ScenarioRepository,
-    private val eventPublisher: ApplicationEventPublisher,
     private val facilityRepository: FacilityRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     fun execute(
         scenario: Scenario,
@@ -96,7 +97,7 @@ class ScenarioExecutionService(
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION, savedId)
 
         scenario.scenarioScenes.forEach { scenarioScene ->
-            scenarioExecution.addSceneExecution(
+            val sceneExecution =
                 SceneExecution(
                     scenarioExecution = scenarioExecution,
                     sceneName = scenarioScene.scene.name,
@@ -104,8 +105,22 @@ class ScenarioExecutionService(
                     duration = scenarioScene.duration,
                     position = scenarioScene.scene.position,
                     rotation = scenarioScene.scene.rotation,
-                ),
-            )
+                )
+
+            scenarioExecution.addSceneExecution(sceneExecution)
+
+            scenarioScene.scene.sceneDeviceActions.forEach { deviceAction ->
+                sceneExecution.addSceneDeviceActionExecution(
+                    SceneDeviceActionExecution(
+                        sceneExecution = sceneExecution,
+                        deviceType = deviceAction.deviceType,
+                        deviceId = deviceAction.deviceId,
+                        deviceAction = deviceAction.deviceAction,
+                        actionParam = deviceAction.actionParam,
+                        executionOrder = deviceAction.executionOrder,
+                    ),
+                )
+            }
         }
         return savedId
     }
