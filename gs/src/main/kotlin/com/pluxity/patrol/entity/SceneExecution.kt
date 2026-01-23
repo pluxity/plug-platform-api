@@ -17,7 +17,7 @@ class SceneExecution(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scenario_execution_id")
     var scenarioExecution: ScenarioExecution,
-    @OneToMany(mappedBy = "sceneExecution", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "sceneExecution", cascade = [CascadeType.ALL], orphanRemoval = true)
     var sceneDeviceActionExecutions: MutableList<SceneDeviceActionExecution> = mutableListOf(),
     val sceneName: String,
     val executionOrder: Int,
