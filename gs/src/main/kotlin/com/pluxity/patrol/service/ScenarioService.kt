@@ -64,6 +64,7 @@ class ScenarioService(
                         scene = findScene,
                         executionOrder = sceneRequest.order,
                         duration = sceneRequest.duration ?: findScene.duration,
+                        transitionTime = sceneRequest.transitionTime,
                     )
 
                 scenario.addScenarioScenes(scenarioScene)
@@ -163,6 +164,7 @@ class ScenarioService(
                         scene = scene,
                         executionOrder = sceneRequest.order,
                         duration = sceneRequest.duration ?: scene.duration,
+                        transitionTime = sceneRequest.transitionTime,
                     ),
                 )
             }

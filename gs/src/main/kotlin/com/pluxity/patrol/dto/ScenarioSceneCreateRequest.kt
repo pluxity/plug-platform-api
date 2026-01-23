@@ -14,4 +14,6 @@ data class ScenarioSceneCreateRequest(
     val order: Int,
     @field:Schema(description = "재생 시간 (초), null이면 씬의 기본 duration 사용", example = "10.0")
     val duration: Double? = null,
+    @field:Schema(description = "전환 시간 (초)", example = "10.0")
+    val transitionTime: Double,
 )

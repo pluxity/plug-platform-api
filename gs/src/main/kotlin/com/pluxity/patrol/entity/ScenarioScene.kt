@@ -18,9 +18,11 @@ class ScenarioScene(
     @Column(nullable = false)
     var executionOrder: Int,
     var duration: Double,
+    var transitionTime: Double,
 ) : IdentityIdEntity() {
     fun updateScenarioScene(request: ScenarioSceneUpdateRequest) {
         this.executionOrder = request.order
         this.duration = request.duration ?: scene.duration
+        this.transitionTime = request.transitionTime
     }
 }

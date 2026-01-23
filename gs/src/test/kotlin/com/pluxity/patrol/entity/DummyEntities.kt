@@ -69,4 +69,5 @@ fun dummyScenarioScene(
         scene = scene,
         executionOrder = executionOrder,
         duration = duration,
+        transitionTime = 5.0,
     ).withId(id)

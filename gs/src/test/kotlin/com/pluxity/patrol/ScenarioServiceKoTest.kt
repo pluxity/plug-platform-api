@@ -101,6 +101,7 @@ class ScenarioServiceKoTest :
                                     sceneId = 1L,
                                     order = 1,
                                     duration = 10.0,
+                                    transitionTime = 5.0,
                                 ),
                             ),
                     )
@@ -127,8 +128,8 @@ class ScenarioServiceKoTest :
                         isActive = true,
                         scenarioSceneRequests =
                             listOf(
-                                ScenarioSceneCreateRequest(sceneId = 1L, order = 1),
-                                ScenarioSceneCreateRequest(sceneId = 2L, order = 1), // 중복
+                                ScenarioSceneCreateRequest(sceneId = 1L, order = 1, transitionTime = 5.0),
+                                ScenarioSceneCreateRequest(sceneId = 2L, order = 1, transitionTime = 5.0), // 중복
                             ),
                     )
 
@@ -152,7 +153,7 @@ class ScenarioServiceKoTest :
                         isActive = true,
                         scenarioSceneRequests =
                             listOf(
-                                ScenarioSceneCreateRequest(sceneId = 1L, order = 0), // 0 이하
+                                ScenarioSceneCreateRequest(sceneId = 1L, order = 0, transitionTime = 5.0), // 0 이하
                             ),
                     )
 
@@ -179,7 +180,7 @@ class ScenarioServiceKoTest :
                         isActive = true,
                         scenarioSceneRequests =
                             listOf(
-                                ScenarioSceneCreateRequest(sceneId = 1L, order = 1),
+                                ScenarioSceneCreateRequest(sceneId = 1L, order = 1, transitionTime = 5.0),
                             ),
                     )
 
@@ -311,6 +312,7 @@ class ScenarioServiceKoTest :
                                         sceneId = 1L,
                                         order = 1,
                                         duration = 10.0,
+                                        transitionTime = 5.0,
                                     ),
                                 ),
                         )
@@ -330,6 +332,7 @@ class ScenarioServiceKoTest :
                         scene = scene,
                         executionOrder = 1,
                         duration = 10.0,
+                        transitionTime = 5.0,
                     )
                 scenario.scenarioScenes.add(scenarioScene)
 
@@ -416,6 +419,7 @@ class ScenarioServiceKoTest :
                                         sceneId = 2L,
                                         order = 1,
                                         duration = 15.0,
+                                        transitionTime = 5.0,
                                     ),
                                 ),
                         )
@@ -451,6 +455,7 @@ class ScenarioServiceKoTest :
                                         sceneId = 999L,
                                         order = 1,
                                         duration = null,
+                                        transitionTime = 5.0,
                                     ),
                                 ),
                         )
@@ -490,6 +495,7 @@ class ScenarioServiceKoTest :
                                         sceneId = 2L,
                                         order = 1,
                                         duration = null,
+                                        transitionTime = 5.0,
                                     ),
                                 ),
                         )
