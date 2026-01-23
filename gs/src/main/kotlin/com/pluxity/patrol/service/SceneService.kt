@@ -9,6 +9,7 @@ import com.pluxity.patrol.dto.SceneResponse
 import com.pluxity.patrol.dto.SceneUpdateRequest
 import com.pluxity.patrol.entity.Scene
 import com.pluxity.patrol.entity.SceneDeviceAction
+import com.pluxity.patrol.repository.ScenarioSceneRepository
 import com.pluxity.patrol.repository.SceneRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class SceneService(
     val facilityRepository: FacilityRepository,
     val sceneRepository: SceneRepository,
+    val scenarioSceneRepository: ScenarioSceneRepository,
     val deviceManager: DeviceManager,
 ) {
     fun createScene(
@@ -71,9 +73,9 @@ class SceneService(
 
     @Transactional(readOnly = true)
     fun getScenesByFacilityId(facilityId: Long): List<SceneListResponse> {
-        if (!facilityRepository.existsById(facilityId)) {
-            throw CustomException(ErrorCode.NOT_FOUND_FACILITY, facilityId)
-        }
+        facilityRepository.findByIdOrNull(facilityId)
+            ?: throw CustomException(ErrorCode.NOT_FOUND_FACILITY, facilityId)
+
         return sceneRepository
             .findByFacilityId(facilityId)
             .map { SceneListResponse.from(it) }
@@ -126,6 +128,7 @@ class SceneService(
         facilityId: Long,
         id: Long,
     ) {
+        scenarioSceneRepository.deleteAllBySceneId(id)
         val deletedCount = sceneRepository.deleteByIdAndFacilityId(id, facilityId)
         if (deletedCount == 0L) {
             throw CustomException(ErrorCode.NOT_FOUND_SCENE, id)

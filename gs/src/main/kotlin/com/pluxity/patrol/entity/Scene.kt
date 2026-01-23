@@ -18,7 +18,7 @@ import org.hibernate.annotations.NotFoundAction
 
 @Entity
 class Scene(
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "facility_id", nullable = false)
     @NotFound(action = NotFoundAction.IGNORE)
     var facility: Facility,
