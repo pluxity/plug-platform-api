@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -33,7 +34,7 @@ class ScenarioExecutionController(
         @PathVariable scenarioId: Long,
     ): ResponseEntity<Long> = ResponseEntity.ok(scenarioExecutionService.startManually(scenarioId))
 
-    @PostMapping("/scenario-executions/{id}/complete")
+    @PatchMapping("/scenario-executions/{id}/complete")
     @Operation(summary = "시나리오 실행 완료")
     fun complete(
         @PathVariable id: Long,
@@ -42,7 +43,7 @@ class ScenarioExecutionController(
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/scenario-executions/{id}/fail")
+    @PatchMapping("/scenario-executions/{id}/fail")
     @Operation(summary = "시나리오 실행 실패")
     fun fail(
         @PathVariable id: Long,
@@ -52,7 +53,7 @@ class ScenarioExecutionController(
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/scenario-executions/{id}/cancel")
+    @PatchMapping("/scenario-executions/{id}/cancel")
     @Operation(summary = "시나리오 실행 취소")
     fun cancel(
         @PathVariable id: Long,
