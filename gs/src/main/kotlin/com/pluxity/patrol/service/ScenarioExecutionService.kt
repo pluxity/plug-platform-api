@@ -12,6 +12,7 @@ import com.pluxity.patrol.dto.ScenarioExecutionResponse
 import com.pluxity.patrol.dto.ScenarioExecutionSearchRequest
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioExecution
+import com.pluxity.patrol.entity.ScenarioScene
 import com.pluxity.patrol.entity.SceneDeviceActionExecution
 import com.pluxity.patrol.entity.SceneExecution
 import com.pluxity.patrol.entity.Trigger
@@ -24,13 +25,14 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 class ScenarioExecutionService(
     private val scenarioExecutionRepository: ScenarioExecutionRepository,
     private val scenarioRepository: ScenarioRepository,
     private val facilityRepository: FacilityRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
+    @Transactional
     fun execute(
         scenario: Scenario,
         trigger: Trigger,
@@ -49,18 +51,7 @@ class ScenarioExecutionService(
                 ),
             )
 
-        scenario.scenarioScenes.forEach { scenarioScene ->
-            execution.addSceneExecution(
-                SceneExecution(
-                    scenarioExecution = execution,
-                    sceneName = scenarioScene.scene.name,
-                    executionOrder = scenarioScene.executionOrder,
-                    duration = scenarioScene.duration,
-                    position = scenarioScene.scene.position,
-                    rotation = scenarioScene.scene.rotation,
-                ),
-            )
-        }
+        createSceneExecutions(execution, scenario.scenarioScenes)
 
         val targets =
             trigger.triggerTargets.map { target ->
@@ -75,28 +66,33 @@ class ScenarioExecutionService(
         )
     }
 
+    @Transactional
     fun startManually(scenarioId: Long): Long {
         val scenario =
             scenarioRepository.findByIdWithDetails(scenarioId)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO, scenarioId)
 
-        val savedId =
-            scenarioExecutionRepository
-                .save(
-                    ScenarioExecution(
-                        scenarioName = scenario.name,
-                        facilityName = scenario.facility.name,
-                        triggerType = TriggerSource.MANUAL,
-                        executionStatus = ScenarioExecutionStatus.RUNNING,
-                        startedAt = LocalDateTime.now(),
-                    ),
-                ).requiredId
+        val execution =
+            scenarioExecutionRepository.save(
+                ScenarioExecution(
+                    scenarioName = scenario.name,
+                    facilityName = scenario.facility.name,
+                    triggerType = TriggerSource.MANUAL,
+                    executionStatus = ScenarioExecutionStatus.RUNNING,
+                    startedAt = LocalDateTime.now(),
+                ),
+            )
 
-        val scenarioExecution =
-            scenarioExecutionRepository.findByIdOrNull(savedId)
-                ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION, savedId)
+        createSceneExecutions(execution, scenario.scenarioScenes)
 
-        scenario.scenarioScenes.forEach { scenarioScene ->
+        return execution.requiredId
+    }
+
+    private fun createSceneExecutions(
+        scenarioExecution: ScenarioExecution,
+        scenarioScenes: List<ScenarioScene>,
+    ) {
+        scenarioScenes.forEach { scenarioScene ->
             val sceneExecution =
                 SceneExecution(
                     scenarioExecution = scenarioExecution,
@@ -122,9 +118,9 @@ class ScenarioExecutionService(
                 )
             }
         }
-        return savedId
     }
 
+    @Transactional
     fun complete(executionId: Long) {
         val execution =
             scenarioExecutionRepository.findByIdOrNull(executionId)
@@ -132,6 +128,7 @@ class ScenarioExecutionService(
         execution.complete(LocalDateTime.now())
     }
 
+    @Transactional
     fun fail(
         executionId: Long,
         errorMessage: String?,
@@ -142,6 +139,7 @@ class ScenarioExecutionService(
         execution.fail(LocalDateTime.now(), errorMessage)
     }
 
+    @Transactional
     fun cancel(executionId: Long) {
         val execution =
             scenarioExecutionRepository.findByIdOrNull(executionId)
@@ -150,7 +148,6 @@ class ScenarioExecutionService(
         execution.cancel(LocalDateTime.now())
     }
 
-    @Transactional(readOnly = true)
     fun findById(id: Long): ScenarioExecutionDetailResponse {
         val execution =
             scenarioExecutionRepository.findByIdWithDetails(id)
@@ -158,7 +155,6 @@ class ScenarioExecutionService(
         return ScenarioExecutionDetailResponse.from(execution)
     }
 
-    @Transactional(readOnly = true)
     fun findByScenarioId(
         scenarioId: Long,
         request: ScenarioExecutionSearchRequest,
@@ -179,7 +175,6 @@ class ScenarioExecutionService(
             ).map { ScenarioExecutionResponse.from(it) }
     }
 
-    @Transactional(readOnly = true)
     fun findByFacilityId(
         facilityId: Long,
         request: ScenarioExecutionSearchRequest,

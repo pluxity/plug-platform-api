@@ -18,7 +18,7 @@ class TriggerScheduler(
 ) {
     private val log = KotlinLogging.logger {}
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(cron = "0 0/1 * * * *")
     @Transactional
     fun checkAndExecuteTriggers() {
         val now = LocalDateTime.now().withSecond(0).withNano(0)
