@@ -1,6 +1,7 @@
 package com.pluxity.messaging
 
 import com.pluxity.global.messaging.component.SessionManager
+import com.pluxity.messaging.dto.ScenarioTriggerEvent
 import com.pluxity.messaging.dto.ScenarioTriggerMessage
 import com.pluxity.messaging.dto.TestMessage
 import com.pluxity.messaging.dto.TriggerTargetInfo
@@ -59,13 +60,14 @@ class StompMessageSender(
             ),
     )
     @StompAsyncOperationBinding
-    fun handle(event: ScenarioTriggerMessage) {
+    fun handle(event: ScenarioTriggerEvent) {
         val userIds = resolveUserIds(event.targets)
+        val message = event.toMessage()
 
         userIds.forEach { userId ->
             sessionManager.findPrincipalByUserId(userId).forEach { principal ->
-                log.info { "시나리오 실행 이벤트 처리: $userId : $event" }
-                messageTemplate.convertAndSendToUser(principal.name, QUEUE_SCENARIO_EXECUTION, event)
+                log.info { "시나리오 실행 이벤트 처리: $userId : $message" }
+                messageTemplate.convertAndSendToUser(principal.name, QUEUE_SCENARIO_EXECUTION, message)
             }
         }
     }

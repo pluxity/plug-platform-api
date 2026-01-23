@@ -3,7 +3,7 @@ package com.pluxity.patrol.service
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.messaging.dto.ScenarioTriggerMessage
+import com.pluxity.messaging.dto.ScenarioTriggerEvent
 import com.pluxity.messaging.dto.TriggerTargetInfo
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
@@ -62,7 +62,7 @@ class ScenarioExecutionService(
             }
 
         eventPublisher.publishEvent(
-            ScenarioTriggerMessage(execution.requiredId, scenario.requiredId, targets),
+            ScenarioTriggerEvent(execution.requiredId, scenario.requiredId, targets),
         )
     }
 

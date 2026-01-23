@@ -4,7 +4,7 @@ import base.entity.withId
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.messaging.dto.ScenarioTriggerMessage
+import com.pluxity.messaging.dto.ScenarioTriggerEvent
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
 import com.pluxity.patrol.constant.TriggerTargetType
@@ -82,7 +82,7 @@ class ScenarioExecutionServiceKoTest :
                 }
 
                 Then("이벤트가 발행됨") {
-                    verify { eventPublisher.publishEvent(any<ScenarioTriggerMessage>()) }
+                    verify { eventPublisher.publishEvent(any<ScenarioTriggerEvent>()) }
                 }
             }
         }
