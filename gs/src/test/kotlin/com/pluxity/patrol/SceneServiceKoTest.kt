@@ -12,6 +12,7 @@ import com.pluxity.patrol.dto.SceneDeviceActionUpdateRequest
 import com.pluxity.patrol.dto.SceneUpdateRequest
 import com.pluxity.patrol.entity.dummyScene
 import com.pluxity.patrol.entity.dummySceneDeviceAction
+import com.pluxity.patrol.repository.ScenarioSceneRepository
 import com.pluxity.patrol.repository.SceneRepository
 import com.pluxity.patrol.service.DeviceManager
 import com.pluxity.patrol.service.SceneService
@@ -32,7 +33,8 @@ class SceneServiceKoTest :
         val facilityRepository: FacilityRepository = mockk()
         val sceneRepository: SceneRepository = mockk()
         val deviceManager: DeviceManager = mockk()
-        val sceneService = SceneService(facilityRepository, sceneRepository, deviceManager)
+        val scenarioSceneRepository: ScenarioSceneRepository = mockk()
+        val sceneService = SceneService(facilityRepository, sceneRepository, scenarioSceneRepository, deviceManager)
 
         Given("Scene 생성을 진행할 때") {
             When("유효한 요청으로 생성") {
@@ -147,10 +149,12 @@ class SceneServiceKoTest :
 
         Given("Scene 목록 조회를 진행할 때") {
             When("facilityId로 조회") {
+                val facility = dummyFacility()
+
                 val scene1 = dummyScene(id = 1L, name = "씬1")
                 val scene2 = dummyScene(id = 2L, name = "씬2")
 
-                every { facilityRepository.existsById(1L) } returns true
+                every { facilityRepository.findByIdOrNull(1L) } returns facility
                 every { sceneRepository.findByFacilityId(1L) } returns listOf(scene1, scene2)
 
                 Then("해당 facility의 Scene 목록 반환") {
@@ -336,6 +340,7 @@ class SceneServiceKoTest :
                 val scene = dummyScene()
 
                 every { scene.facility.id } returns 1L
+                every { scenarioSceneRepository.deleteAllBySceneId(1L) } returns 1
                 every { sceneRepository.deleteByIdAndFacilityId(1L, 1L) } returns 1L
 
                 Then("정상 삭제") {
@@ -345,6 +350,7 @@ class SceneServiceKoTest :
             }
 
             When("존재하지 않는 id로 삭제 요청") {
+                every { scenarioSceneRepository.deleteAllBySceneId(1L) } returns 1
                 every { sceneRepository.deleteByIdAndFacilityId(1L, 1L) } returns 0L
 
                 Then("NOT_FOUND_SCENE 예외 발생") {
