@@ -4,7 +4,6 @@ import base.entity.withId
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.messaging.dto.ScenarioTriggerEvent
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
 import com.pluxity.patrol.constant.TriggerTargetType
@@ -27,8 +26,6 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.verify
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 
 class ScenarioExecutionServiceKoTest :
@@ -37,14 +34,12 @@ class ScenarioExecutionServiceKoTest :
         val scenarioExecutionRepository = mockk<ScenarioExecutionRepository>()
         val scenarioRepository = mockk<ScenarioRepository>()
         val facilityRepository = mockk<FacilityRepository>()
-        val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
 
         val service =
             ScenarioExecutionService(
                 scenarioExecutionRepository,
                 scenarioRepository,
                 facilityRepository,
-                eventPublisher,
             )
 
         Given("시나리오 자동 실행 (execute)") {
@@ -78,10 +73,6 @@ class ScenarioExecutionServiceKoTest :
                 Then("SceneExecution이 생성됨") {
                     executionSlot.captured.sceneExecutions.size shouldBe 1
                     executionSlot.captured.sceneExecutions[0].sceneName shouldBe scene.name
-                }
-
-                Then("이벤트가 발행됨") {
-                    verify { eventPublisher.publishEvent(any<ScenarioTriggerEvent>()) }
                 }
             }
         }

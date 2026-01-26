@@ -1,7 +1,7 @@
 package com.pluxity.messaging
 
 import com.pluxity.global.messaging.component.SessionManager
-import com.pluxity.messaging.dto.ScenarioTriggerEvent
+import com.pluxity.messaging.dto.ScenarioTriggerBatchEvent
 import com.pluxity.messaging.dto.ScenarioTriggerMessage
 import com.pluxity.messaging.dto.TestMessage
 import com.pluxity.messaging.dto.TriggerTargetInfo
@@ -60,14 +60,25 @@ class StompMessageSender(
             ),
     )
     @StompAsyncOperationBinding
-    fun handle(event: ScenarioTriggerEvent) {
-        val userIds = resolveUserIds(event.targets)
-        val message = event.toMessage()
+    fun handle(event: ScenarioTriggerBatchEvent) {
+        val userMessages = mutableMapOf<String, MutableList<ScenarioTriggerMessage>>()
 
-        userIds.forEach { userId ->
+        event.triggers.forEach { info ->
+            val userIds = resolveUserIds(info.targets)
+            val message =
+                ScenarioTriggerMessage(
+                    scenarioExecutionId = info.scenarioExecutionId,
+                    scenarioId = info.scenarioId,
+                )
+            userIds.forEach { userId ->
+                userMessages.getOrPut(userId) { mutableListOf() }.add(message)
+            }
+        }
+
+        userMessages.forEach { (userId, messages) ->
             sessionManager.findPrincipalByUserId(userId).forEach { principal ->
-                log.info { "시나리오 실행 이벤트 처리: $userId : $message" }
-                messageTemplate.convertAndSendToUser(principal.name, QUEUE_SCENARIO_EXECUTION, message)
+                log.info { "시나리오 배치 이벤트 처리: $userId, ${messages.size}건" }
+                messageTemplate.convertAndSendToUser(principal.name, QUEUE_SCENARIO_EXECUTION, messages)
             }
         }
     }
