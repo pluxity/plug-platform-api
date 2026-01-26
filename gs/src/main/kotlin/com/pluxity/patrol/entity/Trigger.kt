@@ -36,10 +36,13 @@ class Trigger(
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     var triggerType: TriggerType,
+    @Column(nullable = false)
     var executeMinute: Int? = 0,
+    @Column(nullable = false)
     var executeHour: Int? = 0,
     var month: Int? = null,
     var dayOfMonth: Int? = null,
+    @Column(nullable = false)
     var dayOfWeek: Int = 0,
     var startDate: LocalDate? = null,
     var endDate: LocalDate? = null,
@@ -47,8 +50,8 @@ class Trigger(
 ) : IdentityIdEntity() {
     fun updateTrigger(
         triggerType: TriggerType,
-        hour: Int?,
-        minute: Int?,
+        hour: Int,
+        minute: Int,
         dayOfWeek: Int,
         dayOfMonth: Int?,
         month: Int?,

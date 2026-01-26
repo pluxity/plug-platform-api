@@ -13,8 +13,8 @@ interface TriggerRepository : JpaRepository<Trigger, Long> {
         INNER JOIN scenario s ON t.scenario_id = s.id
         WHERE t.is_active = true
           AND s.is_active = true
-          AND (t.execute_hour IS NULL OR t.execute_hour = :hour)
-          AND (t.execute_minute IS NULL OR t.execute_minute = :minute)
+          AND (t.execute_hour = :hour)
+          AND (t.execute_minute = :minute)
           AND (t.start_date IS NULL OR t.start_date <= :currentDate)
           AND (t.end_date IS NULL OR t.end_date >= :currentDate)
           AND (
