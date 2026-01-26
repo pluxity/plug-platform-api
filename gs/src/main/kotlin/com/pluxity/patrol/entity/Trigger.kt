@@ -47,8 +47,8 @@ class Trigger(
 ) : IdentityIdEntity() {
     fun updateTrigger(
         triggerType: TriggerType,
-        hour: Int,
-        minute: Int,
+        hour: Int?,
+        minute: Int?,
         dayOfWeek: Int,
         dayOfMonth: Int?,
         month: Int?,
