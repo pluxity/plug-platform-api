@@ -7,6 +7,8 @@ import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.OneToMany
 import java.time.LocalDateTime
 
@@ -16,7 +18,9 @@ class ScenarioExecution(
     val facilityName: String,
     @OneToMany(mappedBy = "scenarioExecution", cascade = [CascadeType.ALL], orphanRemoval = true)
     val sceneExecutions: MutableList<SceneExecution> = mutableListOf(),
+    @Enumerated(EnumType.STRING)
     var triggerType: TriggerSource,
+    @Enumerated(EnumType.STRING)
     var executionStatus: ScenarioExecutionStatus,
     val triggeredAt: LocalDateTime? = null,
     var startedAt: LocalDateTime? = null,

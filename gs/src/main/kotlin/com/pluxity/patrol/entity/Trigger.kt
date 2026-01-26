@@ -5,13 +5,26 @@ import com.pluxity.patrol.constant.TriggerType
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import java.time.LocalDate
 
 @Entity
+@Table(
+    name = "trigger",
+    indexes = [
+        Index(
+            name = "idx_trigger_schedule",
+            columnList = "is_active, execute_hour, execute_minute",
+        ),
+    ],
+)
 class Trigger(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scenario_id", nullable = false)
@@ -21,9 +34,10 @@ class Trigger(
     @Column(nullable = false)
     var cronExpression: String,
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     var triggerType: TriggerType,
-    var executeMinute: Int? = null,
-    var executeHour: Int? = null,
+    var executeMinute: Int? = 0,
+    var executeHour: Int? = 0,
     var month: Int? = null,
     var dayOfMonth: Int? = null,
     var dayOfWeek: Int = 0,
