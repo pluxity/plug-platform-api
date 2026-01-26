@@ -68,12 +68,21 @@
         const onConnect = async (payload) => {
             log('WebSocket connected');
 
-            stompClient.subscribe('/topic/scenario-execution', function (message) {
+            stompClient.subscribe('/user/queue/scenario-execution', function (message) {
                 const body = JSON.parse(message.body);
-                log(`RECEIVE /topic/scenario-execution: ${JSON.stringify(body)}`, 'log-receive');
+                log(`RECEIVE /user/queue/scenario-execution: ${JSON.stringify(body)}`, 'log-receive');
             });
 
-            log('Subscribed to /topic/scenario-execution');
+            log('Subscribed to /user/queue/scenario-execution');
+
+            stompClient.subscribe(`/user/queue/test-message`, function (data) {
+                console.log(data)
+            });
+
+            stompClient.send(`/app/test/message`, {}, JSON.stringify({
+                message: '테스트 메시지 입니다.'
+            }));
+
         };
 
         const onError = (error) => {
