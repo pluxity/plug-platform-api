@@ -1,4 +1,4 @@
-package com.pluxity.patrol
+package com.pluxity.patrol.service
 
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.feature.entity.Spatial
@@ -14,8 +14,6 @@ import com.pluxity.patrol.entity.dummyScene
 import com.pluxity.patrol.entity.dummySceneDeviceAction
 import com.pluxity.patrol.repository.ScenarioSceneRepository
 import com.pluxity.patrol.repository.SceneRepository
-import com.pluxity.patrol.service.DeviceManager
-import com.pluxity.patrol.service.SceneService
 import facility.dummyFacility
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
@@ -145,6 +143,19 @@ class SceneServiceKoTest :
                     }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENE
                 }
             }
+
+            When("다른 facility의 scene 조회 시도") {
+                val scene = dummyScene()
+
+                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { scene.facility.id } returns 99L
+
+                Then("UNMATCHED_FACILITY_SCENE 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        sceneService.getScene(1L, 1L)
+                    }.errorCode shouldBe ErrorCode.UNMATCHED_FACILITY_SCENE
+                }
+            }
         }
 
         Given("Scene 목록 조회를 진행할 때") {
@@ -162,6 +173,16 @@ class SceneServiceKoTest :
                     result.size shouldBe 2
                     result[0].name shouldBe "씬1"
                     result[1].name shouldBe "씬2"
+                }
+            }
+
+            When("존재하지 않는 facilityId로 조회") {
+                every { facilityRepository.findByIdOrNull(999L) } returns null
+
+                Then("NOT_FOUND_FACILITY 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        sceneService.getScenesByFacilityId(999L)
+                    }.errorCode shouldBe ErrorCode.NOT_FOUND_FACILITY
                 }
             }
         }
@@ -331,6 +352,64 @@ class SceneServiceKoTest :
                     shouldThrowExactly<CustomException> {
                         sceneService.updateScene(1L, 999L, updateRequest)
                     }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENE
+                }
+            }
+
+            When("다른 facility의 scene 수정 시도") {
+                val scene = dummyScene()
+
+                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { scene.facility.id } returns 99L
+
+                Then("UNMATCHED_FACILITY_SCENE 예외 발생") {
+                    val updateRequest =
+                        SceneUpdateRequest(
+                            name = "수정",
+                            description = null,
+                            duration = null,
+                            rotation = null,
+                            position = null,
+                            sceneDeviceActionRequests = null,
+                        )
+                    shouldThrowExactly<CustomException> {
+                        sceneService.updateScene(1L, 1L, updateRequest)
+                    }.errorCode shouldBe ErrorCode.UNMATCHED_FACILITY_SCENE
+                }
+            }
+
+            When("존재하지 않는 deviceActionId로 수정 요청") {
+                val scene = dummyScene()
+                val existingAction = dummySceneDeviceAction(id = 1L, scene = scene)
+                scene.sceneDeviceActions.add(existingAction)
+
+                every { deviceManager.checkDeviceExists(any(), any()) } just runs
+                every { deviceManager.validateAction(any(), any()) } just runs
+                every { scene.facility.id } returns 1L
+                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+
+                Then("NOT_FOUND_ACTION 예외 발생") {
+                    val updateRequest =
+                        SceneUpdateRequest(
+                            name = "test",
+                            description = null,
+                            duration = null,
+                            rotation = null,
+                            position = null,
+                            sceneDeviceActionRequests =
+                                arrayListOf(
+                                    SceneDeviceActionUpdateRequest(
+                                        sceneDeviceActionId = 999L,
+                                        deviceId = "cctv-1",
+                                        deviceAction = DeviceAction.VIEW,
+                                        deviceType = DeviceType.CCTV,
+                                        actionParam = null,
+                                        executionOrder = 0,
+                                    ),
+                                ),
+                        )
+                    shouldThrowExactly<CustomException> {
+                        sceneService.updateScene(1L, 1L, updateRequest)
+                    }.errorCode shouldBe ErrorCode.NOT_FOUND_ACTION
                 }
             }
         }

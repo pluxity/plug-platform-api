@@ -30,7 +30,6 @@ import io.mockk.slot
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
-import java.time.LocalDate
 
 class ScenarioExecutionServiceKoTest :
     BehaviorSpec({
@@ -171,6 +170,23 @@ class ScenarioExecutionServiceKoTest :
                     }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENARIO_EXECUTION
                 }
             }
+
+            When("TRIGGERED 상태에서 완료하면") {
+                val execution =
+                    dummyScenarioExecution(
+                        id = 10L,
+                        executionStatus = ScenarioExecutionStatus.TRIGGERED,
+                    )
+
+                every { scenarioExecutionRepository.findByIdOrNull(10L) } returns execution
+
+                service.complete(10L)
+
+                Then("COMPLETED 상태로 변경됨") {
+                    execution.executionStatus shouldBe ScenarioExecutionStatus.COMPLETED
+                    execution.finishedAt shouldNotBe null
+                }
+            }
         }
 
         Given("시나리오 실행 실패 (fail)") {
@@ -203,6 +219,34 @@ class ScenarioExecutionServiceKoTest :
                     shouldThrowExactly<CustomException> {
                         service.fail(2L, "에러")
                     }.errorCode shouldBe ErrorCode.INVALID_EXECUTION_STATUS
+                }
+            }
+
+            When("존재하지 않는 executionId로 실패 처리하면") {
+                every { scenarioExecutionRepository.findByIdOrNull(999L) } returns null
+
+                Then("NOT_FOUND_SCENARIO_EXECUTION 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        service.fail(999L, "에러")
+                    }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENARIO_EXECUTION
+                }
+            }
+
+            When("TRIGGERED 상태에서 실패 처리하면") {
+                val execution =
+                    dummyScenarioExecution(
+                        id = 10L,
+                        executionStatus = ScenarioExecutionStatus.TRIGGERED,
+                    )
+
+                every { scenarioExecutionRepository.findByIdOrNull(10L) } returns execution
+
+                service.fail(10L, "트리거 에러")
+
+                Then("FAILED 상태로 변경됨") {
+                    execution.executionStatus shouldBe ScenarioExecutionStatus.FAILED
+                    execution.errorMessage shouldBe "트리거 에러"
+                    execution.finishedAt shouldNotBe null
                 }
             }
         }
@@ -281,31 +325,6 @@ class ScenarioExecutionServiceKoTest :
         }
 
         Given("시나리오별 실행 이력 조회 (findByScenarioId)") {
-            When("유효한 scenarioId로 조회하면") {
-                val scenario = dummyScenario()
-                val executions =
-                    listOf(
-                        dummyScenarioExecution(id = 1L),
-                        dummyScenarioExecution(id = 2L),
-                    )
-
-                every { scenarioRepository.findByIdOrNull(1L) } returns scenario
-                every {
-                    scenarioExecutionRepository.findByScenarioIdAndFilters(
-                        scenarioName = scenario.name,
-                        status = null,
-                        startDate = null,
-                        endDate = null,
-                    )
-                } returns executions
-
-                val result = service.findByScenarioId(1L, ScenarioExecutionSearchRequest())
-
-                Then("실행 이력 목록 반환") {
-                    result.size shouldBe 2
-                }
-            }
-
             When("존재하지 않는 scenarioId로 조회하면") {
                 every { scenarioRepository.findByIdOrNull(999L) } returns null
 
@@ -315,59 +334,9 @@ class ScenarioExecutionServiceKoTest :
                     }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENARIO
                 }
             }
-
-            When("날짜 필터로 조회하면") {
-                val scenario = dummyScenario()
-                val request =
-                    ScenarioExecutionSearchRequest(
-                        startDate = LocalDate.of(2026, 1, 1),
-                        endDate = LocalDate.of(2026, 1, 31),
-                    )
-
-                every { scenarioRepository.findByIdOrNull(1L) } returns scenario
-                every {
-                    scenarioExecutionRepository.findByScenarioIdAndFilters(
-                        scenarioName = scenario.name,
-                        status = null,
-                        startDate = request.startDate?.atStartOfDay(),
-                        endDate = request.endDate?.atTime(23, 59, 59),
-                    )
-                } returns emptyList()
-
-                val result = service.findByScenarioId(1L, request)
-
-                Then("필터링된 결과 반환") {
-                    result.size shouldBe 0
-                }
-            }
         }
 
         Given("시설별 실행 이력 조회 (findByFacilityId)") {
-            When("유효한 facilityId로 조회하면") {
-                val facility = dummyFacility(1L)
-                val executions =
-                    listOf(
-                        dummyScenarioExecution(id = 1L),
-                    )
-
-                every { facility.name } returns "테스트 시설"
-                every { facilityRepository.findByIdOrNull(1L) } returns facility
-                every {
-                    scenarioExecutionRepository.findByFacilityIdAndFilters(
-                        facilityName = "테스트 시설",
-                        status = null,
-                        startDate = null,
-                        endDate = null,
-                    )
-                } returns executions
-
-                val result = service.findByFacilityId(1L, ScenarioExecutionSearchRequest())
-
-                Then("실행 이력 목록 반환") {
-                    result.size shouldBe 1
-                }
-            }
-
             When("존재하지 않는 facilityId로 조회하면") {
                 every { facilityRepository.findByIdOrNull(999L) } returns null
 

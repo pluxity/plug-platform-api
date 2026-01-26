@@ -1,4 +1,4 @@
-package com.pluxity.patrol
+package com.pluxity.patrol.service
 
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
@@ -16,8 +16,6 @@ import com.pluxity.patrol.entity.dummyScenarioScene
 import com.pluxity.patrol.entity.dummyScene
 import com.pluxity.patrol.repository.ScenarioRepository
 import com.pluxity.patrol.repository.SceneRepository
-import com.pluxity.patrol.service.ScenarioService
-import com.pluxity.patrol.service.TriggerService
 import facility.dummyFacility
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
@@ -163,6 +161,31 @@ class ScenarioServiceKoTest :
                     shouldThrowExactly<CustomException> {
                         scenarioService.createScenario(facilityId, createRequest)
                     }.errorCode shouldBe ErrorCode.INVALID_EXECUTION_ORDER
+                }
+            }
+
+            When("존재하지 않는 sceneId로 생성 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+
+                val createRequest =
+                    ScenarioCreateRequest(
+                        name = "테스트 시나리오",
+                        description = "테스트 설명",
+                        isActive = true,
+                        scenarioSceneRequests =
+                            listOf(
+                                ScenarioSceneCreateRequest(sceneId = 999L, order = 1, transitionTime = 5.0),
+                            ),
+                    )
+
+                every { facilityRepository.findByIdOrNull(facilityId) } returns facility
+                every { sceneRepository.findAllById(listOf(999L)) } returns emptyList()
+
+                Then("NOT_FOUND_SCENE 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        scenarioService.createScenario(facilityId, createRequest)
+                    }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENE
                 }
             }
 
@@ -429,6 +452,109 @@ class ScenarioServiceKoTest :
                 }
             }
 
+            When("중복된 executionOrder로 수정 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+
+                every { scenario.facility.id } returns facilityId
+                every { scenarioRepository.findByIdWithDetails(1L) } returns scenario
+
+                Then("DUPLICATE_EXECUTION_ORDER 예외 발생") {
+                    val updateRequest =
+                        ScenarioUpdateRequest(
+                            name = "테스트 시나리오",
+                            description = null,
+                            isActive = null,
+                            scenarioScenes =
+                                listOf(
+                                    ScenarioSceneUpdateRequest(
+                                        scenarioSceneId = null,
+                                        sceneId = 1L,
+                                        order = 1,
+                                        duration = 10.0,
+                                        transitionTime = 5.0,
+                                    ),
+                                    ScenarioSceneUpdateRequest(
+                                        scenarioSceneId = null,
+                                        sceneId = 2L,
+                                        order = 1,
+                                        duration = 10.0,
+                                        transitionTime = 5.0,
+                                    ),
+                                ),
+                        )
+                    shouldThrowExactly<CustomException> {
+                        scenarioService.updateScenario(facilityId, 1L, updateRequest)
+                    }.errorCode shouldBe ErrorCode.DUPLICATE_EXECUTION_ORDER
+                }
+            }
+
+            When("0 이하 executionOrder로 수정 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+
+                every { scenario.facility.id } returns facilityId
+                every { scenarioRepository.findByIdWithDetails(1L) } returns scenario
+
+                Then("INVALID_EXECUTION_ORDER 예외 발생") {
+                    val updateRequest =
+                        ScenarioUpdateRequest(
+                            name = "테스트 시나리오",
+                            description = null,
+                            isActive = null,
+                            scenarioScenes =
+                                listOf(
+                                    ScenarioSceneUpdateRequest(
+                                        scenarioSceneId = null,
+                                        sceneId = 1L,
+                                        order = 0,
+                                        duration = 10.0,
+                                        transitionTime = 5.0,
+                                    ),
+                                ),
+                        )
+                    shouldThrowExactly<CustomException> {
+                        scenarioService.updateScenario(facilityId, 1L, updateRequest)
+                    }.errorCode shouldBe ErrorCode.INVALID_EXECUTION_ORDER
+                }
+            }
+
+            When("존재하지 않는 scenarioSceneId로 수정 요청") {
+                val facilityId = 1L
+                val facility = dummyFacility(facilityId)
+                val scenario = dummyScenario(facility = facility)
+                val scene = dummyScene(id = 1L, facility = facility)
+
+                every { scenario.facility.id } returns facilityId
+                every { scene.facility.id } returns facilityId
+                every { scenarioRepository.findByIdWithDetails(1L) } returns scenario
+                every { sceneRepository.findAllById(listOf(1L)) } returns listOf(scene)
+
+                Then("NOT_FOUND_SCENARIO_SCENE 예외 발생") {
+                    val updateRequest =
+                        ScenarioUpdateRequest(
+                            name = "테스트 시나리오",
+                            description = null,
+                            isActive = null,
+                            scenarioScenes =
+                                listOf(
+                                    ScenarioSceneUpdateRequest(
+                                        scenarioSceneId = 999L,
+                                        sceneId = 1L,
+                                        order = 1,
+                                        duration = 10.0,
+                                        transitionTime = 5.0,
+                                    ),
+                                ),
+                        )
+                    shouldThrowExactly<CustomException> {
+                        scenarioService.updateScenario(facilityId, 1L, updateRequest)
+                    }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENARIO_SCENE
+                }
+            }
+
             When("scenarioScene의 scene을 존재하지 않는 scene으로 변경") {
                 val facilityId = 1L
                 val facility = dummyFacility(facilityId)
@@ -513,6 +639,16 @@ class ScenarioServiceKoTest :
                 Then("정상 삭제") {
                     scenarioService.deleteScenario(1L, 1L)
                     verify(exactly = 1) { scenarioRepository.deleteByIdAndFacilityId(any(), any()) }
+                }
+            }
+
+            When("존재하지 않는 id로 삭제 요청") {
+                every { scenarioRepository.deleteByIdAndFacilityId(999L, 1L) } returns 0L
+
+                Then("NOT_FOUND_SCENARIO 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        scenarioService.deleteScenario(1L, 999L)
+                    }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENARIO
                 }
             }
         }
