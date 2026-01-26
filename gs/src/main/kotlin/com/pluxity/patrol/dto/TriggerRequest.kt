@@ -1,10 +1,7 @@
 package com.pluxity.patrol.dto
 
-import com.pluxity.patrol.constant.CronDayOfWeek
-import com.pluxity.patrol.constant.TriggerRequestType
+import com.pluxity.patrol.constant.TriggerType
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.validation.constraints.Max
-import jakarta.validation.constraints.Min
 import java.time.LocalDate
 
 @Schema(description = "트리거 수정 요청")
@@ -16,47 +13,32 @@ data class TriggerRequest(
     )
     val triggerId: Long? = null,
     @field:Schema(
+        description = """
+            UNIX 표준 5자리 크론식 (분 시 일 월 요일).
+            - 분/시/일/월: 숫자 또는 * 만 허용
+            - 요일: 숫자, *, - 허용 (0,7:일, 1:월... 6:토)
+            - ONCE일 경우 일/월 표시
+            - 예시: '30 9 * * *' (매일 09:30 실행), '0 10 * * 1,5' (월,금 10시 실행) , '0 10 * * 1-5' (월-금 10시 실행), '0 10 25 1 *'(1월 25일 10시 실행)
+
+        """,
+        type = "string",
+        example = "30 9 * * 1,5",
+    )
+    val cronExpression: String,
+    @field:Schema(
         description = "트리거 타입",
-        example = "DAILY",
+        example = "REPEAT",
         requiredMode = Schema.RequiredMode.REQUIRED,
     )
-    val triggerType: TriggerRequestType,
-    @field:Min(0, message = "시간은 0 이상이어야 합니다")
-    @field:Max(23, message = "시간은 23 이하이어야 합니다")
+    val triggerType: TriggerType,
     @field:Schema(
-        description = "실행 시간 (0-23)",
-        example = "9",
-        requiredMode = Schema.RequiredMode.REQUIRED,
-    )
-    val hour: Int,
-    @field:Min(0, message = "분은 0 이상이어야 합니다")
-    @field:Max(59, message = "분은 59 이하이어야 합니다")
-    @field:Schema(
-        description = "실행 분 (0-59)",
-        example = "0",
-        requiredMode = Schema.RequiredMode.REQUIRED,
-    )
-    val minute: Int,
-    @field:Schema(
-        description = "실행 요일 목록 (WEEKLY 타입일 때 필수)",
-        example = "[\"MON\", \"WED\", \"FRI\"]",
-        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
-    )
-    val daysOfWeek: List<CronDayOfWeek>? = null,
-    @field:Schema(
-        description = "일회성 실행 날짜 (ONCE 타입일 때 필수)",
-        example = "2026-02-15",
-        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
-    )
-    val onceDate: LocalDate? = null,
-    @field:Schema(
-        description = "반복 시작 날짜 (DAILY, WEEKLY 타입에서 선택)",
+        description = "반복 시작 날짜",
         example = "2026-01-01",
         requiredMode = Schema.RequiredMode.NOT_REQUIRED,
     )
     val startDate: LocalDate? = null,
     @field:Schema(
-        description = "반복 종료 날짜 (선택)",
+        description = "반복 종료 날짜",
         example = "2026-12-31",
         requiredMode = Schema.RequiredMode.NOT_REQUIRED,
     )

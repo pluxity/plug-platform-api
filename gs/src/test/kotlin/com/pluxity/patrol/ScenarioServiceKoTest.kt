@@ -3,7 +3,7 @@ package com.pluxity.patrol
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.patrol.constant.TriggerRequestType
+import com.pluxity.patrol.constant.TriggerType
 import com.pluxity.patrol.dto.ScenarioCreateRequest
 import com.pluxity.patrol.dto.ScenarioSceneCreateRequest
 import com.pluxity.patrol.dto.ScenarioSceneUpdateRequest
@@ -539,9 +539,8 @@ class ScenarioServiceKoTest :
                                 listOf(
                                     TriggerRequest(
                                         triggerId = null,
-                                        triggerType = TriggerRequestType.DAILY,
-                                        hour = 10,
-                                        minute = 0,
+                                        triggerType = TriggerType.REPEAT,
+                                        cronExpression = "0 9 * * *",
                                     ),
                                 ),
                         )
@@ -575,9 +574,8 @@ class ScenarioServiceKoTest :
                                 listOf(
                                     TriggerRequest(
                                         triggerId = 10L,
-                                        triggerType = TriggerRequestType.DAILY,
-                                        hour = 15,
-                                        minute = 30,
+                                        triggerType = TriggerType.REPEAT,
+                                        cronExpression = "30 9 * * *",
                                     ),
                                 ),
                         )
@@ -613,9 +611,8 @@ class ScenarioServiceKoTest :
                                 listOf(
                                     TriggerRequest(
                                         triggerId = 10L,
-                                        triggerType = TriggerRequestType.DAILY,
-                                        hour = 10,
-                                        minute = 0,
+                                        triggerType = TriggerType.REPEAT,
+                                        cronExpression = "30 9 * * *",
                                     ),
                                 ),
                         )
@@ -670,9 +667,8 @@ class ScenarioServiceKoTest :
                                 listOf(
                                     TriggerRequest(
                                         triggerId = 999L,
-                                        triggerType = TriggerRequestType.DAILY,
-                                        hour = 10,
-                                        minute = 0,
+                                        triggerType = TriggerType.REPEAT,
+                                        cronExpression = "30 9 * * *",
                                     ),
                                 ),
                         )
@@ -699,9 +695,8 @@ class ScenarioServiceKoTest :
                         triggers =
                             listOf(
                                 TriggerRequest(
-                                    triggerType = TriggerRequestType.DAILY,
-                                    hour = 9,
-                                    minute = 0,
+                                    triggerType = TriggerType.REPEAT,
+                                    cronExpression = "30 9 * * *",
                                 ),
                             ),
                     )
@@ -732,14 +727,12 @@ class ScenarioServiceKoTest :
                         triggers =
                             listOf(
                                 TriggerRequest(
-                                    triggerType = TriggerRequestType.DAILY,
-                                    hour = 9,
-                                    minute = 0,
+                                    triggerType = TriggerType.REPEAT,
+                                    cronExpression = "30 9 * * *",
                                 ),
                                 TriggerRequest(
-                                    triggerType = TriggerRequestType.DAILY,
-                                    hour = 18,
-                                    minute = 0,
+                                    triggerType = TriggerType.REPEAT,
+                                    cronExpression = "30 9 * * *",
                                 ),
                             ),
                     )

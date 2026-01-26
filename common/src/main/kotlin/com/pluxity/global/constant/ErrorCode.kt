@@ -115,9 +115,7 @@ enum class ErrorCode(
     NOT_FOUND_SCENARIO_SCENE(HttpStatus.NOT_FOUND, "ID가 %s인 ScenarioScene을 찾을 수 없습니다."),
 
     INVALID_CRON_DAY_VALUE(HttpStatus.BAD_REQUEST, "%s는 유효하지 않은 크론 요일 값입니다. (0~6)"),
-
-    TRIGGER_WEEKLY_DAYS_REQUIRED(HttpStatus.BAD_REQUEST, "WEEKLY 트리거는 요일 선택이 필수입니다."),
-    TRIGGER_ONCE_DATE_REQUIRED(HttpStatus.BAD_REQUEST, "ONCE 트리거는 실행 날짜가 필수입니다."),
+    INVALID_CRON_EXPRESSION(HttpStatus.BAD_REQUEST, "유효하지 않은 cron 표현식입니다: %s"),
     NOT_FOUND_TRIGGER(HttpStatus.NOT_FOUND, "ID가 %s인 Trigger를 찾을 수 없습니다."),
 
     INVALID_EXECUTION_STATUS(HttpStatus.BAD_REQUEST, "실행 상태가 %s인 경우 %s할 수 없습니다."),

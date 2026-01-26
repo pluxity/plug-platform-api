@@ -9,22 +9,21 @@ import java.time.LocalDate
 interface TriggerRepository : JpaRepository<Trigger, Long> {
     @Query(
         """
-        SELECT t FROM Trigger t
-        JOIN FETCH t.scenario s
-        WHERE t.isActive = true
-          AND s.isActive = true
-          AND t.executeHour = :hour
-          AND t.executeMinute = :minute
-          AND (t.startDate IS NULL OR t.startDate <= :currentDate)
-          AND (t.endDate IS NULL OR t.endDate >= :currentDate)
+        SELECT t.* FROM trigger t
+        INNER JOIN scenario s ON t.scenario_id = s.id
+        WHERE t.is_active = true
+          AND s.is_active = true
+          AND (t.execute_hour IS NULL OR t.execute_hour = :hour)
+          AND (t.execute_minute IS NULL OR t.execute_minute = :minute)
+          AND (t.start_date IS NULL OR t.start_date <= :currentDate)
+          AND (t.end_date IS NULL OR t.end_date >= :currentDate)
           AND (
-            (t.triggerType = com.pluxity.patrol.constant.TriggerType.ONCE
-             AND t.month = :month AND t.dayOfMonth = :dayOfMonth)
+            (t.trigger_type = 'ONCE' AND t.month = :month AND t.day_of_month = :dayOfMonth)
             OR
-            (t.triggerType = com.pluxity.patrol.constant.TriggerType.REPEAT
-             AND MOD(t.dayOfWeek / :dayOfWeekBit, 2) = 1)
+            (t.trigger_type = 'REPEAT' AND (t.day_of_week & :dayOfWeekBit) > 0)
           )
         """,
+        nativeQuery = true,
     )
     fun findActiveTriggers(
         @Param("month") month: Int,
