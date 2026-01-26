@@ -15,6 +15,7 @@ data class ScenarioExecutionResponse(
     val startedAt: LocalDateTime?,
     val finishedAt: LocalDateTime?,
     val errorMessage: String?,
+    val createBy: String?,
 ) {
     companion object {
         fun from(entity: ScenarioExecution) =
@@ -28,6 +29,7 @@ data class ScenarioExecutionResponse(
                 startedAt = entity.startedAt,
                 finishedAt = entity.finishedAt,
                 errorMessage = entity.errorMessage,
+                createBy = entity.createdBy,
             )
     }
 }
