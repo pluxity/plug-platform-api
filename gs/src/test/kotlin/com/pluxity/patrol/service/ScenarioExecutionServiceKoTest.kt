@@ -150,7 +150,7 @@ class ScenarioExecutionServiceKoTest :
             When("RUNNING이 아닌 상태에서 완료하면") {
                 val execution =
                     dummyScenarioExecution(
-                        executionStatus = ScenarioExecutionStatus.TRIGGERED,
+                        executionStatus = ScenarioExecutionStatus.CANCELLED,
                     )
 
                 every { scenarioExecutionRepository.findByIdOrNull(2L) } returns execution
