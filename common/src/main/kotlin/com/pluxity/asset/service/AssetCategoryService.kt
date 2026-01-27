@@ -63,7 +63,7 @@ class AssetCategoryService(
         val savedCategory = assetCategoryRepository.save(category)
 
         request.thumbnailFileId?.let {
-            fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${savedCategory.requiredId}")
+            fileService.finalizeUpload(it, "${ASSET_CATEGORIES}${savedCategory.requiredId}/")
         }
 
         return savedCategory.requiredId
@@ -84,7 +84,7 @@ class AssetCategoryService(
         if (category.iconFileId != request.thumbnailFileId) {
             request.thumbnailFileId?.let { thumbnailId ->
                 category.updateIconFileId(thumbnailId)
-                fileService.finalizeUpload(thumbnailId, "${ASSET_CATEGORIES}${category.id}")
+                fileService.finalizeUpload(thumbnailId, "${ASSET_CATEGORIES}${category.id}/")
             } ?: category.updateIconFileId(null)
         }
     }
