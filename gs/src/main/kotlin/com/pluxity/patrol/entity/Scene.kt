@@ -27,7 +27,7 @@ class Scene(
     @Column(nullable = false)
     var name: String,
     var description: String? = null,
-    var duration: Double,
+    var duration: Int,
     @AttributeOverride(
         name = "z",
         column = Column(name = "position_z"),
@@ -63,6 +63,6 @@ class Scene(
         this.description = request.description
         this.position = request.position
         this.rotation = request.rotation
-        this.duration = request.duration ?: 0.0
+        this.duration = request.duration ?: 0
     }
 }

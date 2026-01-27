@@ -43,7 +43,7 @@ class SceneServiceKoTest :
                     SceneCreateRequest(
                         name = "테스트 씬",
                         description = "테스트 설명",
-                        duration = 10.0,
+                        duration = 10,
                         position = Spatial(1.0, 2.0, 3.0),
                         rotation = Spatial(0.0, 0.0, 0.0),
                         sceneDeviceActionRequests = null,
@@ -65,7 +65,7 @@ class SceneServiceKoTest :
                     SceneCreateRequest(
                         name = "테스트 씬",
                         description = null,
-                        duration = 0.0,
+                        duration = 0,
                         position = null,
                         rotation = null,
                         sceneDeviceActionRequests = null,
@@ -88,7 +88,7 @@ class SceneServiceKoTest :
                     SceneCreateRequest(
                         name = "테스트 씬",
                         description = null,
-                        duration = 0.0,
+                        duration = 0,
                         position = null,
                         rotation = null,
                         sceneDeviceActionRequests =
@@ -221,7 +221,7 @@ class SceneServiceKoTest :
                         SceneUpdateRequest(
                             name = "수정된 씬",
                             description = "수정된 설명",
-                            duration = 20.0,
+                            duration = 20,
                             rotation = Spatial(1.0, 1.0, 1.0),
                             position = Spatial(2.0, 2.0, 2.0),
                             sceneDeviceActionRequests = null,

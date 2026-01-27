@@ -21,7 +21,7 @@ class SceneExecution(
     var sceneDeviceActionExecutions: MutableList<SceneDeviceActionExecution> = mutableListOf(),
     val sceneName: String,
     val executionOrder: Int,
-    val duration: Double,
+    val duration: Int,
     @AttributeOverride(
         name = "z",
         column = Column(name = "position_z"),

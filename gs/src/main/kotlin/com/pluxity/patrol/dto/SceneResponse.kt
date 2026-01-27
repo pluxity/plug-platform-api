@@ -9,7 +9,7 @@ data class SceneResponse(
     val id: Long,
     val name: String,
     val description: String?,
-    val duration: Double?,
+    val duration: Int?,
     val position: Spatial?,
     val rotation: Spatial?,
     val facility: FacilitySummary,
@@ -62,7 +62,7 @@ data class SceneListResponse(
     val id: Long,
     val name: String,
     val description: String?,
-    val duration: Double?,
+    val duration: Int?,
 ) {
     companion object {
         fun from(scene: Scene): SceneListResponse =

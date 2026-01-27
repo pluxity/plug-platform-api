@@ -16,8 +16,8 @@ data class SceneUpdateRequest(
     @field:Schema(description = "설명", example = "수정된 설명")
     val description: String?,
     @field:PositiveOrZero(message = "유지 시간은 0보다 작을 수 없습니다")
-    @field:Schema(description = "유지 시간", minimum = "0.0", example = "20.0")
-    val duration: Double?,
+    @field:Schema(description = "유지 시간", minimum = "0", example = "20")
+    val duration: Int?,
     @field:Schema(description = "회전 정보")
     val rotation: Spatial?,
     @field:Schema(description = "좌표 정보")

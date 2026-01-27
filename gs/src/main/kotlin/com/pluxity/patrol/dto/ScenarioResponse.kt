@@ -22,8 +22,8 @@ data class ScenarioResponse(
         val scenarioSceneId: Long,
         val order: Int,
         val scene: SimpleSceneResponse,
-        val duration: Double?,
-        val transitionTime: Double,
+        val duration: Int?,
+        val transitionTime: Int,
     )
 
     data class SimpleSceneResponse(

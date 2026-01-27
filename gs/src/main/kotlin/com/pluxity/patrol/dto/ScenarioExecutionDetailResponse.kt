@@ -24,7 +24,7 @@ data class SceneExecutionResponse(
     val id: Long,
     val sceneName: String,
     val executionOrder: Int,
-    val duration: Double,
+    val duration: Int,
     val position: Spatial?,
     val rotation: Spatial?,
     val sceneDeviceActionExecutionResponse: List<SceneDeviceActionExecutionResponse>,

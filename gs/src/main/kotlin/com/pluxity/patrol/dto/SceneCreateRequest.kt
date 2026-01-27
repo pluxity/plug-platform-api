@@ -17,9 +17,9 @@ data class SceneCreateRequest(
     @field:Schema(description = "설명", example = "오전 9시 자동으로 실행되는 순찰 씬")
     val description: String?,
     @field:PositiveOrZero(message = "유지 시간은 0보다 작을 수 없습니다")
-    @field:Schema(description = "유지 시간 (초 단위)", minimum = "0.0", example = "10.5")
+    @field:Schema(description = "유지 시간 (초 단위)", minimum = "0", example = "10")
     @field:NotNull(message = "유지 시간은 필수입니다.")
-    var duration: Double,
+    var duration: Int,
     @field:Schema(description = "좌표 정보 (위치)")
     val position: Spatial?,
     @field:Schema(description = "회전 정보")
