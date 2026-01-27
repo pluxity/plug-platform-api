@@ -2,7 +2,6 @@ package com.pluxity.feature.dto
 
 import com.pluxity.feature.entity.Spatial
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 
 data class FeatureCreateRequest(
     // UUID
@@ -11,9 +10,7 @@ data class FeatureCreateRequest(
     val position: Spatial?,
     val rotation: Spatial?,
     val scale: Spatial?,
-    @field:NotNull
-    var assetId: Long,
-    @field:NotNull
-    var facilityId: Long,
+    val assetId: Long,
+    val facilityId: Long,
     val floorId: String?,
 )

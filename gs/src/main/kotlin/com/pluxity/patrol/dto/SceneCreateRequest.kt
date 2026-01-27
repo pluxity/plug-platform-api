@@ -4,7 +4,6 @@ import com.pluxity.feature.entity.Spatial
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
 
@@ -18,8 +17,7 @@ data class SceneCreateRequest(
     val description: String?,
     @field:PositiveOrZero(message = "유지 시간은 0보다 작을 수 없습니다")
     @field:Schema(description = "유지 시간 (초 단위)", minimum = "0", example = "10")
-    @field:NotNull(message = "유지 시간은 필수입니다.")
-    var duration: Int,
+    val duration: Int,
     @field:Schema(description = "좌표 정보 (위치)")
     val position: Spatial?,
     @field:Schema(description = "회전 정보")
