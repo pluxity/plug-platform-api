@@ -120,6 +120,31 @@ class TriggerServiceKoTest :
                     result.triggerTargets[1].targetId shouldBe "user-2"
                 }
             }
+
+            When("triggerTargets이 중복으로 요청올때") {
+                val request =
+                    TriggerRequest(
+                        triggerType = TriggerType.REPEAT,
+                        cronExpression = "0 10 * * *",
+                        triggerTargetRequests =
+                            listOf(
+                                TriggerTargetRequest(
+                                    targetType = TriggerTargetType.USER,
+                                    targetId = "user-1",
+                                ),
+                                TriggerTargetRequest(
+                                    targetType = TriggerTargetType.USER,
+                                    targetId = "user-1",
+                                ),
+                            ),
+                    )
+                val result = service.createTrigger(request, dummyScenario)
+
+                Then("중복 제거") {
+                    result.triggerTargets.size shouldBe 1
+                    result.triggerTargets[0].targetId shouldBe "user-1"
+                }
+            }
         }
 
         Given("트리거 수정 할때") {
@@ -145,6 +170,50 @@ class TriggerServiceKoTest :
                         cronExpression = "0 14 * * 1,3,5",
                         triggerTargetRequests =
                             listOf(
+                                TriggerTargetRequest(
+                                    targetType = TriggerTargetType.USER,
+                                    targetId = "user-3",
+                                ),
+                            ),
+                    )
+
+                service.updateTrigger(trigger, updateRequest)
+
+                Then("cron 값과 target이 업데이트됨") {
+                    trigger.cronExpression shouldBe "0 14 * * 1,3,5"
+                    trigger.executeHour shouldBe 14
+                    trigger.executeMinute shouldBe 0
+                    trigger.dayOfWeek shouldBe 42
+                    trigger.triggerTargets.size shouldBe 1
+                    trigger.triggerTargets[0].targetId shouldBe "user-3"
+                }
+            }
+            When("cron 재파싱 및 target 중복 제거") {
+                val scenario = dummyScenario()
+                val createRequest =
+                    TriggerRequest(
+                        triggerType = TriggerType.REPEAT,
+                        cronExpression = "30 9 * * *",
+                        triggerTargetRequests =
+                            listOf(
+                                TriggerTargetRequest(
+                                    targetType = TriggerTargetType.USER,
+                                    targetId = "user-1",
+                                ),
+                            ),
+                    )
+                val trigger = service.createTrigger(createRequest, scenario)
+
+                val updateRequest =
+                    TriggerRequest(
+                        triggerType = TriggerType.REPEAT,
+                        cronExpression = "0 14 * * 1,3,5",
+                        triggerTargetRequests =
+                            listOf(
+                                TriggerTargetRequest(
+                                    targetType = TriggerTargetType.USER,
+                                    targetId = "user-3",
+                                ),
                                 TriggerTargetRequest(
                                     targetType = TriggerTargetType.USER,
                                     targetId = "user-3",
