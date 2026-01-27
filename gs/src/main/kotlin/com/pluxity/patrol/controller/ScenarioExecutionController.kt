@@ -38,9 +38,9 @@ class ScenarioExecutionController(
     @Operation(summary = "시나리오 실행 완료")
     fun complete(
         @PathVariable id: Long,
-    ): ResponseEntity<Unit> {
+    ): ResponseEntity<Void> {
         scenarioExecutionService.complete(id)
-        return ResponseEntity.ok().build()
+        return ResponseEntity.noContent().build()
     }
 
     @PatchMapping("/scenario-executions/{id}/fail")
@@ -48,18 +48,18 @@ class ScenarioExecutionController(
     fun fail(
         @PathVariable id: Long,
         @RequestBody request: ScenarioExecutionFailRequest,
-    ): ResponseEntity<Unit> {
+    ): ResponseEntity<Void> {
         scenarioExecutionService.fail(id, request.errorMessage)
-        return ResponseEntity.ok().build()
+        return ResponseEntity.noContent().build()
     }
 
     @PatchMapping("/scenario-executions/{id}/cancel")
     @Operation(summary = "시나리오 실행 취소")
     fun cancel(
         @PathVariable id: Long,
-    ): ResponseEntity<Unit> {
+    ): ResponseEntity<Void> {
         scenarioExecutionService.cancel(id)
-        return ResponseEntity.ok().build()
+        return ResponseEntity.noContent().build()
     }
 
     @Operation(summary = "시나리오 실행 상세 조회", description = "특정 시나리오 실행의 상세 정보와 씬 실행 목록을 조회합니다.")

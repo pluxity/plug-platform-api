@@ -31,9 +31,9 @@ class Trigger(
     var scenario: Scenario,
     @OneToMany(mappedBy = "trigger", cascade = [CascadeType.ALL], orphanRemoval = true)
     val triggerTargets: MutableList<TriggerTarget> = mutableListOf(),
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     var cronExpression: String,
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     var triggerType: TriggerType,
     @Column(nullable = false)

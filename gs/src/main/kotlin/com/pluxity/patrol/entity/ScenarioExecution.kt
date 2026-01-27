@@ -6,6 +6,7 @@ import com.pluxity.global.exception.CustomException
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
 import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -25,6 +26,7 @@ class ScenarioExecution(
     val triggeredAt: LocalDateTime? = null,
     var startedAt: LocalDateTime? = null,
     var finishedAt: LocalDateTime? = null,
+    @Column(columnDefinition = "TEXT")
     var errorMessage: String? = null,
 ) : IdentityIdEntity() {
     fun addSceneExecution(sceneExecution: SceneExecution) {

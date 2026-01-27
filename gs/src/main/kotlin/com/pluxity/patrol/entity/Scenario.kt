@@ -25,8 +25,9 @@ class Scenario(
     var scenarioScenes: MutableList<ScenarioScene> = mutableListOf(),
     @OneToMany(mappedBy = "scenario", cascade = [CascadeType.ALL], orphanRemoval = true)
     var triggers: MutableList<Trigger> = mutableListOf(),
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     var name: String,
+    @Column(length = 500)
     var description: String?,
     var isActive: Boolean = true,
 ) : IdentityIdEntity() {

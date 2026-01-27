@@ -19,8 +19,11 @@ class SceneExecution(
     var scenarioExecution: ScenarioExecution,
     @OneToMany(mappedBy = "sceneExecution", cascade = [CascadeType.ALL], orphanRemoval = true)
     var sceneDeviceActionExecutions: MutableList<SceneDeviceActionExecution> = mutableListOf(),
+    @Column(nullable = false, length = 100)
     val sceneName: String,
+    @Column(nullable = false)
     val executionOrder: Int,
+    @Column(nullable = false)
     val duration: Int,
     @AttributeOverride(
         name = "z",

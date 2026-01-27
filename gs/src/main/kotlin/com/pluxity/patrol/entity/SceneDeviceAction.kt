@@ -19,10 +19,10 @@ class SceneDeviceAction(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scene_id", nullable = false)
     var scene: Scene,
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     var deviceType: DeviceType,
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var deviceId: String,
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
