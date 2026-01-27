@@ -39,15 +39,17 @@ class TriggerService(
                 ),
             )
 
-        request.triggerTargetRequests?.forEach { target ->
-            trigger.addTriggerTarget(
-                TriggerTarget(
-                    trigger = trigger,
-                    targetType = target.targetType,
-                    targetId = target.targetId,
-                ),
-            )
-        }
+        request.triggerTargetRequests
+            ?.distinctBy { it.targetType to it.targetId }
+            ?.forEach { target ->
+                trigger.addTriggerTarget(
+                    TriggerTarget(
+                        trigger = trigger,
+                        targetType = target.targetType,
+                        targetId = target.targetId,
+                    ),
+                )
+            }
         return trigger
     }
 
@@ -71,15 +73,17 @@ class TriggerService(
         )
 
         existingTrigger.triggerTargets.clear()
-        request.triggerTargetRequests?.forEach { target ->
-            existingTrigger.addTriggerTarget(
-                TriggerTarget(
-                    trigger = existingTrigger,
-                    targetType = target.targetType,
-                    targetId = target.targetId,
-                ),
-            )
-        }
+        request.triggerTargetRequests
+            ?.distinctBy { it.targetType to it.targetId }
+            ?.forEach { target ->
+                existingTrigger.addTriggerTarget(
+                    TriggerTarget(
+                        trigger = existingTrigger,
+                        targetType = target.targetType,
+                        targetId = target.targetId,
+                    ),
+                )
+            }
     }
 
     private fun parseCron(cronExpression: String): ParsedCron =
