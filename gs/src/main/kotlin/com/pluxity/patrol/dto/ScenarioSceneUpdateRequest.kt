@@ -2,15 +2,13 @@ package com.pluxity.patrol.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotNull
 
 @Schema(description = "시나리오-씬 수정 요청")
 data class ScenarioSceneUpdateRequest(
     @field:Schema(description = "시나리오-씬 ID (수정 시 필수, 생성 시 null)", example = "1")
     val scenarioSceneId: Long? = null,
-    @field:NotNull(message = "씬 ID는 필수입니다.")
     @field:Schema(description = "씬 ID", example = "1")
-    var sceneId: Long,
+    val sceneId: Long,
     @field:Min(value = 1, message = "실행 순서는 1 이상이어야 합니다.")
     @field:Schema(description = "실행 순서 (1부터 시작)", example = "1")
     val order: Int,
