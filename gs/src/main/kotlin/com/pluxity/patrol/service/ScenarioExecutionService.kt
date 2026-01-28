@@ -9,7 +9,6 @@ import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
 import com.pluxity.patrol.dto.ScenarioExecutionDetailResponse
 import com.pluxity.patrol.dto.ScenarioExecutionResponse
-import com.pluxity.patrol.dto.ScenarioExecutionSearchRequest
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioExecution
 import com.pluxity.patrol.entity.ScenarioScene
@@ -21,6 +20,7 @@ import com.pluxity.patrol.repository.ScenarioRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Service
@@ -155,44 +155,41 @@ class ScenarioExecutionService(
         return ScenarioExecutionDetailResponse.from(execution)
     }
 
-    fun findByScenarioId(
-        scenarioId: Long,
-        request: ScenarioExecutionSearchRequest,
+    fun findByFilters(
+        facilityId: Long?,
+        scenarioId: Long?,
+        status: ScenarioExecutionStatus?,
+        startDate: LocalDate?,
+        endDate: LocalDate?,
     ): List<ScenarioExecutionResponse> {
-        val startDateTime = request.startDate?.atStartOfDay()
-        val endDateTime = request.endDate?.atTime(23, 59, 59)
+        val startDateTime = startDate?.atStartOfDay()
+        val endDateTime = endDate?.atTime(23, 59, 59)
+
+        val facility =
+            facilityId?.let {
+                facilityRepository.findByIdOrNull(it) ?: throw CustomException(ErrorCode.NOT_FOUND_FACILITY, it)
+            }
 
         val scenario =
-            scenarioRepository.findByIdOrNull(scenarioId)
-                ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO, scenarioId)
+            scenarioId?.let {
+                scenarioRepository.findByIdOrNull(it) ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO, it)
+            }
 
         return scenarioExecutionRepository
-            .findByScenarioIdAndFilters(
-                scenarioName = scenario.name,
-                status = request.status,
-                startDate = startDateTime,
-                endDate = endDateTime,
-            ).map { ScenarioExecutionResponse.from(it) }
-    }
-
-    fun findByFacilityId(
-        facilityId: Long,
-        request: ScenarioExecutionSearchRequest,
-    ): List<ScenarioExecutionResponse> {
-        val startDateTime = request.startDate?.atStartOfDay()
-        val endDateTime = request.endDate?.atTime(23, 59, 59)
-
-        val facility = (
-            facilityRepository.findByIdOrNull(facilityId)
-                ?: throw CustomException(ErrorCode.NOT_FOUND_FACILITY, facilityId)
-        )
-
-        return scenarioExecutionRepository
-            .findByFacilityIdAndFilters(
-                facilityName = facility.name,
-                status = request.status,
-                startDate = startDateTime,
-                endDate = endDateTime,
-            ).map { ScenarioExecutionResponse.from(it) }
+            .findAll {
+                select(
+                    entity(ScenarioExecution::class),
+                ).from(
+                    entity(ScenarioExecution::class),
+                ).where(
+                    and(
+                        status?.let { path(ScenarioExecution::executionStatus).eq(it) },
+                        facility?.let { path(ScenarioExecution::facilityName).eq(it.name) },
+                        scenario?.let { path(ScenarioExecution::scenarioName).eq(it.name) },
+                        startDateTime?.let { path(ScenarioExecution::startedAt).ge(it) },
+                        endDateTime?.let { path(ScenarioExecution::startedAt).le(it) },
+                    ),
+                ).orderBy(path(ScenarioExecution::startedAt).desc())
+            }.mapNotNull { it?.let { ScenarioExecutionResponse.from(it) } }
     }
 }
