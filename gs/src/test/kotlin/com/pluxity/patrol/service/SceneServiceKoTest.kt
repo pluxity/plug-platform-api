@@ -104,7 +104,6 @@ class SceneServiceKoTest :
                     )
 
                 every { deviceManager.checkDeviceExists(any(), any()) } just runs
-                every { deviceManager.validateAction(any(), any()) } just runs
                 every { facilityRepository.findByIdOrNull(1L) } returns facility
                 every { sceneRepository.save(any()) } returns scene
 
@@ -239,7 +238,6 @@ class SceneServiceKoTest :
                 scene.sceneDeviceActions.add(existingAction)
 
                 every { deviceManager.checkDeviceExists(any(), any()) } just runs
-                every { deviceManager.validateAction(any(), any()) } just runs
                 every { scene.facility.id } returns 1L
                 every { sceneRepository.findByIdWithDetails(1L) } returns scene
 
@@ -283,7 +281,7 @@ class SceneServiceKoTest :
                 scene.sceneDeviceActions.addAll(listOf(action1, action2))
 
                 every { deviceManager.checkDeviceExists(any(), any()) } just runs
-                every { deviceManager.validateAction(any(), any()) } just runs
+
                 every { scene.facility.id } returns 1L
                 every { sceneRepository.findByIdWithDetails(1L) } returns scene
 
@@ -383,7 +381,7 @@ class SceneServiceKoTest :
                 scene.sceneDeviceActions.add(existingAction)
 
                 every { deviceManager.checkDeviceExists(any(), any()) } just runs
-                every { deviceManager.validateAction(any(), any()) } just runs
+
                 every { scene.facility.id } returns 1L
                 every { sceneRepository.findByIdWithDetails(1L) } returns scene
 

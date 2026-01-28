@@ -43,7 +43,10 @@ class SceneService(
 
         request.sceneDeviceActionRequests?.forEach { actionRequest ->
             deviceManager.checkDeviceExists(actionRequest.deviceType, actionRequest.deviceId)
-            deviceManager.validateAction(actionRequest.deviceType, actionRequest.deviceAction)
+
+            if (!actionRequest.deviceType.supports(actionRequest.deviceAction)) {
+                throw CustomException(ErrorCode.INVALID_DEVICE_ACTION, actionRequest.deviceType, actionRequest.deviceAction)
+            }
 
             scene.addSceneDeviceAction(
                 SceneDeviceAction(
@@ -100,7 +103,10 @@ class SceneService(
 
         actionRequests.forEach { actionRequest ->
             deviceManager.checkDeviceExists(actionRequest.deviceType, actionRequest.deviceId)
-            deviceManager.validateAction(actionRequest.deviceType, actionRequest.deviceAction)
+
+            if (!actionRequest.deviceType.supports(actionRequest.deviceAction)) {
+                throw CustomException(ErrorCode.INVALID_DEVICE_ACTION, actionRequest.deviceType, actionRequest.deviceAction)
+            }
 
             if (actionRequest.sceneDeviceActionId != null) {
                 // 수정: ID가 있으면 기존 객체 찾아 덮어쓰기

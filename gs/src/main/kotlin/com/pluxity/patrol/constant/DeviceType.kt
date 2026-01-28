@@ -10,5 +10,5 @@ enum class DeviceType(
     LIGHT("조명", listOf(DeviceAction.TURN_ON, DeviceAction.TURN_OFF, DeviceAction.GET_STATUS)),
     ;
 
-    fun execute(action: DeviceAction): Boolean = availableActions.contains(action)
+    fun supports(action: DeviceAction): Boolean = availableActions.contains(action)
 }

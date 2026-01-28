@@ -3,7 +3,6 @@ package com.pluxity.patrol.service
 import com.pluxity.cctv.repository.CctvRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
-import com.pluxity.patrol.constant.DeviceAction
 import com.pluxity.patrol.constant.DeviceType
 import com.pluxity.temperaturehumidity.repository.TemperatureHumidityRepository
 import org.springframework.stereotype.Component
@@ -29,15 +28,6 @@ class DeviceManager(
 
         if (!checker(deviceId)) {
             throw CustomException(ErrorCode.NOT_FOUND_DEVICE, deviceId)
-        }
-    }
-
-    fun validateAction(
-        type: DeviceType,
-        action: DeviceAction,
-    ) {
-        if (!type.execute(action)) {
-            throw CustomException(ErrorCode.INVALID_DEVICE_ACTION, type, action)
         }
     }
 }
