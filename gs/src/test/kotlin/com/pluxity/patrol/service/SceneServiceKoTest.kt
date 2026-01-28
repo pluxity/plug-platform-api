@@ -46,7 +46,7 @@ class SceneServiceKoTest :
                         duration = 10,
                         position = Spatial(1.0, 2.0, 3.0),
                         rotation = Spatial(0.0, 0.0, 0.0),
-                        sceneDeviceActionRequests = null,
+                        sceneDeviceActionRequests = emptyList(),
                     )
 
                 every { facilityRepository.findByIdOrNull(1L) } returns facility
@@ -68,7 +68,7 @@ class SceneServiceKoTest :
                         duration = 0,
                         position = null,
                         rotation = null,
-                        sceneDeviceActionRequests = null,
+                        sceneDeviceActionRequests = emptyList(),
                     )
 
                 every { facilityRepository.findByIdOrNull(999L) } returns null
@@ -123,7 +123,7 @@ class SceneServiceKoTest :
                 every { scene.facility.id } returns 10L
                 every { scene.facility.requiredId } returns 10L
                 every { scene.facility.name } returns "test"
-                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 10L) } returns scene
 
                 Then("정상 조회") {
                     val response = sceneService.getScene(10L, 1L)
@@ -134,25 +134,12 @@ class SceneServiceKoTest :
             }
 
             When("존재하지 않는 id로 조회") {
-                every { sceneRepository.findByIdWithDetails(999L) } returns null
+                every { sceneRepository.findByIdAndFacilityIdWithDetails(999L, 1L) } returns null
 
                 Then("NOT_FOUND_SCENE 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         sceneService.getScene(1L, 999L)
                     }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENE
-                }
-            }
-
-            When("다른 facility의 scene 조회 시도") {
-                val scene = dummyScene()
-
-                every { sceneRepository.findByIdWithDetails(1L) } returns scene
-                every { scene.facility.id } returns 99L
-
-                Then("UNMATCHED_FACILITY_SCENE 예외 발생") {
-                    shouldThrowExactly<CustomException> {
-                        sceneService.getScene(1L, 1L)
-                    }.errorCode shouldBe ErrorCode.UNMATCHED_FACILITY_SCENE
                 }
             }
         }
@@ -190,7 +177,7 @@ class SceneServiceKoTest :
             When("전체 필드 수정") {
                 val scene = dummyScene()
                 val facilityId = 1L
-                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 1L) } returns scene
                 every { scene.facility.id } returns facilityId
 
                 Then("모든 필드가 요청 값으로 덮어씌워짐") {
@@ -212,7 +199,7 @@ class SceneServiceKoTest :
             When("모든 필드와 함께 수정") {
                 val scene = dummyScene()
                 val facilityId = 1L
-                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 1L) } returns scene
                 every { scene.facility.id } returns facilityId
 
                 Then("모든 필드가 요청 값으로 업데이트됨") {
@@ -239,7 +226,7 @@ class SceneServiceKoTest :
 
                 every { deviceManager.checkDeviceExists(any(), any()) } just runs
                 every { scene.facility.id } returns 1L
-                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 1L) } returns scene
 
                 Then("기존 항목 유지하고 새 항목 추가") {
                     val updateRequest =
@@ -283,7 +270,7 @@ class SceneServiceKoTest :
                 every { deviceManager.checkDeviceExists(any(), any()) } just runs
 
                 every { scene.facility.id } returns 1L
-                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 1L) } returns scene
 
                 Then("요청에 없는 항목 삭제") {
                     val updateRequest =
@@ -317,7 +304,7 @@ class SceneServiceKoTest :
                 scene.sceneDeviceActions.add(action1)
 
                 every { scene.facility.id } returns 1L
-                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 1L) } returns scene
 
                 Then("모든 sceneDeviceAction 삭제됨") {
                     val updateRequest =
@@ -335,7 +322,7 @@ class SceneServiceKoTest :
             }
 
             When("존재하지 않는 id로 수정 요청") {
-                every { sceneRepository.findByIdWithDetails(999L) } returns null
+                every { sceneRepository.findByIdAndFacilityIdWithDetails(999L, 1L) } returns null
 
                 Then("NOT_FOUND_SCENE 예외 발생") {
                     val updateRequest =
@@ -353,28 +340,6 @@ class SceneServiceKoTest :
                 }
             }
 
-            When("다른 facility의 scene 수정 시도") {
-                val scene = dummyScene()
-
-                every { sceneRepository.findByIdWithDetails(1L) } returns scene
-                every { scene.facility.id } returns 99L
-
-                Then("UNMATCHED_FACILITY_SCENE 예외 발생") {
-                    val updateRequest =
-                        SceneUpdateRequest(
-                            name = "수정",
-                            description = null,
-                            duration = null,
-                            rotation = null,
-                            position = null,
-                            sceneDeviceActionRequests = null,
-                        )
-                    shouldThrowExactly<CustomException> {
-                        sceneService.updateScene(1L, 1L, updateRequest)
-                    }.errorCode shouldBe ErrorCode.UNMATCHED_FACILITY_SCENE
-                }
-            }
-
             When("존재하지 않는 deviceActionId로 수정 요청") {
                 val scene = dummyScene()
                 val existingAction = dummySceneDeviceAction(id = 1L, scene = scene)
@@ -383,7 +348,7 @@ class SceneServiceKoTest :
                 every { deviceManager.checkDeviceExists(any(), any()) } just runs
 
                 every { scene.facility.id } returns 1L
-                every { sceneRepository.findByIdWithDetails(1L) } returns scene
+                every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 1L) } returns scene
 
                 Then("NOT_FOUND_ACTION 예외 발생") {
                     val updateRequest =
