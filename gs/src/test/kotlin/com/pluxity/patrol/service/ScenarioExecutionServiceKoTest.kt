@@ -8,7 +8,6 @@ import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
 import com.pluxity.patrol.constant.TriggerTargetType
 import com.pluxity.patrol.constant.TriggerType
-import com.pluxity.patrol.dto.ScenarioExecutionSearchRequest
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioExecution
 import com.pluxity.patrol.entity.Trigger
@@ -315,26 +314,27 @@ class ScenarioExecutionServiceKoTest :
             }
         }
 
-        Given("시나리오별 실행 이력 조회 (findByScenarioId)") {
-            When("존재하지 않는 scenarioId로 조회하면") {
-                every { scenarioRepository.findByIdOrNull(999L) } returns null
-
-                Then("NOT_FOUND_SCENARIO 예외 발생") {
-                    shouldThrowExactly<CustomException> {
-                        service.findByScenarioId(999L, ScenarioExecutionSearchRequest())
-                    }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENARIO
-                }
-            }
-        }
-
-        Given("시설별 실행 이력 조회 (findByFacilityId)") {
+        Given("시나리오 실행 이력 목록 조회 (findByFilters) ") {
             When("존재하지 않는 facilityId로 조회하면") {
-                every { facilityRepository.findByIdOrNull(999L) } returns null
+                val invalidFacilityId = 999L
+
+                every { facilityRepository.findByIdOrNull(invalidFacilityId) } returns null
 
                 Then("NOT_FOUND_FACILITY 예외 발생") {
                     shouldThrowExactly<CustomException> {
-                        service.findByFacilityId(999L, ScenarioExecutionSearchRequest())
+                        service.findByFilters(invalidFacilityId, null, null, null, null)
                     }.errorCode shouldBe ErrorCode.NOT_FOUND_FACILITY
+                }
+            }
+            When("존재하지 않는 scenarioId로 조회하면") {
+                val invalidScenarioId = 999L
+
+                every { scenarioRepository.findByIdOrNull(invalidScenarioId) } returns null
+
+                Then("NOT_FOUND_SCENARIO 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        service.findByFilters(null, invalidScenarioId, null, null, null)
+                    }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENARIO
                 }
             }
         }
