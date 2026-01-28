@@ -68,9 +68,8 @@ class SceneService(
         id: Long,
     ): SceneResponse {
         val scene =
-            sceneRepository.findByIdWithDetails(id)
+            sceneRepository.findByIdAndFacilityIdWithDetails(id, facilityId)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENE, id)
-        validateFacility(scene, facilityId)
         return SceneResponse.from(scene)
     }
 
@@ -90,10 +89,9 @@ class SceneService(
         request: SceneUpdateRequest,
     ) {
         val scene =
-            sceneRepository.findByIdWithDetails(id)
+            sceneRepository.findByIdAndFacilityIdWithDetails(id, facilityId)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENE, id)
 
-        validateFacility(scene, facilityId)
         scene.updateScene(request)
 
         val actionRequests = request.sceneDeviceActionRequests ?: emptyList()
@@ -138,15 +136,6 @@ class SceneService(
         val deletedCount = sceneRepository.deleteByIdAndFacilityId(id, facilityId)
         if (deletedCount == 0L) {
             throw CustomException(ErrorCode.NOT_FOUND_SCENE, id)
-        }
-    }
-
-    private fun validateFacility(
-        scene: Scene,
-        facilityId: Long,
-    ) {
-        if (scene.facility.id != facilityId) {
-            throw CustomException(ErrorCode.UNMATCHED_FACILITY_SCENE)
         }
     }
 }

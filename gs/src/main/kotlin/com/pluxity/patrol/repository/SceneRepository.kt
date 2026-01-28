@@ -11,9 +11,13 @@ interface SceneRepository : JpaRepository<Scene, Long> {
         LEFT JOIN FETCH s.sceneDeviceActions
         JOIN FETCH s.facility
         WHERE s.id = :id
+        AND s.facility.id =: facilityId
     """,
     )
-    fun findByIdWithDetails(id: Long): Scene?
+    fun findByIdAndFacilityIdWithDetails(
+        id: Long,
+        facilityId: Long,
+    ): Scene?
 
     fun findByFacilityId(facilityId: Long): List<Scene>
 

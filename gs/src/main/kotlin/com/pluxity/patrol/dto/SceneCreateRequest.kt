@@ -24,5 +24,5 @@ data class SceneCreateRequest(
     val rotation: Spatial?,
     @field:Valid
     @field:Schema(description = "씬에 포함된 기기 액션 목록")
-    val sceneDeviceActionRequests: List<SceneDeviceActionCreateRequest>?,
+    val sceneDeviceActionRequests: List<SceneDeviceActionCreateRequest> = emptyList(),
 )
