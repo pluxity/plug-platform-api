@@ -20,23 +20,25 @@ import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 
+@RequestMapping("/scenario-executions")
 @RestController
 @Tag(name = "ScenarioExecution Controller", description = "시나리오 실행 이력 API")
 class ScenarioExecutionController(
     private val scenarioExecutionService: ScenarioExecutionService,
 ) {
-    @ResponseCreated(path = "/scenario-executions/{id}")
+    @ResponseCreated(path = "/{id}")
     @PostMapping("/scenario-executions/start/{scenarioId}")
     @Operation(summary = "시나리오 수동 실행")
     fun startManually(
         @PathVariable scenarioId: Long,
     ): ResponseEntity<Long> = ResponseEntity.ok(scenarioExecutionService.startManually(scenarioId))
 
-    @PatchMapping("/scenario-executions/{id}/complete")
+    @PatchMapping("/{id}/complete")
     @Operation(summary = "시나리오 실행 완료")
     fun complete(
         @PathVariable id: Long,
@@ -45,7 +47,7 @@ class ScenarioExecutionController(
         return ResponseEntity.noContent().build()
     }
 
-    @PatchMapping("/scenario-executions/{id}/fail")
+    @PatchMapping("/{id}/fail")
     @Operation(summary = "시나리오 실행 실패")
     fun fail(
         @PathVariable id: Long,
@@ -55,7 +57,7 @@ class ScenarioExecutionController(
         return ResponseEntity.noContent().build()
     }
 
-    @PatchMapping("/scenario-executions/{id}/cancel")
+    @PatchMapping("/{id}/cancel")
     @Operation(summary = "시나리오 실행 취소")
     fun cancel(
         @PathVariable id: Long,
@@ -75,7 +77,7 @@ class ScenarioExecutionController(
             ),
         ],
     )
-    @GetMapping("/scenario-executions/{id}")
+    @GetMapping("/{id}")
     fun findById(
         @Parameter(description = "시나리오 실행 ID", required = true) @PathVariable("id") id: Long,
     ): ResponseEntity<ScenarioExecutionDetailResponse> = ResponseEntity.ok(scenarioExecutionService.findById(id))
@@ -91,7 +93,7 @@ class ScenarioExecutionController(
             ),
         ],
     )
-    @GetMapping("/facilities/executions")
+    @GetMapping
     fun findByFilters(
         @Parameter(description = "시설 ID") @RequestParam(required = false) facilityId: Long?,
         @Parameter(description = "시나리오 ID") @RequestParam(required = false) scenarioId: Long?,

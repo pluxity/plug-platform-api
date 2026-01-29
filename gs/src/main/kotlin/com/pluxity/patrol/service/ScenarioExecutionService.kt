@@ -3,6 +3,7 @@ package com.pluxity.patrol.service
 import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
+import com.pluxity.global.utils.findAllNotNull
 import com.pluxity.messaging.dto.ScenarioTriggerInfo
 import com.pluxity.messaging.dto.TriggerTargetInfo
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
@@ -176,7 +177,7 @@ class ScenarioExecutionService(
             }
 
         return scenarioExecutionRepository
-            .findAll {
+            .findAllNotNull {
                 select(
                     entity(ScenarioExecution::class),
                 ).from(
@@ -190,6 +191,6 @@ class ScenarioExecutionService(
                         endDateTime?.let { path(ScenarioExecution::startedAt).le(it) },
                     ),
                 ).orderBy(path(ScenarioExecution::startedAt).desc())
-            }.mapNotNull { it?.let { ScenarioExecutionResponse.from(it) } }
+            }.map { ScenarioExecutionResponse.from(it) }
     }
 }
