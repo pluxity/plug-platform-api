@@ -20,7 +20,11 @@ class ScenarioScene(
     var duration: Int,
     var transitionTime: Int,
 ) : IdentityIdEntity() {
-    fun updateScenarioScene(request: ScenarioSceneUpdateRequest) {
+    fun updateScenarioScene(
+        request: ScenarioSceneUpdateRequest,
+        newScene: Scene,
+    ) {
+        this.scene = newScene
         this.executionOrder = request.order
         this.duration = request.duration ?: scene.duration
         this.transitionTime = request.transitionTime
