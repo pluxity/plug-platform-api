@@ -11,6 +11,20 @@ interface ScenarioRepository : JpaRepository<Scenario, Long> {
             JOIN FETCH s.facility
             LEFT JOIN FETCH s.scenarioScenes ss
             LEFT JOIN FETCH ss.scene
+            WHERE s.id = :id AND s.facility.id = :facilityId
+        """,
+    )
+    fun findByIdWithDetailsWithFacility(
+        id: Long,
+        facilityId: Long,
+    ): Scenario?
+
+    @Query(
+        """
+            SELECT s FROM Scenario s
+            JOIN FETCH s.facility
+            LEFT JOIN FETCH s.scenarioScenes ss
+            LEFT JOIN FETCH ss.scene
             WHERE s.id = :id
         """,
     )

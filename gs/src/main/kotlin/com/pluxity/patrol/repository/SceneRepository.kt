@@ -25,4 +25,14 @@ interface SceneRepository : JpaRepository<Scene, Long> {
         id: Long,
         facilityId: Long,
     ): Long
+
+    @Query(
+        """
+        SELECT s FROM Scene s join fetch facility f WHERE s.id IN :ids AND s.facility.id = :facilityId
+    """,
+    )
+    fun findAllByIdAndFacilityId(
+        ids: List<Long>,
+        facilityId: Long,
+    ): List<Scene>
 }
