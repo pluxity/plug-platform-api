@@ -103,7 +103,7 @@ class SceneServiceKoTest :
                             ),
                     )
 
-                every { deviceManager.checkDeviceExists(any(), any()) } just runs
+                every { deviceManager.validateDevicesExist(any()) } just runs
                 every { facilityRepository.findByIdOrNull(1L) } returns facility
                 every { sceneRepository.save(any()) } returns scene
 
@@ -188,7 +188,6 @@ class SceneServiceKoTest :
                             duration = null,
                             rotation = null,
                             position = null,
-                            sceneDeviceActionRequests = null,
                         )
                     sceneService.updateScene(facilityId, 1L, updateRequest)
                     scene.name shouldBe "수정된 씬"
@@ -210,7 +209,6 @@ class SceneServiceKoTest :
                             duration = 20,
                             rotation = Spatial(1.0, 1.0, 1.0),
                             position = Spatial(2.0, 2.0, 2.0),
-                            sceneDeviceActionRequests = null,
                         )
                     sceneService.updateScene(facilityId, 1L, updateRequest)
                     scene.name shouldBe "수정된 씬"
@@ -224,7 +222,7 @@ class SceneServiceKoTest :
                 val existingAction = dummySceneDeviceAction(id = 1L, scene = scene)
                 scene.sceneDeviceActions.add(existingAction)
 
-                every { deviceManager.checkDeviceExists(any(), any()) } just runs
+                every { deviceManager.validateDevicesExist(any()) } just runs
                 every { scene.facility.id } returns 1L
                 every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 1L) } returns scene
 
@@ -267,7 +265,7 @@ class SceneServiceKoTest :
                 val action2 = dummySceneDeviceAction(id = 2L, scene = scene, deviceId = "cctv-2")
                 scene.sceneDeviceActions.addAll(listOf(action1, action2))
 
-                every { deviceManager.checkDeviceExists(any(), any()) } just runs
+                every { deviceManager.validateDevicesExist(any()) } just runs
 
                 every { scene.facility.id } returns 1L
                 every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 1L) } returns scene
@@ -314,7 +312,6 @@ class SceneServiceKoTest :
                             duration = null,
                             rotation = null,
                             position = null,
-                            sceneDeviceActionRequests = null,
                         )
                     sceneService.updateScene(1L, 1L, updateRequest)
                     scene.sceneDeviceActions.size shouldBe 0
@@ -332,7 +329,6 @@ class SceneServiceKoTest :
                             duration = null,
                             rotation = null,
                             position = null,
-                            sceneDeviceActionRequests = null,
                         )
                     shouldThrowExactly<CustomException> {
                         sceneService.updateScene(1L, 999L, updateRequest)
@@ -345,7 +341,7 @@ class SceneServiceKoTest :
                 val existingAction = dummySceneDeviceAction(id = 1L, scene = scene)
                 scene.sceneDeviceActions.add(existingAction)
 
-                every { deviceManager.checkDeviceExists(any(), any()) } just runs
+                every { deviceManager.validateDevicesExist(any()) } just runs
 
                 every { scene.facility.id } returns 1L
                 every { sceneRepository.findByIdAndFacilityIdWithDetails(1L, 1L) } returns scene

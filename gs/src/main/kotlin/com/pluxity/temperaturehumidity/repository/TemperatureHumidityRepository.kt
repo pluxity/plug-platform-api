@@ -14,4 +14,7 @@ interface TemperatureHumidityRepository :
     fun revokeByFeature(feature: Feature)
 
     fun existsByFeature(feature: Feature): Boolean
+
+    @Query("SELECT t.id FROM TemperatureHumidity t WHERE t.id IN :ids")
+    fun findExistingIds(ids: List<String>): List<String>
 }

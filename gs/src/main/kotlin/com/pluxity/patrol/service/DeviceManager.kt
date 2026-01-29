@@ -12,22 +12,19 @@ class DeviceManager(
     private val cctvRepository: CctvRepository,
     private val temperatureHumidityRepository: TemperatureHumidityRepository,
 ) {
-    private val deviceExistsCheckers: Map<DeviceType, (String) -> Boolean> =
-        mapOf(
-            DeviceType.CCTV to { id -> cctvRepository.existsById(id) },
-            DeviceType.TEMPERATURE_HUMIDITY to { id -> temperatureHumidityRepository.existsById(id) },
-        )
+    fun validateDevicesExist(deviceIdsByType: Map<DeviceType, List<String>>) {
+        deviceIdsByType.forEach { (deviceType, deviceIds) ->
+            val foundIds =
+                when (deviceType) {
+                    DeviceType.CCTV -> cctvRepository.findExistingIds(deviceIds)
+                    DeviceType.TEMPERATURE_HUMIDITY -> temperatureHumidityRepository.findExistingIds(deviceIds)
+                    else -> return
+                }
 
-    fun checkDeviceExists(
-        deviceType: DeviceType,
-        deviceId: String,
-    ) {
-        val checker =
-            deviceExistsCheckers[deviceType]
-                ?: throw CustomException(ErrorCode.INVALID_DEVICE_TYPE)
-
-        if (!checker(deviceId)) {
-            throw CustomException(ErrorCode.NOT_FOUND_DEVICE, deviceId)
+            val missingIds = deviceIds - foundIds.toSet()
+            if (missingIds.isNotEmpty()) {
+                throw CustomException(ErrorCode.NOT_FOUND_DEVICES_BY_TYPE, deviceType, missingIds.joinToString(","))
+            }
         }
     }
 }
