@@ -8,6 +8,7 @@ import com.pluxity.messaging.dto.ScenarioTriggerInfo
 import com.pluxity.messaging.dto.TriggerTargetInfo
 import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
+import com.pluxity.patrol.constant.TriggerType
 import com.pluxity.patrol.dto.ScenarioExecutionDetailResponse
 import com.pluxity.patrol.dto.ScenarioExecutionResponse
 import com.pluxity.patrol.dto.toDetailResponse
@@ -53,6 +54,10 @@ class ScenarioExecutionService(
             )
 
         createSceneExecutions(execution, scenario.scenarioScenes)
+
+        if (trigger.triggerType == TriggerType.ONCE) {
+            trigger.isActive = false
+        }
 
         val targets =
             trigger.triggerTargets.map { target ->
