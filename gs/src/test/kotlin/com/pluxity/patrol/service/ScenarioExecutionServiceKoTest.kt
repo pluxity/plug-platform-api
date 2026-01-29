@@ -160,23 +160,6 @@ class ScenarioExecutionServiceKoTest :
                     }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENARIO_EXECUTION
                 }
             }
-
-            When("TRIGGERED 상태에서 완료하면") {
-                val execution =
-                    dummyScenarioExecution(
-                        id = 10L,
-                        executionStatus = ScenarioExecutionStatus.TRIGGERED,
-                    )
-
-                every { scenarioExecutionRepository.findByIdOrNull(10L) } returns execution
-
-                service.complete(10L)
-
-                Then("COMPLETED 상태로 변경됨") {
-                    execution.executionStatus shouldBe ScenarioExecutionStatus.COMPLETED
-                    execution.finishedAt shouldNotBe null
-                }
-            }
         }
 
         Given("시나리오 실행 실패 (fail)") {
@@ -221,24 +204,6 @@ class ScenarioExecutionServiceKoTest :
                     }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENARIO_EXECUTION
                 }
             }
-
-            When("TRIGGERED 상태에서 실패 처리하면") {
-                val execution =
-                    dummyScenarioExecution(
-                        id = 10L,
-                        executionStatus = ScenarioExecutionStatus.TRIGGERED,
-                    )
-
-                every { scenarioExecutionRepository.findByIdOrNull(10L) } returns execution
-
-                service.fail(10L, "트리거 에러")
-
-                Then("FAILED 상태로 변경됨") {
-                    execution.executionStatus shouldBe ScenarioExecutionStatus.FAILED
-                    execution.errorMessage shouldBe "트리거 에러"
-                    execution.finishedAt shouldNotBe null
-                }
-            }
         }
 
         Given("시나리오 실행 취소 (cancel)") {
@@ -258,21 +223,6 @@ class ScenarioExecutionServiceKoTest :
                 }
             }
 
-            When("TRIGGERED 상태에서 취소하면") {
-                val execution =
-                    dummyScenarioExecution(
-                        executionStatus = ScenarioExecutionStatus.TRIGGERED,
-                    )
-
-                every { scenarioExecutionRepository.findByIdOrNull(2L) } returns execution
-
-                service.cancel(2L)
-
-                Then("CANCELLED 상태로 변경됨") {
-                    execution.executionStatus shouldBe ScenarioExecutionStatus.CANCELLED
-                }
-            }
-
             When("COMPLETED 상태에서 취소하면") {
                 val execution =
                     dummyScenarioExecution(
@@ -284,6 +234,38 @@ class ScenarioExecutionServiceKoTest :
                 Then("INVALID_EXECUTION_STATUS 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         service.cancel(3L)
+                    }.errorCode shouldBe ErrorCode.INVALID_EXECUTION_STATUS
+                }
+            }
+        }
+
+        Given("시나리오 실행 중 (Running)") {
+            When("TRIGGERED 상태에서 실행중 요청하면") {
+                val execution =
+                    dummyScenarioExecution(
+                        executionStatus = ScenarioExecutionStatus.TRIGGERED,
+                    )
+
+                every { scenarioExecutionRepository.findByIdOrNull(1L) } returns execution
+
+                service.running(1L)
+
+                Then("RUNNING 상태로 변경됨") {
+                    execution.executionStatus shouldBe ScenarioExecutionStatus.RUNNING
+                    execution.finishedAt shouldNotBe null
+                }
+            }
+            When("COMPLETED 상태에서 실행중 요청하면") {
+                val execution =
+                    dummyScenarioExecution(
+                        executionStatus = ScenarioExecutionStatus.COMPLETED,
+                    )
+
+                every { scenarioExecutionRepository.findByIdOrNull(3L) } returns execution
+
+                Then("INVALID_EXECUTION_STATUS 예외 발생") {
+                    shouldThrowExactly<CustomException> {
+                        service.running(3L)
                     }.errorCode shouldBe ErrorCode.INVALID_EXECUTION_STATUS
                 }
             }

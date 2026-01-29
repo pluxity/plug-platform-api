@@ -151,6 +151,15 @@ class ScenarioExecutionService(
         execution.cancel(LocalDateTime.now())
     }
 
+    @Transactional
+    fun running(executionId: Long) {
+        val execution =
+            scenarioExecutionRepository.findByIdOrNull(executionId)
+                ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION)
+
+        execution.running(LocalDateTime.now())
+    }
+
     fun findById(id: Long): ScenarioExecutionDetailResponse {
         val execution =
             scenarioExecutionRepository.findByIdWithDetails(id)
