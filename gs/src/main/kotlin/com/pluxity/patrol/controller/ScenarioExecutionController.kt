@@ -31,8 +31,8 @@ import java.time.LocalDate
 class ScenarioExecutionController(
     private val scenarioExecutionService: ScenarioExecutionService,
 ) {
-    @ResponseCreated(path = "/{id}")
-    @PostMapping("/scenario-executions/start/{scenarioId}")
+    @ResponseCreated(path = "/scenario-executions/{id}")
+    @PostMapping("/start/{scenarioId}")
     @Operation(summary = "시나리오 수동 실행")
     fun startManually(
         @PathVariable scenarioId: Long,
