@@ -41,8 +41,19 @@ class SceneService(
                 rotation = request.rotation,
             )
 
-        request.sceneDeviceActionRequests?.forEach { actionRequest ->
-            deviceManager.checkDeviceExists(actionRequest.deviceType, actionRequest.deviceId)
+        val actionRequests = request.sceneDeviceActionRequests
+
+        if (actionRequests.isEmpty()) {
+            return sceneRepository.save(scene).requiredId
+        }
+
+        val deviceIdsByType =
+            actionRequests
+                .groupBy({ it.deviceType }, { it.deviceId })
+
+        deviceManager.validateDevicesExist(deviceIdsByType)
+
+        actionRequests.forEach { actionRequest ->
 
             if (!actionRequest.deviceType.supports(actionRequest.deviceAction)) {
                 throw CustomException(ErrorCode.INVALID_DEVICE_ACTION, actionRequest.deviceType, actionRequest.deviceAction)
@@ -59,6 +70,7 @@ class SceneService(
                 ),
             )
         }
+
         return sceneRepository.save(scene).requiredId
     }
 
@@ -94,14 +106,20 @@ class SceneService(
 
         scene.updateScene(request)
 
-        val actionRequests = request.sceneDeviceActionRequests ?: emptyList()
+        val actionRequests = request.sceneDeviceActionRequests
 
         val requestIds = actionRequests.mapNotNull { it.sceneDeviceActionId }.toSet()
         scene.sceneDeviceActions.removeIf { it.id !in requestIds }
 
-        actionRequests.forEach { actionRequest ->
-            deviceManager.checkDeviceExists(actionRequest.deviceType, actionRequest.deviceId)
+        if (actionRequests.isEmpty()) return
 
+        val deviceIdsByType =
+            actionRequests
+                .groupBy({ it.deviceType }, { it.deviceId })
+
+        deviceManager.validateDevicesExist(deviceIdsByType)
+
+        actionRequests.forEach { actionRequest ->
             if (!actionRequest.deviceType.supports(actionRequest.deviceAction)) {
                 throw CustomException(ErrorCode.INVALID_DEVICE_ACTION, actionRequest.deviceType, actionRequest.deviceAction)
             }

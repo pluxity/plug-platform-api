@@ -78,6 +78,7 @@ enum class ErrorCode(
     NOT_FOUND_ASSET_CATEGORY(HttpStatus.NOT_FOUND, "ID가 %s인 에셋 카테고리를 찾을 수 없습니다."),
     NOT_FOUND_FEATURE(HttpStatus.NOT_FOUND, "ID가 %s인 Feature를 찾을 수 없습니다."),
     NOT_FOUND_DEVICE(HttpStatus.NOT_FOUND, "ID가 %s인 디바이스를 찾을 수 없습니다."),
+    NOT_FOUND_DEVICES_BY_TYPE(HttpStatus.NOT_FOUND, "[%s] ID가 %s인 디바이스를 찾을 수 없습니다."),
     NOT_FOUND_DEVICE_BY_FEATURE(HttpStatus.NOT_FOUND, "Feature ID가 %s인 디바이스를 찾을 수 없습니다."),
     NOT_FOUND_FACILITY_CATEGORY(HttpStatus.NOT_FOUND, "ID가 %s인 시설 카테고리를 찾을 수 없습니다."),
     NOT_FOUND_FACILITY_PARENT_CATEGORY(HttpStatus.NOT_FOUND, "ID가 %s인 facility의 상위 카테고리를 찾을 수 없습니다."),

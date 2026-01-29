@@ -14,4 +14,7 @@ interface CctvRepository :
     fun updateFeatureByFeature(feature: Feature)
 
     fun existsByFeature(feature: Feature): Boolean
+
+    @Query("SELECT c.id FROM Cctv c WHERE c.id IN :ids")
+    fun findExistingIds(ids: List<String>): List<String>
 }
