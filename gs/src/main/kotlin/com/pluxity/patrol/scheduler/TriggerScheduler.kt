@@ -43,22 +43,13 @@ class TriggerScheduler(
             )
 
         val results =
-            triggers.mapNotNull { trigger ->
-                try {
-                    val info = scenarioExecutionService.execute(trigger.scenario, trigger)
+            triggers.map { trigger ->
+                val info = scenarioExecutionService.execute(trigger.scenario, trigger)
 
-                    if (trigger.triggerType == TriggerType.ONCE) {
-                        trigger.isActive = false
-                    }
-
-                    log.info {
-                        "트리거 실행 완료: triggerId=${trigger.id}, scenarioId=${trigger.scenario.id}"
-                    }
-                    info
-                } catch (e: Exception) {
-                    log.error { "트리거 실행 실패: triggerId=${trigger.id}, scenarioId=${trigger.scenario.id} $e" }
-                    null
+                if (trigger.triggerType == TriggerType.ONCE) {
+                    trigger.isActive = false
                 }
+                info
             }
 
         if (results.isNotEmpty()) {
