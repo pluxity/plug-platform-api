@@ -18,7 +18,8 @@ class DeviceManager(
                 when (deviceType) {
                     DeviceType.CCTV -> cctvRepository.findExistingIds(deviceIds)
                     DeviceType.TEMPERATURE_HUMIDITY -> temperatureHumidityRepository.findExistingIds(deviceIds)
-                    else -> return
+                    DeviceType.LIGHT -> emptyList()
+                    DeviceType.SHUTTER -> emptyList()
                 }
 
             val missingIds = deviceIds - foundIds.toSet()
