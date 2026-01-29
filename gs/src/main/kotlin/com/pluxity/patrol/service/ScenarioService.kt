@@ -9,6 +9,8 @@ import com.pluxity.patrol.dto.ScenarioResponse
 import com.pluxity.patrol.dto.ScenarioSceneUpdateRequest
 import com.pluxity.patrol.dto.ScenarioUpdateRequest
 import com.pluxity.patrol.dto.TriggerRequest
+import com.pluxity.patrol.dto.toListResponse
+import com.pluxity.patrol.dto.toResponse
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioScene
 import com.pluxity.patrol.repository.ScenarioRepository
@@ -91,7 +93,7 @@ class ScenarioService(
 
         validateFacility(scenario, facilityId)
 
-        return ScenarioResponse.from(scenario)
+        return scenario.toResponse()
     }
 
     @Transactional(readOnly = true)
@@ -101,7 +103,7 @@ class ScenarioService(
         }
         return scenarioRepository
             .findByFacilityId(facilityId)
-            .map { ScenarioListResponse.from(it) }
+            .map { it.toListResponse() }
     }
 
     fun updateScenario(

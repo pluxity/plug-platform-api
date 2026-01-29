@@ -10,6 +10,8 @@ import com.pluxity.patrol.constant.ScenarioExecutionStatus
 import com.pluxity.patrol.constant.TriggerSource
 import com.pluxity.patrol.dto.ScenarioExecutionDetailResponse
 import com.pluxity.patrol.dto.ScenarioExecutionResponse
+import com.pluxity.patrol.dto.toDetailResponse
+import com.pluxity.patrol.dto.toResponse
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioExecution
 import com.pluxity.patrol.entity.ScenarioScene
@@ -153,7 +155,7 @@ class ScenarioExecutionService(
         val execution =
             scenarioExecutionRepository.findByIdWithDetails(id)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION, id)
-        return ScenarioExecutionDetailResponse.from(execution)
+        return execution.toDetailResponse()
     }
 
     fun findByFilters(
@@ -191,6 +193,6 @@ class ScenarioExecutionService(
                         endDateTime?.let { path(ScenarioExecution::startedAt).le(it) },
                     ),
                 ).orderBy(path(ScenarioExecution::startedAt).desc())
-            }.map { ScenarioExecutionResponse.from(it) }
+            }.map { it.toResponse() }
     }
 }

@@ -38,45 +38,6 @@ data class ScenarioResponse(
         val triggerType: TriggerType,
         val cronExpression: String,
     )
-
-    companion object {
-        fun from(scenario: Scenario): ScenarioResponse =
-            ScenarioResponse(
-                id = scenario.requiredId,
-                facility =
-                    FacilitySummary(
-                        id = scenario.facility.requiredId,
-                        name = scenario.facility.name,
-                    ),
-                name = scenario.name,
-                descriptor = scenario.description,
-                isActive = scenario.isActive,
-                scenarioScenes =
-                    scenario.scenarioScenes.map { scenarioScene ->
-                        ScenarioSceneResponse(
-                            scenarioSceneId = scenarioScene.requiredId,
-                            order = scenarioScene.executionOrder,
-                            duration = scenarioScene.duration,
-                            transitionTime = scenarioScene.transitionTime,
-                            scene =
-                                SimpleSceneResponse(
-                                    sceneId = scenarioScene.scene.id!!,
-                                    sceneName = scenarioScene.scene.name,
-                                    position = scenarioScene.scene.position,
-                                    rotation = scenarioScene.scene.rotation,
-                                ),
-                        )
-                    },
-                triggers =
-                    scenario.triggers.map { trigger ->
-                        TriggerResponse(
-                            triggerId = trigger.requiredId,
-                            triggerType = trigger.triggerType,
-                            cronExpression = trigger.cronExpression,
-                        )
-                    },
-            )
-    }
 }
 
 data class ScenarioListResponse(
@@ -84,14 +45,49 @@ data class ScenarioListResponse(
     val name: String,
     val descriptor: String?,
     val isActive: Boolean,
-) {
-    companion object {
-        fun from(scenario: Scenario): ScenarioListResponse =
-            ScenarioListResponse(
-                id = scenario.requiredId,
-                name = scenario.name,
-                descriptor = scenario.description,
-                isActive = scenario.isActive,
-            )
-    }
-}
+)
+
+fun Scenario.toResponse() =
+    ScenarioResponse(
+        id = requiredId,
+        facility =
+            ScenarioResponse.FacilitySummary(
+                id = facility.requiredId,
+                name = facility.name,
+            ),
+        name = name,
+        descriptor = description,
+        isActive = isActive,
+        scenarioScenes =
+            scenarioScenes.map { scenarioScene ->
+                ScenarioResponse.ScenarioSceneResponse(
+                    scenarioSceneId = scenarioScene.requiredId,
+                    order = scenarioScene.executionOrder,
+                    duration = scenarioScene.duration,
+                    transitionTime = scenarioScene.transitionTime,
+                    scene =
+                        ScenarioResponse.SimpleSceneResponse(
+                            sceneId = scenarioScene.scene.id!!,
+                            sceneName = scenarioScene.scene.name,
+                            position = scenarioScene.scene.position,
+                            rotation = scenarioScene.scene.rotation,
+                        ),
+                )
+            },
+        triggers =
+            triggers.map { trigger ->
+                ScenarioResponse.TriggerResponse(
+                    triggerId = trigger.requiredId,
+                    triggerType = trigger.triggerType,
+                    cronExpression = trigger.cronExpression,
+                )
+            },
+    )
+
+fun Scenario.toListResponse() =
+    ScenarioListResponse(
+        id = requiredId,
+        name = name,
+        descriptor = description,
+        isActive = isActive,
+    )
