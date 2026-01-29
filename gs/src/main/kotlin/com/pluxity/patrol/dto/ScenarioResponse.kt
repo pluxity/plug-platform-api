@@ -67,7 +67,7 @@ fun Scenario.toResponse() =
                     transitionTime = scenarioScene.transitionTime,
                     scene =
                         ScenarioResponse.SimpleSceneResponse(
-                            sceneId = scenarioScene.scene.id!!,
+                            sceneId = scenarioScene.scene.requiredId,
                             sceneName = scenarioScene.scene.name,
                             position = scenarioScene.scene.position,
                             rotation = scenarioScene.scene.rotation,
