@@ -7,6 +7,8 @@ import com.pluxity.patrol.dto.SceneCreateRequest
 import com.pluxity.patrol.dto.SceneListResponse
 import com.pluxity.patrol.dto.SceneResponse
 import com.pluxity.patrol.dto.SceneUpdateRequest
+import com.pluxity.patrol.dto.toListResponse
+import com.pluxity.patrol.dto.toResponse
 import com.pluxity.patrol.entity.Scene
 import com.pluxity.patrol.entity.SceneDeviceAction
 import com.pluxity.patrol.repository.ScenarioSceneRepository
@@ -82,7 +84,7 @@ class SceneService(
         val scene =
             sceneRepository.findByIdAndFacilityIdWithDetails(id, facilityId)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENE, id)
-        return SceneResponse.from(scene)
+        return scene.toResponse()
     }
 
     @Transactional(readOnly = true)
@@ -92,7 +94,7 @@ class SceneService(
 
         return sceneRepository
             .findByFacilityId(facilityId)
-            .map { SceneListResponse.from(it) }
+            .map { it.toListResponse() }
     }
 
     fun updateScene(

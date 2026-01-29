@@ -1,5 +1,6 @@
 package com.pluxity.patrol.dto
 
+import com.pluxity.patrol.constant.TriggerTargetType
 import com.pluxity.patrol.constant.TriggerType
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
@@ -53,4 +54,9 @@ data class TriggerRequest(
         description = "트리거 타겟",
     )
     val triggerTargetRequests: List<TriggerTargetRequest>? = null,
+)
+
+data class TriggerTargetRequest(
+    val targetType: TriggerTargetType = TriggerTargetType.USER,
+    val targetId: String,
 )
