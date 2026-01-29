@@ -22,10 +22,10 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class ScenarioService(
-    val scenarioRepository: ScenarioRepository,
-    val sceneRepository: SceneRepository,
-    val facilityRepository: FacilityRepository,
-    val triggerService: TriggerService,
+    private val scenarioRepository: ScenarioRepository,
+    private val sceneRepository: SceneRepository,
+    private val facilityRepository: FacilityRepository,
+    private val triggerService: TriggerService,
 ) {
     fun createScenario(
         facilityId: Long,

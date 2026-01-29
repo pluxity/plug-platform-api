@@ -14,7 +14,7 @@ import java.time.LocalDate
 
 @Service
 class TriggerService(
-    val triggerRepository: TriggerRepository,
+    private val triggerRepository: TriggerRepository,
 ) {
     fun createTrigger(
         request: TriggerRequest,

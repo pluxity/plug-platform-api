@@ -8,7 +8,7 @@ data class ScenarioResponse(
     val id: Long,
     val facility: FacilitySummary,
     val name: String,
-    val descriptor: String?,
+    val description: String?,
     val isActive: Boolean,
     val scenarioScenes: List<ScenarioSceneResponse>,
     val triggers: List<TriggerResponse>,
@@ -56,7 +56,7 @@ fun Scenario.toResponse() =
                 name = facility.name,
             ),
         name = name,
-        descriptor = description,
+        description = description,
         isActive = isActive,
         scenarioScenes =
             scenarioScenes.map { scenarioScene ->
