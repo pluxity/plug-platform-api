@@ -48,7 +48,7 @@ class ScenarioController(
         ],
     )
     @PostMapping
-    @ResponseCreated("/scenarios/{id}")
+    @ResponseCreated("/facilities/{facilityId}/scenarios/{id}")
     fun createScenario(
         @Parameter(description = "시설 ID", required = true) @PathVariable("facilityId") facilityId: Long,
         @Parameter(description = "시나리오 생성 정보", required = true) @RequestBody @Valid request: ScenarioCreateRequest,
