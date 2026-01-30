@@ -4,10 +4,8 @@ import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.patrol.dto.SceneCreateRequest
-import com.pluxity.patrol.dto.SceneListResponse
 import com.pluxity.patrol.dto.SceneResponse
 import com.pluxity.patrol.dto.SceneUpdateRequest
-import com.pluxity.patrol.dto.toListResponse
 import com.pluxity.patrol.dto.toResponse
 import com.pluxity.patrol.entity.Scene
 import com.pluxity.patrol.entity.SceneDeviceAction
@@ -88,14 +86,10 @@ class SceneService(
     }
 
     @Transactional(readOnly = true)
-    fun getScenesByFacilityId(facilityId: Long): List<SceneListResponse> {
-        facilityRepository.findByIdOrNull(facilityId)
-            ?: throw CustomException(ErrorCode.NOT_FOUND_FACILITY, facilityId)
-
-        return sceneRepository
-            .findByFacilityId(facilityId)
-            .map { it.toListResponse() }
-    }
+    fun getScenesByFacilityId(facilityId: Long): List<SceneResponse> =
+        sceneRepository
+            .findAllByFacilityIdWithDetails(facilityId)
+            .map { it.toResponse() }
 
     fun updateScene(
         facilityId: Long,

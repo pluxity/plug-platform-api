@@ -19,6 +19,16 @@ interface SceneRepository : JpaRepository<Scene, Long> {
         facilityId: Long,
     ): Scene?
 
+    @Query(
+        """
+        SELECT s FROM Scene s
+        LEFT JOIN FETCH s.sceneDeviceActions
+        JOIN FETCH s.facility f
+        WHERE  s.facility.id = :facilityId
+    """,
+    )
+    fun findAllByFacilityIdWithDetails(facilityId: Long): List<Scene>
+
     fun findByFacilityId(facilityId: Long): List<Scene>
 
     fun deleteByIdAndFacilityId(
