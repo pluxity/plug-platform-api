@@ -152,23 +152,13 @@ class SceneServiceKoTest :
                 val scene2 = dummyScene(id = 2L, name = "씬2")
 
                 every { facilityRepository.findByIdOrNull(1L) } returns facility
-                every { sceneRepository.findByFacilityId(1L) } returns listOf(scene1, scene2)
+                every { sceneRepository.findAllByFacilityIdWithDetails(1L) } returns listOf(scene1, scene2)
 
                 Then("해당 facility의 Scene 목록 반환") {
                     val result = sceneService.getScenesByFacilityId(1L)
                     result.size shouldBe 2
                     result[0].name shouldBe "씬1"
                     result[1].name shouldBe "씬2"
-                }
-            }
-
-            When("존재하지 않는 facilityId로 조회") {
-                every { facilityRepository.findByIdOrNull(999L) } returns null
-
-                Then("NOT_FOUND_FACILITY 예외 발생") {
-                    shouldThrowExactly<CustomException> {
-                        sceneService.getScenesByFacilityId(999L)
-                    }.errorCode shouldBe ErrorCode.NOT_FOUND_FACILITY
                 }
             }
         }

@@ -3,7 +3,6 @@ package com.pluxity.patrol.controller
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.ErrorResponseBody
 import com.pluxity.patrol.dto.SceneCreateRequest
-import com.pluxity.patrol.dto.SceneListResponse
 import com.pluxity.patrol.dto.SceneResponse
 import com.pluxity.patrol.dto.SceneUpdateRequest
 import com.pluxity.patrol.service.SceneService
@@ -95,7 +94,7 @@ class SceneController(
     @GetMapping
     fun getScenesByFacility(
         @Parameter(description = "시설 ID", required = true) @PathVariable facilityId: Long,
-    ): ResponseEntity<List<SceneListResponse>> = ResponseEntity.ok(sceneService.getScenesByFacilityId(facilityId))
+    ): ResponseEntity<List<SceneResponse>> = ResponseEntity.ok(sceneService.getScenesByFacilityId(facilityId))
 
     @Operation(summary = "씬 수정", description = "기존 씬의 정보를 수정합니다. <br>sceneDeviceActionId가 null이면 신규 생성, 있으면 기존 것 업데이트")
     @ApiResponses(
