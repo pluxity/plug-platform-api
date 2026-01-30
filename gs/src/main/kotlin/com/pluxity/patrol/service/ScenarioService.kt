@@ -4,12 +4,10 @@ import com.pluxity.facility.FacilityRepository
 import com.pluxity.global.constant.ErrorCode
 import com.pluxity.global.exception.CustomException
 import com.pluxity.patrol.dto.ScenarioCreateRequest
-import com.pluxity.patrol.dto.ScenarioListResponse
 import com.pluxity.patrol.dto.ScenarioResponse
 import com.pluxity.patrol.dto.ScenarioSceneUpdateRequest
 import com.pluxity.patrol.dto.ScenarioUpdateRequest
 import com.pluxity.patrol.dto.TriggerRequest
-import com.pluxity.patrol.dto.toListResponse
 import com.pluxity.patrol.dto.toResponse
 import com.pluxity.patrol.entity.Scenario
 import com.pluxity.patrol.entity.ScenarioScene
@@ -83,17 +81,17 @@ class ScenarioService(
         id: Long,
     ): ScenarioResponse {
         val scenario =
-            scenarioRepository.findByIdWithDetailsWithFacility(id, facilityId)
+            scenarioRepository.findByIdAndFacilityIdWithDetails(id, facilityId)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO, id)
 
         return scenario.toResponse()
     }
 
     @Transactional(readOnly = true)
-    fun getScenarioByFacilityId(facilityId: Long): List<ScenarioListResponse> =
+    fun getScenarioByFacilityId(facilityId: Long): List<ScenarioResponse> =
         scenarioRepository
-            .findByFacilityId(facilityId)
-            .map { it.toListResponse() }
+            .findAllByFacilityIdWithDetails(facilityId)
+            .map { it.toResponse() }
 
     fun updateScenario(
         facilityId: Long,
@@ -101,7 +99,7 @@ class ScenarioService(
         request: ScenarioUpdateRequest,
     ) {
         val scenario =
-            scenarioRepository.findByIdWithDetailsWithFacility(id, facilityId)
+            scenarioRepository.findByIdAndFacilityIdWithDetails(id, facilityId)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO, id)
 
         scenario.updateScenario(request)

@@ -14,10 +14,21 @@ interface ScenarioRepository : JpaRepository<Scenario, Long> {
             WHERE s.id = :id AND s.facility.id = :facilityId
         """,
     )
-    fun findByIdWithDetailsWithFacility(
+    fun findByIdAndFacilityIdWithDetails(
         id: Long,
         facilityId: Long,
     ): Scenario?
+
+    @Query(
+        """
+            SELECT s FROM Scenario s
+            JOIN FETCH s.facility
+            LEFT JOIN FETCH s.scenarioScenes ss
+            LEFT JOIN FETCH ss.scene
+            WHERE s.facility.id = :facilityId
+        """,
+    )
+    fun findAllByFacilityIdWithDetails(facilityId: Long): List<Scenario>
 
     @Query(
         """
@@ -29,8 +40,6 @@ interface ScenarioRepository : JpaRepository<Scenario, Long> {
         """,
     )
     fun findByIdWithDetails(id: Long): Scenario?
-
-    fun findByFacilityId(facilityId: Long): List<Scenario>
 
     fun deleteByIdAndFacilityId(
         id: Long,
