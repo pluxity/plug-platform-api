@@ -50,8 +50,6 @@ class ScenarioService(
             val sceneIds = sceneRequests.map { it.sceneId }
             val scenes = sceneRepository.findAllByIdAndFacilityId(sceneIds, facilityId).associateBy { it.id }
 
-            if (scenes.size != sceneIds.size) throw CustomException(ErrorCode.UNMATCHED_FACILITY_SCENE)
-
             sceneRequests.forEach { sceneRequest ->
                 val findScene =
                     scenes[sceneRequest.sceneId]

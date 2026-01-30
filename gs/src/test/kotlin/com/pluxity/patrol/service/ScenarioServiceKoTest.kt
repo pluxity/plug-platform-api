@@ -182,10 +182,10 @@ class ScenarioServiceKoTest :
                 every { facilityRepository.findByIdOrNull(facilityId) } returns facility
                 every { sceneRepository.findAllByIdAndFacilityId(listOf(999L), facilityId) } returns emptyList()
 
-                Then("UNMATCHED_FACILITY_SCENE 예외 발생") {
+                Then("NOT_FOUND_SCENE 예외 발생") {
                     shouldThrowExactly<CustomException> {
                         scenarioService.createScenario(facilityId, createRequest)
-                    }.errorCode shouldBe ErrorCode.UNMATCHED_FACILITY_SCENE
+                    }.errorCode shouldBe ErrorCode.NOT_FOUND_SCENE
                 }
             }
         }

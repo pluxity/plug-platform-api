@@ -89,7 +89,7 @@ class TriggerService(
     private fun parseCron(cronExpression: String): ParsedCron =
         try {
             CronParserUtils.parse(cronExpression)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             throw CustomException(ErrorCode.INVALID_CRON_EXPRESSION, cronExpression)
         }
 }
