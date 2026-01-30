@@ -13,14 +13,8 @@ data class SceneResponse(
     val duration: Int?,
     val position: Spatial?,
     val rotation: Spatial?,
-    val facility: FacilitySummary,
     val sceneDeviceActions: List<SceneDeviceActionResponse>,
 ) {
-    data class FacilitySummary(
-        val id: Long,
-        val name: String,
-    )
-
     data class SceneDeviceActionResponse(
         val sceneDeviceActionId: Long,
         val deviceId: String,
@@ -46,7 +40,6 @@ fun Scene.toResponse() =
         duration = duration,
         position = position,
         rotation = rotation,
-        facility = SceneResponse.FacilitySummary(facility.requiredId, facility.name),
         sceneDeviceActions = sceneDeviceActions.map { it.toResponse() },
     )
 

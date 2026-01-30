@@ -6,18 +6,12 @@ import com.pluxity.patrol.entity.Scenario
 
 data class ScenarioResponse(
     val id: Long,
-    val facility: FacilitySummary,
     val name: String,
     val description: String?,
     val isActive: Boolean,
     val scenarioScenes: List<ScenarioSceneResponse>,
     val triggers: List<TriggerResponse>,
 ) {
-    data class FacilitySummary(
-        val id: Long,
-        val name: String,
-    )
-
     data class ScenarioSceneResponse(
         val scenarioSceneId: Long,
         val order: Int,
@@ -50,11 +44,6 @@ data class ScenarioListResponse(
 fun Scenario.toResponse() =
     ScenarioResponse(
         id = requiredId,
-        facility =
-            ScenarioResponse.FacilitySummary(
-                id = facility.requiredId,
-                name = facility.name,
-            ),
         name = name,
         description = description,
         isActive = isActive,
