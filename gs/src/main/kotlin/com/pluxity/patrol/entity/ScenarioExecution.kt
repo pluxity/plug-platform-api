@@ -70,7 +70,7 @@ class ScenarioExecution(
         ) {
             throw CustomException(ErrorCode.INVALID_EXECUTION_STATUS, executionStatus, "실행중")
         }
-        finishedAt = at
+        startedAt = at
         executionStatus = ScenarioExecutionStatus.RUNNING
     }
 }

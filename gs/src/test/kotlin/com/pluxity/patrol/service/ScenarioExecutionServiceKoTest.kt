@@ -252,7 +252,6 @@ class ScenarioExecutionServiceKoTest :
 
                 Then("RUNNING 상태로 변경됨") {
                     execution.executionStatus shouldBe ScenarioExecutionStatus.RUNNING
-                    execution.finishedAt shouldNotBe null
                 }
             }
             When("COMPLETED 상태에서 실행중 요청하면") {

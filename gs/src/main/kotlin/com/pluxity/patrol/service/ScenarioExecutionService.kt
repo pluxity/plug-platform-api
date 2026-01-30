@@ -38,8 +38,6 @@ class ScenarioExecutionService(
         scenario: Scenario,
         trigger: Trigger,
     ): ScenarioTriggerInfo {
-        val now = LocalDateTime.now()
-
         val execution =
             scenarioExecutionRepository.save(
                 ScenarioExecution(
@@ -47,8 +45,7 @@ class ScenarioExecutionService(
                     facilityName = scenario.facility.name,
                     triggerType = TriggerSource.AUTO,
                     executionStatus = ScenarioExecutionStatus.TRIGGERED,
-                    triggeredAt = now,
-                    startedAt = now,
+                    triggeredAt = LocalDateTime.now(),
                 ),
             )
 
