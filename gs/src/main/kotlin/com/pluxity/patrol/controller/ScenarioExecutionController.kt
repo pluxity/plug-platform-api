@@ -91,7 +91,7 @@ class ScenarioExecutionController(
         @Parameter(description = "시나리오 실행 ID", required = true) @PathVariable("id") id: Long,
     ): ResponseEntity<ScenarioExecutionDetailResponse> = ResponseEntity.ok(scenarioExecutionService.findById(id))
 
-    @Operation(summary = "시나리오 실행 이력 필터 조회", description = "시설, 시나리오, 상태, 기간 조건으로 실행 이력을 조회합니다.")
+    @Operation(summary = "시나리오 실행 이력 목록 조회", description = "시설, 시나리오, 상태, 기간 조건으로 실행 이력을 조회합니다.")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "조회 성공"),
