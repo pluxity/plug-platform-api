@@ -35,8 +35,7 @@ class ScenarioExecution(
     }
 
     fun complete(at: LocalDateTime) {
-        if (executionStatus != ScenarioExecutionStatus.RUNNING
-        ) {
+        if (executionStatus != ScenarioExecutionStatus.RUNNING) {
             throw CustomException(ErrorCode.INVALID_EXECUTION_STATUS, executionStatus, "완료")
         }
         finishedAt = at
@@ -47,8 +46,7 @@ class ScenarioExecution(
         at: LocalDateTime,
         errorMessage: String?,
     ) {
-        if (executionStatus != ScenarioExecutionStatus.RUNNING
-        ) {
+        if (executionStatus != ScenarioExecutionStatus.RUNNING) {
             throw CustomException(ErrorCode.INVALID_EXECUTION_STATUS, executionStatus, "실패 처리")
         }
         finishedAt = at
@@ -57,8 +55,7 @@ class ScenarioExecution(
     }
 
     fun cancel(at: LocalDateTime) {
-        if (executionStatus != ScenarioExecutionStatus.RUNNING
-        ) {
+        if (executionStatus != ScenarioExecutionStatus.RUNNING) {
             throw CustomException(ErrorCode.INVALID_EXECUTION_STATUS, executionStatus, "취소")
         }
         finishedAt = at
@@ -66,8 +63,7 @@ class ScenarioExecution(
     }
 
     fun running(at: LocalDateTime) {
-        if (executionStatus != ScenarioExecutionStatus.TRIGGERED
-        ) {
+        if (executionStatus != ScenarioExecutionStatus.TRIGGERED) {
             throw CustomException(ErrorCode.INVALID_EXECUTION_STATUS, executionStatus, "실행중")
         }
         startedAt = at
