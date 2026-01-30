@@ -126,7 +126,9 @@ class ScenarioService(
         if (sceneRequests.isEmpty()) return
 
         val scenesMap =
-            sceneRepository.findAllById(sceneRequests.map { it.sceneId }).associateBy { it.requiredId }
+            sceneRepository
+                .findAllByIdAndFacilityId(sceneRequests.map { it.sceneId }, scenario.facility.requiredId)
+                .associateBy { it.requiredId }
 
         val scenarioScenesMap = scenario.scenarioScenes.associateBy { it.id }
 
