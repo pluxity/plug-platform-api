@@ -66,6 +66,15 @@ class ScenarioExecutionController(
         return ResponseEntity.noContent().build()
     }
 
+    @PatchMapping("/{id}/running")
+    @Operation(summary = "시나리오 실행 중")
+    fun running(
+        @PathVariable id: Long,
+    ): ResponseEntity<Void> {
+        scenarioExecutionService.running(id)
+        return ResponseEntity.noContent().build()
+    }
+
     @Operation(summary = "시나리오 실행 이력 상세 조회", description = "특정 시나리오 실행의 상세 정보와 씬 실행 목록을 조회합니다.")
     @ApiResponses(
         value = [

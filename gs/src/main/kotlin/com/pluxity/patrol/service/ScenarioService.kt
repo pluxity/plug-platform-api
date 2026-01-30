@@ -22,10 +22,10 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class ScenarioService(
-    val scenarioRepository: ScenarioRepository,
-    val sceneRepository: SceneRepository,
-    val facilityRepository: FacilityRepository,
-    val triggerService: TriggerService,
+    private val scenarioRepository: ScenarioRepository,
+    private val sceneRepository: SceneRepository,
+    private val facilityRepository: FacilityRepository,
+    private val triggerService: TriggerService,
 ) {
     fun createScenario(
         facilityId: Long,
@@ -48,17 +48,12 @@ class ScenarioService(
             validateExecutionOrders(executionOrders)
 
             val sceneIds = sceneRequests.map { it.sceneId }
-            val scenes = sceneRepository.findAllById(sceneIds).associateBy { it.id }
+            val scenes = sceneRepository.findAllByIdAndFacilityId(sceneIds, facilityId).associateBy { it.id }
 
             sceneRequests.forEach { sceneRequest ->
                 val findScene =
                     scenes[sceneRequest.sceneId]
                         ?: throw CustomException(ErrorCode.NOT_FOUND_SCENE, sceneRequest.sceneId)
-
-                if (findScene.facility.id != facilityId) {
-                    throw CustomException(ErrorCode.UNMATCHED_FACILITY_SCENE)
-                }
-                validateFacility(scenario, facilityId)
 
                 val scenarioScene =
                     ScenarioScene(
@@ -88,23 +83,17 @@ class ScenarioService(
         id: Long,
     ): ScenarioResponse {
         val scenario =
-            scenarioRepository.findByIdWithDetails(id)
+            scenarioRepository.findByIdWithDetailsWithFacility(id, facilityId)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO, id)
-
-        validateFacility(scenario, facilityId)
 
         return scenario.toResponse()
     }
 
     @Transactional(readOnly = true)
-    fun getScenarioByFacilityId(facilityId: Long): List<ScenarioListResponse> {
-        if (!facilityRepository.existsById(facilityId)) {
-            throw CustomException(ErrorCode.NOT_FOUND_FACILITY, facilityId)
-        }
-        return scenarioRepository
+    fun getScenarioByFacilityId(facilityId: Long): List<ScenarioListResponse> =
+        scenarioRepository
             .findByFacilityId(facilityId)
             .map { it.toListResponse() }
-    }
 
     fun updateScenario(
         facilityId: Long,
@@ -112,20 +101,18 @@ class ScenarioService(
         request: ScenarioUpdateRequest,
     ) {
         val scenario =
-            scenarioRepository.findByIdWithDetails(id)
+            scenarioRepository.findByIdWithDetailsWithFacility(id, facilityId)
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO, id)
 
-        validateFacility(scenario, facilityId)
         scenario.updateScenario(request)
 
-        updateScenarioScenes(scenario, request.scenarioScenes ?: emptyList(), facilityId)
-        updateTriggers(scenario, request.triggers ?: emptyList())
+        updateScenarioScenes(scenario, request.scenarioScenes)
+        updateTriggers(scenario, request.triggers)
     }
 
     private fun updateScenarioScenes(
         scenario: Scenario,
         sceneRequests: List<ScenarioSceneUpdateRequest>,
-        facilityId: Long,
     ) {
         validateExecutionOrders(sceneRequests.map { it.order })
 
@@ -134,31 +121,26 @@ class ScenarioService(
         // 요청에 포함되지 않은 scenarioScene 제거
         scenario.scenarioScenes.removeIf { it.id !in requestIds }
 
-        val scenes =
-            if (sceneRequests.isNotEmpty()) {
-                sceneRepository.findAllById(sceneRequests.map { it.sceneId }).associateBy { it.requiredId }
-            } else {
-                emptyMap()
-            }
+        if (sceneRequests.isEmpty()) return
+
+        val scenesMap =
+            sceneRepository
+                .findAllByIdAndFacilityId(sceneRequests.map { it.sceneId }, scenario.facility.requiredId)
+                .associateBy { it.requiredId }
+
+        val scenarioScenesMap = scenario.scenarioScenes.associateBy { it.id }
 
         sceneRequests.forEach { sceneRequest ->
             val scene =
-                scenes[sceneRequest.sceneId]
+                scenesMap[sceneRequest.sceneId]
                     ?: throw CustomException(ErrorCode.NOT_FOUND_SCENE, sceneRequest.sceneId)
-
-            if (scene.facility.id != facilityId) {
-                throw CustomException(ErrorCode.UNMATCHED_FACILITY_SCENE)
-            }
 
             if (sceneRequest.scenarioSceneId != null) {
                 val scenarioScene =
-                    scenario.scenarioScenes.find { it.id == sceneRequest.scenarioSceneId }
+                    scenarioScenesMap[sceneRequest.scenarioSceneId]
                         ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_SCENE, sceneRequest.scenarioSceneId)
 
-                if (scenarioScene.scene.id != sceneRequest.sceneId) {
-                    scenarioScene.scene = scene
-                }
-                scenarioScene.updateScenarioScene(sceneRequest)
+                scenarioScene.updateScenarioScene(sceneRequest, scene)
             } else {
                 scenario.addScenarioScenes(
                     ScenarioScene(
@@ -178,12 +160,14 @@ class ScenarioService(
         triggerRequests: List<TriggerRequest>,
     ) {
         val requestTriggerIds = triggerRequests.mapNotNull { it.triggerId }.toSet()
+        val triggerMap = scenario.triggers.associateBy { it.id }
+
         scenario.triggers.removeIf { it.id !in requestTriggerIds }
 
         triggerRequests.forEach { triggerRequest ->
             if (triggerRequest.triggerId != null) {
                 val existingTrigger =
-                    scenario.triggers.find { it.id == triggerRequest.triggerId }
+                    triggerMap[triggerRequest.triggerId]
                         ?: throw CustomException(ErrorCode.NOT_FOUND_TRIGGER, triggerRequest.triggerId)
                 triggerService.updateTrigger(existingTrigger, triggerRequest)
             } else {
@@ -209,15 +193,6 @@ class ScenarioService(
         }
         if (executionOrders.size != executionOrders.distinct().size) {
             throw CustomException(ErrorCode.DUPLICATE_EXECUTION_ORDER)
-        }
-    }
-
-    private fun validateFacility(
-        scenario: Scenario,
-        facilityId: Long,
-    ) {
-        if (scenario.facility.id != facilityId) {
-            throw CustomException(ErrorCode.UNMATCHED_FACILITY_SCENARIO)
         }
     }
 }

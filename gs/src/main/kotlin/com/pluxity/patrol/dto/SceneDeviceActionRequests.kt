@@ -15,10 +15,10 @@ data class SceneDeviceActionCreateRequest(
     @field:Schema(description = "장치 타입 (Enum)")
     val deviceType: DeviceType,
     @field:Schema(description = "동작 파라미터")
-    var actionParam: String?,
+    val actionParam: String?,
     @field:PositiveOrZero(message = "실행 순서는 0 이상이어야 합니다")
     @field:Schema(description = "실행 순서", defaultValue = "0", minimum = "0")
-    var executionOrder: Int? = 0,
+    val executionOrder: Int? = 0,
 )
 
 data class SceneDeviceActionUpdateRequest(
@@ -35,8 +35,8 @@ data class SceneDeviceActionUpdateRequest(
     @field:Schema(description = "장치 타입 (Enum)")
     val deviceType: DeviceType,
     @field:Schema(description = "동작 파라미터")
-    var actionParam: String?,
+    val actionParam: String?,
     @field:PositiveOrZero(message = "실행 순서는 0 이상이어야 합니다")
     @field:Schema(description = "실행 순서", defaultValue = "0", minimum = "0")
-    var executionOrder: Int? = 0,
+    val executionOrder: Int? = 0,
 )

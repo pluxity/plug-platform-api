@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/facilities/{facilityId}/scenes")
 @Tag(name = "Scene Controller", description = "씬 관리 API")
 class SceneController(
-    val sceneService: SceneService,
+    private val sceneService: SceneService,
 ) {
     @Operation(summary = "씬 생성", description = "새로운 씬을 생성합니다.")
     @ApiResponses(

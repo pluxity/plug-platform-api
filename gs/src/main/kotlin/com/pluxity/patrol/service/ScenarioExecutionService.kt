@@ -39,8 +39,6 @@ class ScenarioExecutionService(
         scenario: Scenario,
         trigger: Trigger,
     ): ScenarioTriggerInfo {
-        val now = LocalDateTime.now()
-
         val execution =
             scenarioExecutionRepository.save(
                 ScenarioExecution(
@@ -48,8 +46,7 @@ class ScenarioExecutionService(
                     facilityName = scenario.facility.name,
                     triggerType = TriggerSource.AUTO,
                     executionStatus = ScenarioExecutionStatus.TRIGGERED,
-                    triggeredAt = now,
-                    startedAt = now,
+                    triggeredAt = LocalDateTime.now(),
                 ),
             )
 
@@ -154,6 +151,15 @@ class ScenarioExecutionService(
                 ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION)
 
         execution.cancel(LocalDateTime.now())
+    }
+
+    @Transactional
+    fun running(executionId: Long) {
+        val execution =
+            scenarioExecutionRepository.findByIdOrNull(executionId)
+                ?: throw CustomException(ErrorCode.NOT_FOUND_SCENARIO_EXECUTION)
+
+        execution.running(LocalDateTime.now())
     }
 
     fun findById(id: Long): ScenarioExecutionDetailResponse {

@@ -20,10 +20,10 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class SceneService(
-    val facilityRepository: FacilityRepository,
-    val sceneRepository: SceneRepository,
-    val scenarioSceneRepository: ScenarioSceneRepository,
-    val deviceManager: DeviceManager,
+    private val facilityRepository: FacilityRepository,
+    private val sceneRepository: SceneRepository,
+    private val scenarioSceneRepository: ScenarioSceneRepository,
+    private val deviceManager: DeviceManager,
 ) {
     fun createScene(
         facilityId: Long,

@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/facilities/{facilityId}/scenarios")
 @Tag(name = "Scenario Controller", description = "시나리오 관리 API")
 class ScenarioController(
-    val scenarioService: ScenarioService,
+    private val scenarioService: ScenarioService,
 ) {
     @Operation(summary = "시나리오 생성", description = "새로운 시나리오를 생성합니다.")
     @ApiResponses(
