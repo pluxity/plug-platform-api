@@ -198,7 +198,7 @@ class ScenarioServiceKoTest :
                 every { scenario.facility.id } returns facilityId
                 every { scenario.facility.requiredId } returns facilityId
                 every { scenario.facility.name } returns "테스트 시설"
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
 
                 Then("정상 조회") {
                     val response = scenarioService.getScenario(facilityId, 1L)
@@ -212,7 +212,7 @@ class ScenarioServiceKoTest :
                 val scenario = dummyScenario()
 
                 every { scenario.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(999L, 1L) } returns null
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(999L, 1L) } returns null
 
                 Then("NOT_FOUND_SCENARIO 예외 발생") {
                     shouldThrowExactly<CustomException> {
@@ -228,7 +228,7 @@ class ScenarioServiceKoTest :
                 val scenario2 = dummyScenario(id = 2L, name = "시나리오2")
 
                 every { facilityRepository.existsById(1L) } returns true
-                every { scenarioRepository.findByFacilityId(1L) } returns listOf(scenario1, scenario2)
+                every { scenarioRepository.findAllByFacilityIdWithDetails(1L) } returns listOf(scenario1, scenario2)
 
                 Then("해당 facility의 Scenario 목록 반환") {
                     val result = scenarioService.getScenarioByFacilityId(1L)
@@ -245,7 +245,7 @@ class ScenarioServiceKoTest :
                 val scenario = dummyScenario()
 
                 every { scenario.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
 
                 Then("모든 필드가 요청 값으로 업데이트됨") {
                     val updateRequest =
@@ -267,7 +267,7 @@ class ScenarioServiceKoTest :
 
                 every { scenario.facility.requiredId } returns facilityId
                 every { scene.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
                 every { sceneRepository.findAllByIdAndFacilityId(listOf(1L), facilityId) } returns listOf(scene)
 
                 Then("새 ScenarioScene 추가됨") {
@@ -308,7 +308,7 @@ class ScenarioServiceKoTest :
                 scenario.scenarioScenes.add(scenarioScene)
 
                 every { scenario.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
 
                 Then("모든 ScenarioScene 삭제됨") {
                     val updateRequest =
@@ -323,7 +323,7 @@ class ScenarioServiceKoTest :
             }
 
             When("존재하지 않는 id로 수정 요청") {
-                every { scenarioRepository.findByIdWithDetailsWithFacility(999L, 1L) } returns null
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(999L, 1L) } returns null
 
                 Then("NOT_FOUND_SCENARIO 예외 발생") {
                     val updateRequest =
@@ -350,7 +350,7 @@ class ScenarioServiceKoTest :
                 every { scenario.facility.requiredId } returns facilityId
                 every { oldScene.facility.id } returns facilityId
                 every { newScene.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
                 every { sceneRepository.findAllByIdAndFacilityId(listOf(2L), facilityId) } returns listOf(newScene)
 
                 Then("scene이 새 scene으로 변경됨") {
@@ -382,7 +382,7 @@ class ScenarioServiceKoTest :
                 val scenario = dummyScenario(facility = facility)
 
                 every { scenario.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
 
                 Then("DUPLICATE_EXECUTION_ORDER 예외 발생") {
                     val updateRequest =
@@ -420,7 +420,7 @@ class ScenarioServiceKoTest :
                 val scenario = dummyScenario(facility = facility)
 
                 every { scenario.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
 
                 Then("INVALID_EXECUTION_ORDER 예외 발생") {
                     val updateRequest =
@@ -453,7 +453,7 @@ class ScenarioServiceKoTest :
 
                 every { scenario.facility.requiredId } returns facilityId
                 every { scene.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
                 every { sceneRepository.findAllByIdAndFacilityId(listOf(1L), facilityId) } returns listOf(scene)
 
                 Then("NOT_FOUND_SCENARIO_SCENE 예외 발생") {
@@ -489,7 +489,7 @@ class ScenarioServiceKoTest :
 
                 every { scenario.facility.requiredId } returns facilityId
                 every { oldScene.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
                 every { sceneRepository.findAllByIdAndFacilityId(listOf(999L), facilityId) } returns emptyList()
 
                 Then("NOT_FOUND_SCENE 예외 발생") {
@@ -545,7 +545,7 @@ class ScenarioServiceKoTest :
                 val newTrigger = mockk<Trigger>(relaxed = true)
 
                 every { scenario.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
                 every { triggerService.createTrigger(any(), any()) } returns newTrigger
 
                 Then("새 Trigger 생성 후 scenario에 추가") {
@@ -579,7 +579,7 @@ class ScenarioServiceKoTest :
 
                 every { scenario.facility.id } returns facilityId
                 every { existingTrigger.id } returns 10L
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
                 every { triggerService.updateTrigger(any(), any()) } returns Unit
 
                 Then("기존 Trigger 업데이트") {
@@ -615,7 +615,7 @@ class ScenarioServiceKoTest :
                 every { scenario.facility.id } returns facilityId
                 every { existingTrigger1.id } returns 10L
                 every { existingTrigger2.id } returns 20L
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
                 every { triggerService.updateTrigger(any(), any()) } returns Unit
 
                 Then("요청에 포함된 trigger만 유지, 나머지 삭제") {
@@ -649,7 +649,7 @@ class ScenarioServiceKoTest :
 
                 every { scenario.facility.id } returns facilityId
                 every { existingTrigger.id } returns 10L
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
 
                 Then("모든 Trigger 삭제됨") {
                     val updateRequest =
@@ -670,7 +670,7 @@ class ScenarioServiceKoTest :
                 val scenario = dummyScenario(facility = facility)
 
                 every { scenario.facility.id } returns facilityId
-                every { scenarioRepository.findByIdWithDetailsWithFacility(1L, facilityId) } returns scenario
+                every { scenarioRepository.findByIdAndFacilityIdWithDetails(1L, facilityId) } returns scenario
 
                 Then("NOT_FOUND_TRIGGER 예외 발생") {
                     val updateRequest =

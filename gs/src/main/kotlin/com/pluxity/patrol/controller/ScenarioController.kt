@@ -3,7 +3,6 @@ package com.pluxity.patrol.controller
 import com.pluxity.global.annotation.ResponseCreated
 import com.pluxity.global.response.ErrorResponseBody
 import com.pluxity.patrol.dto.ScenarioCreateRequest
-import com.pluxity.patrol.dto.ScenarioListResponse
 import com.pluxity.patrol.dto.ScenarioResponse
 import com.pluxity.patrol.dto.ScenarioUpdateRequest
 import com.pluxity.patrol.service.ScenarioService
@@ -95,7 +94,7 @@ class ScenarioController(
     @GetMapping
     fun getScenariosByFacility(
         @Parameter(description = "시설 ID", required = true) @PathVariable facilityId: Long,
-    ): ResponseEntity<List<ScenarioListResponse>> = ResponseEntity.ok(scenarioService.getScenarioByFacilityId(facilityId))
+    ): ResponseEntity<List<ScenarioResponse>> = ResponseEntity.ok(scenarioService.getScenarioByFacilityId(facilityId))
 
     @Operation(summary = "시나리오 수정", description = "기존 시나리오의 정보를 수정합니다.")
     @ApiResponses(
