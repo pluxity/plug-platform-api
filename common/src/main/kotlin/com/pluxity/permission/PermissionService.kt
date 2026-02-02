@@ -106,8 +106,8 @@ class PermissionService(
             permission.domainPermissions
                 .associateBy { it.resourceName }
 
-        val requestedResourceMap = mutableMapOf<String, PermissionLevel>()
-        val requestedDomainMap = mutableMapOf<String, PermissionLevel>()
+        val requestedResourceKeys = mutableSetOf<String>()
+        val requestedDomainKeys = mutableSetOf<String>()
         request.permissions.forEach { permissionRequest ->
             val resourceName = ResourceType.fromString(permissionRequest.resourceType).name
             val level = permissionRequest.level
@@ -115,30 +115,33 @@ class PermissionService(
             val hasDomainRequest = resourceIds.isEmpty()
 
             if (hasDomainRequest) {
-                val previous = requestedDomainMap.put(resourceName, level)
-                if (previous != null && previous != level) {
+                if (!requestedDomainKeys.add(resourceName)) {
                     throw CustomException(
                         ErrorCode.DUPLICATE_RESOURCE_ID,
                         "리소스 타입 '$resourceName'에 중복된 도메인 권한이 포함되어 있습니다.",
                     )
                 }
+                existingDomainMap[resourceName]?.changeLevel(level)
+                    ?: permission.addDomainPermission(DomainPermission(resourceName = resourceName, level = level))
             }
 
-            resourceIds
-                .forEach { resourceId ->
-                    val key = "$resourceName:$resourceId"
-                    val previous = requestedResourceMap.put(key, level)
-                    if (previous != null && previous != level) {
-                        throw CustomException(
-                            ErrorCode.DUPLICATE_RESOURCE_ID,
-                            "리소스 타입 '$resourceName'에 중복된 ID가 포함되어 있습니다.",
-                        )
-                    }
+            resourceIds.forEach { resourceId ->
+                val key = "$resourceName:$resourceId"
+                if (!requestedResourceKeys.add(key)) {
+                    throw CustomException(
+                        ErrorCode.DUPLICATE_RESOURCE_ID,
+                        "리소스 타입 '$resourceName'에 중복된 ID가 포함되어 있습니다.",
+                    )
                 }
+                existingResourceMap[key]?.changeLevel(level)
+                    ?: permission.addResourcePermission(
+                        ResourcePermission(resourceName = resourceName, resourceId = resourceId, level = level),
+                    )
+            }
         }
 
         existingDomainMap
-            .filterKeys { it !in requestedDomainMap.keys }
+            .filterKeys { it !in requestedDomainKeys }
             .values
             .forEach { domainPermission ->
                 permission.removeDomainPermission(domainPermission)
@@ -146,53 +149,20 @@ class PermissionService(
             }
 
         existingResourceMap
-            .filterKeys { it !in requestedResourceMap.keys }
+            .filterKeys { it !in requestedResourceKeys }
             .values
             .forEach { resourcePermission ->
                 permission.removeResourcePermission(resourcePermission)
                 resourcePermissionRepository.delete(resourcePermission)
             }
-
-        // 도메인 권한 업데이트 및 추가
-        request.permissions.forEach { permissionRequest ->
-            val resourceName = ResourceType.fromString(permissionRequest.resourceType).name
-            val level = permissionRequest.level
-            val resourceIds = permissionRequest.resourceIds
-            val hasDomainRequest = resourceIds.isEmpty()
-
-            if (hasDomainRequest) {
-                val existingDomain = existingDomainMap[resourceName]
-                if (existingDomain == null) {
-                    val newPermission = DomainPermission(resourceName = resourceName, level = level)
-                    permission.addDomainPermission(newPermission)
-                } else if (existingDomain.level != level) {
-                    existingDomain.level = level
-                }
-            }
-
-            resourceIds
-                .forEach { resourceId ->
-                    val key = "$resourceName:$resourceId"
-                    val existingResource = existingResourceMap[key]
-                    if (existingResource == null) {
-                        val newPermission =
-                            ResourcePermission(resourceName = resourceName, resourceId = resourceId, level = level)
-                        permission.addResourcePermission(newPermission)
-                    } else if (existingResource.level != level) {
-                        existingResource.level = level
-                    }
-                }
-        }
     }
 
     @Transactional
     fun delete(id: Long) {
         val permission = findPermissionById(id)
-        with(permission) {
-            rolePermissionRepository.deleteAllByPermission(this)
-            resourcePermissionRepository.deleteAll(permission.resourcePermissions)
-            domainPermissionRepository.deleteAll(permission.domainPermissions)
-        }
+        rolePermissionRepository.deleteAllByPermission(permission)
+        resourcePermissionRepository.deleteAll(permission.resourcePermissions)
+        domainPermissionRepository.deleteAll(permission.domainPermissions)
         permissionRepository.delete(permission)
     }
 
