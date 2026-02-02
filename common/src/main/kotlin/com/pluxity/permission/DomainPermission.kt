@@ -29,12 +29,14 @@ class DomainPermission(
     @ManyToOne(fetch = FetchType.LAZY)
     var permission: Permission? = null,
 ) : IdentityIdEntity() {
+    fun changeLevel(level: PermissionLevel) {
+        this.level = level
+    }
+
     fun allows(
         resourceName: String,
         requiredLevel: PermissionLevel,
-    ): Boolean =
-        this.resourceName.equals(resourceName, ignoreCase = true) &&
-            this.level.allows(requiredLevel)
+    ): Boolean = this.resourceName.equals(resourceName, ignoreCase = true) && this.level.allows(requiredLevel)
 
     fun changePermission(permission: Permission?) {
         this.permission?.domainPermissions?.remove(this)

@@ -31,6 +31,10 @@ class ResourcePermission(
     @ManyToOne(fetch = FetchType.LAZY)
     var permission: Permission? = null,
 ) : IdentityIdEntity() {
+    fun changeLevel(level: PermissionLevel) {
+        this.level = level
+    }
+
     fun allows(
         resourceName: String,
         resourceId: String,
