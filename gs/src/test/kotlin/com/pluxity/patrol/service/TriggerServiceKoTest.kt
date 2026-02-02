@@ -9,15 +9,13 @@ import com.pluxity.patrol.dto.TriggerTargetRequest
 import com.pluxity.patrol.entity.Trigger
 import com.pluxity.patrol.entity.dummyScenario
 import com.pluxity.patrol.repository.TriggerRepository
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDate
-
-private val log = KotlinLogging.logger {}
 
 class TriggerServiceKoTest :
     BehaviorSpec({
@@ -44,7 +42,9 @@ class TriggerServiceKoTest :
 
                 Then("성공") {
                     result.cronExpression shouldBe "30 9 * * *"
-                    log.info { "result.nextExecutionTime = ${result.nextExecutionTime}" }
+                    result.nextExecutionTime shouldNotBe null
+                    result.nextExecutionTime!!.hour shouldBe 9
+                    result.nextExecutionTime!!.minute shouldBe 30
                 }
             }
 
@@ -59,7 +59,9 @@ class TriggerServiceKoTest :
 
                 Then("성공") {
                     result.cronExpression shouldBe "0 12 * * 1,3,5"
-                    log.info { "result.nextExecutionTime = ${result.nextExecutionTime}" }
+                    result.nextExecutionTime shouldNotBe null
+                    result.nextExecutionTime!!.hour shouldBe 12
+                    result.nextExecutionTime!!.minute shouldBe 0
                 }
             }
 
@@ -73,7 +75,9 @@ class TriggerServiceKoTest :
                 val result = service.createTrigger(request, dummyScenario)
 
                 Then("성공") {
-                    log.info { "result.nextExecutionTime = ${result.nextExecutionTime}" }
+                    result.nextExecutionTime shouldNotBe null
+                    result.nextExecutionTime!!.hour shouldBe 18
+                    result.nextExecutionTime!!.minute shouldBe 30
                 }
             }
 
@@ -180,7 +184,9 @@ class TriggerServiceKoTest :
                     trigger.cronExpression shouldBe "0 14 * * 1,3,5"
                     trigger.triggerTargets.size shouldBe 1
                     trigger.triggerTargets[0].targetId shouldBe "user-3"
-                    log.info { "result.nextExecutionTime = ${trigger.nextExecutionTime}" }
+                    trigger.nextExecutionTime shouldNotBe null
+                    trigger.nextExecutionTime!!.hour shouldBe 14
+                    trigger.nextExecutionTime!!.minute shouldBe 0
                 }
             }
             When("cron 재파싱 및 target 중복 제거") {

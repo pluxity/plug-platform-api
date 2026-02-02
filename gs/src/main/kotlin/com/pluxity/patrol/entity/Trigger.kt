@@ -44,7 +44,7 @@ class Trigger(
 ) : IdentityIdEntity() {
     fun updateTrigger(
         triggerType: TriggerType,
-        nextExecutionTime: LocalDateTime,
+        nextExecutionTime: LocalDateTime?,
         startDate: LocalDate,
         endDate: LocalDate?,
         cronExpression: String,

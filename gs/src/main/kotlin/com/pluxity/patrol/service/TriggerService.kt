@@ -78,15 +78,20 @@ class TriggerService(
         val nextExecutionTime = calculateNextExecutionTime(trigger.cronExpression)
         val endDate = trigger.endDate
 
-        if (endDate != null && endDate.isBefore(nextExecutionTime.toLocalDate())) {
+        val isExpired =
+            nextExecutionTime == null ||
+                (endDate != null && endDate.isBefore(nextExecutionTime.toLocalDate()))
+
+        if (isExpired) {
             trigger.isActive = false
             trigger.nextExecutionTime = null
-        } else {
-            trigger.nextExecutionTime = nextExecutionTime
+            return
         }
+
+        trigger.nextExecutionTime = nextExecutionTime
     }
 
-    private fun calculateNextExecutionTime(cronExpression: String): LocalDateTime =
+    private fun calculateNextExecutionTime(cronExpression: String): LocalDateTime? =
         try {
             CronParserUtils.parseNextExecutionTime(cronExpression)
         } catch (_: Exception) {
