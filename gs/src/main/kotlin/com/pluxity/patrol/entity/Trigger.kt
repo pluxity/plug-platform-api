@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Entity
 @Table(
@@ -21,7 +22,7 @@ import java.time.LocalDate
     indexes = [
         Index(
             name = "idx_trigger_schedule",
-            columnList = "is_active, execute_hour, execute_minute",
+            columnList = "is_active, next_execution_time",
         ),
     ],
 )
@@ -37,35 +38,21 @@ class Trigger(
     @Enumerated(EnumType.STRING)
     var triggerType: TriggerType,
     @Column(nullable = false)
-    var executeMinute: Int? = 0,
-    @Column(nullable = false)
-    var executeHour: Int? = 0,
-    var month: Int? = null,
-    var dayOfMonth: Int? = null,
-    @Column(nullable = false)
-    var dayOfWeek: Int = 0,
+    var nextExecutionTime: LocalDateTime,
     var startDate: LocalDate? = null,
     var endDate: LocalDate? = null,
     var isActive: Boolean = true,
 ) : IdentityIdEntity() {
     fun updateTrigger(
         triggerType: TriggerType,
-        hour: Int,
-        minute: Int,
-        dayOfWeek: Int,
-        dayOfMonth: Int?,
-        month: Int?,
+        nextExecutionTime: LocalDateTime,
         startDate: LocalDate,
         endDate: LocalDate?,
         cronExpression: String,
         isActive: Boolean,
     ) {
         this.triggerType = triggerType
-        this.executeHour = hour
-        this.executeMinute = minute
-        this.dayOfWeek = dayOfWeek
-        this.dayOfMonth = dayOfMonth
-        this.month = month
+        this.nextExecutionTime = nextExecutionTime
         this.startDate = startDate
         this.endDate = endDate
         this.cronExpression = cronExpression

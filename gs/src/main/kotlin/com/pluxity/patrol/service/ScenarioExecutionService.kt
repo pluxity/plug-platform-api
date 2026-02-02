@@ -33,6 +33,7 @@ class ScenarioExecutionService(
     private val scenarioExecutionRepository: ScenarioExecutionRepository,
     private val scenarioRepository: ScenarioRepository,
     private val facilityRepository: FacilityRepository,
+    private val triggerService: TriggerService,
 ) {
     @Transactional
     fun execute(
@@ -54,6 +55,8 @@ class ScenarioExecutionService(
 
         if (trigger.triggerType == TriggerType.ONCE) {
             trigger.isActive = false
+        } else {
+            triggerService.updateNextExecutionTime(trigger)
         }
 
         val targets =

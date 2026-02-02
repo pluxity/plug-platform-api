@@ -23,9 +23,12 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 import io.mockk.slot
 import org.springframework.data.repository.findByIdOrNull
+import java.time.LocalDateTime
 
 class ScenarioExecutionServiceKoTest :
     BehaviorSpec({
@@ -33,12 +36,14 @@ class ScenarioExecutionServiceKoTest :
         val scenarioExecutionRepository = mockk<ScenarioExecutionRepository>()
         val scenarioRepository = mockk<ScenarioRepository>()
         val facilityRepository = mockk<FacilityRepository>()
+        val triggerService = mockk<TriggerService>()
 
         val service =
             ScenarioExecutionService(
                 scenarioExecutionRepository,
                 scenarioRepository,
                 facilityRepository,
+                triggerService,
             )
 
         Given("시나리오 자동 실행 (execute)") {
@@ -59,6 +64,7 @@ class ScenarioExecutionServiceKoTest :
                 every { scenarioExecutionRepository.save(capture(executionSlot)) } answers {
                     firstArg<ScenarioExecution>().withId(1L)
                 }
+                every { triggerService.updateNextExecutionTime(trigger) } just runs
 
                 service.execute(scenario, trigger)
 
@@ -343,9 +349,7 @@ private fun dummyTrigger(
         scenario = scenario,
         cronExpression = "0 0 9 * * ?",
         triggerType = TriggerType.REPEAT,
-        executeHour = 9,
-        executeMinute = 0,
-        dayOfWeek = 127,
+        nextExecutionTime = LocalDateTime.now().withSecond(0).withNano(0),
     ).withId(id)
 
 private fun dummyTriggerTarget(
