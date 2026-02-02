@@ -137,7 +137,7 @@ class TriggerService(
         nextExecutionTime: LocalDateTime,
     ) {
         if (endDate != null && endDate.isBefore(nextExecutionTime.toLocalDate())) {
-            throw CustomException(ErrorCode.END_DATE_ALREADY_PASSED, nextExecutionTime, endDate)
+            throw CustomException(ErrorCode.END_DATE_ALREADY_PASSED, endDate, nextExecutionTime)
         }
     }
 
@@ -146,7 +146,7 @@ class TriggerService(
         endDate: LocalDate?,
     ) {
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-            throw CustomException(ErrorCode.START_DATE_AFTER_END_DATE)
+            throw CustomException(ErrorCode.START_DATE_AFTER_END_DATE, startDate, endDate)
         }
     }
 }
