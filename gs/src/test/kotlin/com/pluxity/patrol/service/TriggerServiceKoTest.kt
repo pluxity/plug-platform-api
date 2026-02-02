@@ -146,6 +146,36 @@ class TriggerServiceKoTest :
                     result.triggerTargets[0].targetId shouldBe "user-1"
                 }
             }
+
+            When("요청 startDate가 endDate보다 이후일때") {
+                val request =
+                    TriggerRequest(
+                        triggerType = TriggerType.REPEAT,
+                        cronExpression = "0 10 * * *",
+                        startDate = LocalDate.now().plusYears(1),
+                        endDate = LocalDate.now().plusMonths(6),
+                    )
+
+                Then("START_DATE_AFTER_END_DATE 예외발생") {
+                    shouldThrowExactly<CustomException> {
+                        service.createTrigger(request, dummyScenario)
+                    }.errorCode shouldBe ErrorCode.START_DATE_AFTER_END_DATE
+                }
+            }
+            When("endDate가 다음 실행시간보다 이전일때") {
+                val request =
+                    TriggerRequest(
+                        triggerType = TriggerType.REPEAT,
+                        cronExpression = "0 10 * * *",
+                        endDate = LocalDate.now().minusDays(1),
+                    )
+
+                Then("END_DATE_ALREADY_PASSED 예외발생") {
+                    shouldThrowExactly<CustomException> {
+                        service.createTrigger(request, dummyScenario)
+                    }.errorCode shouldBe ErrorCode.END_DATE_ALREADY_PASSED
+                }
+            }
         }
 
         Given("트리거 수정 할때") {
@@ -263,6 +293,41 @@ class TriggerServiceKoTest :
 
                 Then("비활성화 된다.") {
                     trigger.nextExecutionTime shouldBe null
+                    trigger.isActive shouldBe false
+                }
+            }
+            When("다음 실행 시간보다 startDate가 이후일때") {
+                val futureStartDate = LocalDate.now().plusMonths(6)
+                val trigger =
+                    Trigger(
+                        scenario = dummyScenario(),
+                        triggerType = TriggerType.REPEAT,
+                        cronExpression = "0 10 * * *",
+                        startDate = futureStartDate,
+                        endDate = LocalDate.now().plusYears(1),
+                    )
+
+                service.updateNextExecutionTime(trigger)
+
+                Then("startDate에 맞게 다시 계산한다.") {
+                    trigger.nextExecutionTime!!.toLocalDate() shouldBe futureStartDate
+                    trigger.nextExecutionTime!!.hour shouldBe 10
+                    trigger.nextExecutionTime!!.minute shouldBe 0
+                }
+            }
+            When("다음 실행시간 보다 endDate가 이전일때") {
+                val trigger =
+                    Trigger(
+                        scenario = dummyScenario(),
+                        triggerType = TriggerType.REPEAT,
+                        cronExpression = "0 10 * * *",
+                        startDate = LocalDate.now().minusMonths(6),
+                        endDate = LocalDate.now().minusDays(1),
+                    )
+
+                service.updateNextExecutionTime(trigger)
+
+                Then("해당 트리거는 비활성화된다.") {
                     trigger.isActive shouldBe false
                 }
             }
