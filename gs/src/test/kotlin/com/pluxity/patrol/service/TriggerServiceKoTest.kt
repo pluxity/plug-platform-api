@@ -6,6 +6,7 @@ import com.pluxity.patrol.constant.TriggerTargetType
 import com.pluxity.patrol.constant.TriggerType
 import com.pluxity.patrol.dto.TriggerRequest
 import com.pluxity.patrol.dto.TriggerTargetRequest
+import com.pluxity.patrol.entity.Trigger
 import com.pluxity.patrol.entity.dummyScenario
 import com.pluxity.patrol.repository.TriggerRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -14,6 +15,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
@@ -220,6 +222,42 @@ class TriggerServiceKoTest :
                     trigger.cronExpression shouldBe "0 14 * * 1,3,5"
                     trigger.triggerTargets.size shouldBe 1
                     trigger.triggerTargets[0].targetId shouldBe "user-3"
+                }
+            }
+        }
+
+        Given("트리거가 실행되어 다음 실행 시간 업데이트될때") {
+            When("유효한 트리거일때") {
+                val trigger =
+                    Trigger(
+                        scenario = dummyScenario(),
+                        triggerType = TriggerType.REPEAT,
+                        cronExpression = "0 10 * * *",
+                        endDate = LocalDate.now().plusYears(1),
+                    )
+
+                service.updateNextExecutionTime(trigger)
+
+                Then("다음 실행 시간을 계산한다.") {
+                    trigger.nextExecutionTime!!.hour shouldBe 10
+                    trigger.nextExecutionTime!!.minute shouldBe 0
+                    trigger.isActive shouldBe true
+                }
+            }
+            When("유효하지 않은 트리거일때") {
+                val trigger =
+                    Trigger(
+                        scenario = dummyScenario(),
+                        triggerType = TriggerType.REPEAT,
+                        cronExpression = "0 10 * * *",
+                        endDate = LocalDate.now().minusDays(1),
+                    )
+
+                service.updateNextExecutionTime(trigger)
+
+                Then("비활성화 된다.") {
+                    trigger.nextExecutionTime shouldBe null
+                    trigger.isActive shouldBe false
                 }
             }
         }
