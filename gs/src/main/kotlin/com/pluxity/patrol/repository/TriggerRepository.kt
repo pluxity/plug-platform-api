@@ -12,7 +12,7 @@ interface TriggerRepository : JpaRepository<Trigger, Long> {
       join fetch t.scenario s
       join fetch s.facility
       WHERE t.isActive = true
-        AND t.nextExecutionTime = :now
+        AND t.nextExecutionTime = :executionTime
       """,
     )
     fun findActiveTriggers(executionTime: LocalDateTime): List<Trigger>

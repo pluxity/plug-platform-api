@@ -37,8 +37,7 @@ class Trigger(
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     var triggerType: TriggerType,
-    @Column(nullable = false)
-    var nextExecutionTime: LocalDateTime,
+    var nextExecutionTime: LocalDateTime? = null,
     var startDate: LocalDate? = null,
     var endDate: LocalDate? = null,
     var isActive: Boolean = true,
