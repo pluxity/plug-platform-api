@@ -12,7 +12,7 @@ object CronParserUtils {
     private val cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX)
     private val parser = CronParser(cronDefinition)
 
-    fun parseNextExecutionTime(expression: String): LocalDateTime {
+    fun parseNextExecutionTime(expression: String): LocalDateTime? {
         val cron = parser.parse(expression)
 
         val executionTime = ExecutionTime.forCron(cron)
