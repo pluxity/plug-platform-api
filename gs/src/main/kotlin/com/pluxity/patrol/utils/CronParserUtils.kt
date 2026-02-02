@@ -12,13 +12,24 @@ object CronParserUtils {
     private val cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX)
     private val parser = CronParser(cronDefinition)
 
-    fun parseNextExecutionTime(expression: String): LocalDateTime? {
-        val cron = parser.parse(expression)
+    fun parseNextExecutionTime(expression: String): LocalDateTime? = parseNextExecutionTime(expression, LocalDateTime.now())
+
+    fun parseNextExecutionTimeWithStartDate(
+        expression: String,
+        startDate: LocalDateTime,
+    ): LocalDateTime? = parseNextExecutionTime(expression, startDate)
+
+    private fun parseNextExecutionTime(
+        expression: String,
+        baseTime: LocalDateTime,
+    ): LocalDateTime? {
+        val cron =
+            runCatching { parser.parse(expression) }.getOrNull()
+                ?: return null
 
         val executionTime = ExecutionTime.forCron(cron)
-
         return executionTime
-            .nextExecution(ZonedDateTime.now(ZoneId.systemDefault()))
+            .nextExecution(ZonedDateTime.of(baseTime, ZoneId.systemDefault()))
             .map { it.toLocalDateTime().withSecond(0).withNano(0) }
             .orElse(null)
     }
