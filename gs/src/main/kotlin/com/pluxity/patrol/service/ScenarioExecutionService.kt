@@ -55,6 +55,7 @@ class ScenarioExecutionService(
 
         if (trigger.triggerType == TriggerType.ONCE) {
             trigger.isActive = false
+            trigger.nextExecutionTime = null
         } else {
             triggerService.updateNextExecutionTime(trigger)
         }
