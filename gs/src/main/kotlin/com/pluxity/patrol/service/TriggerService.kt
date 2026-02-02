@@ -8,9 +8,9 @@ import com.pluxity.patrol.entity.Trigger
 import com.pluxity.patrol.entity.TriggerTarget
 import com.pluxity.patrol.repository.TriggerRepository
 import com.pluxity.patrol.utils.CronParserUtils
-import com.pluxity.patrol.utils.CronParserUtils.ParsedCron
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Service
 class TriggerService(
@@ -20,8 +20,6 @@ class TriggerService(
         request: TriggerRequest,
         scenario: Scenario,
     ): Trigger {
-        val parsedCron = parseCron(request.cronExpression)
-
         val trigger =
             triggerRepository.save(
                 Trigger(
@@ -31,11 +29,7 @@ class TriggerService(
                     endDate = request.endDate,
                     cronExpression = request.cronExpression,
                     isActive = request.isActive,
-                    executeHour = parsedCron.hour ?: 0,
-                    executeMinute = parsedCron.minute ?: 0,
-                    dayOfWeek = parsedCron.dayOfWeek ?: 0,
-                    month = parsedCron.month,
-                    dayOfMonth = parsedCron.dayOfMonth,
+                    nextExecutionTime = calculateNextExecutionTime(request.cronExpression),
                 ),
             )
 
@@ -57,19 +51,13 @@ class TriggerService(
         existingTrigger: Trigger,
         request: TriggerRequest,
     ) {
-        val parsedCron = parseCron(request.cronExpression)
-
         existingTrigger.updateTrigger(
             triggerType = request.triggerType,
             startDate = request.startDate ?: LocalDate.now(),
             endDate = request.endDate,
             cronExpression = request.cronExpression,
             isActive = request.isActive,
-            hour = parsedCron.hour ?: 0,
-            minute = parsedCron.minute ?: 0,
-            dayOfWeek = parsedCron.dayOfWeek ?: 0,
-            dayOfMonth = parsedCron.dayOfMonth,
-            month = parsedCron.month,
+            nextExecutionTime = calculateNextExecutionTime(request.cronExpression),
         )
 
         existingTrigger.triggerTargets.clear()
@@ -86,9 +74,13 @@ class TriggerService(
             }
     }
 
-    private fun parseCron(cronExpression: String): ParsedCron =
+    fun updateNextExecutionTime(trigger: Trigger) {
+        trigger.nextExecutionTime = calculateNextExecutionTime(trigger.cronExpression)
+    }
+
+    private fun calculateNextExecutionTime(cronExpression: String): LocalDateTime =
         try {
-            CronParserUtils.parse(cronExpression)
+            CronParserUtils.parseNextExecutionTime(cronExpression)
         } catch (_: Exception) {
             throw CustomException(ErrorCode.INVALID_CRON_EXPRESSION, cronExpression)
         }

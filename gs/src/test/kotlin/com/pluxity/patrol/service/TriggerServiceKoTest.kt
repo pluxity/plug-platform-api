@@ -8,11 +8,14 @@ import com.pluxity.patrol.dto.TriggerRequest
 import com.pluxity.patrol.dto.TriggerTargetRequest
 import com.pluxity.patrol.entity.dummyScenario
 import com.pluxity.patrol.repository.TriggerRepository
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+
+private val log = KotlinLogging.logger {}
 
 class TriggerServiceKoTest :
     BehaviorSpec({
@@ -38,10 +41,8 @@ class TriggerServiceKoTest :
                 val result = service.createTrigger(request, dummyScenario)
 
                 Then("성공") {
-                    result.dayOfWeek shouldBe 127
                     result.cronExpression shouldBe "30 9 * * *"
-                    result.executeHour shouldBe 9
-                    result.executeMinute shouldBe 30
+                    log.info { "result.nextExecutionTime = ${result.nextExecutionTime}" }
                 }
             }
 
@@ -55,10 +56,8 @@ class TriggerServiceKoTest :
                 val result = service.createTrigger(request, dummyScenario)
 
                 Then("성공") {
-                    result.dayOfWeek shouldBe 42
                     result.cronExpression shouldBe "0 12 * * 1,3,5"
-                    result.executeHour shouldBe 12
-                    result.executeMinute shouldBe 0
+                    log.info { "result.nextExecutionTime = ${result.nextExecutionTime}" }
                 }
             }
 
@@ -72,11 +71,7 @@ class TriggerServiceKoTest :
                 val result = service.createTrigger(request, dummyScenario)
 
                 Then("성공") {
-                    result.dayOfWeek shouldBe 127
-                    result.month shouldBe 2
-                    result.dayOfMonth shouldBe 15
-                    result.executeHour shouldBe 18
-                    result.executeMinute shouldBe 30
+                    log.info { "result.nextExecutionTime = ${result.nextExecutionTime}" }
                 }
             }
 
@@ -181,11 +176,9 @@ class TriggerServiceKoTest :
 
                 Then("cron 값과 target이 업데이트됨") {
                     trigger.cronExpression shouldBe "0 14 * * 1,3,5"
-                    trigger.executeHour shouldBe 14
-                    trigger.executeMinute shouldBe 0
-                    trigger.dayOfWeek shouldBe 42
                     trigger.triggerTargets.size shouldBe 1
                     trigger.triggerTargets[0].targetId shouldBe "user-3"
+                    log.info { "result.nextExecutionTime = ${trigger.nextExecutionTime}" }
                 }
             }
             When("cron 재파싱 및 target 중복 제거") {
@@ -225,9 +218,6 @@ class TriggerServiceKoTest :
 
                 Then("cron 값과 target이 업데이트됨") {
                     trigger.cronExpression shouldBe "0 14 * * 1,3,5"
-                    trigger.executeHour shouldBe 14
-                    trigger.executeMinute shouldBe 0
-                    trigger.dayOfWeek shouldBe 42
                     trigger.triggerTargets.size shouldBe 1
                     trigger.triggerTargets[0].targetId shouldBe "user-3"
                 }
