@@ -28,7 +28,7 @@ class PermissionService(
         }
 
         val permission = Permission(name = request.name, description = request.description)
-        val requestedResourceKeys = mutableSetOf<String>()
+        val requestedResourceKeys = mutableSetOf<ResourceKey>()
         val requestedDomainKeys = mutableSetOf<String>()
         request.permissions.forEach { permissionRequest ->
             val resourceType = ResourceType.fromString(permissionRequest.resourceType)
@@ -48,14 +48,13 @@ class PermissionService(
                     DomainPermission(
                         resourceName = resourceName,
                         level = level,
-                        permission = null,
                     )
                 permission.addDomainPermission(domainPermission)
             }
 
             resourceIds
                 .forEach { id ->
-                    val key = "$resourceName:$id"
+                    val key = ResourceKey(resourceName, id)
                     if (!requestedResourceKeys.add(key)) {
                         throw CustomException(
                             ErrorCode.DUPLICATE_RESOURCE_ID,
@@ -67,7 +66,6 @@ class PermissionService(
                             resourceName = resourceName,
                             resourceId = id,
                             level = level,
-                            permission = null,
                         )
                     permission.addResourcePermission(resourcePermission)
                 }
@@ -98,15 +96,14 @@ class PermissionService(
 
         request.description?.let { permission.changeDescription(it) }
 
-        // 현재 권한을 "ResourceType:ResourceId:Level" 형태의 키를 가진 Map으로 변환
         val existingResourceMap =
             permission.resourcePermissions
-                .associateBy { "${it.resourceName}:${it.resourceId}" }
+                .associateBy { ResourceKey(it.resourceName, it.resourceId) }
         val existingDomainMap =
             permission.domainPermissions
                 .associateBy { it.resourceName }
 
-        val requestedResourceKeys = mutableSetOf<String>()
+        val requestedResourceKeys = mutableSetOf<ResourceKey>()
         val requestedDomainKeys = mutableSetOf<String>()
         request.permissions.forEach { permissionRequest ->
             val resourceName = ResourceType.fromString(permissionRequest.resourceType).name
@@ -126,7 +123,7 @@ class PermissionService(
             }
 
             resourceIds.forEach { resourceId ->
-                val key = "$resourceName:$resourceId"
+                val key = ResourceKey(resourceName, resourceId)
                 if (!requestedResourceKeys.add(key)) {
                     throw CustomException(
                         ErrorCode.DUPLICATE_RESOURCE_ID,
