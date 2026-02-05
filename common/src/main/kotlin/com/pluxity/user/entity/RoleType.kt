@@ -5,9 +5,4 @@ enum class RoleType(
 ) {
     ADMIN("ADMIN"),
     USER("USER"),
-    ;
-
-    companion object {
-        fun fromRoleName(roleName: String): RoleType? = values().find { it.roleName == roleName }
-    }
 }

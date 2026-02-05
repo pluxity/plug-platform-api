@@ -17,7 +17,7 @@ import java.util.concurrent.Executor
 @Configuration
 @EnableWebSocketMessageBroker
 class WebSocketConfig(
-    private val hearBeatScheduler: TaskScheduler,
+    private val heartBeatScheduler: TaskScheduler,
     private val myDefaultHandshakeHandler: DefaultHandshakeHandler,
 ) : WebSocketMessageBrokerConfigurer {
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
@@ -30,7 +30,7 @@ class WebSocketConfig(
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
         registry
             .enableSimpleBroker("/topic", "/queue") // 메시지 브로커 엔드포인트 prefix
-            .setTaskScheduler(hearBeatScheduler)
+            .setTaskScheduler(heartBeatScheduler)
             .setHeartbeatValue(longArrayOf(5000, 5000))
         registry.setApplicationDestinationPrefixes("/app") // 클라이언트에서 메시지 보낼 prefix
     }
@@ -52,5 +52,5 @@ class AsyncConfig {
     }
 
     @Bean
-    fun hearBeatScheduler(): TaskScheduler = ThreadPoolTaskScheduler()
+    fun heartBeatScheduler(): TaskScheduler = ThreadPoolTaskScheduler()
 }
