@@ -23,7 +23,7 @@ data class TriggerRequest(
 
         """,
         type = "string",
-        example = "30 9 * * 1,5",
+        example = "'30 9 * * 1,5'",
     )
     val cronExpression: String,
     @field:Schema(
@@ -56,7 +56,10 @@ data class TriggerRequest(
     val triggerTargetRequests: List<TriggerTargetRequest>? = null,
 )
 
+@Schema(description = "트리거 타겟 요청")
 data class TriggerTargetRequest(
+    @field:Schema(description = "타겟 타입 (USER, GROUP 등)", defaultValue = "USER")
     val targetType: TriggerTargetType = TriggerTargetType.USER,
+    @field:Schema(description = "타겟 ID 또는 식별자", example = "user-123")
     val targetId: String,
 )

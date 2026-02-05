@@ -11,6 +11,7 @@ interface TriggerRepository : JpaRepository<Trigger, Long> {
       SELECT t FROM Trigger t
       join fetch t.scenario s
       join fetch s.facility
+      join fetch t.triggerTargets
       WHERE t.isActive = true
         AND t.nextExecutionTime = :executionTime
       """,

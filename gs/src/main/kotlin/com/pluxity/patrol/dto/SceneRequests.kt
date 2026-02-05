@@ -7,16 +7,17 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
 
+@Schema(description = "씬 생성 요청")
 data class SceneCreateRequest(
     @field:NotBlank(message = "씬 이름은 필수입니다")
     @field:Size(max = 100, message = "씬 이름은 100자를 초과할 수 없습니다")
-    @field:Schema(description = "씬 이름", example = "오전 순찰 모드")
+    @field:Schema(description = "씬 이름", example = "오전 순찰 모드", required = true)
     val name: String,
     @field:Size(max = 500, message = "설명은 500자를 초과할 수 없습니다")
     @field:Schema(description = "설명", example = "오전 9시 자동으로 실행되는 순찰 씬")
     val description: String?,
     @field:PositiveOrZero(message = "유지 시간은 0보다 작을 수 없습니다")
-    @field:Schema(description = "유지 시간 (초 단위)", minimum = "0", example = "10")
+    @field:Schema(description = "유지 시간 (초 단위)", minimum = "0", example = "10", required = true)
     val duration: Int,
     @field:Schema(description = "좌표 정보 (위치)")
     val position: Spatial?,
@@ -27,16 +28,17 @@ data class SceneCreateRequest(
     val sceneDeviceActionRequests: List<SceneDeviceActionCreateRequest> = emptyList(),
 )
 
+@Schema(description = "씬 수정 요청")
 data class SceneUpdateRequest(
     @field:Size(max = 100, message = "씬 이름은 100자를 초과할 수 없습니다")
-    @field:Schema(description = "씬 이름 (수정 시에만 포함)", example = "수정된 씬 이름")
+    @field:Schema(description = "씬 이름", example = "수정된 씬 이름", required = true)
     @field:NotBlank(message = "씬 이름은 필수 입니다.")
     val name: String,
     @field:Size(max = 500, message = "설명은 500자를 초과할 수 없습니다")
     @field:Schema(description = "설명", example = "수정된 설명")
     val description: String?,
     @field:PositiveOrZero(message = "유지 시간은 0보다 작을 수 없습니다")
-    @field:Schema(description = "유지 시간", minimum = "0", example = "20")
+    @field:Schema(description = "유지 시간 (초)", minimum = "0", example = "20")
     val duration: Int?,
     @field:Schema(description = "회전 정보")
     val rotation: Spatial?,
