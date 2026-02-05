@@ -33,43 +33,123 @@ class ScenarioExecutionController(
 ) {
     @ResponseCreated(path = "/scenario-executions/{id}")
     @PostMapping("/start/{scenarioId}")
-    @Operation(summary = "시나리오 수동 실행")
+    @Operation(summary = "시나리오 수동 실행", description = "특정 시나리오를 수동으로 즉시 실행합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "201", description = "시나리오 실행 시작 성공"),
+            ApiResponse(
+                responseCode = "404",
+                description = "시나리오를 찾을 수 없음",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+        ],
+    )
     fun startManually(
-        @PathVariable scenarioId: Long,
+        @Parameter(description = "시나리오 ID", required = true) @PathVariable scenarioId: Long,
     ): ResponseEntity<Long> = ResponseEntity.ok(scenarioExecutionService.startManually(scenarioId))
 
     @PatchMapping("/{id}/complete")
-    @Operation(summary = "시나리오 실행 완료")
+    @Operation(summary = "시나리오 실행 완료", description = "진행 중인 시나리오 실행을 완료 상태로 변경합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "204", description = "시나리오 실행 완료 처리 성공"),
+            ApiResponse(
+                responseCode = "404",
+                description = "시나리오 실행을 찾을 수 없음",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+        ],
+    )
     fun complete(
-        @PathVariable id: Long,
+        @Parameter(description = "시나리오 실행 ID", required = true) @PathVariable id: Long,
     ): ResponseEntity<Void> {
         scenarioExecutionService.complete(id)
         return ResponseEntity.noContent().build()
     }
 
     @PatchMapping("/{id}/fail")
-    @Operation(summary = "시나리오 실행 실패")
+    @Operation(summary = "시나리오 실행 실패", description = "진행 중인 시나리오 실행을 실패 상태로 변경하고 오류 메시지를 기록합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "204", description = "시나리오 실행 실패 처리 성공"),
+            ApiResponse(
+                responseCode = "400",
+                description = "잘못된 요청",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "시나리오 실행을 찾을 수 없음",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+        ],
+    )
     fun fail(
-        @PathVariable id: Long,
-        @RequestBody request: ScenarioExecutionFailRequest,
+        @Parameter(description = "시나리오 실행 ID", required = true) @PathVariable id: Long,
+        @Parameter(description = "실패 정보 (오류 메시지)", required = true) @RequestBody request: ScenarioExecutionFailRequest,
     ): ResponseEntity<Void> {
         scenarioExecutionService.fail(id, request.errorMessage)
         return ResponseEntity.noContent().build()
     }
 
     @PatchMapping("/{id}/cancel")
-    @Operation(summary = "시나리오 실행 취소")
+    @Operation(summary = "시나리오 실행 취소", description = "진행 중인 시나리오 실행을 취소 상태로 변경합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "204", description = "시나리오 실행 취소 성공"),
+            ApiResponse(
+                responseCode = "404",
+                description = "시나리오 실행을 찾을 수 없음",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+        ],
+    )
     fun cancel(
-        @PathVariable id: Long,
+        @Parameter(description = "시나리오 실행 ID", required = true) @PathVariable id: Long,
     ): ResponseEntity<Void> {
         scenarioExecutionService.cancel(id)
         return ResponseEntity.noContent().build()
     }
 
     @PatchMapping("/{id}/running")
-    @Operation(summary = "시나리오 실행 중")
+    @Operation(summary = "시나리오 실행 중", description = "대기 중인 시나리오 실행을 진행 중 상태로 변경합니다.")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "204", description = "시나리오 실행 상태 변경 성공"),
+            ApiResponse(
+                responseCode = "404",
+                description = "시나리오 실행을 찾을 수 없음",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+            ApiResponse(
+                responseCode = "500",
+                description = "서버 오류",
+                content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponseBody::class))],
+            ),
+        ],
+    )
     fun running(
-        @PathVariable id: Long,
+        @Parameter(description = "시나리오 실행 ID", required = true) @PathVariable id: Long,
     ): ResponseEntity<Void> {
         scenarioExecutionService.running(id)
         return ResponseEntity.noContent().build()
